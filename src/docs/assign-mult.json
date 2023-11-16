@@ -1,0 +1,15 @@
+{
+    "title": "Multiply a Variable",
+    "tooltip": {
+        "title": "Multiply Variable by Value",
+        "body": "Multiplies the variable by the value on the right-hand side of the *= sign and stores the result back in the variable."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-var-mul-by-val",
+            "example": "a = 5\na *= 2\nprint(a)"
+        }
+    ],
+    "search-queries": ["multiply variable"]
+}

@@ -1,0 +1,15 @@
+{
+    "title": "true",
+    "tooltip": {
+        "title": "Insert True",
+        "body": "Inserts a True boolean value."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-true",
+            "example": "if True :\n\tprint(\"will print\")\n\nif False :\n\tprint(\"will not print\")"
+        }
+    ],
+    "search-queries": ["true", "boolean"]
+}

@@ -1,0 +1,216 @@
+.doc-box-container {
+    position: absolute;
+    box-shadow: 0px 0px 20px 0px #5d5d5d;
+    width: 400px;
+    height: 330px;
+    left: calc(50% - 150px);
+    top: calc(50% - 125px);
+    background-color: #fff;
+    border-radius: 7px;
+    overflow: hidden;
+    resize: both;
+
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.focused-header {
+    background-color: #6699aa !important;
+}
+
+.doc-box-header {
+    height: 25px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    background-color: #6699aa70;
+
+    transition: background-color 0.15s ease-in-out;
+    -webkit-transition: background-color 0.15s ease-in-out;
+    -moz-transition: background-color 0.15s ease-in-out;
+    -o-transition: background-color 0.15s ease-in-out;
+    -ms-transition: background-color 0.15s ease-in-out;
+
+    cursor: grab;
+}
+
+.doc-box-header:hover {
+    background-color: #578;
+}
+
+.doc-title {
+    color: #fff;
+    font-size: 16px;
+    margin: 0 0 0 15px;
+}
+
+.close-button {
+    margin-left: auto;
+    margin-top: 1px;
+    font-weight: bold;
+    color: #fff;
+    font-size: 27px;
+
+    transition: background-color 0.15s ease-in-out;
+    -webkit-transition: background-color 0.15s ease-in-out;
+    -moz-transition: background-color 0.15s ease-in-out;
+    -o-transition: background-color 0.15s ease-in-out;
+    -ms-transition: background-color 0.15s ease-in-out;
+
+    cursor: pointer;
+    padding: 0px 10px;
+}
+
+.close-button:hover {
+    color: #000;
+}
+
+.doc-body {
+    overflow-y: auto;
+    width: calc(100% - 30px);
+    height: calc(100% - 25px);
+    padding: 0 15px 0 15px;
+    font-family: monospace;
+    font-size: 15px;
+}
+
+.doc-editor {
+    width: 100%;
+    border: solid 1px #eee;
+}
+
+.doc-body::-webkit-scrollbar {
+    background: #ccc;
+    margin: 5px;
+    width: 8px;
+}
+
+.doc-body::-webkit-scrollbar-track {
+    background: #ebebeb;
+}
+
+.doc-body::-webkit-scrollbar-thumb {
+    border: none;
+    background-color: #b8ccd1;
+    border-radius: 0px;
+}
+
+div.doc-body p span.italics {
+    font-style: italic;
+}
+
+div.doc-body p span.code {
+    background-color: #ddd;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-weight: bold;
+}
+
+div.doc-body p span.bold {
+    font-weight: bold;
+}
+
+div.doc-body > div.doc-editor:nth-last-child(1) {
+    margin-bottom: 7%;
+}
+
+.doc-editor-container {
+    border-top: solid 1px #ccc;
+}
+
+.console-output::-webkit-scrollbar {
+    background: #ccc;
+    margin: 5px;
+    width: 8px;
+}
+
+.console-output::-webkit-scrollbar-track {
+    background: #c1c1c1;
+}
+
+.console-output::-webkit-scrollbar-thumb {
+    border: none;
+    background-color: #8c8c8c;
+    border-radius: 0px;
+}
+
+.doc-example-console {
+    background-color: #ccc;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.doc-example-console p {
+    padding: 0;
+    margin: 0;
+}
+
+.doc-editor-header {
+    background-color: #17a564;
+    color: #fff;
+    font-weight: bold;
+    padding: 4px 8px;
+    font-size: 14px;
+}
+
+.doc-example-btn {
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+}
+
+.reset-editor-btn {
+    visibility: hidden;
+}
+
+.block-vs-text-table-container {
+    border-radius: 5px;
+    box-shadow: 0 0 5px 1px #888;
+}
+
+.block-vs-text-table-header {
+    height: 20px;
+    background-color: #d9e7ee;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.image-container {
+    flex-direction: row;
+    justify-content: space-between;
+    display: flex;
+    align-items: start;
+    padding: 15px;
+}
+
+.image-container img {
+    width: 48%;
+}
+
+.console-output {
+    height: 100px;
+    max-height: 0px;
+    overflow-y: scroll;
+
+    color: #000;
+
+    transition: max-height 0.2s ease-in-out;
+    -webkit-transition: max-height 0.2s ease-in-out;
+    -moz-transition: max-height 0.2s ease-in-out;
+    -o-transition: max-height 0.2s ease-in-out;
+    -ms-transition: max-height 0.2s ease-in-out;
+}
+
+.console-output-open {
+    padding: 5px;
+    max-height: 100px;
+}
+
+.doc-example-console-button-container {
+    border-bottom: solid 1px#bbb;
+    padding: 5px;
+}

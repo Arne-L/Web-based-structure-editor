@@ -1,0 +1,15 @@
+{
+    "title": "input(prompt: text)",
+    "tooltip": {
+        "title": "Ask User for Textual Input",
+        "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-input-1",
+            "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
+        }
+    ],
+    "search-queries": ["input", "prompt", "text", "user", "ask input", "ask user"]
+}

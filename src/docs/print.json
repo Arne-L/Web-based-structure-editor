@@ -1,0 +1,20 @@
+{
+    "title": "print(message: any)",
+    "tooltip": {
+        "title": "Display Text in Console",
+        "body": "Displays the textual value of its input in the console."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-print-num-str",
+            "example": "print(123)\nprint(\"Hello World!\")"
+        },
+        {
+            "type": "executable",
+            "id": "ex-print-var",
+            "example": "a = \"abc\"\nprint(a)"
+        }
+    ],
+    "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
+}

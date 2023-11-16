@@ -1,0 +1,15 @@
+{
+    "title": "Subtract from Variable",
+    "tooltip": {
+        "title": "Subtract Value from Variable",
+        "body": "Subtracts the value on the right-hand side of the -= sign from the specified variable and stores the result back in the variable."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-var-sub-by-val",
+            "example": "a = 5\na -= 2\nprint(a)"
+        }
+    ],
+    "search-queries": ["subtract from variable", "deduct from variable"]
+}

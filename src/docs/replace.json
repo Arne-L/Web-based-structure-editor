@@ -1,0 +1,15 @@
+{
+    "title": "replace(old: text, new: text)",
+    "tooltip": {
+        "title": "Call Replace Method",
+        "body": "Replaces all occurrences of the first input with the value of the second input in the text."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-replace",
+            "example": "name  = \"John\"\nname = name.replace(\"oh\", \"a\")\nprint(name)"
+        }
+    ],
+    "search-queries": ["replace", "replace text", "replace string"]
+}

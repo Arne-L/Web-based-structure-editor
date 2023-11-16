@@ -1,0 +1,20 @@
+{
+    "title": "Is Less Than?",
+    "tooltip": {
+        "title": "Is Less Than?",
+        "body": "Compares two values. Returns True if the left value is less than the right value."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-lt-1",
+            "example": "a = 2\nb = 3\nif a < b:\n\tprint(\"a is less than b\")\n\nif c < a:\n\tprint(\"This will not print because the condition is false.\")"
+        },
+        {
+            "type": "executable",
+            "id": "ex-lt-2",
+            "example": "a = 1\nb = 5\nwhile a < b:\n\ta += 1\nprint(a)\nprint(a)"
+        }
+    ],
+    "search-queries": ["compare", "compare less than", "check less than"]
+}

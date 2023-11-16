@@ -1,0 +1,9 @@
+{
+    "cSpell.words": ["elif", "randint", "consts", "pyodide", "builtins"],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "editor.tabSize": 4
+    
+}

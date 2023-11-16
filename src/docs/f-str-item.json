@@ -1,0 +1,15 @@
+{
+    "title": "formatted text item",
+    "tooltip": {
+        "title": "Formatted Text Item",
+        "body": "Converts the item to its textual value. Can only be used inside a formatted text (f'')."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-f-str-item",
+            "example": "age = 16\nname = \"Alex\"\nprint(f'My name is {name} and I am {age} years old')"
+        }
+    ],
+    "search-queries": ["formatted string item", "formatted text item"]
+}

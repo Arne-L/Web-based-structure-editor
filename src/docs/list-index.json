@@ -1,0 +1,20 @@
+{
+    "title": "List Element Access",
+    "tooltip": {
+        "title": "Access List Element",
+        "body": "Adds a list accessor to a list (or a text) to access an element of the list at the provided index."
+    },
+    "tips": [
+        {
+            "type": "executable",
+            "id": "ex-list-index-1",
+            "example": "a = [1, 2, 3]\nprint(a[0])"
+        },
+        {
+            "type": "executable",
+            "id": "ex-list-index-2",
+            "example": "a = [1, 2, 3]\nif a[1] == 2:\n\tprint(\"The second element of the list is equal to 2.\")"
+        }
+    ],
+    "search-queries": ["access list item", "access list element", "access list element at index"]
+}

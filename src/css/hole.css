@@ -1,0 +1,47 @@
+.hole {
+    position: absolute;
+    pointer-events: none;
+
+    /* box-shadow: 0px 0px 3px 1px #00000029 inset; */
+    border: solid 1px #00000029;
+    transition-property: background;
+    transition-duration: 0.2s;
+
+    border-radius: 5px;
+}
+
+.editableHole {
+    /* box-shadow: 0px 0px 3px 1px #398dfab6 inset; */
+    border: solid 1px #398dfab6;
+}
+
+.validVarIdentifierHole {
+    background-color: rgba(58, 223, 58, 0.3);
+}
+
+.draftVarIdentifierHole {
+    background-color: rgb(255, 255, 230, 0.6);
+}
+
+.expression-hole {
+    border-radius: 15px !important;
+}
+
+.text-editable-expr-hole {
+    border-radius: 15px !important;
+    border-style: dashed !important;
+}
+
+.empty-operator-hole {
+    border-radius: 0 !important;
+}
+
+.identifier-hole {
+    border-radius: 0 !important;
+    border-style: dashed !important;
+}
+
+.errorTooltipHole {
+    position: relative;
+    top: 5px;
+}
