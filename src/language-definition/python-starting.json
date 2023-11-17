@@ -1,0 +1,69 @@
+[
+    {
+        "name": "variable_reference",
+        "format": [
+            {
+                "type": "identifier"
+            }
+        ]
+    },
+    {
+        "name": "identifier",
+        "match": ".*"
+    },
+    {
+        "name": "function_call",
+        "format": [
+            {
+                "ref": "name",
+                "type": "construct",
+                "name": "identifier"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "ref": "arg_list",
+                "type": "list",
+                "delimiter": ",",
+                "values": "expression"
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "implementations": [
+            {
+                "name": "print"
+            },
+            [
+                {
+                    "name": "gcd"
+                },
+                {
+                    "arg_list": {
+                        "min_length": 2
+                    }
+                }
+            ]
+        ]
+    },
+    {
+        "name": "expression",
+        "format": {
+            "type": "or",
+            "options": [
+                {
+                    "type": "construct",
+                    "name": "function_call"
+                },
+                {
+                    "type": "construct",
+                    "name": "variable_reference"
+                }
+            ]
+        }
+    }
+]
