@@ -8,7 +8,7 @@
                 "name": "print",
                 "arguments": [{"name":"text", "optional": false}],
                 "editorName": "print(---)",
-                "id": "add-print-btn",
+                "id": "add-print-test-btn",
                 "toolbox": {
                     "category": "Tests",
                     "title": "print(message: any)",

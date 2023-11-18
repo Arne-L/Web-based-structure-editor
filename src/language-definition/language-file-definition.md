@@ -19,8 +19,27 @@ The possible implementation properties are:
 * `ref`: Which element in the more abstract definition it replaces
 * `name`: The name with which the ref argument will be replaced
 * `arguments`: An array of arguments that will be used to replace the arguments of the ref argument. The strings in the array are argument names. This is an optional property.
+* `editorName`: Option name used to represent the button in the toolbox. "---" is replaced with a expression hole, "--" with a statement hole and " " with a tab. CURRENT STATE? WILL PROBABLY CHANGE IN THE FUTURE
+* `id`: Id of the button that has to be unique. It is also used for the tooltip. Failing to provide a unique id might result in lost features
 * `toolbox`: Properties necessary to create the toolbox for the given implementation. This is an optional property. See [Toolbox](#toolbox) for more information.
 
 ## Toolbox
+
+All properties here are for showing the correct information in the toolbox. 
+* `category`: The category in which the code construct will be placed in the toolbox.
+* `title`: The title of the code construct WHEN IS THIS IMPORTANT?
+* `tooltip`
+    * `title`: The title of the tooltip
+    * `body`: The description of the tooltip
+* `tips` \[
+    * `type`: The type of expandable tip that will be shown. Options are "executable", "quick" and "use-case".
+    * `title`: The title of the tip.
+    * `id`: A unique identifier for the tip. 
+    * `example?`: The code to show in the tip. Only necessary for the executable tip type.
+    * `text?`: Explain a concept. Only necessary for the quick tip type.
+    * `path?`, `max?`, `prefix?`, `extension?`, `id?` and `explanations?`: See example. Only necessary for the use-case tip type.
+* `search-queries`: Words to match with the input of the searchbox. An array should be provided.
+
+\]
 
 ## Format syntax

@@ -1356,7 +1356,8 @@ export class Actions {
             ImportRandintStmt,
             ImportChoiceStmt
         );
-        this.actionsList.push(...getAllCodeActions()); // Add loaded actions
+        const loadedCodeActions = getAllCodeActions();
+        this.actionsList.push(...loadedCodeActions); // Add loaded actions
 
         this.actionsMap = new Map<string, EditCodeAction>(this.actionsList.map((action) => [action.cssId, action])); // Automatically done
 
@@ -1688,8 +1689,11 @@ export class Actions {
         this.toolboxCategories.push(new ToolboxCategory("Imports", "import-ops-toolbox-group", [ImportStmt]));
 
         // Add all EditCodeActions to the categories that are loaded from the configuration file
-        addEditCodeActionsToCategories(this.toolboxCategories, getAllCodeActions());
-        // Now getAllCodeActions is called multiple times => make this only one time
+        addEditCodeActionsToCategories(this.toolboxCategories, loadedCodeActions);
+        // In the future when all EditCodeActions are loaded from the configuration file,
+        // the loadedCodeActions could be replaced with this.actionsList
+        // Best also to make the this.toolboxCategories [] and return toolboxCategories from the function
+        // to make it clear what is happening
     }
 
     static instance(): Actions {
