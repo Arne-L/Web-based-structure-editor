@@ -11,3 +11,11 @@ Authoring code with CodeStruct:
 - Cursor-aware Toolbox
 - Suggestion Menus and Autocomplete
 - Draft Mode Editing
+
+## Setup
+
+### Install
+* `npm i`: Install all dependencies
+* `npm start`: Start running the development server
+
+A browser window should open automatically. If not, navigate to `localhost:8080`.

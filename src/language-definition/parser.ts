@@ -1,5 +1,5 @@
 import { EditCodeAction } from "../editor/action-filter";
-import { Actions, InsertActionType } from "../editor/consts";
+import { Actions, InsertActionType, ToolboxCategory } from "../editor/consts";
 import { Argument, FunctionCallStmt } from "../syntax-tree/ast";
 import { DataType } from "../syntax-tree/consts";
 import * as codestructs from "./python.json";
@@ -19,6 +19,7 @@ interface JsonCodeStruct {
 const codestructMap = new Map<string, any>();
 
 for (const codestruct of codestructs) {
+    console.log(codestruct)
     codestructMap.set(codestruct.name, codestruct);
 }
 
@@ -27,7 +28,7 @@ for (const codestruct of codestructs) {
 /**
  * Create EditCodeActions in the Action class {@link Actions}
  */
-function getAllCodeActions(): EditCodeAction[] {
+export function getAllCodeActions(): EditCodeAction[] {
     // All code actions
     const editCodeActions: EditCodeAction[] = [];
     // Go through all codestructs
@@ -41,21 +42,36 @@ function getAllCodeActions(): EditCodeAction[] {
                     implementation.editorName,
                     implementation.id,
                     getCodeFunction(implementation.name, implementation.arguments),
-                    InsertActionType.InsertPrintFunctionStmt,
-                    {},
+                    InsertActionType.InsertPrintFunctionStmt, // EXTRACT; maybe removable?
+                    {}, // EXTRACT; context info; maybe extractable from format?
                     implementation.toolbox,
-                    ["("], // Add these to the end to promote typing
+                    ["("], // EXTRACT: character which triggers the insertion in the editor
                     implementation.name, // Match when typing
-                    null
+                    null // EXTRACT: match regex => how does this work?
                 );
                 // Add the action to the list
                 editCodeActions.push(action);
             }
         }
+
+        // If no implementations, create an EditCodeAction for the general codestruct
+
         // const action = new EditCodeAction()
         // editCodeActions.push(action)
     }
     return editCodeActions;
+}
+
+export function addEditCodeActionsToCategories(toolboxCategories: ToolboxCategory[],editCodeActions: EditCodeAction[]): void {
+    for (const action of editCodeActions) {
+        const currentCategory: string = action.documentation.category
+        if (toolboxCategories.some(category => currentCategory === category.displayName)) {
+            toolboxCategories.find(category => currentCategory === category.displayName).addEditCodeAction(action);
+        } else {
+            const newCategory = new ToolboxCategory(currentCategory, currentCategory.toLocaleLowerCase() + "-ops-toolbox-group", [action]);
+            toolboxCategories.push(newCategory);
+        }
+    }
 }
 
 /**

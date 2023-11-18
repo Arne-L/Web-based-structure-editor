@@ -293,6 +293,25 @@ export class EditCodeAction extends UserAction {
     documentation: any;
     shortDescription?: string;
 
+    /**
+     * Handles the code action from the toolbox / suggestion menu to the eventual insertion in the editor
+     *
+     * @param optionName - The name of the code that will be displayed in the toolbox, e.g. "print(---)"
+     * @param cssId - The id of the button associated with this code in the toolbox
+     * @param getCodeFunction - A function that when called will return the corresponding statement / expression
+     * @param insertActionType - A {@link InsertActionType} that determines which insert action the code action 
+     * represents. E.g. InsertPrintFunctionStmt, InsertStatement, InsertExpression, etc.
+     * @param insertData - Context information about the action
+     * @param documentation - Documentation about the statemene / expression
+     * @param terminatingChars - Used to determine when to insert the code when the user
+     * is typing. It works in conjuction with the matchString. If the string matches completely with
+     * matchString and one of the terminintingChars is typed, the code is inserted in the editor.
+     * This is often the last character of the codestruct before typing a new statement / expression / operation / ...
+     * @param matchString - The string to match on for code completion when typing.
+     * @param matchRegex - 
+     * @param insertableTerminatingCharRegex - Similar to terminatingChars, but now a regex can be given
+     * @param trimSpacesBeforeTermChar
+     */
     constructor(
         optionName: string,
         cssId: string,

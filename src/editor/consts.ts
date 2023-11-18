@@ -50,15 +50,16 @@ import * as CastToIntDocs from "../docs/to-int.json";
 import * as CastToStrDocs from "../docs/to-str.json";
 import * as TrueDocs from "../docs/true.json";
 import * as WhileDocs from "../docs/while.json";
+import { addEditCodeActionsToCategories, getAllCodeActions } from "../language-definition/parser";
 import {
     Argument,
     AssignmentModifier,
     AugmentedAssignmentModifier,
     BinaryOperatorExpr,
     ElseStatement,
+    ForStatement,
     FormattedStringCurlyBracketsExpr,
     FormattedStringExpr,
-    ForStatement,
     FunctionCallExpr,
     FunctionCallStmt,
     IfStatement,
@@ -295,6 +296,7 @@ export class Actions {
     toolboxCategories: Array<ToolboxCategory> = [];
 
     private constructor() {
+        console.log(getAllCodeActions());
         const PrintStmt = new EditCodeAction(
             "print(---)",
             "add-print-btn",
@@ -582,6 +584,7 @@ export class Actions {
             null
         );
 
+        // Does this one work?
         const NotInOperatorTkn = new EditCodeAction(
             "not in",
             "add-not-in-op-tkn-btn",
@@ -1353,9 +1356,11 @@ export class Actions {
             ImportRandintStmt,
             ImportChoiceStmt
         );
+        this.actionsList.push(...getAllCodeActions()); // Add loaded actions
 
-        this.actionsMap = new Map<string, EditCodeAction>(this.actionsList.map((action) => [action.cssId, action]));
+        this.actionsMap = new Map<string, EditCodeAction>(this.actionsList.map((action) => [action.cssId, action])); // Automatically done
 
+        // Probably can be removed / commented out
         this.varActionsMap = new Map<DataType, Array<VarAction>>([
             [
                 DataType.Boolean,
@@ -1602,6 +1607,7 @@ export class Actions {
             ],
         ]);
 
+        // Should be removed when configuration file can take over
         this.toolboxCategories.push(
             new ToolboxCategory("Loops", "loops-toolbox-group", [WhileStmt, ForStmt, RangeExpr, BreakStmt])
         );
@@ -1680,6 +1686,10 @@ export class Actions {
             new ToolboxCategory("Converts", "convert-ops-toolbox-group", [CastStrExpr, CastIntExpr])
         );
         this.toolboxCategories.push(new ToolboxCategory("Imports", "import-ops-toolbox-group", [ImportStmt]));
+
+        // Add all EditCodeActions to the categories that are loaded from the configuration file
+        addEditCodeActionsToCategories(this.toolboxCategories, getAllCodeActions());
+        // Now getAllCodeActions is called multiple times => make this only one time
     }
 
     static instance(): Actions {
@@ -1706,6 +1716,10 @@ export class ToolboxCategory {
         this.displayName = displayName;
         this.id = id;
         this.items = items;
+    }
+
+    addEditCodeAction(action: EditCodeAction) {
+        this.items.push(action);
     }
 }
 
