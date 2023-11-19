@@ -12,7 +12,7 @@ export function getUser(): string {
     }
 }
 
-export function retrieveUser() {
+export function retrieveUser() { // Can remove export
     const storedUser = localStorage.getItem("user-id");
 
     if (storedUser === null || storedUser === "null") {

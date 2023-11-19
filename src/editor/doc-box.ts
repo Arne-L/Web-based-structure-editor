@@ -5,9 +5,9 @@ import { addTextToConsole, clearConsole, CONSOLE_ERR_TXT_CLASS } from "../pyodid
 
 const INITIAL_Z_INDEX = 500;
 
-export const docBoxRunButtons = new Map<string, string[]>();
+export const docBoxRunButtons = new Map<string, string[]>(); // Can remove export?
 
-export class ExecutableCode {
+export class ExecutableCode { // Can remove export
     private static exampleCounter = 0;
     private static openBoxes: DocBoxMeta[] = [];
     private static pressedEscape = false;

@@ -1,7 +1,7 @@
 import { sendEventsBatch } from "./requests";
 import { getUser } from "./user";
 
-export const ANALYTICS_ENABLED = false;
+export const ANALYTICS_ENABLED = false; // Can remove export
 
 export enum LogType {
     DraftHelpUsed = "draft-help-used", // data: { type: "add-double-quotes"}

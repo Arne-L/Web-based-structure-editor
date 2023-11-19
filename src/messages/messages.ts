@@ -759,7 +759,7 @@ export class ScopeHighlight {
     }
 }
 
-export class LineDimension {
+export class LineDimension { // Can remove export
     top: number;
     left: number;
     right: number;

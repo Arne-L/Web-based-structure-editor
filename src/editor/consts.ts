@@ -1727,7 +1727,7 @@ export class ToolboxCategory {
     }
 }
 
-export class VarAction {
+export class VarAction { // Can remove export?
     description: string;
     group: string;
     action: () => Statement;

@@ -44,20 +44,21 @@ export class Focus {
     }
 
     /**
+     * DEAD CODE?!?
      * Register a new function to be called whenever the focus moves off of a construct.
      *
      * @param constructName - The name of the construct to subscribe to
      * @param callback - Function to be called when the focus moves off of the construct
      */
-    subscribeOnNavOffCallbacks(constructName: ConstructName, callback: (c: Context) => void) {
-        if (this.onNavOffCallbacks.get(constructName)) {
-            const callbackArr = this.onNavOffCallbacks.get(constructName);
-            callbackArr.push(callback);
-            this.onNavOffCallbacks.set(constructName, callbackArr);
-        } else {
-            this.onNavOffCallbacks.set(constructName, [callback]);
-        }
-    }
+    // subscribeOnNavOffCallbacks(constructName: ConstructName, callback: (c: Context) => void) {
+    //     if (this.onNavOffCallbacks.get(constructName)) {
+    //         const callbackArr = this.onNavOffCallbacks.get(constructName);
+    //         callbackArr.push(callback);
+    //         this.onNavOffCallbacks.set(constructName, callbackArr);
+    //     } else {
+    //         this.onNavOffCallbacks.set(constructName, [callback]);
+    //     }
+    // }
 
     /**
      * Searches for the left, right or parent expression of the focused token and checks if it is 

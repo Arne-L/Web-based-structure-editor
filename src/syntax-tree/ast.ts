@@ -2476,40 +2476,43 @@ export class KeywordStmt extends Statement {
     }
 }
 
-export class MemberCallStmt extends Expression {
-    operator: BinaryOperator;
+/**
+ * DEAD CODE?!?
+ */
+// export class MemberCallStmt extends Expression {
+//     operator: BinaryOperator;
 
-    constructor(returns: DataType, root?: Statement | Expression, indexInRoot?: number) {
-        super(returns);
+//     constructor(returns: DataType, root?: Statement | Expression, indexInRoot?: number) {
+//         super(returns);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(
-            new TypedEmptyExpr(
-                [DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList],
-                this,
-                this.tokens.length
-            )
-        );
-        this.typeOfHoles[this.tokens.length - 1] = [
-            DataType.AnyList,
-            DataType.NumberList,
-            DataType.StringList,
-            DataType.BooleanList,
-        ];
-        this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
-        this.tokens.push(new NonEditableTkn("]", this, this.tokens.length));
+//         this.tokens.push(
+//             new TypedEmptyExpr(
+//                 [DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList],
+//                 this,
+//                 this.tokens.length
+//             )
+//         );
+//         this.typeOfHoles[this.tokens.length - 1] = [
+//             DataType.AnyList,
+//             DataType.NumberList,
+//             DataType.StringList,
+//             DataType.BooleanList,
+//         ];
+//         this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
+//         this.tokens.push(new NonEditableTkn("]", this, this.tokens.length));
 
-        this.hasEmptyToken = true;
-    }
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
+// }
 
 export class BinaryOperatorExpr extends Expression {
     operator: BinaryOperator;

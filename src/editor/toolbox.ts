@@ -17,7 +17,7 @@ import { EventAction, EventStack, EventType } from "./event-stack";
 import { Context } from "./focus";
 
 export const EDITOR_DOM_ID = "editor";
-export const docBoxRunButtons = new Map<string, string[]>();
+export const docBoxRunButtons = new Map<string, string[]>(); // Can remove export
 
 /**
  * Singleton class that handles the creation and updating of all the toolbox elements, including
@@ -275,7 +275,7 @@ export class ToolboxController {
 /**
  * Class for creating toolbox buttons and adding them to the toolbox.
  */
-export class ToolboxButton {
+export class ToolboxButton { // Can remove export
     container: HTMLDivElement;
 
     constructor(text: string, domId?: string, code?: CodeConstruct) {
@@ -891,7 +891,7 @@ class UseCaseSliderComponent {
 /**
  * Class for creating the tooltips for the toolbox buttons.
  */
-export class TooltipComponent {
+export class TooltipComponent { // Can remove export
     onRemoveCallbacks: Array<() => void> = [];
     element: HTMLDivElement;
     startTime: number;

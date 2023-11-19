@@ -521,7 +521,7 @@ export class IgnoreConversionRecord extends TypeConversionRecord {
     }
 }
 
-export class CastConversionRecord extends TypeConversionRecord {
+export class CastConversionRecord extends TypeConversionRecord { // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -540,7 +540,7 @@ export class CastConversionRecord extends TypeConversionRecord {
     }
 }
 
-export class ComparisonConversionRecord extends TypeConversionRecord {
+export class ComparisonConversionRecord extends TypeConversionRecord { // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -556,7 +556,7 @@ export class ComparisonConversionRecord extends TypeConversionRecord {
     }
 }
 
-export class MemberFunctionConversionRecord extends TypeConversionRecord {
+export class MemberFunctionConversionRecord extends TypeConversionRecord { // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -572,7 +572,7 @@ export class MemberFunctionConversionRecord extends TypeConversionRecord {
     }
 }
 
-export class FunctionExprConversionRecord extends CastConversionRecord {
+export class FunctionExprConversionRecord extends CastConversionRecord { // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -588,7 +588,7 @@ export class FunctionExprConversionRecord extends CastConversionRecord {
     }
 }
 
-export class MemberAccessConversion extends TypeConversionRecord {
+export class MemberAccessConversion extends TypeConversionRecord { // Can remove export?
     constructor(
         conversionConstruct: string,
         convertTo: DataType,

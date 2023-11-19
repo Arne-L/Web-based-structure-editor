@@ -9,15 +9,17 @@ export class EditAction {
         this.data = data;
     }
 }
+/**
+ * DEAD CODE?!?
+ */
+// export class InsertActionData {
+//     cssId: string;
+//     action: InsertActionType;
+//     data: any;
 
-export class InsertActionData {
-    cssId: string;
-    action: InsertActionType;
-    data: any;
-
-    constructor(cssId: string, type: InsertActionType, data: any = {}) {
-        this.cssId = cssId;
-        this.action = type;
-        this.data = data;
-    }
-}
+//     constructor(cssId: string, type: InsertActionType, data: any = {}) {
+//         this.cssId = cssId;
+//         this.action = type;
+//         this.data = data;
+//     }
+// }

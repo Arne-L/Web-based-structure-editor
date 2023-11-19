@@ -264,7 +264,7 @@ export class ActionFilter {
     }
 }
 
-export class UserAction {
+export class UserAction { // Can remove export
     optionName: string;
     cssId: string;
 
