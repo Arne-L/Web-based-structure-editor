@@ -1,6 +1,9 @@
 import { IdentifierTkn, TypedEmptyExpr } from "../syntax-tree/ast";
 import { CSSClasses, TextEnhance } from "../utilities/text-enhance";
 
+/**
+ * Enumeration of all the error messages that can be generated.
+ */
 export enum ErrorMessage {
     default,
     outOfScopeVarReference,

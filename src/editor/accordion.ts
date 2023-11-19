@@ -1,4 +1,8 @@
 import { LogEvent, Logger, LogType } from "./../logger/analytics";
+
+/**
+ * Describes the three variants of tooltips
+ */
 export enum TooltipType {
     StepByStepExample = "step-by-step-example",
     UsageHint = "usage-hint",

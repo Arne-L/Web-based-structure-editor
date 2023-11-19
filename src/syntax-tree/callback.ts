@@ -12,6 +12,9 @@ export class Callback {
     }
 }
 
+/**
+ * Enumeration of all callback types available.
+ */
 export enum CallbackType {
     change,
     replace,

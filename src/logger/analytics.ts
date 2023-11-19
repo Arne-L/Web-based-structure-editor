@@ -3,6 +3,9 @@ import { getUser } from "./user";
 
 export const ANALYTICS_ENABLED = false; // Can remove export
 
+/**
+ * Indicates the action type that needs to be logged
+ */
 export enum LogType {
     DraftHelpUsed = "draft-help-used", // data: { type: "add-double-quotes"}
     InsertCode = "insert-code", // data: source: "keyboard" | "autocomplete" | "autocomplete-menu" | "draft-mode" | "defined-vars"

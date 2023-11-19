@@ -90,6 +90,9 @@ import { Module } from "../syntax-tree/module";
 import { EditCodeAction } from "./action-filter";
 import { Context } from "./focus";
 
+/**
+ * Define all special keypresses 
+ */
 export enum KeyPress {
     // navigation:
     ArrowLeft = "ArrowLeft",
@@ -136,6 +139,11 @@ export enum KeyPress {
     DoubleQuote = '"',
 }
 
+/**
+ * numeration of all possible edit actions that can be made (copy, move left, 
+ * delete to end, delete previous token, indent backwards, open suggestion menu, 
+ * insert formatted string …) 
+ */
 export enum EditActionType {
     Copy, // TODO: NYI: could use default or navigator.clipboard.writeText()
     Paste, // TODO: NYI: check navigator.clipboard.readText()
@@ -248,6 +256,11 @@ export enum ConstructName {
     Default = "Default",
 }
 
+/**
+ *Type enumeration of (groups of) code structs that can be inserted into the editor. 
+ * Some code blocks are grouped under one option if they are similar enough e.g. 
+ * If and While are grouped under “InsertStatement”
+ */
 export enum InsertActionType {
     InsertNewVariableStmt,
 
@@ -1703,6 +1716,14 @@ export class Actions {
     }
 }
 
+/**
+ * The current status of the code in the editor, options are
+ * * ContainsEmptyHoles
+ * * ContainsAutocompleteTokens
+ * * ContainsDraftMode
+ * * Empty
+ * * Runnable
+ */
 export enum CodeStatus {
     ContainsEmptyHoles,
     ContainsAutocompleteTokens,
@@ -1727,7 +1748,8 @@ export class ToolboxCategory {
     }
 }
 
-export class VarAction { // Can remove export?
+export class VarAction {
+    // Can remove export?
     description: string;
     group: string;
     action: () => Statement;

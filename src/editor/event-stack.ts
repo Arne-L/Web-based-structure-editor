@@ -3,6 +3,9 @@ import { Module } from "../syntax-tree/module";
 
 const navigationKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
 
+/**
+ * Enumeration of all the external editor events that can be triggered.
+ */
 export enum EventType {
     OnKeyDown,
     OnButtonDown,

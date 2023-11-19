@@ -1,3 +1,7 @@
+/**
+ * CSS classes that can be applied on HTML elemeents representing identifiers, types, keywords, 
+ * emphasized text, and other text.
+ */
 export enum CSSClasses {
     identifier = "identifier",
     type = "type",

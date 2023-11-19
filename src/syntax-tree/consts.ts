@@ -8,12 +8,24 @@ import { Module } from "./module";
 
 export const TAB_SPACES = 4;
 
+/**
+ * The type of insertion that is possible:
+ * * Valid: insertion can be made
+ * * Invalid: insertion cannot be made
+ * * DraftMode: insertion will trigger draft mode
+ */
 export enum InsertionType {
     Valid, //insertion can be made
     Invalid, //insertion cannot be made
     DraftMode, //insertion will trigger draft mode
 }
 
+/**
+ * All datatypes that are supported by the editor.
+ * Contains both primitive types and composite datatypes (primarily lists)
+ * 
+ * This enum also includes types that are not (yet) supported by the editor.
+ */
 export enum DataType {
     Number = "Number",
     Boolean = "Boolean",
@@ -39,6 +51,9 @@ export enum DataType {
 export const ListTypes = [DataType.AnyList, DataType.NumberList, DataType.BooleanList, DataType.StringList];
 export const IndexableTypes = [...ListTypes, DataType.String];
 
+/**
+ * All binary operators in the Python language, not all are supported by the editor.
+ */
 export enum BinaryOperator {
     Add = "+",
     Subtract = "-",
@@ -68,6 +83,9 @@ export enum BinaryOperator {
     NotIn = "not in",
 }
 
+/**
+ * All unary operators in the Python language, not all are supported by the editor.
+ */
 export enum UnaryOperator {
     Invert = "~",
     Not = "not",
@@ -75,6 +93,9 @@ export enum UnaryOperator {
     USub = "-",
 }
 
+/**
+ * All assignment operators in the Python language, not all are supported by the editor.
+ */
 export enum AugmentedAssignmentOperator {
     Add = "+=",
     Subtract = "-=",
@@ -124,6 +145,9 @@ export const comparisonOps: Array<BinaryOperator | UnaryOperator> = [
     BinaryOperator.NotIn,
 ];
 
+/**
+ * Categories in which the operators are grouped.
+ */
 export enum OperatorCategory {
     Boolean = "Bool",
     Arithmetic = "Arithmetic",
@@ -142,6 +166,9 @@ export function getOperatorCategory(operator: BinaryOperator | UnaryOperator): O
     } else return OperatorCategory.Unspecified;
 }
 
+/**
+ * All keywords in the Python language, not all are supported by the editor.
+ */
 export enum PythonKeywords {
     and = "and",
     as = "as",
@@ -178,6 +205,9 @@ export enum PythonKeywords {
     yield = "yield",
 }
 
+/**
+ * Built-in functions in the Python language, not all are supported by the editor.
+ */
 export enum BuiltInFunctions {
     abs = "abs",
     delattr = "delattr",
@@ -250,6 +280,9 @@ export enum BuiltInFunctions {
     round = "round",
 }
 
+/**
+ * Enumerations over the possible positions the autocomplete menu can be shown in.
+ */
 export enum AutoCompleteType {
     StartOfLine,
     LeftOfExpression,
@@ -262,6 +295,10 @@ export const IdentifierRegex = RegExp("^[^\\d\\W]\\w*$");
 export const NumberRegex = RegExp("^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$");
 export const StringRegex = RegExp('^([^\\r\\n\\"]*)$');
 
+/**
+ * Reason for why a certain insertion is invalid. The text will show up in the toolbox tooltip
+ * with a red background on the disabled elements.
+ */
 export enum Tooltip {
     None = "",
     InvalidInsertElse = "Can only be inserted directly below an if or elif statement.",
