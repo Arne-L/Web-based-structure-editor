@@ -7,14 +7,13 @@ import { Context, UpdatableContext } from "../editor/focus";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
 import { CodeBackground, HoverMessage, InlineMessage } from "../messages/messages";
-import { areEqualTypes, createWarningButton, hasMatch, Util } from "../utilities/util";
+import { Util, areEqualTypes, createWarningButton, hasMatch } from "../utilities/util";
 import { Callback, CallbackType } from "./callback";
 import {
     AugmentedAssignmentOperator,
     AutoCompleteType,
     BinaryOperator,
     DataType,
-    getOperatorCategory,
     GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG,
     GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG,
     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES,
@@ -28,12 +27,13 @@ import {
     OperatorCategory,
     StringRegex,
     TAB_SPACES,
-    Tooltip,
-    typeToConversionRecord,
     TYPE_MISMATCH_ANY,
     TYPE_MISMATCH_EXPR_DRAFT_MODE_STR,
     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR,
+    Tooltip,
     UnaryOperator,
+    getOperatorCategory,
+    typeToConversionRecord,
 } from "./consts";
 import { Module } from "./module";
 import { Reference, Scope } from "./scope";
@@ -590,6 +590,195 @@ export abstract class Statement implements CodeConstruct {
     }
 }
 
+export class GeneralStatement extends Statement implements Importable {
+    /**
+     * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
+     */
+    /* TTHESE SHOULD BE GENERALISED!!! */
+    // private argumentsIndices = new Array<number>();
+    keyword: string = "";
+    requiredModule: string;
+    
+    constructor(construct: any, keywordIndex: number = 0, root?: Statement | Module, indexInRoot?: number) {
+        super();
+
+        this.rootNode = root;
+        this.indexInRoot = indexInRoot;
+        this.keywordIndex = keywordIndex;
+        
+        // If an empty construct is given, we can't do anything with it
+        if (!construct || !construct.format) return;
+        
+        // Set an invalid tooltip message if available
+        this.simpleInvalidTooltip = construct.toolbox.invalidTooptip || ""; // TODO: MAKE MORE CONCRETE
+
+        for (const token of construct.format) {
+            switch (token.type) {
+                case "construct":
+                    // Search in list of all constructs for a corresponding name and insert it ... kinda?
+                    this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
+                    // this.tokens.push(new EditableTextTkn(construct.name, new RegExp("^[a-zA-Z]*$"), this, this.tokens.length)) // First two arguments should be replaced with something language specific
+                    break;
+                case "token":
+                    this.tokens.push(new NonEditableTkn(token.value, this, this.tokens.length));
+                    break;
+                case "delimited_list":
+                    // Either create all implementations directly or insert a general abstraction
+                    // that can later be replaced with the real arguments
+                    
+                    // For each argument, create a new EditableTextTkn
+                    const args = construct.arguments;
+                    for (let i = 0; i < args.length; i++) {
+                        // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
+                        // this.argumentsIndices.push(this.tokens.length);
+                        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+                        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+
+                        if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(token.delimiter, this, this.tokens.length));
+                    }
+                    break;
+                default:
+                    // Invalid type => What to do about it?
+                    console.log("Invalid type: " + token.type);
+            }
+        }
+    }
+
+    // generalConstructor(
+    //     functionName: string, // From file
+    //     args: Array<Argument>, // From file
+    //     root?: Statement | Module,
+    //     indexInRoot?: number,
+    //     requiredModule: string = "" // From file
+    // ) {
+
+    //     this.rootNode = root;
+    //     this.indexInRoot = indexInRoot;
+    //     this.keyword = functionName;
+    //     this.requiredModule = requiredModule;
+
+    //     if (args.length > 0) {
+    //         this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
+
+    //         // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
+
+    //         for (let i = 0; i < args.length; i++) {
+    //             let arg = args[i];
+
+    //             // this.argumentsIndices.push(this.tokens.length);
+    //             this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
+    //             this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
+
+    //             if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
+    //         }
+
+    //         this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+
+    //         this.hasEmptyToken = true;
+    //     } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
+    // }
+
+
+    // What should be kept from these? How can this be abstracted?
+    // Currently "&& this.validator(providedContext)" was dropped (from break stmt)
+    // => Might be able to encapsulate date in this "general" requirement?
+    validateContext(validator: Validator, providedContext: Context): InsertionType {
+        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+            ? InsertionType.Valid
+            : InsertionType.Invalid;
+    }
+
+    // DEAD CODE
+    // Maybe keep this, as (almost) all general purpose programming languages have something
+    // with argument? 
+    // Maybe generalise this to the simple "replace" from the Statement class
+    // replaceArgument(index: number, to: CodeConstruct) {
+    //     this.replace(to, this.argumentsIndices[index]);
+    // }
+
+    // getFunctionName(): string {
+    //     return this.functionName;
+    // }
+
+    // Also replaces getFunctionName()
+    // Replaced by getKeyword() from Statement
+    // getKeyword(): string {
+    //     return this.keyword;
+    // }
+
+    // DEAD CODE
+    // Every language has methods/functions/... requiring imports, so this can probably be kept
+    // validateImport(importedModule: string, importedItem: string): boolean {
+    //     return this.requiredModule === importedModule && this.getKeyword() === importedItem;//&& this.getFunctionName() === importedItem;
+    // }
+
+    // I think this is language independent ... HOWEVER, TAKE A LOOK AT IT LATER!!!
+    /**
+     * Checks if the current construct requires an import and if so checks if it is already included
+     * or not in the module. If it is not included, the returned insertion type is DraftMode.
+     * 
+     * @param module - The current Module
+     * @param currentInsertionType - The current insertion type of the construct
+     * @returns - The new insertion type of the construct
+     */
+    validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
+        let insertionType = currentInsertionType;
+        let importsOfThisConstruct: ImportStatement[] = [];
+        /**
+         * Expands the given list with import statements for the same module as the current 
+         * construct (outer) that are above the current construct (outer).
+         * 
+         * @param construct - Current construc to check if it is an import statement
+         * @param stmts - Lists that will be expanded with the import statements which 
+         * fulfill the requirements
+         */
+        const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
+            if (
+                construct instanceof ImportStatement &&
+                this.getLineNumber() > construct.getLineNumber() && // Check if the import statement is above the current construct (outer)
+                this.requiredModule === construct.getImportModuleName() // Check if the current construct (outer) requires the module
+            ) {
+                stmts.push(construct);
+            }
+        };
+
+        // Perform "checker" on each of the constructs in the module (statements, 
+        // expressions, tokens ...)
+        module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
+
+        if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
+            //imports of required module don't exist and this item requires an import
+            insertionType = InsertionType.DraftMode;
+        } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
+            //imports of required module exist and this item requires an import
+            insertionType =
+                importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0 // this.getFunctionName()
+                    ? currentInsertionType
+                    : InsertionType.DraftMode;
+        }
+
+        return insertionType;
+    }
+
+    validateImportFromImportList(imports: ImportStatement[]): boolean {
+        const relevantImports = imports.filter(
+            (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
+        );
+
+        if (relevantImports.length === 0) {
+            return false;
+        }
+
+        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0 // this.getFunctionName()
+            ? true
+            : false;
+    }
+
+    requiresImport(): boolean {
+        return this.requiredModule !== "";
+    }
+}
+
 /**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
  */
@@ -1128,11 +1317,13 @@ export class ForStatement extends Statement implements VariableContainer {
 
         this.buttonId = "";
 
+        // Can be gotten from the configuration file
         this.tokens.push(new NonEditableTkn("for ", this, this.tokens.length));
         this.identifierIndex = this.tokens.length;
         this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length));
         this.tokens.push(new NonEditableTkn(" in ", this, this.tokens.length));
         this.iteratorIndex = this.tokens.length;
+        // Next two lines can be removed (no typing for now)
         this.tokens.push(
             new TypedEmptyExpr(
                 [DataType.AnyList, DataType.StringList, DataType.NumberList, DataType.BooleanList, DataType.String],
@@ -2202,9 +2393,10 @@ export class FunctionCallExpr extends Expression implements Importable {
         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
 
-    replaceArgument(index: number, to: CodeConstruct) {
-        this.replace(to, this.argumentsIndices[index]);
-    }
+    // DEAD CODE
+    // replaceArgument(index: number, to: CodeConstruct) {
+    //     this.replace(to, this.argumentsIndices[index]);
+    // }
 
     getFunctionName(): string {
         return this.functionName;
@@ -2235,9 +2427,10 @@ export class FunctionCallExpr extends Expression implements Importable {
         return text;
     }
 
-    validateImport(importedModule: string, importedItem: string): boolean {
-        return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
-    }
+    // DEAD CODE
+    // validateImport(importedModule: string, importedItem: string): boolean {
+    //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
+    // }
 
     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
         let insertionType = currentInsertionType;
@@ -2290,7 +2483,8 @@ export class FunctionCallExpr extends Expression implements Importable {
 export interface Importable {
     requiredModule: string;
 
-    validateImport(importedModule: string, importedItem: string): boolean;
+    // DEAD CODE
+    // validateImport(importedModule: string, importedItem: string): boolean;
     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType): InsertionType;
     validateImportFromImportList(imports: ImportStatement[]): boolean;
     requiresImport(): boolean;
@@ -2345,9 +2539,10 @@ export class FunctionCallStmt extends Statement implements Importable {
             : InsertionType.Invalid;
     }
 
-    replaceArgument(index: number, to: CodeConstruct) {
-        this.replace(to, this.argumentsIndices[index]);
-    }
+    // DEAD CODE
+    // replaceArgument(index: number, to: CodeConstruct) {
+    //     this.replace(to, this.argumentsIndices[index]);
+    // }
 
     getFunctionName(): string {
         return this.functionName;
@@ -2357,9 +2552,10 @@ export class FunctionCallStmt extends Statement implements Importable {
         return this.functionName;
     }
 
-    validateImport(importedModule: string, importedItem: string): boolean {
-        return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
-    }
+    // DEAD CODE
+    // validateImport(importedModule: string, importedItem: string): boolean {
+    //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
+    // }
 
     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
         let insertionType = currentInsertionType;
@@ -2445,6 +2641,7 @@ export class ListElementAssignment extends Statement {
     }
 }
 
+// REPLACEABLE
 export class KeywordStmt extends Statement {
     validator: (context: Context) => boolean;
 

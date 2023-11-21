@@ -585,24 +585,38 @@ export class Module {
         return status ?? CodeStatus.Runnable;
     }
 
+    /**
+     * Goes through the body of the module in a BFS manner and performs the given action
+     * on each construct.
+     * 
+     * @param duringAction - Function to be performed on each construct
+     */
     performActionOnBFS(duringAction: (code: CodeConstruct) => void) {
+        // List with all CodeConstructs
         const Q: CodeConstruct[] = [];
+        // Push all statements of the body of the module to the list
         Q.push(...this.body);
 
+        // As long as there exists some construct in the list
         while (Q.length > 0) {
+            // Delete the first element of the list
             let curr: CodeConstruct = Q.splice(0, 1)[0];
 
             if (curr instanceof Expression && curr.tokens.length > 0) {
+                // If the expression has tokens, push them to the list
                 Q.push(...curr.tokens);
             } else if (curr instanceof Statement) {
+                // If the statement has tokens, push them to the list
                 for (const tkn of curr.tokens) {
                     Q.push(tkn);
                 }
                 if (curr.body.length > 0) {
+                    // If the statement has a body, push it to the list
                     Q.push(...curr.body);
                 }
             }
 
+            // Perform the given action on the current construct
             duringAction(curr);
         }
     }

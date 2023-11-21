@@ -309,7 +309,6 @@ export class Actions {
     toolboxCategories: Array<ToolboxCategory> = [];
 
     private constructor() {
-        console.log(getAllCodeActions());
         const PrintStmt = new EditCodeAction(
             "print(---)",
             "add-print-btn",
