@@ -203,7 +203,7 @@ export class Validator {
      * Determines if an elif statement can be inserted at the current indent by checking if the previous statement is either and if or elif
      *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if an else statement can be inserted at the current indent, false otherwise
+     * @returns - true if an elif statement can be inserted at the current indent, false otherwise
      */
     canInsertElifStmtAtCurIndent(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
