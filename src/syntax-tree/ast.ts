@@ -669,6 +669,12 @@ export class GeneralStatement extends Statement implements Importable {
                  * 
                  * How to handle "validateContext"? 
                  * Maybe we can have slots in which only certain statements / expressions can be inserted?
+                 * 
+                 * How to handle scope for "elif" and "else"? Currently this is done by checking
+                 * if a statement has body, but that is not possible for "elif" and "else"
+                 * 
+                 * All variable functionality in the for-loop is currently dropped
+                 * What is the best way to add this in the future?
                  */
             }
         }
@@ -1184,6 +1190,7 @@ export class Argument {
     }
 }
 
+// REPLACED
 export class WhileStatement extends Statement {
     scope: Scope;
     private conditionIndex: number;
@@ -1210,6 +1217,7 @@ export class WhileStatement extends Statement {
     }
 }
 
+// REPLACED
 export class IfStatement extends Statement {
     private conditionIndex: number;
 
@@ -1404,9 +1412,10 @@ export class ForStatement extends Statement implements VariableContainer {
             : InsertionType.Invalid;
     }
 
-    rebuild(pos: Position, fromIndex: number) {
-        super.rebuild(pos, fromIndex);
-    }
+    // Usefulness? 
+    // rebuild(pos: Position, fromIndex: number) {
+    //     super.rebuild(pos, fromIndex);
+    // }
 
     getIdentifier(): string {
         return this.tokens[this.identifierIndex].getRenderText();

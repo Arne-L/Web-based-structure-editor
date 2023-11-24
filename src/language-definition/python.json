@@ -348,5 +348,232 @@
                 "path"
             ]
         }
+    },
+    {
+        "name": "else",
+        "editorName": "else :",
+        "format": [
+            {
+                "type": "token",
+                "value": "else:"
+            }
+        ],
+        "match": "else",
+        "triggerInsertion": [
+            " "
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "invalidTooltip": "Can only be inserted directly below an if or elif statement.",
+            "title": "else statement",
+            "tooltip": {
+                "title": "Insert Else Statement",
+                "body": "Can be used after an if or an elif statement. will execute its block of code when the if and the elif statements were not true"
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-else-1",
+                    "example": "a = 2\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)\nelse:\n\tprint(\"None of the above are true.\")"
+                }
+            ],
+            "search-queries": [
+                "else",
+                "otherwise",
+                "if"
+            ]
+        }
+    },
+    {
+        "name": "elif",
+        "editorName": "elif --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "elif "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " :"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "condition",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "elif",
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "invalidTooltip": "Can only be inserted directly below an if statement.",
+            "title": "elif statement",
+            "tooltip": {
+                "title": "Insert Elif Statement",
+                "body": "Short for else-if; adds another case to an existing if statement. The `elif` will only run when previous `if` or `elif` statement is false"
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-elif-1",
+                    "example": "a = 3\nif a > 10:\n\tprint(\"a is larger than 10\")\nelif a < 10:\n\tprint(\"a is smaller than 10\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-elif-2",
+                    "example": "a = 5\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)"
+                },
+                {
+                    "type": "use-case",
+                    "title": "using elif after an if statement",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/7-if-single-elif/",
+                    "max": 11,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "elif-after-if"
+                },
+                {
+                    "type": "use-case",
+                    "title": "using elif after another elif statement",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/7-if-double-elif/",
+                    "max": 13,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "elif-after-elif"
+                }
+            ],
+            "search-queries": [
+                "else if",
+                "else",
+                "else condition",
+                "choose",
+                "path",
+                "elif"
+            ]
+        }
+    },
+    {
+        "name": "for",
+        "editorName": "for -- in --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "for "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " in "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "body"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "condition",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "iterable",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "for",
+        "triggerInsertion": [
+            " "
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "title": "for loop",
+            "tooltip": {
+                "title": "loop through a sequence of elements",
+                "body": "executes a set of statements for each element in a sequence (like a `range`, a `list`, or a `string`). "
+            },
+            "tips": [
+                {
+                    "type": "quick",
+                    "title": "for loop inputs",
+                    "text": "for loops have two inputs: a variable name, and a sequence of items. the created variable is used to hold the current item, and the sequence is the list of items to go through."
+                },
+                {
+                    "type": "quick",
+                    "title": "for loop as a counter",
+                    "text": "for loops can be used with the `range` function to work like a counter"
+                },
+                {
+                    "type": "executable",
+                    "title": "using a for loop to go through a list",
+                    "id": "ex-for-list-items",
+                    "example": "lst = [\"cat\", \"dog\", \"mouse\", \"parrot\"]\nfor animal in lst:\n\tprint(animal)"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a list of items",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/2-for-loop-list/",
+                    "max": 25,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-list-items"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a sequence of numbers",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/3-for-loop-range/",
+                    "max": 21,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-sequence-nums"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a list of items using indices",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/4-for-loop-range-list/",
+                    "max": 30,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-list-items-using-indices"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through every character of a string",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/5-for-loop-string/",
+                    "max": 21,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-chars-of-str"
+                }
+            ],
+            "search-queries": [
+                "for",
+                "loop",
+                "repeat",
+                "go through",
+                "iterate",
+                "list"
+            ]
+        }
     }
 ]
