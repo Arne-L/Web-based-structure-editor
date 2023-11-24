@@ -367,6 +367,7 @@ export class ActionExecutor {
             }
 
             case EditActionType.DeleteMultiLineStatement: {
+                // Maybe delete everything inside this if, as this is just to show a message?
                 if (
                     context.lineStatement instanceof IfStatement ||
                     (context.lineStatement instanceof ElseStatement && context.lineStatement.hasCondition)
