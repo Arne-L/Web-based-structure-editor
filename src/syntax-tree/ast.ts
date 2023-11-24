@@ -598,23 +598,27 @@ export class GeneralStatement extends Statement implements Importable {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     requiredModule: string;
-    
+
     constructor(construct: any, keywordIndex: number = 0, root?: Statement | Module, indexInRoot?: number) {
         super();
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.keywordIndex = keywordIndex;
-        
+
+        // Keep track of the current hole
+        let holeIndex = 0;
+
         // If an empty construct is given, we can't do anything with it
         if (!construct || !construct.format) return;
-        
+
         // Set an invalid tooltip message if available
         this.simpleInvalidTooltip = construct.toolbox.invalidTooptip || ""; // TODO: MAKE MORE CONCRETE
 
         for (const token of construct.format) {
             switch (token.type) {
                 case "construct":
+                    // TODO: Should be changed in the future
                     // Search in list of all constructs for a corresponding name and insert it ... kinda?
                     this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
                     // this.tokens.push(new EditableTextTkn(construct.name, new RegExp("^[a-zA-Z]*$"), this, this.tokens.length)) // First two arguments should be replaced with something language specific
@@ -622,24 +626,50 @@ export class GeneralStatement extends Statement implements Importable {
                 case "token":
                     this.tokens.push(new NonEditableTkn(token.value, this, this.tokens.length));
                     break;
-                case "delimited_list":
-                    // Either create all implementations directly or insert a general abstraction
-                    // that can later be replaced with the real arguments
-                    
-                    // For each argument, create a new EditableTextTkn
-                    const args = construct.arguments;
-                    for (let i = 0; i < args.length; i++) {
+                case "hole":
+                    const holeParts = construct.holes[holeIndex];
+                    for (let i = 0; i < holeParts.length; i++) {
                         // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                        // this.argumentsIndices.push(this.tokens.length);
                         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
                         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
 
-                        if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(token.delimiter, this, this.tokens.length));
+                        if (i + 1 < holeParts.length)
+                            this.tokens.push(new NonEditableTkn(token.delimiter, this, this.tokens.length));
                     }
+                    if (holeParts.length > 0) this.hasEmptyToken = true;
+                    holeIndex++;
+                    break;
+                case "body":
+                    this.body.push(new EmptyLineStmt(this, this.body.length));
+                    this.scope = new Scope();
                     break;
                 default:
                     // Invalid type => What to do about it?
                     console.log("Invalid type: " + token.type);
+
+                /**
+                 * 1) Look at the cases for "delimited_list" and "hole" => redundancy? 
+                 * 2) How will we handle new lines / empty lines? What will the configuration file require?
+                 * 3) Handle scope: how do we now when a statement has a scope or not? Can we determine
+                 * this whithout having to make it an explicit option?
+                 * 
+                 * Possibilities:
+                 * 3) If the concept of statements exist, check if the construct contains a
+                 * statement. If so, it has a scope. If not, it doesn't.
+                 * 2) If the concept of statements exists, we can check if a hole is a statement. If
+                 * so, then we can see it as a EmptyLineStmt
+                 * => Problem: User error possible and even likely
+                 * 2) We can look at holes before and after which there is a new line character "\n", 
+                 * signifying that the hole is the only thing on the line. In this case, we can assume
+                 * that it is a empty line statement.
+                 * 
+                 * 
+                 * What about expressions that can be placed on empty lines? Like methods call e.g. print()
+                 * 
+                 * 
+                 * How to handle "validateContext"? 
+                 * Maybe we can have slots in which only certain statements / expressions can be inserted?
+                 */
             }
         }
     }
@@ -678,7 +708,6 @@ export class GeneralStatement extends Statement implements Importable {
     //     } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
     // }
 
-
     // What should be kept from these? How can this be abstracted?
     // Currently "&& this.validator(providedContext)" was dropped (from break stmt)
     // => Might be able to encapsulate date in this "general" requirement?
@@ -690,7 +719,7 @@ export class GeneralStatement extends Statement implements Importable {
 
     // DEAD CODE
     // Maybe keep this, as (almost) all general purpose programming languages have something
-    // with argument? 
+    // with argument?
     // Maybe generalise this to the simple "replace" from the Statement class
     // replaceArgument(index: number, to: CodeConstruct) {
     //     this.replace(to, this.argumentsIndices[index]);
@@ -716,7 +745,7 @@ export class GeneralStatement extends Statement implements Importable {
     /**
      * Checks if the current construct requires an import and if so checks if it is already included
      * or not in the module. If it is not included, the returned insertion type is DraftMode.
-     * 
+     *
      * @param module - The current Module
      * @param currentInsertionType - The current insertion type of the construct
      * @returns - The new insertion type of the construct
@@ -725,11 +754,11 @@ export class GeneralStatement extends Statement implements Importable {
         let insertionType = currentInsertionType;
         let importsOfThisConstruct: ImportStatement[] = [];
         /**
-         * Expands the given list with import statements for the same module as the current 
+         * Expands the given list with import statements for the same module as the current
          * construct (outer) that are above the current construct (outer).
-         * 
+         *
          * @param construct - Current construc to check if it is an import statement
-         * @param stmts - Lists that will be expanded with the import statements which 
+         * @param stmts - Lists that will be expanded with the import statements which
          * fulfill the requirements
          */
         const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
@@ -742,7 +771,7 @@ export class GeneralStatement extends Statement implements Importable {
             }
         };
 
-        // Perform "checker" on each of the constructs in the module (statements, 
+        // Perform "checker" on each of the constructs in the module (statements,
         // expressions, tokens ...)
         module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
 
@@ -2490,6 +2519,7 @@ export interface Importable {
     requiresImport(): boolean;
 }
 
+// REPLACEABLE
 export class FunctionCallStmt extends Statement implements Importable {
     /**
      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.

@@ -12,10 +12,8 @@
                 "value": "("
             },
             {
-                "type": "delimited_list",
-                "name": "arguments",
-                "delimiter": ", ",
-                "values": "expression"
+                "type": "hole",
+                "delimiter": ", "
             },
             {
                 "type": "token",
@@ -29,11 +27,13 @@
             {
                 "ref": "mathod_name",
                 "name": "print",
-                "arguments": [
-                    {
-                        "name": "text",
-                        "optional": false
-                    }
+                "holes": [
+                    [
+                        {
+                            "name": "text",
+                            "optional": false
+                        }
+                    ]
                 ],
                 "editorName": "print(---)",
                 "match": "print",
@@ -184,6 +184,168 @@
                 "exit",
                 "loop",
                 "break"
+            ]
+        }
+    },
+    {
+        "name": "while",
+        "editorName": "while --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "while "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "body"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "condition",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "while",
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "title": "while loop",
+            "tooltip": {
+                "title": "repeatedly execute code while true",
+                "body": "repeatedly executes the code block inside the while loop as long as the condition remains `True`."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "title": "infinite loop",
+                    "id": "ex-while-1",
+                    "example": "while True :\n\tprint(\"an infinite loop\")"
+                },
+                {
+                    "type": "executable",
+                    "title": "count from 0 to 10",
+                    "id": "ex-while-2",
+                    "example": "i = 0\nwhile i < 10:\n\tprint(i)\n\ti = i + 1"
+                },
+                {
+                    "type": "quick",
+                    "title": "compare to scratch's repeat until block",
+                    "text": "the `while` loop in Python compared to the `repeat until` block in Scratch: the `while` loop in Python repeats code as long as the condition is `True`, and stops when the condition becomes `False`. However, the `repeat until` block in Scratch repeats code as long as the condition is `False`, and stops when the condition becomes `True`."
+                },
+                {
+                    "type": "use-case",
+                    "title": "repeatedly increment a variable",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/1-while-counter/",
+                    "max": 30,
+                    "prefix": "Slide",
+                    "extension": "PNG",
+                    "id": "while-increment-var",
+                    "explanations": [
+                        {
+                            "slide": 7,
+                            "text": "i is less than 3 so the condition holds true"
+                        },
+                        {
+                            "slide": 28,
+                            "text": "i is no longer less than 3 so the condition is false"
+                        },
+                        {
+                            "slide": 29,
+                            "text": "should execute the next line after the while loop"
+                        }
+                    ]
+                }
+            ],
+            "search-queries": [
+                "while",
+                "repeat",
+                "repeat while",
+                "repeat until",
+                "loop",
+                "condition",
+                "conditional",
+                "repeat condition"
+            ]
+        }
+    },
+    {
+        "name": "if",
+        "editorName": "if --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "if "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "body"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "condition",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "if",
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "title": "if statement",
+            "tooltip": {
+                "title": "Insert If Statement",
+                "body": "Will only execute the indented block of code below it when the condition is true"
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-if-1",
+                    "example": "a = 3\nif a < 10:\n\tprint(\"Success!\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-if-2",
+                    "example": "a = 3\nif a > 10:\n\tprint(\"Success!\")"
+                },
+                {
+                    "type": "use-case",
+                    "title": "check the value of a variable",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/6-if/",
+                    "max": 13,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "check-val-variable"
+                }
+            ],
+            "search-queries": [
+                "if",
+                "condition",
+                "conditional",
+                "choose",
+                "path"
             ]
         }
     }
