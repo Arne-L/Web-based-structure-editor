@@ -449,31 +449,30 @@ export class MenuController {
      *
      * @param suggestions An array of options this menu will have.
      *
-     * @param actionMap   map of option names to their selectActions.
-     *                    Provide an empty map if no custom actions are necessary.
-     *
      * @param pos         Starting top-left corner of this menu in the editor.
      */
     buildSingleLevelMenu(suggestions: EditCodeAction[], pos: any = { left: 0, top: 0 }) {
         if (this.menus.length > 0) this.removeMenus();
         else if (suggestions.length >= 0) {
             //TODO: Very hacky way of fixing #569
+            // CAN THIS BE REMOVED? SEEMS TO WORK PERFECTLY FINE WITHOUT IT, even when checking against https://github.com/MajeedKazemi/code-struct/issues/569
             //The issue is that the "no options" option is only added to the menu during the call to updateOptions
             //if there is an attempt to create a menu that would have no options, the menu was simply not allowed to be created which is why the "no options" option was not visible any longer
-            if (suggestions.length === 0) {
-                suggestions.push(Actions.instance().actionsList[0]); //this does not have to be this specific aciton, just need one to create the option so that the menu is created and then we immediately delete the option
-            }
+            // if (suggestions.length === 0) {
+            //     suggestions.push(Actions.instance().actionsList[0]); //this does not have to be this specific action, just need one to create the option so that the menu is created and then we immediately delete the option
+            // }
 
             const menu = this.module.menuController.buildMenu(suggestions, pos);
 
             //TODO: Continuation of very hacky way of fixing #569
-            if (suggestions.length === 0) {
-                menu.options[0].removeFromDOM();
-                menu.options = [];
-                const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
-                this.insertOptionIntoMenu(option, menu);
-                this.focusedOptionIndex = 0;
-            }
+            // CAN THIS BE REMOVED?
+            // if (suggestions.length === 0) {
+            //     menu.options[0].removeFromDOM();
+            //     menu.options = [];
+            //     const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
+            //     this.insertOptionIntoMenu(option, menu);
+            //     this.focusedOptionIndex = 0;
+            // }
 
             menu.updateDimensions();
             menu.open();
