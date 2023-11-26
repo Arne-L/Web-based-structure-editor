@@ -58,9 +58,9 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.toolbox,
             construct.triggerInsertion, // EXTRACT: character which triggers the insertion in the editor
             // Automating? Maybe take last character before a hole or end of statement?
-            construct.match, // Match when typing
-            null // EXTRACT: match regex => Currently only used for VarAssignStmt to
-            // identify what a valid identifier is => Combine in some form with name
+            construct.match ?? null, // Match when typing
+            construct.matchRegex !== undefined ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
+            // identify what a valid identifier is
         );
         // Add the action to the list
         editCodeActions.push(action);
