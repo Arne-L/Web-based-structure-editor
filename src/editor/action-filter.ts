@@ -106,6 +106,12 @@ export class ActionFilter {
         return validOptionMap;
     }
 
+    /**
+     * Get all valid EditCodeActions for a given variable reference
+     * 
+     * @param ref - Variable reference to check against
+     * @returns - Map of EditCodeActions that are valid for the given variable reference
+     */
     validateVariableOperations(ref: VariableReferenceExpr): Map<string, EditCodeAction> {
         const context = this.module.focus.getContext();
         const dataType = ref.returns;
