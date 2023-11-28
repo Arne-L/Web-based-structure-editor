@@ -16,13 +16,17 @@ export class ConstructDoc {
     title: string;
     parentElement: HTMLDivElement;
 
-    static updateDocsLeftOffset(offset: number) {
-        constructKeys.forEach((key) => {
-            if (Util.getPopulatedInstance().constructDocs.get(key)) {
-                Util.getPopulatedInstance().constructDocs.get(key).updateLeftOffset(offset);
-            }
-        });
-    }
+    /**
+     * Needs to be commented because we commented out the this.constructDocs in the 
+     * Util class (util.ts file) which is the class behind "Util.getPopulatedInstance()".
+     */
+    // static updateDocsLeftOffset(offset: number) {
+    //     constructKeys.forEach((key) => {
+    //         if (Util.getPopulatedInstance().constructDocs.get(key)) {
+    //             Util.getPopulatedInstance().constructDocs.get(key).updateLeftOffset(offset);
+    //         }
+    //     });
+    // }
 
     constructor(
         title: string = "DOC Title",

@@ -54,7 +54,8 @@ export const constructKeys = [
 export class Util {
     private static instance: Util;
 
-    constructDocs: Map<string, ConstructDoc>;
+    // Currently DEAD CODE?
+    // constructDocs: Map<string, ConstructDoc>;
     typeConversionMap: Map<DataType, Array<DataType>>;
 
     module: Module;
@@ -82,7 +83,8 @@ export class Util {
             [DataType.Any, [DataType.AnyList]],
         ]);
 
-        this.constructDocs = new Map<string, ConstructDoc>();
+        // DEAD CODE? Nothing is done with it?
+        // this.constructDocs = new Map<string, ConstructDoc>();
     }
 
     static getInstance(module?: Module) {

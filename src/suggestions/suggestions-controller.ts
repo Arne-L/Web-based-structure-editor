@@ -484,6 +484,13 @@ export class MenuController {
         }
     }
 
+    /**
+     * Calculate how good the current input text matches the given matchString. 
+     * 
+     * @param text - The current input text.
+     * @param matchString - The string to match against, inherent to a given CodeConstruct.
+     * @returns - A string representing the precision of the match. 1 is a perfect match, 0 is no match.
+     */
     private calculateAutocompleteMatchPrecision(text: string, matchString: string): string {
         if (matchString && text) {
             let matchCount = 0;
@@ -533,10 +540,13 @@ export class MenuController {
             //TODO: No good way of separating responsibility completely because ready doc objects are stored in util instead of being created here.
             //I guess, it is always possible to have a list of active docs and loop through it here and update their positions instead of
             //using the static method to update them all. Do that in case this ever slows down anything.
-            ConstructDoc.updateDocsLeftOffset(
-                document.getElementById(EDITOR_DOM_ID).offsetLeft +
-                    document.getElementById(`${Menu.idPrefix}${Menu.menuCount - 1}`).offsetWidth
-            );
+            // ConstructDoc.updateDocsLeftOffset(
+            //     document.getElementById(EDITOR_DOM_ID).offsetLeft +
+            //         document.getElementById(`${Menu.idPrefix}${Menu.menuCount - 1}`).offsetWidth
+            // );
+            /**
+             * Currently never being used? So comment for now, maybe we can use it in the future?
+             */
 
             this.menus.push(menu);
 
