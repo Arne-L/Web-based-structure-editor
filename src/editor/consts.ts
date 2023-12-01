@@ -1373,7 +1373,8 @@ export class Actions {
 
         this.actionsMap = new Map<string, EditCodeAction>(this.actionsList.map((action) => [action.cssId, action])); // Automatically done
 
-        // Probably can be removed / commented out
+        // Per datatype determine which actions are available
+        // Probably also necessary for autocomplete ... ?
         this.varActionsMap = new Map<DataType, Array<VarAction>>([
             [
                 DataType.Boolean,

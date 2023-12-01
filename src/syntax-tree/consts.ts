@@ -147,6 +147,11 @@ export const comparisonOps: Array<BinaryOperator | UnaryOperator> = [
 
 /**
  * Categories in which the operators are grouped.
+ * * Boolean
+ * * Arithmetic
+ * * Comparison
+ * * Unspecified
+ * * UnaryBoolean
  */
 export enum OperatorCategory {
     Boolean = "Bool",

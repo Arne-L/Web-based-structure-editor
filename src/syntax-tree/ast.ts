@@ -550,6 +550,12 @@ export abstract class Statement implements CodeConstruct {
     onInsertInto(insertCode: CodeConstruct, args?: {}) {}
 
     //TODO: #526 should be changed to return InsertionResult and populate that result with an appropriate message/code
+    /**
+     * Validates if the given code construct can be inserted into this context.
+     * 
+     * @param validator - Singleton validator instance
+     * @param providedContext - Current context
+     */
     abstract validateContext(validator: Validator, providedContext: Context): InsertionType;
 
     //actions that need to occur when the focus is switched off of this statement
@@ -643,9 +649,13 @@ export class GeneralStatement extends Statement implements Importable {
                     this.body.push(new EmptyLineStmt(this, this.body.length));
                     this.scope = new Scope();
                     break;
+                case "identifier":
+                    // this.tokens.push(new EditableTextTkn("", RegExp(token.regex), this, this.tokens.length))
+                    this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length, RegExp(token.regex)))
+                    break;
                 default:
                     // Invalid type => What to do about it?
-                    console.log("Invalid type: " + token.type);
+                    console.warn("Invalid type: " + token.type);
 
                 /**
                  * 1) Look at the cases for "delimited_list" and "hole" => redundancy? 
@@ -716,7 +726,7 @@ export class GeneralStatement extends Statement implements Importable {
 
     // What should be kept from these? How can this be abstracted?
     // Currently "&& this.validator(providedContext)" was dropped (from break stmt)
-    // => Might be able to encapsulate date in this "general" requirement?
+    // => Might be able to encapsulate data in this "general" requirement?
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
             ? InsertionType.Valid
@@ -815,14 +825,25 @@ export class GeneralStatement extends Statement implements Importable {
 }
 
 /**
+ * Wat de expression betreft:
+ * Kunnen wrs expression & statement samennemen
+ *  Vereist de toevoeging van "returns" field aan statement
+ * Meeste methods van expression kunnen gedropt worden, zolang er geen nood is aan
+ * types. Moet echter wel nagedacht worden hoe dan de autocomplete & disabling
+ * zou gebeuren van de toolbox items!
+ */
+
+/**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
  */
 export abstract class Expression extends Statement implements CodeConstruct {
-    rootNode: Expression | Statement = null;
+    rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT; 
+    // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression 
+    // gefuseerd worden
 
     // TODO: can change this to an Array to enable type checking when returning multiple items
-    returns: DataType;
-    simpleInvalidTooltip = Tooltip.InvalidInsertExpression;
+    returns: DataType; // NODIG
+    simpleInvalidTooltip = Tooltip.InvalidInsertExpression; // NODIG KINDA
 
     constructor(returns: DataType) {
         super();
@@ -831,32 +852,53 @@ export abstract class Expression extends Statement implements CodeConstruct {
     }
 
     getLineNumber(): number {
-        return this.rootNode.getLineNumber();
+        return this.rootNode.getLineNumber(); 
+        /**
+         * this.lineNumber seems to always work? Maybe we can simply remove this?
+         */
+        // ABSTRACT THIS? e.g. getLineNumber() { return this.lineNumber || this.rootNode.getLineNumber(); }
     }
 
     getSelection(): Selection {
         const line = this.lineNumber >= 0 ? this.lineNumber : this.getLineNumber();
 
         return new Selection(line, this.right, line, this.left);
+        /**
+         * Again, linenumber seems to always work ... and we can just replace "line" with 
+         * "this.getLineNumber()" which works both in statement and expression
+         */
     }
 
     getParentStatement(): Statement {
         return this.rootNode.getParentStatement();
+        /**
+         * Generalisatie:
+         * if (this.returns) return this.rootNode.getParentStatement(); // If expression
+         * else return this; // If statement
+         */
     }
 
     /**
-     * Update types of holes within the expression as well as the expression's return type when insertCode is inserted into it.
+     * Update types of holes within the expression as well as the expression's return 
+     * type when insertCode is inserted into it.
      *
      * @param insertCode code being inserted.
      */
     performTypeUpdatesOnInsertInto(insertCode: Expression) {}
+    /**
+     * Type specific function, might be obselete if we don't use types
+     */
 
     /**
-     * Update types of holes within the expression as well as the expression's return type to "type" when this expression is inserted into the AST.
+     * Update types of holes within the expression as well as the expression's return 
+     * type to "type" when this expression is inserted into the AST.
      *
      * @param type new return/expression hole type
      */
     performTypeUpdatesOnInsertion(type: DataType) {}
+    /**
+     * Idem
+     */
 
     //TODO: see if this needs any changes for #526
     /**
@@ -952,25 +994,36 @@ export abstract class Expression extends Statement implements CodeConstruct {
 
     onDelete(): void {
         return;
+        /**
+         * Already in Statement class
+         */
     }
 
-    getReplacementTypse(): DataType[] {
-        return [this.returns];
-    }
+    // DEAD CODE?
+    // getReplacementTypse(): DataType[] {
+    //     return [this.returns];
+    // }
 
     getTypes(): DataType[] {
         return [this.returns];
+        /**
+         * Change to:
+         * return this.returns ? [this.returns] : [];
+         */
     }
 
     //TODO: Probably needs to be filled. At least in every construct, but there should be general logic that applies to all expressions as well,
     //Currently only implemented for BinOps due to time constraints
     validateTypes(module: Module) {
         return;
+        /**
+         * Might be obselete if we don't use types
+         */
     }
 }
 
 export abstract class Modifier extends Expression {
-    rootNode: Expression | Statement;
+    rootNode: Expression | Statement; // Why? Already defined in Expression?
     leftExprTypes: Array<DataType>;
     simpleInvalidTooltip = Tooltip.InvalidInsertModifier;
 
@@ -980,6 +1033,9 @@ export abstract class Modifier extends Expression {
 
     getModifierText(): string {
         return "";
+        /**
+         * Only used in one call; can we remove this?
+         */
     }
 }
 
@@ -1191,6 +1247,9 @@ export class Argument {
 }
 
 // REPLACED
+/**
+ * While construct
+ */
 export class WhileStatement extends Statement {
     scope: Scope;
     private conditionIndex: number;
@@ -1218,6 +1277,9 @@ export class WhileStatement extends Statement {
 }
 
 // REPLACED
+/**
+ * If statement with a body
+ */
 export class IfStatement extends Statement {
     private conditionIndex: number;
 
@@ -1243,6 +1305,10 @@ export class IfStatement extends Statement {
     }
 }
 
+/**
+ * Else and elif statement (depending on whether or not they have a condition). They are part of the body of an if statement (and
+ * can only be in the body of an if statement).
+ */
 export class ElseStatement extends Statement {
     private conditionIndex: number;
     hasCondition: boolean = false;
@@ -1281,6 +1347,9 @@ export class ElseStatement extends Statement {
     }
 }
 
+/**
+ * Import statement construct
+ */
 export class ImportStatement extends Statement {
     private moduleNameIndex: number = -1;
     private itemNameIndex: number = -1;
@@ -1339,6 +1408,9 @@ export class ImportStatement extends Statement {
     }
 }
 
+/**
+ * For statement construct
+ */
 export class ForStatement extends Statement implements VariableContainer {
     buttonId: string;
     private identifierIndex: number;
@@ -1600,6 +1672,11 @@ export class ForStatement extends Statement implements VariableContainer {
     }
 }
 
+/**
+ * Empty line construct is created to show the user the body of the statement and allows
+ * for easy navigation to the body of the statement. In the editor it is represented by an 
+ * empty intended light blue line.
+ */
 export class EmptyLineStmt extends Statement {
     hasEmptyToken = false;
 
@@ -1634,6 +1711,10 @@ export class EmptyLineStmt extends Statement {
     }
 }
 
+/**
+ * The default assignment statement to assign a value to a variable.
+ * This statement also manages the variable's scope and references as well as the variable's button in the toolbox and the variable updates in the AST
+ */
 export class VarAssignmentStmt extends Statement implements VariableContainer {
     static uniqueId: number = 0;
     buttonId: string = ""; //note: this is used as both the DOM id of the reference button in the toolbox AND the unique id of the variable itself
@@ -1687,6 +1768,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
             : InsertionType.Invalid;
     }
 
+    // Just calls superclass; can be removed?
     rebuild(pos: Position, fromIndex: number) {
         super.rebuild(pos, fromIndex);
     }
@@ -1919,6 +2001,10 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
     }
 }
 
+/**
+ * A reference expression to a variable "x". The value of the expression is equal to the value of the 
+ * variable referenced.
+ */
 export class VariableReferenceExpr extends Expression {
     isEmpty = false;
     identifier: string;
@@ -1928,8 +2014,8 @@ export class VariableReferenceExpr extends Expression {
         super(returns);
 
         const idToken = new NonEditableTkn(id);
-        idToken.rootNode = this;
-        idToken.indexInRoot = this.tokens.length;
+        idToken.rootNode = this; // This can be done in the instance creation
+        idToken.indexInRoot = this.tokens.length; // Idem
         this.keywordIndex = this.tokens.length;
         this.tokens.push(idToken);
 
@@ -1950,6 +2036,12 @@ export class VariableReferenceExpr extends Expression {
     }
 }
 
+/**
+ * Expression encapsulating an entire value expression, be it a variable or a value that is wrapped.
+ * Modifications here are "+", "and" ...
+ * => Correct? Might be only for values, not variables ... but there is a isVarSet field...?
+ * ===> IS THIS EVEN USED?
+ */
 export class ValueOperationExpr extends Expression {
     isVarSet = false;
 
@@ -2008,6 +2100,16 @@ export class ValueOperationExpr extends Expression {
     }
 }
 
+/**
+ * Statement encapsulating a variable assignment operation.
+ * Can be a variable reference but also operations on the reference or 
+ * modifiers on the reference.
+ * 
+ * Seems to be null in most cases (at least when created) and only becomes equal to
+ * a reference when an existing variable is referenced, when it is inserted and of all those
+ * calls, the last one is non-null.
+ * => Correct?
+ */
 export class VarOperationStmt extends Statement {
     isVarSet = false;
 
@@ -2032,6 +2134,7 @@ export class VarOperationStmt extends Statement {
 
                 this.tokens.push(mod);
             }
+        // console.log("Variable reference expression" + ref + ";" + new Date().getSeconds());
     }
 
     setVariable(ref: VariableReferenceExpr) {
@@ -2053,6 +2156,12 @@ export class VarOperationStmt extends Statement {
         }
     }
 
+    /**
+     * Expand a variable reference with a modifier like "+="
+     * Seems to be only called when it is an augmented assignment modifier
+     * 
+     * @param mod - Augmented(?) assignment(?) modifier 
+     */
     appendModifier(mod: Modifier) {
         if (mod instanceof AugmentedAssignmentModifier) {
             const rightMostReturnsType = (this.tokens[this.tokens.length - 1] as Expression).returns;
@@ -2064,6 +2173,7 @@ export class VarOperationStmt extends Statement {
         mod.rootNode = this;
 
         this.tokens.push(mod);
+        // console.log("Append modifier" + mod + ";" + new Date().getSeconds());
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -2077,6 +2187,10 @@ export class VarOperationStmt extends Statement {
     }
 }
 
+/**
+ * Modifier to access a given list index.
+ * E.g. [1,2,3]*[0]* => 1
+ */
 export class ListAccessModifier extends Modifier {
     leftExprTypes = [DataType.AnyList];
     private indexOfIndexTkn: number;
@@ -2163,6 +2277,10 @@ export class ListAccessModifier extends Modifier {
     }
 }
 
+/**
+ * Probably to access the property of an object.(?)
+ * ===> NOT USED?
+ */
 export class PropertyAccessorModifier extends Modifier {
     private propertyName: string;
 
@@ -2181,6 +2299,7 @@ export class PropertyAccessorModifier extends Modifier {
         this.tokens.push(new NonEditableTkn(`.${propertyName}`, this, this.tokens.length));
 
         this.propertyName = propertyName;
+        console.log("Property constructed", this.propertyName);
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -2397,6 +2516,13 @@ export class FunctionCallExpr extends Expression implements Importable {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
+        /**
+         * Two cases:
+         * * Either we are at the left of an expression and the function we want to insert has exactly one element, 
+         * then we check if the expression to the right has a type that matches the type of the argument of the function
+         * we want to insert AND if the function can be inserted at the current hole. (first case however seems bugged)
+         * * Otherwise we simply check whether or not we are at an empty expression hole
+         */
         if (validator.atLeftOfExpression(providedContext) && this.args.length == 1) {
             // check if we can add to next
             // has only one arg
@@ -2920,6 +3046,14 @@ export class BinaryOperatorExpr extends Expression {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
+        /**
+         * Three cases:
+         * * We are at an empty expression hole
+         * * Either we are at the left of an expression and the current expression to the left has a type compatible
+         * with the current binary operator (for example + with numbers and strings, - with numbers etc)
+         * * Or we are at the right of an expression and the current expression to the right has a type compatible
+         * with the current binary operator (for example + with numbers and strings, - with numbers etc)
+         */
         return validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
             (validator.atLeftOfExpression(providedContext) &&
                 !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt) &&
@@ -3643,6 +3777,13 @@ export class UnaryOperatorExpr extends Expression {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
+        /**
+         * Three cases:
+         * * We are at an empty expression hole
+         * * We are at the left of an expression and the current expression to the right is a boolean
+         * (e.g. True when you want to insert "and")
+         * * We are at the left of an expression and the current expression to the right is any
+         */
         return validator.atEmptyExpressionHole(providedContext) ||
             (validator.atLeftOfExpression(providedContext) &&
                 providedContext?.expressionToRight?.returns == DataType.Boolean) ||
@@ -3731,6 +3872,9 @@ export class EmptyOperatorTkn extends Token {
     }
 }
 
+/**
+ * Token for the unary or binary operator itself. Think "+", "-", "and", "or" etc.
+ */
 export class OperatorTkn extends Modifier {
     operator: UnaryOperator | BinaryOperator;
     operatorCategory: OperatorCategory;
@@ -3895,6 +4039,11 @@ export class ListLiteralExpression extends Expression {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
+        /**
+         * Two cases:
+         * * We are at an empty expression hole
+         * * We are at the left of an expression and we will place the element inside the list on insertion
+         */
         return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
             ? InsertionType.Valid
             : InsertionType.Invalid;
@@ -4013,7 +4162,7 @@ export class IdentifierTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
 
-    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number) {
+    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, validatorRegex = RegExp("^[^\\d\\W]\\w*$")) {
         super(identifier == undefined ? "  " : identifier);
 
         if (identifier == undefined) this.isEmpty = true;
@@ -4021,7 +4170,7 @@ export class IdentifierTkn extends Token implements TextEditable {
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
-        this.validatorRegex = RegExp("^[^\\d\\W]\\w*$");
+        this.validatorRegex = validatorRegex;
     }
 
     getToken(): Token {

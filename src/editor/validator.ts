@@ -60,11 +60,11 @@ export class Validator {
      * will not add/change draft modes
      */
     /**
-     * Determines if the existing operator can be replaced with the given operator
+     * Determines if the existing operator can be replaced with the given operator (e.g. "False [] True" -> "False and True")
      *
      * @param operator - the operator to replace the existing operator with
      * @param providedContext - the context to use for the validation. If not provided, the current context will be used
-     * @returns - true if the operator can be replaced, false otherwise
+     * @returns - true if the operator can be replaced or if there is none, false otherwise
      */
     canInsertOp(operator: BinaryOperator | UnaryOperator, providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
