@@ -519,7 +519,7 @@ export abstract class Statement implements CodeConstruct {
      * @returns text representation of statement's keyword or an empty string if it has none
      */
     getKeyword(): string {
-        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as KeywordTkn).text;
+        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as KeywordTkn).text; // KeywordTkn can probably be exchanged for "Token"
 
         return "";
     }
@@ -2299,7 +2299,7 @@ export class PropertyAccessorModifier extends Modifier {
         this.tokens.push(new NonEditableTkn(`.${propertyName}`, this, this.tokens.length));
 
         this.propertyName = propertyName;
-        console.log("Property constructed", this.propertyName);
+        // console.log("Property constructed", this.propertyName);
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -2311,6 +2311,9 @@ export class PropertyAccessorModifier extends Modifier {
     }
 }
 
+/**
+ * Method's call on a variable or value with a return value. E.g. "hello".split("e")
+ */
 export class MethodCallModifier extends Modifier {
     functionName: string = "";
     args: Array<Argument>;
@@ -2349,7 +2352,8 @@ export class MethodCallModifier extends Modifier {
             this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
             this.hasEmptyToken = true;
-        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
+        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length)); 
+        // When would we enter the else fase? There is a point missing at the start?
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -2398,6 +2402,14 @@ export class MethodCallModifier extends Modifier {
     }
 }
 
+/**
+ * Assign a value to a variable. E.g. "x = 5"
+ * The assignmentModifier itself is "= ---" without the variable and with a hole
+ * 
+ * Requirements:
+ * * Left expression needs to be an assignable (like a variable reference, list access ...)
+ * * RootNode needs to be a VarOperationStmt
+ */
 export class AssignmentModifier extends Modifier {
     rootNode: VarOperationStmt;
     simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
@@ -2429,6 +2441,17 @@ export class AssignmentModifier extends Modifier {
     }
 }
 
+/**
+ * Modify a value to a variable. E.g. "x += 5"
+ * The assignmentModifier itself is "+= ---" without the variable and with a hole
+ * Other options include -=, *=, /=, %=, **=
+ * 
+ * Requirements:
+ * * Left expression needs to be an assignable (like a variable reference, list access ...)
+ * * RootNode needs to be a VarOperationStmt
+ * 
+ * Similar to {@link AssignmentModifier}
+ */
 export class AugmentedAssignmentModifier extends Modifier {
     rootNode: VarOperationStmt;
     private operation: AugmentedAssignmentOperator;
@@ -2469,6 +2492,12 @@ export class AugmentedAssignmentModifier extends Modifier {
     }
 }
 
+/**
+ * Call functions or methods with a return value. E.g. len("hello")
+ * Currently, these are all standard methods
+ * 
+ * Similar to {@link FunctionCallStmt} but for expressions (and thus with return values)
+ */
 export class FunctionCallExpr extends Expression implements Importable {
     /**
      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
@@ -2644,6 +2673,9 @@ export class FunctionCallExpr extends Expression implements Importable {
     }
 }
 
+/**
+ * {@link CodeConstruct}s implementing this interface need to be imported
+ */
 export interface Importable {
     requiredModule: string;
 
@@ -2655,6 +2687,12 @@ export interface Importable {
 }
 
 // REPLACEABLE
+/**
+ * Call functions or methods without a return value. E.g. print("hello")
+ * Currently these are all standard functions
+ * 
+ * Similar to {@link FunctionCallExpr} but for statements (and thus without return values)
+ */
 export class FunctionCallStmt extends Statement implements Importable {
     /**
      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
@@ -2770,6 +2808,15 @@ export class FunctionCallStmt extends Statement implements Importable {
     }
 }
 
+// DEAD CODE?!? FFD
+/**
+ * Represents an assignment to an list item at a given index. E.g. "x[0] = 5", with
+ * representation ---[---] = ---
+ * 
+ * Seems to be only created in case InsertActionType.InsertListIndexAssignment is set.
+ * However, it does seem like this value is never assigned, resulting in this probably being
+ * dead code.
+ */
 export class ListElementAssignment extends Statement {
     constructor(root?: Expression, indexInRoot?: number) {
         super();
@@ -2797,6 +2844,7 @@ export class ListElementAssignment extends Statement {
         //TODO: Python lists allow elements of different types to be added to the same list. Should we keep that functionality?
         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+        // console.log("List element assignment constructed");
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -2807,6 +2855,9 @@ export class ListElementAssignment extends Statement {
 }
 
 // REPLACEABLE
+/**
+ * Statement consisting of a single keyword like "break", "continue", "pass" ...
+ */
 export class KeywordStmt extends Statement {
     validator: (context: Context) => boolean;
 
@@ -2876,6 +2927,10 @@ export class KeywordStmt extends Statement {
 //     }
 // }
 
+/**
+ * Expression for a binary operator like +, -, *, /, %, **, //, ==, !=, <, >, 
+ * <=, >=, in, not in, and, or ...
+ */
 export class BinaryOperatorExpr extends Expression {
     operator: BinaryOperator;
     operatorCategory: OperatorCategory;
@@ -3748,6 +3803,9 @@ export class BinaryOperatorExpr extends Expression {
     }
 }
 
+/**
+ * Expression for operators with only one operand
+ */
 export class UnaryOperatorExpr extends Expression {
     operator: UnaryOperator;
     private operandIndex: number;
@@ -3803,6 +3861,10 @@ export class UnaryOperatorExpr extends Expression {
     }
 }
 
+/**
+ * Text token that can be edited by the user
+ * In other words, the token does not form one static keyword but can be changed by the user
+ */
 export class EditableTextTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
@@ -3855,6 +3917,10 @@ export class EditableTextTkn extends Token implements TextEditable {
     }
 }
 
+/**
+ * Token used on the spot where there should be an operator token, but there is none
+ * This is for example the case the operator in a binary operator expression is deleted
+ */
 export class EmptyOperatorTkn extends Token {
     isEmpty = true;
 
@@ -3874,6 +3940,7 @@ export class EmptyOperatorTkn extends Token {
 
 /**
  * Token for the unary or binary operator itself. Think "+", "-", "and", "or" etc.
+ * ==> Why is this an expression? (subclass of modifier, which is a subclass of expression)
  */
 export class OperatorTkn extends Modifier {
     operator: UnaryOperator | BinaryOperator;
@@ -3896,6 +3963,10 @@ export class OperatorTkn extends Modifier {
     }
 }
 
+/**
+ * Express values: string, number and boolean
+ * E.g. 5, "Hello", True
+ */
 export class LiteralValExpr extends Expression {
     valueTokenIndex: number = 0;
 
@@ -3965,6 +4036,9 @@ export class LiteralValExpr extends Expression {
     }
 }
 
+/**
+ * Expression for f-string: f'...'
+ */
 export class FormattedStringExpr extends Expression {
     valueTokenIndex: number = 0;
 
@@ -3998,6 +4072,13 @@ export class FormattedStringExpr extends Expression {
     }
 }
 
+/**
+ * Currly brackets inside an f-string expression in which an expression can be placed
+ * E.g. f'...{...}...'
+ * 
+ * Requirements:
+ * * Should be contained in an {@link FormattedStringExpr}
+ */
 export class FormattedStringCurlyBracketsExpr extends Expression {
     valueTokenIndex: number = 0;
 
@@ -4023,6 +4104,9 @@ export class FormattedStringCurlyBracketsExpr extends Expression {
     }
 }
 
+/**
+ * Expression to construct an empty list, or if to the left of an expression, to insert an element into a list
+ */
 export class ListLiteralExpression extends Expression {
     constructor(root?: Statement | Expression, indexInRoot?: number) {
         super(DataType.AnyList);
@@ -4143,6 +4227,10 @@ export class ListLiteralExpression extends Expression {
     }
 }
 
+/**
+ * Represents an item in the list: , ---
+ * ==> Why does this not consist of any tokens?
+ */
 export class ListComma extends Expression {
     constructor() {
         super(DataType.Void);
@@ -4158,6 +4246,9 @@ export class ListComma extends Expression {
     }
 }
 
+/**
+ * Variable reference expression, created within a for loop and a variable assignment statement
+ */
 export class IdentifierTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
@@ -4207,6 +4298,10 @@ export class IdentifierTkn extends Token implements TextEditable {
     }
 }
 
+/**
+ * Seems to be created when at the start of an empty line so that it can be replaced with a(n other) 
+ * statement
+ */
 export class TemporaryStmt extends Statement {
     constructor(token: CodeConstruct) {
         super();
@@ -4214,6 +4309,7 @@ export class TemporaryStmt extends Statement {
         token.indexInRoot = this.tokens.length;
         token.rootNode = this;
         this.tokens.push(token);
+        // console.log("TemporaryStmt: " + token.codeConstructName);
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -4221,6 +4317,13 @@ export class TemporaryStmt extends Statement {
     }
 }
 
+/**
+ * Token being inserted when typing with an autocomplete menu open.
+ * The token is first created when the first character is typed and an 
+ * autocomplete menu is opened. The token is then updated when the user types 
+ * subsequent characters. The token is probably replaced / removed / obsolete 
+ * when the terminating character is typed and the autocomplete menu is closed.
+ */
 export class AutocompleteTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp = null;
@@ -4240,6 +4343,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
         this.autocompleteType = autocompleteCategory;
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
+        console.log("AutocompleteTkn: " + firstChar);
     }
 
     getToken(): Token {
@@ -4250,12 +4354,15 @@ export class AutocompleteTkn extends Token implements TextEditable {
         return this.text;
     }
 
+    // Why use of this function? This is less complete than checkMatch?
     isMatch(): EditCodeAction {
         for (const match of this.validMatches) if (this.text == match.matchString) return match;
 
         return null;
     }
 
+    // insertableTerminatingCharRegex: RegExp[] is the tenth parameter of EditCodeAction 
+    // which might never be used, I think? Is thus function ever used then? FFD 
     isInsertableTerminatingMatch(newChar: string): EditCodeAction {
         for (const match of this.validMatches) {
             if (match.insertableTerminatingCharRegex) {
@@ -4268,6 +4375,11 @@ export class AutocompleteTkn extends Token implements TextEditable {
         return null;
     }
 
+    /**
+     * Check if there is a precise match (and thus the CodeConstruct should be inserted) or not
+     * 
+     * @returns - Matching EditCodeAction or null if no match
+     */
     isTerminatingMatch(): EditCodeAction {
         const newChar = this.text[this.text.length - 1];
         const curText = this.text.substring(0, this.text.length - 1);
@@ -4275,9 +4387,21 @@ export class AutocompleteTkn extends Token implements TextEditable {
         return this.checkMatch(newChar, curText);
     }
 
+    /**
+     * Checks if from the list of all currently valid matches (in the autocomplete menu), there is 
+     * a match that matches the current text exactly, or matches the current text with a regex and 
+     * returns the corresponding EditCodeAction
+     * 
+     * @param newChar - the new character that was typed
+     * @param text - All text written before the latest character
+     * @returns The EditCodeAction matching the matchString or matchRegex exactly, or null if no match
+     */
     checkMatch(newChar: string, text?: string): EditCodeAction {
         let curText = text !== undefined ? text : this.text;
-
+        
+        // console.log("Match checked: ", newChar, " ", curText);
+        // Check if the new character is a terminating character and whether the current text (text 
+        // before the current character) is a match
         for (const match of this.validMatches) {
             if (match.terminatingChars.indexOf(newChar) >= 0) {
                 if (match.trimSpacesBeforeTermChar) curText = curText.trim();
@@ -4286,18 +4410,26 @@ export class AutocompleteTkn extends Token implements TextEditable {
                 else if (match.matchRegex != null && match.matchRegex.test(curText)) return match;
             }
         }
-
+        // console.log("Not completely matched: ", newChar);
+        // No exact match when the new character is a terminating character or the new character was not a
+        // terminating character
         return null;
     }
 
+    /**
+     * Once the token is created, update the text of the token when typing
+     */
     setEditedText(text: string): boolean {
         this.text = text;
         (this.rootNode as Expression).rebuild(this.getLeftPosition(), this.indexInRoot);
-
+        // console.log("AutocompleteTkn edited: " + text);
         return true;
     }
 }
 
+/**
+ * Represents the "holes" in the text that can be filled with expressions
+ */
 export class TypedEmptyExpr extends Token {
     isEmpty = true;
     type: DataType[];
@@ -4346,6 +4478,10 @@ export class TypedEmptyExpr extends Token {
     }
 }
 
+/**
+ * Single non-editable token. Text is fixed and cannot be changed by the user. 
+ * Deletion results in the entire token being removed.
+ */
 export class NonEditableTkn extends Token {
     constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
@@ -4359,6 +4495,11 @@ export class NonEditableTkn extends Token {
     }
 }
 
+// FFD
+/**
+ * Seems to be used in only one place to allow access to the "text" field.
+ * As Token has a "text" field as well, this class is probably obsolete.
+ */
 export class KeywordTkn extends Token {
     constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
