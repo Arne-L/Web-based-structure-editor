@@ -45,6 +45,8 @@ This contains the old strings used for warning messages. Most of these are not u
 
 ## Suggestion Controller Documentation
 
+<b style="color: red;">Nested menu's are, to the best of my knowledge, not used anymore!</b>
+
 Overall the way this works is you create a `Menu` object which holds `MenuOption` objects which perform some action when selected. `Menu` objects can be nested in a tree to provided nested menu functionality. `MenuController` is a singleton controlling all existing menus. It keeps track of open/closed menus as well as the currently focused option within each open menu.
 
 If you want to create a menu you should use `MenuController`, you should not have to interact with `Menu` and `MenuOption` directly. So before modifying those, check if `MenuController` already provides the functionality you want and if it does not, it is likely that it should be added there rather than the menus and the options.
@@ -775,7 +777,7 @@ This file also contains a small class `ToolboxButton` with the specification of 
 <br/>
 <br/>
 
-### Toolbox.json
+### Toolbox.json => NOT AVAILABLE ANYMORE?
 This file specifies the structure of the toolbox and which parts of it are available. It contains two main fields:<br/>
 
 * __`toolboxConstructGroupOptions:`__ <br/>
