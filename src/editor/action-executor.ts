@@ -175,27 +175,31 @@ export class ActionExecutor {
                 if (action.data.outside) {
                     // when the else is being inserted outside
                     const elseRoot = context.lineStatement.rootNode as Module | Statement;
+                    // Fit the new else(/elif) statement in the root of the current statement
                     newStatement.rootNode = elseRoot;
                     newStatement.indexInRoot = context.lineStatement.indexInRoot;
-                    newStatement.body.push(new EmptyLineStmt(newStatement, 0));
+                    newStatement.body.push(new EmptyLineStmt(newStatement, 0)); // Add a body to the else/elif
 
                     replaceInBody(elseRoot, newStatement.indexInRoot, newStatement);
                     rebuildBody(elseRoot, newStatement.indexInRoot, context.lineStatement.lineNumber);
                     this.module.editor.executeEdits(this.getBoundaries(context.lineStatement), newStatement);
                 } else {
                     // when being inserted inside
-                    const curStmtRoot = context.lineStatement.rootNode as Statement;
-                    const elseRoot = curStmtRoot.rootNode as Module | Statement;
-                    newStatement.rootNode = elseRoot;
-                    newStatement.indexInRoot = curStmtRoot.indexInRoot + 1;
+                    const curStmtRoot = context.lineStatement.rootNode as Statement; // Probably an if statement
+                    const elseRoot = curStmtRoot.rootNode as Module | Statement; // Probably root of if statement
+                    newStatement.rootNode = elseRoot; // Make the else a child of the if's root (so a sibling of the if)
+                    newStatement.indexInRoot = curStmtRoot.indexInRoot + 1; // You need to insert after the if
+                    // In the "outside" case, you take the "indexInRoot" of the current context, while here you take
+                    // the indexInRoot of the if statement (the parent of the context) and thus need to add one to it
 
                     // indent back and place all of the code below it as its child
-                    const toMoveStatements = curStmtRoot.body.splice(
+                    const toMoveStatements = curStmtRoot.body.splice( // curStmtRoot is the if statement
                         context.lineStatement.indexInRoot,
                         curStmtRoot.body.length - context.lineStatement.indexInRoot
-                    );
+                    ); // Place all items from the current (else) line to the end in the body of the else statement
 
-                    // remove the empty line statement
+                    // remove the empty line statement: the current line contains an empty line statement because it was
+                    // initially a space to insert a new statement
                     toMoveStatements.splice(0, 1)[0];
 
                     if (toMoveStatements.length == 0) newStatement.body.push(new EmptyLineStmt(newStatement, 0));
@@ -210,6 +214,8 @@ export class ActionExecutor {
                         newStatement
                     );
 
+                    // Split the current references in the references for the if statement and
+                    // the references for the else statement
                     const topReferences = new Array<Reference>();
                     const bottomReferences = new Array<Reference>();
 
@@ -224,15 +230,17 @@ export class ActionExecutor {
                         newStatement.scope.references = bottomReferences;
                     }
 
+                    // Add each of the moved statements to the body of the else statement
                     for (const [i, stmt] of toMoveStatements.entries()) {
                         stmt.rootNode = newStatement;
                         stmt.indexInRoot = i;
                         newStatement.body.push(stmt);
                     }
 
+                    // Add the else statement itself to the body of its rootNode
                     newStatement.init(providedLeftPos);
                     newStatement.rootNode = elseRoot;
-                    newStatement.indexInRoot = newStatement.indexInRoot;
+                    newStatement.indexInRoot = newStatement.indexInRoot; // Heu ... Why?
                     this.module.addStatementToBody(
                         elseRoot,
                         newStatement,
