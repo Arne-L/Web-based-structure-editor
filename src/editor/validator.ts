@@ -972,6 +972,7 @@ export class Validator {
         return null;
     }
 
+    // FFD
     private getLineBelow(providedContext?: Context): Statement {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
