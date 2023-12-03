@@ -4,6 +4,7 @@ import { Module } from "./module";
 
 /**
  * These scopes are created by multi-line statements
+ * They determine which variables, functions, classes ... are in scope for the statement
  */
 export class Scope {
     parentScope: Scope = null;
@@ -178,6 +179,9 @@ export class Scope {
     }
 }
 
+/**
+ * Reference to a variable, function, class ...
+ */
 export class Reference {
     /**
      * Currently, either a variable or a function declaration. Could later be a class declaration.
