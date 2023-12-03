@@ -732,6 +732,9 @@ export class GeneralStatement extends Statement implements Importable {
                 case "body":
                     this.body.push(new EmptyLineStmt(this, this.body.length));
                     this.scope = new Scope();
+                    /**
+                     * We still need to add scope for constructs without a body like else and elif
+                     */
                     break;
                 case "identifier":
                     // this.tokens.push(new EditableTextTkn("", RegExp(token.regex), this, this.tokens.length))
