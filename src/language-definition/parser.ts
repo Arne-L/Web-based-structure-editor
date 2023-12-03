@@ -91,7 +91,7 @@ export function addEditCodeActionsToCategories(
     editCodeActions: EditCodeAction[]
 ): void {
     for (const action of editCodeActions) {
-        console.log(action);
+        // console.log(action);
         const currentCategory: string = action.documentation.category;
         if (toolboxCategories.some((category) => currentCategory === category.displayName)) {
             toolboxCategories.find((category) => currentCategory === category.displayName).addEditCodeAction(action);
