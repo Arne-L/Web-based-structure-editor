@@ -159,6 +159,7 @@ export interface CodeConstruct {
      */
     typeValidateInsertionIntoHole(insertCode: Expression, insertInto?: TypedEmptyExpr): InsertionResult;
 
+    // FFD together with all its children (it is never called)
     /**
      * Actions that need to run after the construct has been validated for insertion, but before it is inserted into the AST.
      *
@@ -169,6 +170,7 @@ export interface CodeConstruct {
 
     onFocusOff(arg: any): void;
 
+    // FFD together with all its children (it is never called)
     performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
     markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void;
@@ -552,7 +554,7 @@ export abstract class Statement implements CodeConstruct {
     //TODO: #526 should be changed to return InsertionResult and populate that result with an appropriate message/code
     /**
      * Validates if the given code construct can be inserted into this context.
-     * 
+     *
      * @param validator - Singleton validator instance
      * @param providedContext - Current context
      */
@@ -596,6 +598,39 @@ export abstract class Statement implements CodeConstruct {
     }
 }
 
+/**
+ * Class encapsulating information about constructs that can optionally be contained in a construct.
+ * The primary purpose is to be able to specify some constraints on these constructs.
+ */
+class OptionalConstructs {
+    private constructName: string;
+    private min: number;
+    private max: number;
+
+    constructor(constructName: string, min: number, max: number) {
+        this.constructName = constructName;
+        this.min = min;
+        this.max = max;
+    }
+
+    getConstructName(): string {
+        return this.constructName;
+    }
+
+    getMin(): number {
+        return this.min;
+    }
+
+    getMax(): number {
+        return this.max;
+    }
+}
+
+/**
+ * A simple type alias to make the code more readable.
+ */
+type CodeConstructName = string;
+
 export class GeneralStatement extends Statement implements Importable {
     /**
      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
@@ -604,13 +639,35 @@ export class GeneralStatement extends Statement implements Importable {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     requiredModule: string;
+    /**
+     * Constructs which depend on this construct. For example, the "elif" construct depends on the "if" construct.
+     * If this list is empty, constructs can still depend on this, but their order and frequency is not fixed. (E.g.
+     * the depending construct can be inserted anywhere in the body of this construct and as many times as it wants)
+     *
+     * Currently, all depending constructs are indented by 1 tab. This is not always the case, so this should be
+     * generalised in the future.
+     */
+    private dependingConstructs: OptionalConstructs[] = [];
+    /**
+     * Constructs which this construct depends on. For example, the "elif" construct depends on the "if" construct.
+     * As a construct can depend on multiple constructs, this list can contain multiple names. (e.g. "else" can appear
+     * after "if", but also after - or as a child of - "while")
+     *
+     * IMPORTANT NOTE: This does introduce redudancy from the user's side as they now have to indicate both for the parent
+     * as for the child if they depend on each other. If this is always the case, we might have to write some mappin structure
+     * keeping tracking of the depending constructs and filling in the required constructs automatically.
+     * However, currently this is not possible because we assume that dependingConstructs can be empty even though there are
+     * constructs depending on it (in this specific case, we specified that the order was not fixed) However, it in the future
+     * it follows that this (edge) case does not occur (or has a different solution), we can implement the above optimisation.
+     */
+    private requiresConstruct: CodeConstructName[] = [];
 
-    constructor(construct: any, keywordIndex: number = 0, root?: Statement | Module, indexInRoot?: number) {
+    constructor(construct: any, root?: Statement | Module, indexInRoot?: number) {
         super();
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
-        this.keywordIndex = keywordIndex;
+        this.keyword = construct.keyword; // Rethink this one; will this really always be the name/keyword? MIGHT BE FIXED
 
         // Keep track of the current hole
         let holeIndex = 0;
@@ -621,14 +678,41 @@ export class GeneralStatement extends Statement implements Importable {
         // Set an invalid tooltip message if available
         this.simpleInvalidTooltip = construct.toolbox.invalidTooptip || ""; // TODO: MAKE MORE CONCRETE
 
+        // Check if the construct requires a different construct as parent, and if so add the requirement
+        if (construct.requiresConstruct) {
+            if (construct.requiresConstruct instanceof Array) {
+                this.requiresConstruct = construct.requiresConstruct;
+            } else {
+                this.requiresConstruct.push(construct.requiresConstruct);
+            }
+        }
+
         for (const token of construct.format) {
             switch (token.type) {
                 case "construct":
-                    // TODO: Should be changed in the future
+                    /**
+                     * New use of the term "construct":
+                     *  Construct tokens should be replaced by a top level construct. For example
+                     *  for the "if" statement, the construct "elif" needs to be exchanged with the
+                     *  tokens of the "elif" construct (which is a top level construct). An important note
+                     *  is that the "elif" and "else" constructs are not part of the "if" construct, but
+                     *  should be inserted as childs in the AST
+                     *
+                     *  The way this is handled is as follows: When a type "construct" is detected,
+                     *  the value of the ref field (REFVAL) will be used to search for a construct with the
+                     *  name REFVAL in the list of all constructs. If it is found, the construct can be inserted
+                     *  in the body when needed. If it is not found, the construct will be ignored.
+                     * 
+                     * IS THIS DESCRIPTION CORRECT? BE SURE TO CHECK LATER!
+                     */
+                    this.dependingConstructs.push(new OptionalConstructs(token.ref, token.min, token.max));
+
                     // Search in list of all constructs for a corresponding name and insert it ... kinda?
-                    this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
+                    // this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
                     // this.tokens.push(new EditableTextTkn(construct.name, new RegExp("^[a-zA-Z]*$"), this, this.tokens.length)) // First two arguments should be replaced with something language specific
                     break;
+                case "implementation":
+                    this.tokens.push(new NonEditableTkn(construct[token.anchor], this, this.tokens.length));
                 case "token":
                     this.tokens.push(new NonEditableTkn(token.value, this, this.tokens.length));
                     break;
@@ -651,38 +735,38 @@ export class GeneralStatement extends Statement implements Importable {
                     break;
                 case "identifier":
                     // this.tokens.push(new EditableTextTkn("", RegExp(token.regex), this, this.tokens.length))
-                    this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length, RegExp(token.regex)))
+                    this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length, RegExp(token.regex)));
                     break;
                 default:
                     // Invalid type => What to do about it?
                     console.warn("Invalid type: " + token.type);
 
                 /**
-                 * 1) Look at the cases for "delimited_list" and "hole" => redundancy? 
+                 * 1) Look at the cases for "delimited_list" and "hole" => redundancy?
                  * 2) How will we handle new lines / empty lines? What will the configuration file require?
                  * 3) Handle scope: how do we now when a statement has a scope or not? Can we determine
                  * this whithout having to make it an explicit option?
-                 * 
+                 *
                  * Possibilities:
                  * 3) If the concept of statements exist, check if the construct contains a
                  * statement. If so, it has a scope. If not, it doesn't.
                  * 2) If the concept of statements exists, we can check if a hole is a statement. If
                  * so, then we can see it as a EmptyLineStmt
                  * => Problem: User error possible and even likely
-                 * 2) We can look at holes before and after which there is a new line character "\n", 
+                 * 2) We can look at holes before and after which there is a new line character "\n",
                  * signifying that the hole is the only thing on the line. In this case, we can assume
                  * that it is a empty line statement.
-                 * 
-                 * 
+                 *
+                 *
                  * What about expressions that can be placed on empty lines? Like methods call e.g. print()
-                 * 
-                 * 
-                 * How to handle "validateContext"? 
+                 *
+                 *
+                 * How to handle "validateContext"?
                  * Maybe we can have slots in which only certain statements / expressions can be inserted?
-                 * 
+                 *
                  * How to handle scope for "elif" and "else"? Currently this is done by checking
                  * if a statement has body, but that is not possible for "elif" and "else"
-                 * 
+                 *
                  * All variable functionality in the for-loop is currently dropped
                  * What is the best way to add this in the future?
                  */
@@ -724,13 +808,53 @@ export class GeneralStatement extends Statement implements Importable {
     //     } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
     // }
 
+    getKeyword(): string {
+        return this.keyword;
+    }
+
     // What should be kept from these? How can this be abstracted?
     // Currently "&& this.validator(providedContext)" was dropped (from break stmt)
     // => Might be able to encapsulate data in this "general" requirement?
+    /**
+     * Currently only implemented for statements (or is being implemented for statements ...)
+     * 
+     * @param validator - An instance of the validator class with methods to check the current context
+     * @param providedContext - The current context
+     * @returns - The insertion type of the construct: valid, draft or invalid
+     */
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+        const context = providedContext ? providedContext : validator.module.focus.getContext();
+
+        console.log("1", this.requiresConstruct)
+        if (this.requiresConstruct.length > 0) {
+            // Get the current, most precise construct
+            const construct = context.expression || context.lineStatement;
+            console.log("2", construct, construct.rootNode);
+            // If the current construct is at the root level, it can't be inserted into anything and thus
+            // the insertion is invalid
+            if (construct.rootNode instanceof Module) return InsertionType.Invalid;
+            console.log("3", "First invalid passed")
+            // Check if the root construct is one of the required construct; if not, the insertion is invalid
+            const rootName = construct.rootNode.getKeyword();
+            console.log("3.5", rootName, this.requiresConstruct, this.requiresConstruct.indexOf(rootName), rootName.length)
+            if (this.requiresConstruct.indexOf(rootName.trim()) === -1) return InsertionType.Invalid;
+            console.log("4", "Second invalid passed")
+            // We still have to check the order if this.dependingConstructs is not empty
+
+            /**
+             * To-Do next: 
+             * * fix ambiguity between keyword and name
+             * * Make order of importance for depending constructs
+             */
+
+        }
+
+        return context.lineStatement instanceof EmptyLineStmt && !validator.isAboveElseStatement(context)
             ? InsertionType.Valid
             : InsertionType.Invalid;
+        // return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+        //     ? InsertionType.Valid
+        //     : InsertionType.Invalid;
     }
 
     // DEAD CODE
@@ -837,8 +961,8 @@ export class GeneralStatement extends Statement implements Importable {
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
  */
 export abstract class Expression extends Statement implements CodeConstruct {
-    rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT; 
-    // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression 
+    rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT;
+    // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression
     // gefuseerd worden
 
     // TODO: can change this to an Array to enable type checking when returning multiple items
@@ -852,7 +976,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
     }
 
     getLineNumber(): number {
-        return this.rootNode.getLineNumber(); 
+        return this.rootNode.getLineNumber();
         /**
          * this.lineNumber seems to always work? Maybe we can simply remove this?
          */
@@ -864,7 +988,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
 
         return new Selection(line, this.right, line, this.left);
         /**
-         * Again, linenumber seems to always work ... and we can just replace "line" with 
+         * Again, linenumber seems to always work ... and we can just replace "line" with
          * "this.getLineNumber()" which works both in statement and expression
          */
     }
@@ -879,7 +1003,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
     }
 
     /**
-     * Update types of holes within the expression as well as the expression's return 
+     * Update types of holes within the expression as well as the expression's return
      * type when insertCode is inserted into it.
      *
      * @param insertCode code being inserted.
@@ -890,7 +1014,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
      */
 
     /**
-     * Update types of holes within the expression as well as the expression's return 
+     * Update types of holes within the expression as well as the expression's return
      * type to "type" when this expression is inserted into the AST.
      *
      * @param type new return/expression hole type
@@ -1484,7 +1608,7 @@ export class ForStatement extends Statement implements VariableContainer {
             : InsertionType.Invalid;
     }
 
-    // Usefulness? 
+    // Usefulness?
     // rebuild(pos: Position, fromIndex: number) {
     //     super.rebuild(pos, fromIndex);
     // }
@@ -1674,7 +1798,7 @@ export class ForStatement extends Statement implements VariableContainer {
 
 /**
  * Empty line construct is created to show the user the body of the statement and allows
- * for easy navigation to the body of the statement. In the editor it is represented by an 
+ * for easy navigation to the body of the statement. In the editor it is represented by an
  * empty intended light blue line.
  */
 export class EmptyLineStmt extends Statement {
@@ -2002,7 +2126,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
 }
 
 /**
- * A reference expression to a variable "x". The value of the expression is equal to the value of the 
+ * A reference expression to a variable "x". The value of the expression is equal to the value of the
  * variable referenced.
  */
 export class VariableReferenceExpr extends Expression {
@@ -2102,9 +2226,9 @@ export class ValueOperationExpr extends Expression {
 
 /**
  * Statement encapsulating a variable assignment operation.
- * Can be a variable reference but also operations on the reference or 
+ * Can be a variable reference but also operations on the reference or
  * modifiers on the reference.
- * 
+ *
  * Seems to be null in most cases (at least when created) and only becomes equal to
  * a reference when an existing variable is referenced, when it is inserted and of all those
  * calls, the last one is non-null.
@@ -2159,8 +2283,8 @@ export class VarOperationStmt extends Statement {
     /**
      * Expand a variable reference with a modifier like "+="
      * Seems to be only called when it is an augmented assignment modifier
-     * 
-     * @param mod - Augmented(?) assignment(?) modifier 
+     *
+     * @param mod - Augmented(?) assignment(?) modifier
      */
     appendModifier(mod: Modifier) {
         if (mod instanceof AugmentedAssignmentModifier) {
@@ -2352,7 +2476,7 @@ export class MethodCallModifier extends Modifier {
             this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
             this.hasEmptyToken = true;
-        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length)); 
+        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
         // When would we enter the else fase? There is a point missing at the start?
     }
 
@@ -2405,7 +2529,7 @@ export class MethodCallModifier extends Modifier {
 /**
  * Assign a value to a variable. E.g. "x = 5"
  * The assignmentModifier itself is "= ---" without the variable and with a hole
- * 
+ *
  * Requirements:
  * * Left expression needs to be an assignable (like a variable reference, list access ...)
  * * RootNode needs to be a VarOperationStmt
@@ -2445,11 +2569,11 @@ export class AssignmentModifier extends Modifier {
  * Modify a value to a variable. E.g. "x += 5"
  * The assignmentModifier itself is "+= ---" without the variable and with a hole
  * Other options include -=, *=, /=, %=, **=
- * 
+ *
  * Requirements:
  * * Left expression needs to be an assignable (like a variable reference, list access ...)
  * * RootNode needs to be a VarOperationStmt
- * 
+ *
  * Similar to {@link AssignmentModifier}
  */
 export class AugmentedAssignmentModifier extends Modifier {
@@ -2495,7 +2619,7 @@ export class AugmentedAssignmentModifier extends Modifier {
 /**
  * Call functions or methods with a return value. E.g. len("hello")
  * Currently, these are all standard methods
- * 
+ *
  * Similar to {@link FunctionCallStmt} but for expressions (and thus with return values)
  */
 export class FunctionCallExpr extends Expression implements Importable {
@@ -2547,7 +2671,7 @@ export class FunctionCallExpr extends Expression implements Importable {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         /**
          * Two cases:
-         * * Either we are at the left of an expression and the function we want to insert has exactly one element, 
+         * * Either we are at the left of an expression and the function we want to insert has exactly one element,
          * then we check if the expression to the right has a type that matches the type of the argument of the function
          * we want to insert AND if the function can be inserted at the current hole. (first case however seems bugged)
          * * Otherwise we simply check whether or not we are at an empty expression hole
@@ -2690,7 +2814,7 @@ export interface Importable {
 /**
  * Call functions or methods without a return value. E.g. print("hello")
  * Currently these are all standard functions
- * 
+ *
  * Similar to {@link FunctionCallExpr} but for statements (and thus without return values)
  */
 export class FunctionCallStmt extends Statement implements Importable {
@@ -2812,7 +2936,7 @@ export class FunctionCallStmt extends Statement implements Importable {
 /**
  * Represents an assignment to an list item at a given index. E.g. "x[0] = 5", with
  * representation ---[---] = ---
- * 
+ *
  * Seems to be only created in case InsertActionType.InsertListIndexAssignment is set.
  * However, it does seem like this value is never assigned, resulting in this probably being
  * dead code.
@@ -2928,7 +3052,7 @@ export class KeywordStmt extends Statement {
 // }
 
 /**
- * Expression for a binary operator like +, -, *, /, %, **, //, ==, !=, <, >, 
+ * Expression for a binary operator like +, -, *, /, %, **, //, ==, !=, <, >,
  * <=, >=, in, not in, and, or ...
  */
 export class BinaryOperatorExpr extends Expression {
@@ -4075,7 +4199,7 @@ export class FormattedStringExpr extends Expression {
 /**
  * Currly brackets inside an f-string expression in which an expression can be placed
  * E.g. f'...{...}...'
- * 
+ *
  * Requirements:
  * * Should be contained in an {@link FormattedStringExpr}
  */
@@ -4253,7 +4377,12 @@ export class IdentifierTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
 
-    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, validatorRegex = RegExp("^[^\\d\\W]\\w*$")) {
+    constructor(
+        identifier?: string,
+        root?: CodeConstruct,
+        indexInRoot?: number,
+        validatorRegex = RegExp("^[^\\d\\W]\\w*$")
+    ) {
         super(identifier == undefined ? "  " : identifier);
 
         if (identifier == undefined) this.isEmpty = true;
@@ -4299,7 +4428,7 @@ export class IdentifierTkn extends Token implements TextEditable {
 }
 
 /**
- * Seems to be created when at the start of an empty line so that it can be replaced with a(n other) 
+ * Seems to be created when at the start of an empty line so that it can be replaced with a(n other)
  * statement
  */
 export class TemporaryStmt extends Statement {
@@ -4319,9 +4448,9 @@ export class TemporaryStmt extends Statement {
 
 /**
  * Token being inserted when typing with an autocomplete menu open.
- * The token is first created when the first character is typed and an 
- * autocomplete menu is opened. The token is then updated when the user types 
- * subsequent characters. The token is probably replaced / removed / obsolete 
+ * The token is first created when the first character is typed and an
+ * autocomplete menu is opened. The token is then updated when the user types
+ * subsequent characters. The token is probably replaced / removed / obsolete
  * when the terminating character is typed and the autocomplete menu is closed.
  */
 export class AutocompleteTkn extends Token implements TextEditable {
@@ -4361,8 +4490,8 @@ export class AutocompleteTkn extends Token implements TextEditable {
         return null;
     }
 
-    // insertableTerminatingCharRegex: RegExp[] is the tenth parameter of EditCodeAction 
-    // which might never be used, I think? Is thus function ever used then? FFD 
+    // insertableTerminatingCharRegex: RegExp[] is the tenth parameter of EditCodeAction
+    // which might never be used, I think? Is thus function ever used then? FFD
     isInsertableTerminatingMatch(newChar: string): EditCodeAction {
         for (const match of this.validMatches) {
             if (match.insertableTerminatingCharRegex) {
@@ -4377,7 +4506,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
 
     /**
      * Check if there is a precise match (and thus the CodeConstruct should be inserted) or not
-     * 
+     *
      * @returns - Matching EditCodeAction or null if no match
      */
     isTerminatingMatch(): EditCodeAction {
@@ -4388,19 +4517,19 @@ export class AutocompleteTkn extends Token implements TextEditable {
     }
 
     /**
-     * Checks if from the list of all currently valid matches (in the autocomplete menu), there is 
-     * a match that matches the current text exactly, or matches the current text with a regex and 
+     * Checks if from the list of all currently valid matches (in the autocomplete menu), there is
+     * a match that matches the current text exactly, or matches the current text with a regex and
      * returns the corresponding EditCodeAction
-     * 
+     *
      * @param newChar - the new character that was typed
      * @param text - All text written before the latest character
      * @returns The EditCodeAction matching the matchString or matchRegex exactly, or null if no match
      */
     checkMatch(newChar: string, text?: string): EditCodeAction {
         let curText = text !== undefined ? text : this.text;
-        
+
         // console.log("Match checked: ", newChar, " ", curText);
-        // Check if the new character is a terminating character and whether the current text (text 
+        // Check if the new character is a terminating character and whether the current text (text
         // before the current character) is a match
         for (const match of this.validMatches) {
             if (match.terminatingChars.indexOf(newChar) >= 0) {
@@ -4479,7 +4608,7 @@ export class TypedEmptyExpr extends Token {
 }
 
 /**
- * Single non-editable token. Text is fixed and cannot be changed by the user. 
+ * Single non-editable token. Text is fixed and cannot be changed by the user.
  * Deletion results in the entire token being removed.
  */
 export class NonEditableTkn extends Token {

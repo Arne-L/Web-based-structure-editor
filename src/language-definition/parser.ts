@@ -50,7 +50,7 @@ export function getAllCodeActions(): EditCodeAction[] {
     for (const construct of flattenedConstructs) {
         const action = new EditCodeAction(
             construct.editorName,
-            `add-${construct.name}-btn-${toolboxId++}`,
+            `add-${construct.keyword}-btn-${toolboxId++}`,
             getCodeFunction(construct),
             InsertActionType.InsertStatement, // EXTRACT; maybe removable?
             // InsertActionType.InsertPrintStmt is superfluous

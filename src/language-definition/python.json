@@ -3,8 +3,7 @@
         "internalName": "standard_method",
         "format": [
             {
-                "type": "construct",
-                "name": "identifier",
+                "type": "implementation",
                 "anchor": "method_name"
             },
             {
@@ -25,8 +24,8 @@
         ],
         "implementations": [
             {
-                "ref": "mathod_name",
-                "name": "print",
+                "keyword": "print",
+                "method_name": "print",
                 "holes": [
                     [
                         {
@@ -71,7 +70,7 @@
         ]
     },
     {
-        "name": "break",
+        "keyword": "break",
         "editorName": "break",
         "format": [
             {
@@ -188,7 +187,7 @@
         }
     },
     {
-        "name": "while",
+        "keyword": "while",
         "editorName": "while --- :",
         "format": [
             {
@@ -281,7 +280,7 @@
         }
     },
     {
-        "name": "if",
+        "keyword": "if",
         "editorName": "if --- :",
         "format": [
             {
@@ -297,6 +296,20 @@
             },
             {
                 "type": "body"
+            },
+            {
+                "type": "construct",
+                "ref": "elif",
+                "optional": true,
+                "min": 0,
+                "max": null
+            },
+            {
+                "type": "construct",
+                "ref": "else",
+                "optional": true,
+                "min": 0,
+                "max": 1
             }
         ],
         "holes": [
@@ -350,8 +363,9 @@
         }
     },
     {
-        "name": "else",
+        "keyword": "else",
         "editorName": "else :",
+        "requiresConstruct": "if",
         "format": [
             {
                 "type": "token",
@@ -385,8 +399,9 @@
         }
     },
     {
-        "name": "elif",
+        "keyword": "elif",
         "editorName": "elif --- :",
+        "requiresConstruct": "if",
         "format": [
             {
                 "type": "token",
@@ -462,7 +477,7 @@
         }
     },
     {
-        "name": "for",
+        "keyword": "for",
         "editorName": "for -- in --- :",
         "format": [
             {
@@ -574,6 +589,66 @@
                 "iterate",
                 "list"
             ]
+        }
+    },
+    {
+        "keyword": "variable assignment",
+        "editorName": "var = ---",
+        "format": [
+            {
+                "type": "identifier",
+                "regex": "^[^\\d\\W]\\w*$"
+            },
+            {
+                "type": "token",
+                "value": " = "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": null,
+        "matchRegex": "^[^\\d\\W]\\w*$",
+        "triggerInsertion": [
+            "="
+        ],
+        "toolbox": {
+            "category": "Tests",
+            "title": "Create/Reassign Variable",
+            "tooltip": {
+                "title": "Create Variable Assignment",
+                "body": "Allows to store a value and give it a name to reference it by later."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-declare-print-var",
+                    "example": "name = \"John\"\nprint(name)"
+                },
+                {
+                    "type": "quick",
+                    "text": "A variable is created the moment you first assign a value to it."
+                },
+                {
+                    "type": "bullet-point",
+                    "title": "variable naming",
+                    "bullets": [
+                        "Variable names can only contain letters, numbers, and underscores",
+                        "Variable names are case-sensitive (\"x\" and \"X\" are different)",
+                        "A variable name must start with a letter or the underscore character",
+                        "A variable name cannot start with a number"
+                    ]
+                }
+            ],
+            "search-queries": ["create new variable", "variable", "var"]
         }
     }
 ]
