@@ -713,6 +713,7 @@ export class GeneralStatement extends Statement implements Importable {
                     break;
                 case "implementation":
                     this.tokens.push(new NonEditableTkn(construct[token.anchor], this, this.tokens.length));
+                    break;
                 case "token":
                     this.tokens.push(new NonEditableTkn(token.value, this, this.tokens.length));
                     break;
