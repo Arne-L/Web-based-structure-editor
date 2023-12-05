@@ -602,6 +602,9 @@ export class CodeBackground extends CodeHighlight {
 
 // onChange or onReplace of one of the body items => it should recalculate these two dimensions, and the boxes
 
+/**
+ * The light blue visual highlight that is attached to a scope in the editor.
+ */
 export class ScopeHighlight {
     static idPrefix = "visual-element";
     static idCounter = 0;
@@ -622,7 +625,7 @@ export class ScopeHighlight {
     protected editor: Editor;
 
     /**
-     * HTML element that represents the header object in the DOM.
+     * HTML element that represents the header object, e.g. an if-statement, in the DOM.
      */
     protected headerElement: HTMLDivElement;
 
@@ -643,6 +646,7 @@ export class ScopeHighlight {
 
         this.callbacks = new Map<string, CallbackType>();
 
+        // Constructs this.headerElement and this.bodyElement
         this.createDomElement();
         ScopeHighlight.idCounter++;
         this.headerElement.id = `scope-header-${ScopeHighlight.idPrefix}-${ScopeHighlight.idCounter}`;
@@ -660,16 +664,20 @@ export class ScopeHighlight {
             }).bind(this)
         );
 
+        // For each line of the body, update the dimensions of this visual element (for the parent = this) 
+        // when the line changes
         for (const line of this.statement.body) {
             line.subscribe(CallbackType.delete, onChange);
             line.subscribe(CallbackType.replace, onChange);
             line.subscribe(CallbackType.change, onChange);
         }
 
+        // Keep track of the callback ids and type for this visual elemeent
         this.callbacks.set(onDelete.callerId, CallbackType.delete);
         this.callbacks.set(onChange.callerId, CallbackType.change);
         this.callbacks.set(onChange.callerId, CallbackType.replace);
 
+        // When this statement (thus the parent of the body) is changed, update the dimensions of this visual element
         this.statement.subscribe(CallbackType.replace, onChange);
         this.statement.subscribe(CallbackType.change, onChange);
         this.statement.subscribe(CallbackType.delete, onDelete);
@@ -682,6 +690,9 @@ export class ScopeHighlight {
         this.headerElement.remove();
         this.bodyElement.remove();
 
+        // By keeping track of the callbacks that are related to this visual element, we can
+        // delete the corresponding callbacks from the code construct when this visual element
+        // is deleted.
         for (const entry of this.callbacks) {
             this.statement.callbacksToBeDeleted.set(entry[1], entry[0]);
         }
@@ -759,6 +770,17 @@ export class ScopeHighlight {
     }
 }
 
+/**
+ * Encapsulates the line dimensions, or in other words the bounding box, of a line of code.
+ * Dimensions can be accessed as properties of the object:
+ * * top: number
+ * * left: number
+ * * right: number
+ * * width: number
+ * * height: number
+ * 
+ * Each of the numbers represent a pixel value.
+ */
 export class LineDimension { // Can remove export
     top: number;
     left: number;
@@ -774,6 +796,9 @@ export class LineDimension { // Can remove export
         this.height = height;
     }
 
+    /**
+     * Return a LineDimension object that represents the bounding box of the given code.
+     */
     static compute(code: Statement, editor: Editor): LineDimension {
         let lineNumber = code.getLineNumber();
 
