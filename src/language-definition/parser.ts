@@ -52,7 +52,7 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.editorName,
             `add-${construct.keyword}-btn-${toolboxId++}`,
             getCodeFunction(construct),
-            InsertActionType.InsertStatement, // EXTRACT; maybe removable?
+            InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
             // InsertActionType.InsertPrintStmt is superfluous
             {}, // EXTRACT; context info; maybe extractable from format?
             construct.toolbox,

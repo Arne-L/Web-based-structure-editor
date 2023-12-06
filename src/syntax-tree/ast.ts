@@ -829,28 +829,22 @@ export class GeneralStatement extends Statement implements Importable {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        console.log("1", this.requiresConstruct)
+        // WORKS ONLY IF THE REQUIRING CONSTRUCT IS IN THE BODY OF THE REQUIRED CONSTRUCT
         if (this.requiresConstruct.length > 0) {
             // Get the current, most precise construct
             const construct = context.expression || context.lineStatement;
-            console.log("2", construct, construct.rootNode);
             // If the current construct is at the root level, it can't be inserted into anything and thus
             // the insertion is invalid
             if (construct.rootNode instanceof Module) return InsertionType.Invalid;
-            console.log("3", "First invalid passed")
             // Check if the root construct is one of the required construct; if not, the insertion is invalid
             const rootName = construct.rootNode.getKeyword();
-            console.log("3.5", rootName, this.requiresConstruct, this.requiresConstruct.indexOf(rootName), rootName.length)
             if (this.requiresConstruct.indexOf(rootName.trim()) === -1) return InsertionType.Invalid;
-            console.log("4", "Second invalid passed")
             // We still have to check the order if this.dependingConstructs is not empty
 
             /**
              * To-Do next: 
-             * * fix ambiguity between keyword and name
              * * Make order of importance for depending constructs
              */
-
         }
 
         return context.lineStatement instanceof EmptyLineStmt && !validator.isAboveElseStatement(context)

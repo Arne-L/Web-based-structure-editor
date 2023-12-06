@@ -140,11 +140,13 @@ export enum KeyPress {
 }
 
 /**
- * numeration of all possible edit actions that can be made (copy, move left, 
+ * Enumeration of all possible edit actions that can be made (copy, move left, 
  * delete to end, delete previous token, indent backwards, open suggestion menu, 
  * insert formatted string …) 
  */
 export enum EditActionType {
+    InsertGeneralStmt,
+
     Copy, // TODO: NYI: could use default or navigator.clipboard.writeText()
     Paste, // TODO: NYI: check navigator.clipboard.readText()
 
@@ -262,6 +264,8 @@ export enum ConstructName {
  * If and While are grouped under “InsertStatement”
  */
 export enum InsertActionType {
+    InsertGeneralStmt,
+
     InsertNewVariableStmt,
 
     InsertStatement,

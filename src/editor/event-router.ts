@@ -7,6 +7,8 @@ import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
+import { Validator } from "./validator";
+import { EmptyLineStmt } from "../syntax-tree/ast";
 
 export class EventRouter {
     module: Module;
@@ -460,8 +462,40 @@ export class EventRouter {
         }
     }
 
+    /**
+     * Performed on a button click, routes the event to the corresponding action which
+     * in turn returns the corresponding Construct.
+     * 
+     * @param e 
+     * @param context 
+     * @param source 
+     * @returns 
+     */
     routeToolboxEvents(e: EditCodeAction, context: Context, source: {}): EditAction {
         switch (e.insertActionType) {
+            case InsertActionType.InsertGeneralStmt:
+                /**
+                 * Purpose is to try to 
+                 * 1) Include all statements under this type 
+                 * 2) Try to include also all expressions under this type (though this might be 
+                 * under a different case initially)
+                 * 3) If all constructs are contained under this case, try to remove it as there is no longer a 
+                 * necessity for different cases
+                 * 
+                 * It can be created in multiple ways, but is only used here in the switch statement
+                 * 
+                 * TODO: Is the if statement really necessary? Do we need to check if the context is valid?
+                 */
+                const statement = e.getCode(); // Should be replaced with the construct object in the future
+                if (statement.validateContext(this.module.validator, context) == InsertionType.Valid) {
+                    // console.log(context.lineStatement instanceof EmptyLineStmt);
+                    return new EditAction(EditActionType.InsertGeneralStmt, {
+                        statement: statement,
+                        source,
+                    });
+                }
+                break;
+
             case InsertActionType.InsertNewVariableStmt: {
                 return new EditAction(EditActionType.InsertVarAssignStatement, {
                     statement: e.getCode(),
@@ -505,6 +539,7 @@ export class EventRouter {
                 return new EditAction(EditActionType.InsertFormattedStringItem, { source });
             }
 
+            // Obsolete
             case InsertActionType.InsertStatement:
             case InsertActionType.InsertListIndexAssignment:
             case InsertActionType.InsertPrintFunctionStmt: {

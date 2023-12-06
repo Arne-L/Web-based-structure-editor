@@ -1,5 +1,8 @@
 import { EditActionType, InsertActionType } from "./consts";
 
+/**
+ * Encapsulates an {@link EditActionType} and data necessary to perform the action.
+ */
 export class EditAction {
     type: EditActionType;
     data: any;

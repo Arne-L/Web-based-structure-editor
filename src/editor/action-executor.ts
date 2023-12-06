@@ -80,6 +80,36 @@ export class ActionExecutor {
         let { eventType, eventData } = this.getLogEventSource(action?.data?.source);
 
         switch (action.type) {
+            case EditActionType.InsertGeneralStmt:
+                /**
+                 * Purpose is to try to 
+                 * 1) Include all statements under this type 
+                 * 2) Try to include also all expressions under this type (though this might be 
+                 * under a different case initially)
+                 * 3) If all constructs are contained under this case, try to remove it as there is no longer a 
+                 * necessity for different cases
+                 * 
+                 * It can be created in multiple ways, but it is only used he in this switch statement
+                 */
+                // Can maybe be made nicer, as in without requiring a action.data?.statement?
+                // This seems currently to be the only thing needed
+                const statement = action.data?.statement as Statement;
+                // Will always be needed?
+                this.replaceEmptyStatement(context.lineStatement, statement);
+
+                // Green background on insertion
+                if (flashGreen) this.flashGreen(action.data?.statement);
+
+                // Light blue background
+                if (statement.hasBody()) {
+                    let scopeHighlight = new ScopeHighlight(this.module.editor, statement);
+                }
+
+                // Used for logging => Keeping track of which statements are used
+                eventData.code = action.data?.statement?.getRenderText();
+
+                break;
+
             case EditActionType.OpenAutocomplete: {
                 const autocompleteTkn = new AutocompleteTkn(
                     action.data.firstChar,
@@ -173,7 +203,7 @@ export class ActionExecutor {
                 const newStatement = new ElseStatement(action.data.hasCondition);
 
                 if (action.data.outside) {
-                    // when the else is being inserted outside
+                    // when the else is being inserted outside: The else is at the same level as the if
                     const elseRoot = context.lineStatement.rootNode as Module | Statement;
                     // Fit the new else(/elif) statement in the root of the current statement
                     newStatement.rootNode = elseRoot;
@@ -184,7 +214,7 @@ export class ActionExecutor {
                     rebuildBody(elseRoot, newStatement.indexInRoot, context.lineStatement.lineNumber);
                     this.module.editor.executeEdits(this.getBoundaries(context.lineStatement), newStatement);
                 } else {
-                    // when being inserted inside
+                    // when being inserted inside: The else is in the body of the if
                     const curStmtRoot = context.lineStatement.rootNode as Statement; // Probably an if statement
                     const elseRoot = curStmtRoot.rootNode as Module | Statement; // Probably root of if statement
                     newStatement.rootNode = elseRoot; // Make the else a child of the if's root (so a sibling of the if)
