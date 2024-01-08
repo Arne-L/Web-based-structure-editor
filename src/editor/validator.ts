@@ -295,7 +295,7 @@ export class Validator {
      */
     /**
      * Checks if the current line is an empty line
-     * 
+     *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
      * @returns - true if the current line is an empty line, false otherwise
      */
@@ -339,9 +339,9 @@ export class Validator {
 
     /**
      * Determines if an empty line can be inserted at the current position.
-     * For this function to return true, the position should be at the start or end of a line and 
+     * For this function to return true, the position should be at the start or end of a line and
      * nothing should be selected.
-     * 
+     *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
      * @returns - true if at the current position, you can insert an empty line, false otherwise
      */
@@ -376,9 +376,9 @@ export class Validator {
     }
 
     /**
-     * Closely related to {@link canDeleteCurLine}. Checks if the current line is an 
+     * Closely related to {@link canDeleteCurLine}. Checks if the current line is an
      * empty line and if it is not the only line in the body of the compound statement / module.
-     * 
+     *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
      * @returns - true if backspace is allowed, false otherwise
      */
@@ -581,7 +581,7 @@ export class Validator {
 
     /**
      * Checks whether there are currly brackets to the left of the current position
-     * 
+     *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
      * @returns - true if the current position is at the end of a line, false otherwise
      */
@@ -594,7 +594,7 @@ export class Validator {
 
     /**
      * Checks whether there are currly brackets to the right of the current position
-     * 
+     *
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
      * @returns - true if the current position is at the end of a line, false otherwise
      */
@@ -924,6 +924,44 @@ export class Validator {
         );
     }
 
+    /**
+     * Returns the previous sibling of the given statement
+     * 
+     * @param statement - Statement to get the previous sibling of
+     * @returns - The previous sibling of the given statement, or null if the
+     * given statement is the first statement in the root's body
+     */
+    getPrevSiblingOf(statement: Statement): Statement {
+        // Statement is the first statement in the root's body
+        if (statement.indexInRoot == 0) return null;
+        return this.getStatementInBody(statement.rootNode, statement.indexInRoot - 1);
+    }
+
+    /**
+     * Returns the next sibling of the given statement
+     * 
+     * @param statement - Statement to get the next sibling of
+     * @returns - The next sibling of the given statement, or null if the
+     * given statement is the last statement in the root's body
+     */
+    getNextSiblingOf(statement: Statement): Statement {
+        // Statement is the last statement in the root's body
+        if (statement.indexInRoot == statement.rootNode.body.length - 1) return null;
+        return this.getStatementInBody(statement.rootNode, statement.indexInRoot + 1);
+    }
+
+    /**
+     * Returns the parent of the given statement
+     * 
+     * @param statement - Statement to get the parent of
+     * @returns - The parent of the given statement, or null if the given statement 
+     * is of the {@link Module} type
+     */
+    getParentOf(statement: Statement): Statement | Module {
+        if (statement instanceof Module) return null;
+        return statement.rootNode;
+    }
+
     private getPrevSibling(providedContext?: Context): Statement {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
@@ -992,7 +1030,7 @@ export class Validator {
     //returns a nested list [[Reference, InsertionType], ...]
     /**
      * Gets the valid variable references for the given code construct
-     * 
+     *
      * @param code - The code construct to get the valid variable references for
      * @param variableController - The variable controller to use for the validation
      * @returns - A list of valid variable references for the given code construct
@@ -1059,7 +1097,7 @@ export class Validator {
 
     /**
      * Gets the EditCodeActions for the given search string
-     * 
+     *
      * @param searchString - The string to search for
      * @param possibilities - The list of possibilities to search through (EditCodeAction[])
      * @param searchKeys - The keys to search through (strings)
@@ -1085,14 +1123,15 @@ export class Validator {
 
     /**
      * Mark a codestruct requiring an import as draft mode, or unmark if import is okay
-     * 
+     *
      * @param stmts - The list of import statements to validate. If not provided, all import statements in the module will be validated
      */
     validateImports(stmts?: ImportStatement[]) {
         if (!stmts) {
             stmts = this.module.getAllImportStmts();
         }
-        this.module.performActionOnBFS((code: CodeConstruct) => { // BFS = Breadth First Search?
+        this.module.performActionOnBFS((code: CodeConstruct) => {
+            // BFS = Breadth First Search?
             if (isImportable(code) && code.requiresImport()) {
                 const importStatus = code.validateImportFromImportList(stmts);
 
