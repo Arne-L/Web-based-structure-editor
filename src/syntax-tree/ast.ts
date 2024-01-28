@@ -867,9 +867,12 @@ export class GeneralStatement extends Statement implements Importable {
         /**
          * The current assumptions are:
          * * The level of the current construct, the construct to insert, is always positive
-         *   This means that the current construct is always a child (or nesting) of the construct to insert
-         * * We assume that the depending constructs are always after the main construct.
-         * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ...
+         *   This means that the current construct is always a child (or nesting) of the construct required construct 
+         *      (Solution: the new way divides into two classes: in body elements and siblings; this should be valid in most cases)
+         * * We assume that the depending constructs are always after the main construct. 
+         *      (Solution: if not, then the first construct can be used as the required construct)
+         * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ... 
+         *      (Solution: define a new construct that encapsulates the repetition)
          *
          * Checking if the required construct appears in front of the requiring construct will currently
          * be implemented through a rudementary algorithm. This can (and maybe should be if it proves to be too slow)
@@ -877,6 +880,10 @@ export class GeneralStatement extends Statement implements Importable {
          * A few places to look are:
          * * Take a look at String Matching algorithms in "Ontwerp van algoritmen" (lecture 8) e.g.
          *   Boyer-Moore
+         * 
+         * Further future optimisations:
+         * Simply keep track of what is allowed inside the current element instead of having to recheck for each
+         * possible insertion you want to make
          */
         if (this.requiresConstruct.length > 0) {
             let canInsertConstruct = false;
@@ -892,19 +899,13 @@ export class GeneralStatement extends Statement implements Importable {
                 // try to match all construct you came acros in the editor with the constructs in the
                 // dependingConstructs list. if there is no match, we can shift the window until it matches
                 // again => look at the algorithm used in "Ontwerp van algoritmen" for this
-                // TODO: Currently does not allow for nested depending constructs e.g.
-                // match ...:
-                //     case ...:
-                //         ...
-                //         break
-                // Case has in turn an optional required construct "break". This should thus be handled recursively
                 // Information about each of the depending constructs in order
                 const depConstructsInfo = requiredConstruct.dependingConstructs;
-                // TODO: What if a construct is required multiple times with different elements in between? => This should be handled in the future
+                // TODO: See second todo above
                 let dependingIndex = depConstructsInfo.findIndex(
                     (construct) => construct.getConstructName() === this.getKeyword()
                 );
-                if (dependingIndex === -1) continue; // Skip to next iteration; this case should never appear if it was correctly defined
+                if (dependingIndex === -1) continue; // Skip to next requiredconstruct; this case should never appear if it was correctly defined
                 
                 const dependingVisited = new Array(dependingIndex).fill(0)
 
