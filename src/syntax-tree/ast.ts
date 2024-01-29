@@ -602,31 +602,26 @@ export abstract class Statement implements CodeConstruct {
  * Class encapsulating information about constructs that can optionally be contained in a construct.
  * The primary purpose is to be able to specify some constraints on these constructs.
  */
-class OptionalConstructs {
+class OptionalConstruct {
     private keyword: string;
     private min_repeat: number;
     private max_repeat: number;
-    private min_level: number;
-    private max_level: number;
 
     /**
      * Class encapsulating information about constructs that can optionally be contained in a construct.
      * The primary purpose is to be able to specify some constraints on these constructs.
-     * 
+     *
      * @param keyword - The name of the construct
-     * @param min - The minimum number of times the construct should appear
-     * @param max - The maximum number of times the construct can appear. This should be atleast one.
-     * @param level - The level of the construct, with level 0 being a direct child and every level above being a child of the previous level
+     * @param min_repeat - The minimum number of times the construct should appear
+     * @param max_repeat - The maximum number of times the construct can appear. This should be atleast one.
      */
     constructor(keyword: string, min_repeat?: number, max_repeat?: number, min_level?: number, max_level?: number) {
         if (max_repeat && max_repeat < 1) throw Error("max_repeat should be at least one");
-        if (max_repeat && min_repeat && min_repeat > max_repeat) throw Error("min_repeat should be smaller than max_repeat");
-        if (max_level && min_level && min_level > max_level) throw Error("min_level should be smaller than max_level");
+        if (max_repeat && min_repeat && min_repeat > max_repeat)
+            throw Error("min_repeat should be smaller than max_repeat");
         this.keyword = keyword;
         this.min_repeat = min_repeat ?? 0;
         this.max_repeat = max_repeat ?? Infinity;
-        this.min_level = min_level ?? 0;
-        this.max_level = max_level ?? Infinity;
     }
 
     getConstructName(): string {
@@ -641,6 +636,42 @@ class OptionalConstructs {
         return this.max_repeat ?? Infinity;
     }
 
+    isValidRepetition(repetition: number): boolean {
+        return repetition >= this.min_repeat && repetition <= this.max_repeat;
+    }
+}
+
+/**
+ * Class encapsulating information about required ancestor constructs.
+ * The primary purpose is to be able to specify some constraints on these constructs.
+ */
+class AncestorConstruct {
+    private keyword: string;
+    private min_level: number;
+    private max_level: number;
+
+    /**
+     * Class encapsulating information about required ancestor constructs.
+     * The primary purpose is to be able to specify some constraints on these constructs.
+     *
+     * @param keyword - The name of the construct
+     * @param min_level - The minimum level the descendant construct should be at (relative to the
+     * ancestor construct), starting with a direct child at level 0.
+     * @param max_level - The maximum level the descendant construct can be at (relative to the ancestor
+     * construct).
+     */
+    constructor(keyword: string, min_level?: number, max_level?: number) {
+        if (min_level && min_level < 0) throw Error("min_level should be larger than or equal to zero");
+        if (max_level && min_level && min_level > max_level) throw Error("min_level should be smaller than max_level");
+        this.keyword = keyword;
+        this.min_level = min_level ?? 0;
+        this.max_level = max_level ?? Infinity;
+    }
+
+    getConstructName(): string {
+        return this.keyword;
+    }
+
     getMinLevel(): number {
         return this.min_level;
     }
@@ -648,12 +679,17 @@ class OptionalConstructs {
     getMaxLevel(): number {
         return this.max_level;
     }
-}
 
-/**
- * A simple type alias to make the code more readable.
- */
-type CodeConstructName = string;
+    /**
+     * Checks if the given level is valid, i.e. between min_level and max_level (inclusive)
+     *
+     * @param level - The level of the descendant construct relative to the ancestor construct
+     * @returns - Whether the given level is valid, i.e. between min_level and max_level (inclusive)
+     */
+    isValidLevel(level: number): boolean {
+        return level >= this.min_level && level <= this.max_level;
+    }
+}
 
 /**
  * Statement class containing functionality for all statements that can be used in the language. It removes the necessity to create a new class for each statement.
@@ -673,10 +709,10 @@ export class GeneralStatement extends Statement implements Importable {
      * Currently, all depending constructs are indented by 1 tab. This is not always the case, so this should be
      * generalised in the future.
      */
-    private requiringConstructs: OptionalConstructs[] = [];
+    private requiringConstructs: OptionalConstruct[] = [];
     /**
      * Constructs which this construct depends on (/ are required by this construct). For example, the "elif" construct depends on the
-     * "if" construct, so the "if" is required by the "elif". As a construct can depend on multiple constructs, this list 
+     * "if" construct, so the "if" is required by the "elif". As a construct can depend on multiple constructs, this list
      * can contain multiple names. (e.g. "else" can appear after "if", but also after "while")
      *
      * IMPORTANT NOTE (TODO): This does introduce redudancy from the user's side as they now have to indicate both for the parent
@@ -686,11 +722,12 @@ export class GeneralStatement extends Statement implements Importable {
      * constructs depending on it (in this specific case, we specified that the order was not fixed) However, it in the future
      * it follows that this (edge) case does not occur (or has a different solution), we can implement the above optimisation.
      */
-    private requiredConstruct: CodeConstructName[] = [];
+    private requiredConstructs: string[] = [];
+    private requiredAncestorConstructs: AncestorConstruct[] = [];
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
-    private static constructs: Map<CodeConstructName, CodeConstruct>;
+    private static constructs: Map<string, CodeConstruct>;
 
     constructor(construct: any, root?: Statement | Module, indexInRoot?: number) {
         super();
@@ -711,9 +748,29 @@ export class GeneralStatement extends Statement implements Importable {
         // Check if the construct requires a different construct, and if so add the requirement
         if (construct.requiresConstruct) {
             if (construct.requiresConstruct instanceof Array) {
-                this.requiredConstruct = construct.requiresConstruct;
+                this.requiredConstructs = construct.requiresConstruct;
             } else {
-                this.requiredConstruct.push(construct.requiresConstruct);
+                this.requiredConstructs.push(construct.requiresConstruct);
+            }
+        }
+
+        // Check if the construct needs to be a descendant of a certain construct, and if so add the requirement
+        // Allowed styles: "ancestor", {ref: "ancestor", min_level: 0, max_level: 1}; either as a single element
+        // or as an array of elements
+        if (construct.requiresAncestor) {
+            if (construct.requiresAncestor instanceof Array) {
+                this.requiredAncestorConstructs = construct.requiresAncestor.map(
+                    (ancestor) =>
+                        new AncestorConstruct(ancestor.ref ?? ancestor, ancestor.min_level, ancestor.max_level)
+                );
+            } else {
+                this.requiredAncestorConstructs.push(
+                    new AncestorConstruct(
+                        construct.requiresAncestor.ref ?? construct.requiresAncestor,
+                        construct.requiresAncestor.min_level,
+                        construct.requiresAncestor.max_level
+                    )
+                );
             }
         }
 
@@ -721,10 +778,16 @@ export class GeneralStatement extends Statement implements Importable {
             switch (token.type) {
                 case "construct":
                     /**
-                     * Ordered list, in order of appearance in the code, of constructs that require this construct 
+                     * Ordered list, in order of appearance in the code, of constructs that require this construct
                      */
                     this.requiringConstructs.push(
-                        new OptionalConstructs(token.ref, token.min_repeat, token.max_repeat, token.min_level, token.max_level)
+                        new OptionalConstruct(
+                            token.ref,
+                            token.min_repeat,
+                            token.max_repeat,
+                            token.min_level,
+                            token.max_level
+                        )
                     );
 
                     // TODO: Remove!
@@ -800,7 +863,7 @@ export class GeneralStatement extends Statement implements Importable {
 
     /**
      * TODO: Temporary solution
-     * 
+     *
      * @param constructs - The constructs to add to the map
      */
     static addAllConstructs(constructs: GeneralStatement[]) {
@@ -879,11 +942,11 @@ export class GeneralStatement extends Statement implements Importable {
          * possible insertion you want to make
          */
         // If the element depends on other elements
-        if (this.requiredConstruct.length > 0) {
+        if (this.requiredConstructs.length > 0) {
             let canInsertConstruct = false;
             // For each of the constructs which are required by this construct, check if one of them
             // appears (correctly) in front of the current construct
-            for (const requiredName of this.requiredConstruct) {
+            for (const requiredName of this.requiredConstructs) {
                 // TODO: This is currently casted because expression does inherit from Statement and not GeneralStatement => CHANGE IN THE FUTURE
                 const requiredConstruct = GeneralStatement.constructs.get(requiredName) as GeneralStatement; // NOT OKAY
 
@@ -902,7 +965,6 @@ export class GeneralStatement extends Statement implements Importable {
                 let dependingIndex = depConstructsInfo.findIndex(
                     (construct) => construct.getConstructName() === this.getKeyword()
                 );
-                console.log(dependingIndex);
 
                 // Skip to next required construct; this case should never appear if required and requiring constructs
                 // are correctly defined
@@ -962,7 +1024,6 @@ export class GeneralStatement extends Statement implements Importable {
 
                         // In case there are not yet any constructs in front of the current position
                         if (!currentConstruct) {
-                            console.log("Simply nothing before");
                             break;
                         }
                     }
@@ -978,20 +1039,36 @@ export class GeneralStatement extends Statement implements Importable {
             if (!canInsertConstruct) return InsertionType.Invalid;
         }
 
+        // If element needs to be a descendant of a certain construct
+        if (this.requiredAncestorConstructs.length > 0) {
+            let canInsertConstruct = false;
 
+            // Go all the way to the top of the tree, even when we have already matched one construct.
+            // We could also take the maximum level over all required ancestor constructs, but
+            // in reality this would probably often be infinite.
 
-        // TODO: Remove!
-        // Determine the level of the `this` constuct
-        // let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
+            // If null, then we are at the top of the tree
+            let currentParent = validator.getParentOf(context.lineStatement);
+            let level = 0;
+            while (currentParent) {
+                const foundAncestor = this.requiredAncestorConstructs.find(
+                    (ancestor) => ancestor.getConstructName() === currentParent.getKeyword()
+                );
+                if (foundAncestor && foundAncestor.isValidLevel(level)) {
+                    // We found a required ancestor construct
+                    canInsertConstruct = true;
+                    break;
+                }
 
-        // TODO: Remove!
-        // Check the level of the new depending construct
-        // if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
-        // TODO: How to handle this case? Try to think of some examples
-        // }
-        return context.lineStatement instanceof EmptyLineStmt
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
+                currentParent = validator.getParentOf(currentParent);
+
+                level++;
+            }
+
+            if (!canInsertConstruct) return InsertionType.Invalid;
+        }
+
+        return context.lineStatement instanceof EmptyLineStmt ? InsertionType.Valid : InsertionType.Invalid;
     }
 
     // DEAD CODE
