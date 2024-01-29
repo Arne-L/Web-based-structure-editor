@@ -859,29 +859,10 @@ export class GeneralStatement extends Statement implements Importable {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        // TODO: Remove!
-        // // WORKS ONLY IF THE REQUIRING CONSTRUCT IS IN THE BODY OF THE REQUIRED CONSTRUCT
-        // if (this.requiresConstruct.length > 0) {
-        //     // Get the current, most precise construct
-        //     const construct = context.expression || context.lineStatement;
-        //     // If the current construct is at the root level, it can't be inserted into anything and thus
-        //     // the insertion is invalid
-        //     if (construct.rootNode instanceof Module) return InsertionType.Invalid;
-        //     // Check if the root construct is one of the required construct; if not, the insertion is invalid
-        //     const rootName = construct.rootNode.getKeyword();
-        //     if (this.requiresConstruct.indexOf(rootName.trim()) === -1) return InsertionType.Invalid;
-        //     // We still have to check the order if this.dependingConstructs is not empty
-
-        //     /**
-        //      * To-Do next:
-        //      * * Make order of importance for depending constructs
-        //      */
-        // }
-
         /**
          * The current assumptions are:
          * * Requiring constructs are either an element of the body or a sibling of the required construct
-         * * We assume that the requiring constructs are always after the required construct. If a construct 
+         * * We assume that the requiring constructs are always after the required construct. If a construct
          * has elements before the main construct, the element before can be taken to be the main construct
          * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ...
          * However, simply defining a new construct in the config to encapsulate this repetition should suffice
@@ -969,12 +950,6 @@ export class GeneralStatement extends Statement implements Importable {
                         ) {
                             dependingIndex--;
                         }
-
-                        // TODO: Remove!
-                        // Check the level of the new depending construct
-                        // if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
-                        // TODO: How to handle this case? Try to think of some examples
-                        // }
                     }
                     // Increase the amount of times the current construct type has been visited
                     dependingVisited[dependingIndex]++;
@@ -993,78 +968,30 @@ export class GeneralStatement extends Statement implements Importable {
                     }
                 }
 
-                // TODO: Remove!
-                // Go to the base level
-                // while (currentLevel > 0) {
-                //     currentConstruct = validator.getParentOf(currentConstruct) as GeneralStatement; // NOT OKAY
-                //     currentLevel--;
-                // }
-
                 // Now we are at required construct and we have handled all the depending constructs
-                // The currentConstruct should be the required construct
-                // console.log("Before final", prevConstruct, requiredConstruct);
-                // console.log(validator.getPrevSiblingOf(prevConstruct), validator.getParentOf(prevConstruct));
-                // console.log(validator.module.body, context.lineStatement);
-                // const inFrontOfLastOne = validator.getPrevSiblingOf(prevConstruct);
-                // if (inFrontOfLastOne && inFrontOfLastOne.getKeyword() === requiredConstruct.getKeyword()) {
-                //     // TODO: try to make this cleaner by trying to insert currentConstruct here
-                //     console.log("We get here ... somehow");
-                //     // We found the required construct
-                //     canInsertConstruct = true;
-                // }
-                console.log("Final", currentConstruct, requiredConstruct);
                 if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
-                    // TODO: try to make this cleaner by trying to insert currentConstruct here
-                    console.log("We get here ... somehow");
                     // We found the required construct
                     canInsertConstruct = true;
                 }
-
-                // // Increase the counter of the depending construct
-                // if (requiredConstruct.dependingConstructs[dependingIndex].canContainAdditional()) {
-                //     requiredConstruct.dependingConstructs[dependingIndex].increment();
-                // } else continue; // Skip to next iteration => next required construct
-
-                // // Go to the base level
-                // while (currentLevel > 0) {
-                //     currentConstruct = validator.getParentOf(currentConstruct) as GeneralStatement; // NOT OKAY
-                //     currentLevel--;
-                // }
-
-                // // let previousConstruct = currentConstruct;
-                // // currentConstruct = validator.getPrevSiblingOf(currentConstruct) as GeneralStatement; // NOT OKAY
-
-                // // WE SHOULD NOT KEEP THE VALUE IN THE OptionalConstructs OBJECT, BUT INSTEAD KEEP IT HERE: THOSE OBJECTS WILL BE REUSED
-                // while (dependingIndex > 0) {
-                //     // If the the name of the previous construct is the same as the current one, we found an additional construct of the same type
-                //     if (
-                //         previousConstruct.getKeyword() ===
-                //         requiredConstruct.dependingConstructs[dependingIndex].getConstructName()
-                //     ) {
-                //         if (requiredConstruct.dependingConstructs[dependingIndex].canContainAdditional()) {
-                //             requiredConstruct.dependingConstructs[dependingIndex].increment();
-                //         } else break; // Skip to next iteration
-                //     } else {
-                //         // New construct, so decrement the counter
-                //         dependingIndex--;
-                //         if (requiredConstruct.dependingConstructs[dependingIndex].canContainAdditional()) {
-                //             requiredConstruct.dependingConstructs[dependingIndex].increment();
-                //     }
-                //     currentConstruct = validator.getPrevSiblingOf(currentConstruct) as GeneralStatement; // NOT OKAY
-                //     // const constructLevel = dependingConstruct.getLevel();
-                //     // currentLevelZeroStmt = validator.getNextSiblingOf(currentLevelZeroStmt)
-                // }
             }
 
             if (!canInsertConstruct) return InsertionType.Invalid;
         }
 
-        return context.lineStatement instanceof EmptyLineStmt && !validator.isAboveElseStatement(context)
+
+
+        // TODO: Remove!
+        // Determine the level of the `this` constuct
+        // let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
+
+        // TODO: Remove!
+        // Check the level of the new depending construct
+        // if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
+        // TODO: How to handle this case? Try to think of some examples
+        // }
+        return context.lineStatement instanceof EmptyLineStmt
             ? InsertionType.Valid
             : InsertionType.Invalid;
-        // return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-        //     ? InsertionType.Valid
-        //     : InsertionType.Invalid;
     }
 
     // DEAD CODE
