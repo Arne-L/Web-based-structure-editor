@@ -784,9 +784,7 @@ export class GeneralStatement extends Statement implements Importable {
                         new OptionalConstruct(
                             token.ref,
                             token.min_repeat,
-                            token.max_repeat,
-                            token.min_level,
-                            token.max_level
+                            token.max_repeat
                         )
                     );
 
@@ -873,40 +871,6 @@ export class GeneralStatement extends Statement implements Importable {
             return map;
         }, new Map());
     }
-
-    // generalConstructor(
-    //     functionName: string, // From file
-    //     args: Array<Argument>, // From file
-    //     root?: Statement | Module,
-    //     indexInRoot?: number,
-    //     requiredModule: string = "" // From file
-    // ) {
-
-    //     this.rootNode = root;
-    //     this.indexInRoot = indexInRoot;
-    //     this.keyword = functionName;
-    //     this.requiredModule = requiredModule;
-
-    //     if (args.length > 0) {
-    //         this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
-
-    //         // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
-
-    //         for (let i = 0; i < args.length; i++) {
-    //             let arg = args[i];
-
-    //             // this.argumentsIndices.push(this.tokens.length);
-    //             this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
-    //             this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
-
-    //             if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
-    //         }
-
-    //         this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
-
-    //         this.hasEmptyToken = true;
-    //     } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
-    // }
 
     getKeyword(): string {
         return this.keyword;
@@ -1079,16 +1043,6 @@ export class GeneralStatement extends Statement implements Importable {
     //     this.replace(to, this.argumentsIndices[index]);
     // }
 
-    // getFunctionName(): string {
-    //     return this.functionName;
-    // }
-
-    // Also replaces getFunctionName()
-    // Replaced by getKeyword() from Statement
-    // getKeyword(): string {
-    //     return this.keyword;
-    // }
-
     // DEAD CODE
     // Every language has methods/functions/... requiring imports, so this can probably be kept
     // validateImport(importedModule: string, importedItem: string): boolean {
@@ -1152,7 +1106,7 @@ export class GeneralStatement extends Statement implements Importable {
             return false;
         }
 
-        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0 // this.getFunctionName()
+        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0
             ? true
             : false;
     }
