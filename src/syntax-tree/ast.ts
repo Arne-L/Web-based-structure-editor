@@ -604,31 +604,46 @@ export abstract class Statement implements CodeConstruct {
  */
 class OptionalConstructs {
     private keyword: string;
-    private min: number;
-    private max?: number;
-    private level: number;
+    private min_repeat: number;
+    private max_repeat: number;
+    private min_level: number;
+    private max_level: number;
 
-    constructor(keyword: string, min: number, max: number, level: number) {
+    /**
+     * Class encapsulating information about constructs that can optionally be contained in a construct.
+     * The primary purpose is to be able to specify some constraints on these constructs.
+     * 
+     * @param keyword - The name of the construct
+     * @param min - The minimum number of times the construct should appear
+     * @param max - The maximum number of times the construct can appear
+     * @param level - The level of the construct, with level 0 being a direct child and every level above being a child of the previous level
+     */
+    constructor(keyword: string, min_repeat?: number, max_repeat?: number, min_level?: number, max_level?: number) {
         this.keyword = keyword;
-        this.min = min ?? 0;
-        this.max = max ?? Infinity;
-        this.level = level ?? 0;
+        this.min_repeat = min_repeat ?? 0;
+        this.max_repeat = max_repeat ?? Infinity;
+        this.min_level = min_level ?? 0;
+        this.max_level = max_level ?? Infinity;
     }
 
     getConstructName(): string {
         return this.keyword;
     }
 
-    getMin(): number {
-        return this.min;
+    getMinRepetition(): number {
+        return this.min_repeat;
     }
 
-    getMax(): number {
-        return this.max ?? Infinity;
+    getMaxRepetition(): number {
+        return this.max_repeat ?? Infinity;
     }
 
-    getLevel(): number {
-        return this.level;
+    getMinLevel(): number {
+        return this.min_level;
+    }
+
+    getMaxLevel(): number {
+        return this.max_level;
     }
 }
 
@@ -637,36 +652,38 @@ class OptionalConstructs {
  */
 type CodeConstructName = string;
 
+/**
+ * Statement class containing functionality for all statements that can be used in the language. It removes the necessity to create a new class for each statement.
+ *
+ * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
+ */
 export class GeneralStatement extends Statement implements Importable {
-    /**
-     * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
-     */
-    /* TTHESE SHOULD BE GENERALISED!!! */
+    /* THESE SHOULD BE GENERALISED!!! */
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     requiredModule: string;
     /**
      * Constructs which depend on this construct. For example, the "elif" construct depends on the "if" construct.
      * If this list is empty, constructs can still depend on this, but their order and frequency is not fixed. (E.g.
-     * the depending construct can be inserted anywhere in the body of this construct and as many times as it wants)
+     * the depending/requiring construct can be inserted anywhere in the body of this construct and as many times as it wants)
      *
      * Currently, all depending constructs are indented by 1 tab. This is not always the case, so this should be
      * generalised in the future.
      */
-    private dependingConstructs: OptionalConstructs[] = [];
+    private requiringConstructs: OptionalConstructs[] = [];
     /**
-     * Constructs which this construct depends on. For example, the "elif" construct depends on the "if" construct.
-     * As a construct can depend on multiple constructs, this list can contain multiple names. (e.g. "else" can appear
-     * after "if", but also after - or as a child of - "while")
+     * Constructs which this construct depends on (/ are required by this construct). For example, the "elif" construct depends on the
+     * "if" construct, so the "if" is required by the "elif". As a construct can depend on multiple constructs, this list 
+     * can contain multiple names. (e.g. "else" can appear after "if", but also after "while")
      *
-     * IMPORTANT NOTE: This does introduce redudancy from the user's side as they now have to indicate both for the parent
-     * as for the child if they depend on each other. If this is always the case, we might have to write some mappin structure
-     * keeping tracking of the depending constructs and filling in the required constructs automatically.
-     * However, currently this is not possible because we assume that dependingConstructs can be empty even though there are
+     * IMPORTANT NOTE (TODO): This does introduce redudancy from the user's side as they now have to indicate both for the parent
+     * as for the child if they depend on each other. If this is always the case, we might have to write some mapping structure
+     * keeping tracking of the requiring constructs and filling in the required constructs automatically.
+     * However, currently this is not possible because we assume that requiringConstructs can be empty even though there are
      * constructs depending on it (in this specific case, we specified that the order was not fixed) However, it in the future
      * it follows that this (edge) case does not occur (or has a different solution), we can implement the above optimisation.
      */
-    private requiresConstruct: CodeConstructName[] = [];
+    private requiredConstruct: CodeConstructName[] = [];
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
@@ -688,12 +705,12 @@ export class GeneralStatement extends Statement implements Importable {
         // Set an invalid tooltip message if available
         this.simpleInvalidTooltip = construct.toolbox.invalidTooptip || ""; // TODO: MAKE MORE CONCRETE
 
-        // Check if the construct requires a different construct as parent, and if so add the requirement
+        // Check if the construct requires a different construct, and if so add the requirement
         if (construct.requiresConstruct) {
             if (construct.requiresConstruct instanceof Array) {
-                this.requiresConstruct = construct.requiresConstruct;
+                this.requiredConstruct = construct.requiresConstruct;
             } else {
-                this.requiresConstruct.push(construct.requiresConstruct);
+                this.requiredConstruct.push(construct.requiresConstruct);
             }
         }
 
@@ -701,24 +718,13 @@ export class GeneralStatement extends Statement implements Importable {
             switch (token.type) {
                 case "construct":
                     /**
-                     * New use of the term "construct":
-                     *  Construct tokens should be replaced by a top level construct. For example
-                     *  for the "if" statement, the construct "elif" needs to be exchanged with the
-                     *  tokens of the "elif" construct (which is a top level construct). An important note
-                     *  is that the "elif" and "else" constructs are not part of the "if" construct, but
-                     *  should be inserted as childs in the AST
-                     *
-                     *  The way this is handled is as follows: When a type "construct" is detected,
-                     *  the value of the ref field (REFVAL) will be used to search for a construct with the
-                     *  name REFVAL in the list of all constructs. If it is found, the construct can be inserted
-                     *  in the body when needed. If it is not found, the construct will be ignored.
-                     *
-                     * IS THIS DESCRIPTION CORRECT? BE SURE TO CHECK LATER!
+                     * Ordered list, in order of appearance in the code, of constructs that require this construct 
                      */
-                    this.dependingConstructs.push(
-                        new OptionalConstructs(token.ref, token.min ?? 1, token.max ?? 1, token.level ?? 0)
+                    this.requiringConstructs.push(
+                        new OptionalConstructs(token.ref, token.min_repeat, token.max_repeat, token.min_level, token.max_level)
                     );
 
+                    // TODO: Remove!
                     // Search in list of all constructs for a corresponding name and insert it ... kinda?
                     // this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
                     // this.tokens.push(new EditableTextTkn(construct.name, new RegExp("^[a-zA-Z]*$"), this, this.tokens.length)) // First two arguments should be replaced with something language specific
@@ -758,18 +764,17 @@ export class GeneralStatement extends Statement implements Importable {
                     console.warn("Invalid type: " + token.type);
 
                 /**
-                 * 1) Look at the cases for "delimited_list" and "hole" => redundancy?
-                 * 2) How will we handle new lines / empty lines? What will the configuration file require?
-                 * 3) Handle scope: how do we now when a statement has a scope or not? Can we determine
+                 * 1) How will we handle new lines / empty lines? What will the configuration file require?
+                 * 2) Handle scope: how do we know when a statement has a scope or not? Can we determine
                  * this whithout having to make it an explicit option?
                  *
                  * Possibilities:
-                 * 3) If the concept of statements exist, check if the construct contains a
+                 * 2) If the concept of statements exist, check if the construct contains a
                  * statement. If so, it has a scope. If not, it doesn't.
-                 * 2) If the concept of statements exists, we can check if a hole is a statement. If
+                 * 1) If the concept of statements exists, we can check if a hole is a statement. If
                  * so, then we can see it as a EmptyLineStmt
                  * => Problem: User error possible and even likely
-                 * 2) We can look at holes before and after which there is a new line character "\n",
+                 * 1) We can look at holes before and after which there is a new line character "\n",
                  * signifying that the hole is the only thing on the line. In this case, we can assume
                  * that it is a empty line statement.
                  *
@@ -790,9 +795,17 @@ export class GeneralStatement extends Statement implements Importable {
         }
     }
 
+    /**
+     * TODO: Temporary solution
+     * 
+     * @param constructs - The constructs to add to the map
+     */
     static addAllConstructs(constructs: GeneralStatement[]) {
-        console.log("Adding constructs", constructs)
-        this.constructs = constructs.reduce((map, construct) => {map.set(construct.keyword, construct); return map}, new Map());
+        console.log("Adding constructs", constructs);
+        this.constructs = constructs.reduce((map, construct) => {
+            map.set(construct.keyword, construct);
+            return map;
+        }, new Map());
     }
 
     // generalConstructor(
@@ -833,9 +846,6 @@ export class GeneralStatement extends Statement implements Importable {
         return this.keyword;
     }
 
-    // What should be kept from these? How can this be abstracted?
-    // Currently "&& this.validator(providedContext)" was dropped (from break stmt)
-    // => Might be able to encapsulate data in this "general" requirement?
     /**
      * Currently only implemented for statements (or is being implemented for statements ...)
      *
@@ -846,6 +856,7 @@ export class GeneralStatement extends Statement implements Importable {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
+        // TODO: Remove!
         // // WORKS ONLY IF THE REQUIRING CONSTRUCT IS IN THE BODY OF THE REQUIRED CONSTRUCT
         // if (this.requiresConstruct.length > 0) {
         //     // Get the current, most precise construct
@@ -866,13 +877,11 @@ export class GeneralStatement extends Statement implements Importable {
 
         /**
          * The current assumptions are:
-         * * The level of the current construct, the construct to insert, is always positive
-         *   This means that the current construct is always a child (or nesting) of the construct required construct 
-         *      (Solution: the new way divides into two classes: in body elements and siblings; this should be valid in most cases)
-         * * We assume that the depending constructs are always after the main construct. 
-         *      (Solution: if not, then the first construct can be used as the required construct)
-         * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ... 
-         *      (Solution: define a new construct that encapsulates the repetition)
+         * * Requiring constructs are either an element of the body or a sibling of the required construct
+         * * We assume that the requiring constructs are always after the required construct. If a construct 
+         * has elements before the main construct, the element before can be taken to be the main construct
+         * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ...
+         * However, simply defining a new construct in the config to encapsulate this repetition should suffice
          *
          * Checking if the required construct appears in front of the requiring construct will currently
          * be implemented through a rudementary algorithm. This can (and maybe should be if it proves to be too slow)
@@ -880,47 +889,56 @@ export class GeneralStatement extends Statement implements Importable {
          * A few places to look are:
          * * Take a look at String Matching algorithms in "Ontwerp van algoritmen" (lecture 8) e.g.
          *   Boyer-Moore
-         * 
+         *
          * Further future optimisations:
          * Simply keep track of what is allowed inside the current element instead of having to recheck for each
          * possible insertion you want to make
          */
-        if (this.requiresConstruct.length > 0) {
+        // If the element depends on other elements
+        if (this.requiredConstruct.length > 0) {
             let canInsertConstruct = false;
-            // For each of the constructs which are required by this construct
-            for (const requiredName of this.requiresConstruct) {
+            // For each of the constructs which are required by this construct, check if one of them
+            // appears (correctly) in front of the current construct
+            for (const requiredName of this.requiredConstruct) {
                 // TODO: This is currently casted because expression does inherit from Statement and not GeneralStatement => CHANGE IN THE FUTURE
                 const requiredConstruct = GeneralStatement.constructs.get(requiredName) as GeneralStatement;
-                // TODO: I'm currently assuming that the depending constructs will always follow after all the tokens of the main construct are finished
-                // => This is not always the case, so this should be generalised in the future!
+
                 // TODO: Currently the function assumes that each construct will only appear once
                 // This is however not always the case, so we should look for a way to generalise
                 // this in the future. A possibility is to use a form of sliding window from the back and
                 // try to match all construct you came acros in the editor with the constructs in the
                 // dependingConstructs list. if there is no match, we can shift the window until it matches
-                // again => look at the algorithm used in "Ontwerp van algoritmen" for this
+                // again => look at the algorithm used in "Ontwerp van algoritmen" course for this
+
                 // Information about each of the depending constructs in order
-                const depConstructsInfo = requiredConstruct.dependingConstructs;
-                // TODO: See second todo above
+                const depConstructsInfo = requiredConstruct.requiringConstructs;
+
+                // Find where the current construct appears in the list of depending constructs
+                // TODO: See todo above
                 let dependingIndex = depConstructsInfo.findIndex(
                     (construct) => construct.getConstructName() === this.getKeyword()
                 );
-                if (dependingIndex === -1) continue; // Skip to next requiredconstruct; this case should never appear if it was correctly defined
-                
-                const dependingVisited = new Array(dependingIndex).fill(0)
 
-                let currentConstruct = context.lineStatement;
+                // Skip to next requiredconstruct; this case should never appear if required and requiring constructs
+                // are correctly defined
+                if (dependingIndex === -1) continue;
+
+                // Keep track of how many times each depending construct has been visited / appeared, starting
+                // from the current construct to the first requiring construct
+                const dependingVisited = new Array(dependingIndex).fill(0);
+
+                let currentConstruct = context.lineStatement; // TODO: why not start with "this"?
                 let prevConstruct = currentConstruct; // Handle cold start
 
                 // Determine the level of the `this` constuct
-                let currentLevel = depConstructsInfo[dependingIndex].getLevel();
+                let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
 
                 // TODO: Not completely correct: what if there are multiple of the last depending constructs?
                 while (dependingIndex > 0) {
-                    console.log(currentConstruct, prevConstruct)
+                    console.log(currentConstruct, prevConstruct);
                     if (currentConstruct && currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
                         // Check if it is allowed to have to many of the same construct
-                        if (dependingVisited[dependingIndex] >= depConstructsInfo[dependingIndex].getMax()) {
+                        if (dependingVisited[dependingIndex] >= depConstructsInfo[dependingIndex].getMaxRepetition()) {
                             // We are at or over the limit of the current construct
                             // Start working on the next required construct
                             break;
@@ -928,7 +946,7 @@ export class GeneralStatement extends Statement implements Importable {
                     } else {
                         // New construct: names are different
                         // First check if the previous construct occured enough times; if not, we need to move on and check the other required constructs
-                        if (dependingVisited[dependingIndex] < depConstructsInfo[dependingIndex].getMin()) {
+                        if (dependingVisited[dependingIndex] < depConstructsInfo[dependingIndex].getMinRepetition()) {
                             // We are under the limit of the current construct
                             // The insertion is invalid
                             break;
@@ -937,14 +955,14 @@ export class GeneralStatement extends Statement implements Importable {
                         dependingIndex--;
 
                         // Check the level of the new depending construct
-                        if (depConstructsInfo[dependingIndex].getLevel() !== currentLevel) {
+                        if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
                             // TODO: How to handle this case? Try to think of some examples
                         }
                     }
 
                     // Increase the amount of times the current construct type has been visited
                     dependingVisited[dependingIndex]++;
-                    console.log(dependingIndex)
+                    console.log(dependingIndex);
 
                     if (dependingIndex > 0) {
                         prevConstruct = currentConstruct;
@@ -960,12 +978,13 @@ export class GeneralStatement extends Statement implements Importable {
 
                 // Now we are at the level of the required construct and we have handled all the depending constructs
                 // The currentConstruct should be the required construct
-                console.log("Before final", prevConstruct, requiredConstruct)
-                console.log(validator.getPrevSiblingOf(prevConstruct), validator.getParentOf(prevConstruct))
+                console.log("Before final", prevConstruct, requiredConstruct);
+                console.log(validator.getPrevSiblingOf(prevConstruct), validator.getParentOf(prevConstruct));
                 console.log(validator.module.body, context.lineStatement);
                 const inFrontOfLastOne = validator.getPrevSiblingOf(prevConstruct);
-                if (inFrontOfLastOne && inFrontOfLastOne.getKeyword() === requiredConstruct.getKeyword()) { // TODO: try to make this cleaner by trying to insert currentConstruct here
-                    console.log("We get here ... somehow")
+                if (inFrontOfLastOne && inFrontOfLastOne.getKeyword() === requiredConstruct.getKeyword()) {
+                    // TODO: try to make this cleaner by trying to insert currentConstruct here
+                    console.log("We get here ... somehow");
                     // We found the required construct
                     canInsertConstruct = true;
                 }

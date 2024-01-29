@@ -301,17 +301,15 @@
                 "type": "construct",
                 "ref": "elif",
                 "optional": true,
-                "min": 0,
-                "max": null,
-                "level": 0
+                "min_repeat": 0,
+                "max_repeat": null
             },
             {
                 "type": "construct",
                 "ref": "else",
                 "optional": true,
-                "min": 0,
-                "max": 1,
-                "level": 0
+                "min_repeat": 0,
+                "max_repeat": 1
             }
         ],
         "holes": [
