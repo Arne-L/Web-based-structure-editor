@@ -957,8 +957,8 @@ export class Validator {
      * @returns - The parent of the given statement, or null if the given statement 
      * is of the {@link Module} type
      */
-    getParentOf(statement: Statement): Statement | Module {
-        if (statement instanceof Module) return null;
+    getParentOf(statement: Statement): Statement {
+        if (statement.rootNode instanceof Module) return null;
         return statement.rootNode;
     }
 
