@@ -904,7 +904,7 @@ export class GeneralStatement extends Statement implements Importable {
             // appears (correctly) in front of the current construct
             for (const requiredName of this.requiredConstruct) {
                 // TODO: This is currently casted because expression does inherit from Statement and not GeneralStatement => CHANGE IN THE FUTURE
-                const requiredConstruct = GeneralStatement.constructs.get(requiredName) as GeneralStatement;
+                const requiredConstruct = GeneralStatement.constructs.get(requiredName) as GeneralStatement; // NOT OKAY
 
                 // TODO: Currently the function assumes that each construct will only appear once
                 // This is however not always the case, so we should look for a way to generalise
@@ -921,8 +921,9 @@ export class GeneralStatement extends Statement implements Importable {
                 let dependingIndex = depConstructsInfo.findIndex(
                     (construct) => construct.getConstructName() === this.getKeyword()
                 );
+                console.log(dependingIndex);
 
-                // Skip to next requiredconstruct; this case should never appear if required and requiring constructs
+                // Skip to next required construct; this case should never appear if required and requiring constructs
                 // are correctly defined
                 if (dependingIndex === -1) continue;
 
@@ -930,24 +931,29 @@ export class GeneralStatement extends Statement implements Importable {
                 // from the current construct to the first requiring construct
                 const dependingVisited = new Array(dependingIndex).fill(0);
 
-                // Depending / requiring construct to start checking from
-                let currentConstruct = context.lineStatement; // TODO: why not start with "this"?
-                let prevConstruct = currentConstruct; // Handle cold start
+                // The current construct we want to insert also needs to be counted
+                // Because we assume that each requiring construct can appear at least once, we do not need to
+                // check the constraints
+                dependingVisited[dependingIndex] = 1;
 
-                // TODO: Remove!
-                // Determine the level of the `this` constuct
-                // let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
+                // Depending / requiring construct to start checking from
+                let currentConstruct = validator.getPrevSiblingOf(context.lineStatement);
+                let prevConstruct = this as Statement; // NOT OKAY
+
+                // There is no construct in front of the current one, so the insertion is invalid
+                if (!currentConstruct) break;
 
                 // TODO: Not completely correct: what if there are multiple of the first requiring construct?
                 while (dependingIndex >= 0) {
-                    console.log(currentConstruct, prevConstruct);
-                    if (currentConstruct && currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
+                    // Still the same construct
+                    if (currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
                         // Check if it is allowed to have many of the same construct
                         if (dependingVisited[dependingIndex] >= depConstructsInfo[dependingIndex].getMaxRepetition()) {
                             // We are at or over the limit of the current construct
                             // Start working on the next required construct, cause this one is not possible
                             break;
                         }
+                        // Current construct has the name of the construct in front of the previous construct
                     } else {
                         // New construct: names are different
                         // First check if the previous construct occured enough times; if not, we need to move on and check the other required constructs
@@ -956,38 +962,58 @@ export class GeneralStatement extends Statement implements Importable {
                             // The insertion is invalid
                             break;
                         }
-                        // Move on to the next depending construct
-                        dependingIndex--;
-
-                        // Check the level of the new depending construct
-                        if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
-                            // TODO: How to handle this case? Try to think of some examples
+                        // Move on to the next requiring construct
+                        while (
+                            dependingIndex >= 0 &&
+                            currentConstruct.getKeyword() !== depConstructsInfo[dependingIndex].getConstructName()
+                        ) {
+                            dependingIndex--;
                         }
-                    }
 
+                        // TODO: Remove!
+                        // Check the level of the new depending construct
+                        // if (depConstructsInfo[dependingIndex].getMinLevel() !== currentLevel) {
+                        // TODO: How to handle this case? Try to think of some examples
+                        // }
+                    }
                     // Increase the amount of times the current construct type has been visited
                     dependingVisited[dependingIndex]++;
-                    console.log(dependingIndex);
 
-                    if (dependingIndex > 0) {
+                    // As long as the depending index is not smaller than zero, we need to look for requiring constructs
+                    // Else the current construct is the required construct
+                    if (dependingIndex >= 0) {
                         prevConstruct = currentConstruct;
                         currentConstruct = validator.getPrevSiblingOf(currentConstruct) as GeneralStatement; // NOT OKAY
+
+                        // In case there are not yet any constructs in front of the current position
+                        if (!currentConstruct) {
+                            console.log("Simply nothing before");
+                            break;
+                        }
                     }
                 }
 
+                // TODO: Remove!
                 // Go to the base level
-                while (currentLevel > 0) {
-                    currentConstruct = validator.getParentOf(currentConstruct) as GeneralStatement; // NOT OKAY
-                    currentLevel--;
-                }
+                // while (currentLevel > 0) {
+                //     currentConstruct = validator.getParentOf(currentConstruct) as GeneralStatement; // NOT OKAY
+                //     currentLevel--;
+                // }
 
-                // Now we are at the level of the required construct and we have handled all the depending constructs
+                // Now we are at required construct and we have handled all the depending constructs
                 // The currentConstruct should be the required construct
-                console.log("Before final", prevConstruct, requiredConstruct);
-                console.log(validator.getPrevSiblingOf(prevConstruct), validator.getParentOf(prevConstruct));
-                console.log(validator.module.body, context.lineStatement);
-                const inFrontOfLastOne = validator.getPrevSiblingOf(prevConstruct);
-                if (inFrontOfLastOne && inFrontOfLastOne.getKeyword() === requiredConstruct.getKeyword()) {
+                // console.log("Before final", prevConstruct, requiredConstruct);
+                // console.log(validator.getPrevSiblingOf(prevConstruct), validator.getParentOf(prevConstruct));
+                // console.log(validator.module.body, context.lineStatement);
+                // const inFrontOfLastOne = validator.getPrevSiblingOf(prevConstruct);
+                // if (inFrontOfLastOne && inFrontOfLastOne.getKeyword() === requiredConstruct.getKeyword()) {
+                //     // TODO: try to make this cleaner by trying to insert currentConstruct here
+                //     console.log("We get here ... somehow");
+                //     // We found the required construct
+                //     canInsertConstruct = true;
+                // }
+                console.log("Final", currentConstruct, requiredConstruct);
+                if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
                     // TODO: try to make this cleaner by trying to insert currentConstruct here
                     console.log("We get here ... somehow");
                     // We found the required construct
