@@ -1332,7 +1332,7 @@ export abstract class Modifier extends Expression {
 }
 
 /**
- * The smallest code construct: identifiers, holes (for either identifiers or expressions), operators and characters, and etc.
+ * The smallest code construct: identifiers, holes (for either identifiers or expressions), operators and characters etc.
  */
 export abstract class Token implements CodeConstruct {
     isTextEditable = false;
@@ -1390,6 +1390,7 @@ export abstract class Token implements CodeConstruct {
 
     /**
      * Builds the left and right positions of this token based on its text length.
+     * 
      * @param pos the left position to start building this node's right position.
      * @returns the final right position of this node: for tokens it equals to `this.left + this.text.length - 1`
      */
@@ -1597,6 +1598,7 @@ export class IfStatement extends Statement {
     }
 }
 
+// REPLACED
 /**
  * Else and elif statement (depending on whether or not they have a condition). They are part of the body of an if statement (and
  * can only be in the body of an if statement).
@@ -1639,6 +1641,7 @@ export class ElseStatement extends Statement {
     }
 }
 
+// REPLACED
 /**
  * Import statement construct
  */
@@ -3146,7 +3149,7 @@ export class ListElementAssignment extends Statement {
     }
 }
 
-// REPLACEABLE
+// REPLACED
 /**
  * Statement consisting of a single keyword like "break", "continue", "pass" ...
  */
