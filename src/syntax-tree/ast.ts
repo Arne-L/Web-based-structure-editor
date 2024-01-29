@@ -615,10 +615,13 @@ class OptionalConstructs {
      * 
      * @param keyword - The name of the construct
      * @param min - The minimum number of times the construct should appear
-     * @param max - The maximum number of times the construct can appear
+     * @param max - The maximum number of times the construct can appear. This should be atleast one.
      * @param level - The level of the construct, with level 0 being a direct child and every level above being a child of the previous level
      */
     constructor(keyword: string, min_repeat?: number, max_repeat?: number, min_level?: number, max_level?: number) {
+        if (max_repeat && max_repeat < 1) throw Error("max_repeat should be at least one");
+        if (max_repeat && min_repeat && min_repeat > max_repeat) throw Error("min_repeat should be smaller than max_repeat");
+        if (max_level && min_level && min_level > max_level) throw Error("min_level should be smaller than max_level");
         this.keyword = keyword;
         this.min_repeat = min_repeat ?? 0;
         this.max_repeat = max_repeat ?? Infinity;
@@ -927,20 +930,22 @@ export class GeneralStatement extends Statement implements Importable {
                 // from the current construct to the first requiring construct
                 const dependingVisited = new Array(dependingIndex).fill(0);
 
+                // Depending / requiring construct to start checking from
                 let currentConstruct = context.lineStatement; // TODO: why not start with "this"?
                 let prevConstruct = currentConstruct; // Handle cold start
 
+                // TODO: Remove!
                 // Determine the level of the `this` constuct
-                let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
+                // let currentLevel = depConstructsInfo[dependingIndex].getMinLevel();
 
-                // TODO: Not completely correct: what if there are multiple of the last depending constructs?
-                while (dependingIndex > 0) {
+                // TODO: Not completely correct: what if there are multiple of the first requiring construct?
+                while (dependingIndex >= 0) {
                     console.log(currentConstruct, prevConstruct);
                     if (currentConstruct && currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
-                        // Check if it is allowed to have to many of the same construct
+                        // Check if it is allowed to have many of the same construct
                         if (dependingVisited[dependingIndex] >= depConstructsInfo[dependingIndex].getMaxRepetition()) {
                             // We are at or over the limit of the current construct
-                            // Start working on the next required construct
+                            // Start working on the next required construct, cause this one is not possible
                             break;
                         }
                     } else {
