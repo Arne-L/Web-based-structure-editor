@@ -396,6 +396,12 @@ export class Module {
         }
     }
 
+    /**
+     * Add the reference to the current working scope.
+     * 
+     * @param statement - The assignment statement adding the variable reference
+     * @param workingScope - The direct scope in which the action is performed
+     */
     processNewVariable(statement: Statement, workingScope: Scope) {
         if (statement instanceof VarAssignmentStmt) {
             workingScope.references.push(new Reference(statement, workingScope));

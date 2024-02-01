@@ -120,7 +120,7 @@ export class VariableController {
         stmtScope: Scope,
         stmt: VarAssignmentStmt
     ): boolean {
-        return (stmt.lineNumber < ref.lineNumber && stmtScope === refScope) || stmtScope.isParent(refScope);
+        return (stmt.lineNumber < ref.lineNumber && stmtScope === refScope) || stmtScope.isAncestor(refScope);
     }
 
     private pointVarRefToNewVar(ref: VariableReferenceExpr, varId: string, stmt: VarAssignmentStmt): void {
@@ -332,7 +332,7 @@ export class VariableController {
                 ? closestStatement.scope
                 : (closestStatement.rootNode as Module | Statement).scope;
 
-            const closestStatementScopeIsParentScope = closestStatementScope.isParent(statementAtLineScope);
+            const closestStatementScopeIsParentScope = closestStatementScope.isAncestor(statementAtLineScope);
             const closestStmtIsIfElseParent =
                 closestStatement.rootNode instanceof IfStatement ||
                 (closestStatement.rootNode instanceof ElseStatement &&

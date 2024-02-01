@@ -2068,6 +2068,9 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
         super.rebuild(pos, fromIndex);
     }
 
+    /**
+     * The textual representation of the identifier token e.g. "x" in "x = 5"
+     */
     getIdentifier(): string {
         return this.tokens[this.identifierIndex].getRenderText();
     }

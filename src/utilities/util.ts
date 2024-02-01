@@ -121,6 +121,24 @@ export function hasMatch(list1: any[], list2: any[]): boolean {
     return false;
 }
 
+/**
+ * Checks if an element of list2 is equal to an element of list1. The index of the last 
+ * element of list2 that also appears in list1 is returned together with the (first) index of the
+ * element in list1.
+ * 
+ * @param list1 - The first list to compare
+ * @param list2 - The second list to compare
+ * @returns A tuple containing the index of the last element of list2 that also appears in list1 and the
+ * index of the corresponding element in list1. If the element appears multiple times in list1, only the first
+ * element is returned. The tuple [-1, -1] is returned if no match is found.
+ * 
+ * @example
+ * const list1 = [1, 2, 3, 4, 5];
+ * const list2 = [1, 3, 4, 5, 6];
+ * 
+ * const matchingIndices = hasMatchWithIndex(list1, list2);
+ * // => [4, 3]
+ */
 export function hasMatchWithIndex<T>(list1: T[], list2: T[]): [number, number] {
     const matchingIndices: [number, number] = [-1, -1];
 
