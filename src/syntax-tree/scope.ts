@@ -207,16 +207,18 @@ export class Scope {
     }
 
     /**
-     * This method determines whether an assignment to a given variable exists and would be covered by the scope at
-     * lineNumber. If not, then we are creating a new variable. It returns all such assignments in an array.
-     */
-    /**
      * TODO; NOT CLEAR WHAT THIS METHOD DOES / HOW IT WORKS
+     * 
+     * This method determines whether an assignment to a given variable exists and would be covered by the scope at
+     * lineNumber. It returns all such assignments in an array.
+     * 
+     * PROBABLY: This method determines all assignment statements with the given identifier that can be accessed / are 
+     * in scope at the given line number.
      *
-     * @param identifier
-     * @param module
-     * @param lineNumber
-     * @param excludeStmt
+     * @param identifier - The variable identifier to find assignments to (e.g. 'x')
+     * @param module - The current module
+     * @param lineNumber - The line number of the excluded statement
+     * @param excludeStmt - The statement to exclude from the search
      * @returns
      */
     getAllVarAssignmentsToNewVar(
@@ -224,7 +226,7 @@ export class Scope {
         module: Module,
         lineNumber: number,
         excludeStmt: VarAssignmentStmt = null
-    ) {
+    ): VarAssignmentStmt[] {
         // Get all assignment statements to the given identifier in the entire module
         let assignments: VarAssignmentStmt[] = this.getAllAssignmentsToVar(identifier, module);
 
@@ -251,12 +253,17 @@ export class Scope {
         //     }
         // }
 
-        //filter out variable assignments that are not in this scope
+        //filter out assignment statements that are not in this scope
         assignments = assignments.filter((assignmentStmt) => {
+            // Assignment statements should be different from the excluded statement
             if (assignmentStmt !== excludeStmt) {
+                // All the ancestor scopes of the excluded statement 
                 const newAssignmentScopes = Scope.getAllScopesOfStmt(excludeStmt);
+                // All the ancestor scopes of the current assignment statement
                 const oldAssignmentScopes = Scope.getAllScopesOfStmt(assignmentStmt);
+
                 // Get a tuple of indices of the last matching element in the second list with the first list
+                // This corresponds to the most nested scope that is common to both lists
                 const matchInfo = hasMatchWithIndex(newAssignmentScopes, oldAssignmentScopes);
 
                 if (lineNumber < assignmentStmt.lineNumber) {

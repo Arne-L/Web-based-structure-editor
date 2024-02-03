@@ -210,7 +210,7 @@ export class VariableController {
     }
 
     /**
-     * Add warnings to the variable reference without a assignment statement in scope, or update the reference if there
+     * Add warnings to the variable reference without an assignment statement in scope, or update the reference if there
      * is an other assignment statement in the same scope.
      *
      * @param varId - The button id of the variable (e.g. var-ref-1)
@@ -285,7 +285,7 @@ export class VariableController {
     }
 
     /**
-     * Update the uniqueId and datetype of all variable reference expressions that reference the given VarAssignmentStmt
+     * Update the uniqueId and datatype of all variable reference expressions that reference the given VarAssignmentStmt
      * and are covered by it, while also performing type checks.
      *
      * @param varStmt - The VarAssignmentStmt to check the references against

@@ -1027,7 +1027,6 @@ export class Validator {
         return null;
     }
 
-    //returns a nested list [[Reference, InsertionType], ...]
     /**
      * Gets the valid variable references for the given code construct
      *

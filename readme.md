@@ -24,6 +24,8 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 * Inserting a requiring constructs between existing constructs does not check that the constructs behind it are still valid; or in other words that the constructs can be inserted there based on the tailing constructs
 * References are only detected if they appear before the current line
     * Making some type of references have access to all references all over the codebase, could solve this. However, this does still not solve everything e.g. Python functions are accessible in other functions defined before the given function, but not in the code itself
+* No variable reference buttons are created as we don't keep track of types
+    * Maybe useful to add in some way?
     
 * How to handle autocomplete without typing e.g. x.split("")?
 
