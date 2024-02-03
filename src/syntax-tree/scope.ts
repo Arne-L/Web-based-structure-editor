@@ -49,7 +49,7 @@ export class Scope {
     }
 
     /**
-     * Get all valid references in the current and all parent scopes that appear before the given line.
+     * Get all valid references (or assignments) in the current and all parent scopes that appear before the given line.
      *
      * @param line - The current line number to check from
      * @returns - An array of all the valid references
@@ -67,7 +67,7 @@ export class Scope {
     }
 
     /**
-     * Returns all existing references to the variable with the given identifier in this scope.
+     * Returns all existing assignments to the variable with the given identifier in this scope (and parent scopes).
      *
      * There can only be one variable with the given identifier in this scope, because we disallow creation of duplicates
      * when a new variable is created.
@@ -77,7 +77,7 @@ export class Scope {
      *
      * @param identifier - The variable reference identifier
      * @param excludeStmt - The statement to exclude from the search
-     * @returns - An array of all the references to the variable with the given identifier in this scope, excluding
+     * @returns An array of all the references to the variable with the given identifier in this scope, excluding
      * the references to the given statement
      *
      * @example
@@ -90,7 +90,10 @@ export class Scope {
      *  let z = 4;
      * }
      */
-    getAllAssignmentsToVariableWithinScope(identifier: string, excludeStmt?: VarAssignmentStmt | ForStatement) {
+    getAllAssignmentsToVariableWithinScope(
+        identifier: string,
+        excludeStmt?: VarAssignmentStmt | ForStatement
+    ): Reference[] {
         // Get all references to the variable with the given identifier in this scope, excluding references to the
         // given statement
         let validReferences = this.references.filter((ref) => {
@@ -110,6 +113,30 @@ export class Scope {
         }
 
         return validReferences;
+    }
+
+    /**
+     * Get all assignment statements to the given identifier in the entire module that can be accessed from the
+     * current location in the current scope.
+     *
+     * @param identifier - The identifier to find assignments to (e.g. 'x')
+     * @param lineNumber - The current line number
+     */
+    getAllAccessableAssignments(identifier: string, lineNumber: number): VarAssignmentStmt[] {
+        return this.getAllAssignmentsToVariableWithinScope(identifier)
+            .filter((ref) => ref.line() < lineNumber)
+            .map((ref) => {
+                // If the current node is of the correct type and has the correct identifier, add it to the list of assignments
+                if (ref.statement instanceof VarAssignmentStmt && ref.statement.getIdentifier() === identifier) {
+                    return ref.statement;
+                } else if (
+                    ref.statement instanceof ForStatement &&
+                    ref.statement.loopVar.getIdentifier() === identifier
+                ) {
+                    // loopvar constains the nested VarAssignmentStmt in the for loop statement
+                    return ref.statement.loopVar;
+                }
+            });
     }
 
     /**
@@ -149,7 +176,7 @@ export class Scope {
      * }
      * //=> [x = 1, x = 3]
      */
-    private getAllAssignmentsToVar(identifier: string, module: Module) {
+    private getAllAssignmentsToVar(identifier: string, module: Module): VarAssignmentStmt[] {
         const assignments: VarAssignmentStmt[] = [];
         //Find all assignments to vars with this identifier e.g. 'x'
         const Q: CodeConstruct[] = [];
@@ -185,12 +212,12 @@ export class Scope {
      */
     /**
      * TODO; NOT CLEAR WHAT THIS METHOD DOES / HOW IT WORKS
-     * 
-     * @param identifier 
-     * @param module 
-     * @param lineNumber 
-     * @param excludeStmt 
-     * @returns 
+     *
+     * @param identifier
+     * @param module
+     * @param lineNumber
+     * @param excludeStmt
+     * @returns
      */
     getAllVarAssignmentsToNewVar(
         identifier: string,
@@ -253,11 +280,11 @@ export class Scope {
     /**
      * Get all statements that assign to the given variable identifier in the current scope and all parent scopes,
      * that appear before (exclusive or inclusive) the given line number.
-     * 
+     *
      * @param identifier - The variable identifier to find assignments to (e.g. 'x')
      * @param module - The current module
      * @param lineNumber - The line number to search before
-     * @param excludeCurrentLine - Whether to exclude the current line number from the search 
+     * @param excludeCurrentLine - Whether to exclude the current line number from the search
      * @returns - A list of all variable assignments to the given identifier in the current scope and all parent scopes,
      * that appear before (exclusive or inclusive) the given line number
      */

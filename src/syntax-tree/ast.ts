@@ -2105,7 +2105,6 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
         if (currentIdentifier !== this.oldIdentifier || this.buttonId === "") {
             if (currentIdentifier === "  ") {
                 this.removeAssignment();
-
                 if (
                     (this.rootNode as Module | Statement).scope.references.filter(
                         (ref) => (ref.statement as VarAssignmentStmt).getIdentifier() === this.oldIdentifier
