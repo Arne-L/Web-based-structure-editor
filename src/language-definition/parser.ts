@@ -1,7 +1,6 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
-import { Statement } from "../syntax-tree/ast";
-import { GeneralStatement } from "../syntax-tree/general-construct";
+import { Statement, GeneralStatement } from "../syntax-tree/ast";
 import * as constructs from "./python.json";
 
 /***
