@@ -398,7 +398,7 @@ export class Module {
 
     /**
      * Add the assignment to the current working scope.
-     * 
+     *
      * @param statement - The assignment statement adding the variable
      * @param workingScope - The direct scope in which the action is performed
      */
@@ -594,7 +594,7 @@ export class Module {
     /**
      * Goes through the body of the module in a BFS manner and performs the given action
      * on each construct.
-     * 
+     *
      * @param duringAction - Function to be performed on each construct
      */
     performActionOnBFS(duringAction: (code: CodeConstruct) => void) {
@@ -662,5 +662,15 @@ export class Module {
                 }
             }).bind(this)
         );
+    }
+
+    /**
+     * Get the nearest scope if there is one
+     * The nearest scope is the scope of the module as there are no other parent scopes
+     *
+     * @returns the scope of the module
+     */
+    getNearestScope() {
+        return this.scope;
     }
 }

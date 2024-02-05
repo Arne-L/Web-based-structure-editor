@@ -1,5 +1,5 @@
 import { hasMatchWithIndex } from "../utilities/util";
-import { CodeConstruct, ForStatement, Statement, VarAssignmentStmt } from "./ast";
+import { CodeConstruct, ForStatement, Statement, VarAssignmentStmt, AssignmentToken } from "./ast";
 import { Module } from "./module";
 
 /**
@@ -343,6 +343,13 @@ export class Scope {
         // If none of the parent scopes are the current scope, then the current scope is not an ancestor
         return false;
     }
+
+    /**
+     * Remove the given reference from the current scope.
+     */
+    removeAssignment(assigment: AssignmentToken) {
+        this.references = this.references.filter((ref) => ref.getReferencedAssignment() !== assigment);
+    }
 }
 
 /**
@@ -350,9 +357,11 @@ export class Scope {
  */
 export class Reference {
     /**
+     * 
      * Currently, either a variable or a function declaration. Could later be a class declaration.
      */
-    statement: Statement;
+    statement: Statement; // REMOVE IN THE FUTURE
+    token: AssignmentToken;
 
     /**
      * The valid scope in which this item could be referenced.
@@ -366,5 +375,9 @@ export class Reference {
 
     line(): number {
         return this.statement.lineNumber;
+    }
+
+    getReferencedAssignment(): AssignmentToken {
+        return this.token;
     }
 }

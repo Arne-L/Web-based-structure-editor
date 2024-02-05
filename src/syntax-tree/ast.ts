@@ -279,6 +279,18 @@ export abstract class Statement implements CodeConstruct {
         return this.scope != null;
     }
 
+    /**
+     * Get the nearest scope if there is one
+     * The nearest scope is either the scope of the current statement or the scope of the
+     * nearest parent statement with a scope.
+     * 
+     * @returns the nearest scope if there is one, otherwise null
+     */
+    getNearestScope(): Scope {
+        if (this.hasScope()) return this.scope;
+        return this.rootNode.getNearestScope();
+    }
+
     hasBody(): boolean {
         return this.body.length > 0;
     }
@@ -696,7 +708,7 @@ class AncestorConstruct {
  * Handles the creation, (re)assignment and deletion of variables with regards to
  * the scope, AST and visual representation.
  */
-class AssignmentToken extends IdentifierTkn {
+export class AssignmentToken extends IdentifierTkn {
     /**
      * Give each token a unique id
      */
@@ -705,7 +717,7 @@ class AssignmentToken extends IdentifierTkn {
      * A globally unique id for variable
      */
     private uniqueId: number;
-    private oldIdentifier = "  ";
+    private oldIdentifier = EMPTYIDENTIFIER;
 
     // Methods concerning the id
     /**
@@ -737,14 +749,29 @@ class AssignmentToken extends IdentifierTkn {
      * uniqueId is possibly not necessary; above methods thus possibly unnecessary
     */
    
-    onFocusOff(arg: any): void {
+    onFocusOff(): void {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
 
         if (currentIdentifier !== this.oldIdentifier) {
             // The identifier has changed
-            if (currentIdentifier === EMPTYIDENTIFIER)
+            if (currentIdentifier === EMPTYIDENTIFIER) {
                 // The identifier has been emptied
+
+                // Remove the variable from the nearest scope
+                const stmtScope = this.getParentStatement().getNearestScope()
+                stmtScope.removeAssignment(this)
+
+                // Reset assignment
+                this.oldIdentifier = EMPTYIDENTIFIER;                
+            } 
+            // Else:
+            // The identifier has been updated but is not empty (e.g. it
+            // is a new identifier or the identifier has been updated)
+            // We don't need to do anything in this case, as the token 
+            // encapsulates all necessary information and is part of the 
+            // reference
+
         }
         
    }

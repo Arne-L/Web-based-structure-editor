@@ -20,6 +20,12 @@ Authoring code with CodeStruct:
 
 A browser window should open automatically. If not, navigate to `localhost:8080`.
 
+### Possible problems with pure JSON
+* How do we now how the assigned variable should be accessable?
+    - Globally?
+    - Only in the body of the statement in which it occurs (e.g. for)?
+    - In the parent's scope but only after the assignment (e.g. x = 5)?
+
 ### Current shortcommings
 * Inserting a requiring constructs between existing constructs does not check that the constructs behind it are still valid; or in other words that the constructs can be inserted there based on the tailing constructs
 * References are only detected if they appear before the current line
