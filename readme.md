@@ -46,4 +46,4 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 
 ### Possible titles
 * Frame-based programming language-agnostic web-based editor
-* 
+* Educatieve programming language agnostic structure editor (EPLASE)

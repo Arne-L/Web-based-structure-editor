@@ -280,10 +280,10 @@ export abstract class Statement implements CodeConstruct {
     }
 
     /**
-     * Get the nearest scope if there is one
+     * Get the nearest scope if there is one.
      * The nearest scope is either the scope of the current statement or the scope of the
      * nearest parent statement with a scope.
-     * 
+     *
      * @returns the nearest scope if there is one, otherwise null
      */
     getNearestScope(): Scope {
@@ -705,83 +705,6 @@ class AncestorConstruct {
 }
 
 /**
- * Handles the creation, (re)assignment and deletion of variables with regards to
- * the scope, AST and visual representation.
- */
-export class AssignmentToken extends IdentifierTkn {
-    /**
-     * Give each token a unique id
-     */
-    static globalId = 0;
-    /**
-     * A globally unique id for variable
-     */
-    private uniqueId: number;
-    private oldIdentifier = EMPTYIDENTIFIER;
-
-    // Methods concerning the id
-    /**
-     * Assigns a unique id to the token
-     * Overwrites any existing ids
-     */
-    private assignId() {
-        this.uniqueId = AssignmentToken.globalId;
-        AssignmentToken.globalId++;
-    }
-
-    /**
-     * Get the unique DOM id of the token
-     *
-     * @returns The unique id of the token
-     */
-    getId() {
-        return "add-var-ref-" + this.uniqueId;
-    }
-
-    
-    /**
-     * getIdentifier = getRenderText
-     * 
-     * What do you need to know about the identifiers?
-     * * When typing, we need to know the potential in-scope identifiers
-     * * When we change or remove, we need to potentially add warnings to references
-     * 
-     * uniqueId is possibly not necessary; above methods thus possibly unnecessary
-    */
-   
-    onFocusOff(): void {
-        // Get the current identifier
-        const currentIdentifier = this.getRenderText();
-
-        if (currentIdentifier !== this.oldIdentifier) {
-            // The identifier has changed
-            if (currentIdentifier === EMPTYIDENTIFIER) {
-                // The identifier has been emptied
-
-                // Remove the variable from the nearest scope
-                const stmtScope = this.getParentStatement().getNearestScope()
-                stmtScope.removeAssignment(this)
-
-                // Reset assignment
-                this.oldIdentifier = EMPTYIDENTIFIER;                
-            } 
-            // Else:
-            // The identifier has been updated but is not empty (e.g. it
-            // is a new identifier or the identifier has been updated)
-            // We don't need to do anything in this case, as the token 
-            // encapsulates all necessary information and is part of the 
-            // reference
-
-        }
-        
-   }
-   
-   onDelete(): void {
-       null;
-   }
-}
-
-/**
  * Statement class containing functionality for all statements that can be used in the language. It removes the necessity to create a new class for each statement.
  *
  * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
@@ -869,11 +792,11 @@ export class GeneralStatement extends Statement implements Importable {
          * 1) Definition: a = 5
          *    Use: a
          * Augmented assignment should not require any special logic
-         * 
+         *
          * 2) Definition: def func(a, b)
          *    Use: func(a, b)
          * Need to be able to use a and b in the definition body
-         * 
+         *
          * 3) Definition: class A:
          *    Use: A(a, b)
          */
@@ -2259,7 +2182,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
 
         // If the current identifier differs from the old identifier, or the button id is empty (i.e. it is a new variable)
         if (currentIdentifier !== this.oldIdentifier || this.buttonId === "") {
-            // If the identifier is (left) empty (i.e. it is a new variable or the identifier was removed) 
+            // If the identifier is (left) empty (i.e. it is a new variable or the identifier was removed)
             if (currentIdentifier === "  ") {
                 // Remove the current assignment statement from the parent's scope
                 this.removeAssignment();
@@ -2290,7 +2213,12 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
                 );
 
                 // Get all assignments with the old identifier accessable from the current line
-                const oldIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(this.oldIdentifier, this.getModule(), this.lineNumber, this);
+                const oldIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(
+                    this.oldIdentifier,
+                    this.getModule(),
+                    this.lineNumber,
+                    this
+                );
 
                 // If the button id is empty and there are no other assignments to the current identifier, assign the variable
                 // This is the case when the assignment statement is new or has been reset and were are changing it
@@ -2341,17 +2269,17 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
     }
 
     /**
-     * Handles the assignment of a variable: either handling the creation of a new variable or the 
+     * Handles the assignment of a variable: either handling the creation of a new variable or the
      * assignment of an existing variable
-     * 
-     * @param varController 
-     * @param currentIdentifierAssignments 
+     *
+     * @param varController
+     * @param currentIdentifierAssignments
      */
     assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]) {
         // If there are not yet any assignments to the identifier
         if (currentIdentifierAssignments.length === 0) {
             this.assignNewVariable(varController);
-        // If there are already assignments to the identifier
+            // If there are already assignments to the identifier
         } else if (currentIdentifierAssignments.length > 0) {
             this.assignExistingVariable(currentIdentifierAssignments);
         }
@@ -2364,7 +2292,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
      * * Add the variable to the scope of the parent
      * * Update the type of the assignment variable
      * * Update the references as they might now be covered by the assignment where they weren't before
-     * 
+     *
      * @param varController - The variable controller
      */
     assignNewVariable(varController: VariableController) {
@@ -2392,7 +2320,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
 
     /**
      * Add the variable to the scope of the parent and update existing assignments to the variable
-     * 
+     *
      * @param currentIdentifierAssignments - All assignments to the existing identifier
      */
     assignExistingVariable(currentIdentifierAssignments: Statement[]) {
@@ -2430,9 +2358,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
         // If we reassign above current line number, then we might have changed scopes
         if (this.lineNumber < statement.lineNumber && statement.rootNode !== this.rootNode) {
             statement.rootNode.scope.references.splice(
-                statement.rootNode.scope.references
-                    .map((ref) => ref.statement)
-                    .indexOf(statement),
+                statement.rootNode.scope.references.map((ref) => ref.statement).indexOf(statement),
                 1
             );
         }
@@ -2449,7 +2375,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
     /**
      * Handle the reassignment of a variable. The old identifier is checked for any other assignments and correspondingly handled.
      * The new assignment is either for a new variable or an existing variable.
-     * 
+     *
      * @param oldVarId - The old variable button id
      * @param varController - The variable controller
      * @param currentIdentifierAssignments - All assignments to the new identifier
@@ -2468,7 +2394,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
             // Add warnings to the remaining references
             varController.addWarningToVarRefs(this.buttonId, this.oldIdentifier, this.getModule(), this);
         }
-        
+
         // If the variable is being reassigned to a new variable (no other assignments existed before)
         if (currentIdentifierAssignments.length === 0) {
             // Add warnings to the variable references to the old identifier if necessary
@@ -2486,7 +2412,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
 
     /**
      * Add the return type of the expression to the variable and update the variable references
-     * 
+     *
      * @param insertCode - Expression to insert into the assignment statement
      */
     onInsertInto(insertCode: Expression) {
@@ -2528,10 +2454,7 @@ export class VarAssignmentStmt extends Statement implements VariableContainer {
 
         // Get all assignments to the old identifier within the scope of the root node
         // We need to do this for the old identifier, as the new identifier is possibly empty or changed
-        const assignments = this.rootNode.scope.getAllAssignmentsToVariableWithinScope(
-            this.oldIdentifier,
-            this
-        );
+        const assignments = this.rootNode.scope.getAllAssignmentsToVariableWithinScope(this.oldIdentifier, this);
 
         // If there are no other assignments to the variable, remove the variable reference button and add warnings to the variable references
         if (assignments.length === 0) {
@@ -4826,7 +4749,7 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     /**
      * Update the identifier text to the new text while performing validation and rebuilding the statement
-     * 
+     *
      * @param text - The new text to set the identifier to
      * @returns Whether the new text is valid
      */
@@ -4848,7 +4771,7 @@ export class IdentifierTkn extends Token implements TextEditable {
     /**
      * Update the identifier text to the new text without validation checks and without
      * rebuilding the statement
-     * 
+     *
      * @param text - The new text to set the identifier to
      */
     setIdentifierText(text: string) {
@@ -4859,6 +4782,141 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     isEmptyIdentifier(): boolean {
         return this.text == "  ";
+    }
+}
+
+/**
+ * Handles the creation, (re)assignment and deletion of variables with regards to
+ * the scope, AST and visual representation.
+ */
+export class AssignmentToken extends IdentifierTkn {
+    /**
+     * The old identifier of the assignment token. This is used to keep track of the
+     * identifier before it was changed, easily update the old references and detect
+     * changes in the identifier.
+     */
+    private oldIdentifier = EMPTYIDENTIFIER;
+
+    /**
+     * getIdentifier = getRenderText
+     *
+     * What do you need to know about the identifiers?
+     * * When typing, we need to know the potential in-scope identifiers
+     * * When we change or remove, we need to potentially add warnings to references
+     *
+     * uniqueId is possibly not necessary; above methods thus possibly unnecessary
+     */
+
+    constructor(identifier?: string, root?: Statement, indexInRoot?: number, regex?: RegExp) {
+        super(identifier, root, indexInRoot, regex);
+    }
+
+    onFocusOff(): void {
+        // Get the current identifier
+        const currentIdentifier = this.getRenderText();
+        // Get the parent statement
+        const parentStmt = this.getParentStatement();
+        // Get the nearest scope
+        const stmtScope = parentStmt.getNearestScope();
+
+        if (currentIdentifier !== this.oldIdentifier) {
+            // The identifier has changed
+            if (currentIdentifier === EMPTYIDENTIFIER) {
+                // The identifier has been emptied
+
+                // Remove the variable from the nearest scope
+                stmtScope.removeAssignment(this);
+            } else {
+                // If it goes from empty to non-empty, add the variable to the nearest scope
+                if (this.oldIdentifier === EMPTYIDENTIFIER && currentIdentifier !== EMPTYIDENTIFIER) {
+                    stmtScope.addAssignment(this);
+                }
+
+                // We now need to update all references to the new variable to remove fixed warnings
+                this.updateRefWarnings();
+            }
+
+            // An empty identifier is not a valid identifier and has thus no references pointing to it
+            if (this.oldIdentifier !== EMPTYIDENTIFIER) {
+                // We need to add warnings to all references to the old variable
+                this.updateRefWarnings(this.oldIdentifier);
+            }
+        }
+
+        // Update the old identifier
+        this.oldIdentifier = currentIdentifier;
+    }
+
+    /**
+     * Update the warnings of all references to the current token, either with
+     * the current identifier or with the given identifier. If an reference is
+     * covered by an assignment statement, the warning is removed. If not, a
+     * warning is added.
+     *
+     * @param identifierName - The identifier to which all references will be updated.
+     * If left empty, the current identifier will be used.
+     */
+    updateRefWarnings(identifierName?: string): void {
+        // List of variable reference expressions refering to the current token
+        const varRefs: VariableReferenceExpr[] = [];
+        // Get the statement containing the token
+        const parentStmt = this.getParentStatement();
+        // Current identifier
+        const currentIdentifier = identifierName ?? this.getRenderText();
+
+        // Go through all constructs and add the construct if it is a variable reference to the given assignment token
+        // and is in draft mode
+        parentStmt.getModule().performActionOnBFS((code) => {
+            if (
+                code instanceof VariableReferenceExpr &&
+                code.identifier === currentIdentifier &&
+                code.draftModeEnabled
+            ) {
+                varRefs.push(code);
+            }
+        });
+
+        // Go through all variable reference expressions in draft mode and remove the warning if the reference is
+        // covered by an assignment statement
+        for (const ref of varRefs) {
+            // Scope of the reference expression
+            const refScope = ref.getNearestScope();
+
+            // If the assignment statement covers the reference expression, then update the reference expression
+            if (refScope.covers(currentIdentifier, ref.getLineNumber())) {
+                // A valid assignment found, thus remove the warning
+                parentStmt.getModule().closeConstructDraftRecord(ref);
+            } else {
+                // No valid assignment found, thus add the warning
+                parentStmt
+                    .getModule()
+                    .openDraftMode(
+                        ref,
+                        "This variable has been removed and cannot be referenced anymore. Consider deleting this reference.",
+                        []
+                    );
+            }
+        }
+    }
+
+    /**
+     * On deletion of the assignment, update the scope, check for other
+     * assignments to the variable and update the variable references
+     */
+    onDelete(): void {
+        const parentStmt = this.getParentStatement();
+        const currentScope = parentStmt.getNearestScope();
+
+        // Remove the assignment from the nearest scope
+        currentScope.removeAssignment(this);
+
+        // Check if a reference on the current location to the deleted assignment would
+        // be invalid
+        if (!currentScope.covers(this.getRenderText(), this.getLineNumber())) {
+            // References to the deleted variable after this point could be invalid
+            // if there are no assignments between the deleted variable and the reference
+            this.updateRefWarnings();
+        }
     }
 }
 

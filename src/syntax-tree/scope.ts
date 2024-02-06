@@ -140,6 +140,40 @@ export class Scope {
     }
 
     /**
+     * Get all references to assignments with the given identifier that can be accessed from the current location in the
+     * current scope.
+     *
+     * This function is similar to {@link getAllAccessableAssignments}, but returns the references to the assignments instead of
+     * the assignments themselves.
+     *
+     * @param identifier - The identifier to find assignments to (e.g. 'x')
+     * @param lineNumber - The current line number
+     * @returns All references to assignments with the given identifier that can be accessed from the current location
+     */
+    getAccessableAssignments(identifier: string, lineNumber: number): Reference[] {
+        const assignments = this.references.filter(
+            (ref) => ref.line() < lineNumber && ref.getReferencedAssignment().getRenderText() === identifier
+        );
+
+        if (this.parentScope) {
+            return assignments.concat(this.parentScope.getAccessableAssignments(identifier, lineNumber));
+        } else {
+            return assignments;
+        }
+    }
+
+    /**
+     * Check if an assignment with the given identifier is accessible from the current location
+     * 
+     * @param identifier - The identifier to find assignments to (e.g. 'x')
+     * @param lineNumber - The current line number
+     * @returns true if an assignment with the given identifier is accessible from the current location, false otherwise
+     */
+    covers(identifier: string, lineNumber: number): boolean {
+        return this.getAccessableAssignments(identifier, lineNumber).length > 0;
+    }
+
+    /**
      * Gets all the scopes in which the current statement is nested, not including the
      * scope of the statement itself.
      *
@@ -208,11 +242,11 @@ export class Scope {
 
     /**
      * TODO; NOT CLEAR WHAT THIS METHOD DOES / HOW IT WORKS
-     * 
+     *
      * This method determines whether an assignment to a given variable exists and would be covered by the scope at
      * lineNumber. It returns all such assignments in an array.
-     * 
-     * PROBABLY: This method determines all assignment statements with the given identifier that can be accessed / are 
+     *
+     * PROBABLY: This method determines all assignment statements with the given identifier that can be accessed / are
      * in scope at the given line number.
      *
      * @param identifier - The variable identifier to find assignments to (e.g. 'x')
@@ -257,7 +291,7 @@ export class Scope {
         assignments = assignments.filter((assignmentStmt) => {
             // Assignment statements should be different from the excluded statement
             if (assignmentStmt !== excludeStmt) {
-                // All the ancestor scopes of the excluded statement 
+                // All the ancestor scopes of the excluded statement
                 const newAssignmentScopes = Scope.getAllScopesOfStmt(excludeStmt);
                 // All the ancestor scopes of the current assignment statement
                 const oldAssignmentScopes = Scope.getAllScopesOfStmt(assignmentStmt);
@@ -350,6 +384,10 @@ export class Scope {
     removeAssignment(assigment: AssignmentToken) {
         this.references = this.references.filter((ref) => ref.getReferencedAssignment() !== assigment);
     }
+
+    addAssignment(assignment: AssignmentToken) {
+        this.references.push(new Reference(new VarAssignmentStmt(), this, assignment));
+    }
 }
 
 /**
@@ -357,7 +395,7 @@ export class Scope {
  */
 export class Reference {
     /**
-     * 
+     *
      * Currently, either a variable or a function declaration. Could later be a class declaration.
      */
     statement: Statement; // REMOVE IN THE FUTURE
@@ -368,7 +406,14 @@ export class Reference {
      */
     scope: Scope;
 
-    constructor(statement: Statement, scope: Scope) {
+    /**
+     * SHOULD BE UPDATED IN THE FUTURE
+     *
+     * @param statement - Var assignment statement, obsolete in the future
+     * @param scope - The scope in which the reference is valid
+     * @param token - The token that is being referenced
+     */
+    constructor(statement: Statement, scope: Scope, token?: AssignmentToken) {
         this.statement = statement;
         this.scope = scope;
     }
