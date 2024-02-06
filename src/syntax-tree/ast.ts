@@ -534,7 +534,7 @@ export abstract class Statement implements CodeConstruct {
      * @returns text representation of statement's keyword or an empty string if it has none
      */
     getKeyword(): string {
-        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as KeywordTkn).text; // KeywordTkn can probably be exchanged for "Token"
+        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
 
         return "";
     }
@@ -4976,7 +4976,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
         return this.text;
     }
 
-    // Why use of this function? This is less complete than checkMatch?
+    // Why use this function? This is less complete than checkMatch?
     isMatch(): EditCodeAction {
         for (const match of this.validMatches) if (this.text == match.matchString) return match;
 
@@ -5105,24 +5105,6 @@ export class TypedEmptyExpr extends Token {
  * Deletion results in the entire token being removed.
  */
 export class NonEditableTkn extends Token {
-    constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
-        super(text);
-
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-    }
-
-    getSelection(): Selection {
-        return this.rootNode.getSelection();
-    }
-}
-
-// FFD
-/**
- * Seems to be used in only one place to allow access to the "text" field.
- * As Token has a "text" field as well, this class is probably obsolete.
- */
-export class KeywordTkn extends Token {
     constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
 

@@ -56,7 +56,7 @@ export class Scope {
      */
     getValidReferences(line: number): Array<Reference> {
         // All references that appear before the current line
-        let validReferences = this.references.filter((ref) => ref.line() < line);
+        let validReferences = this.references.filter((ref) => ref.getLineNumber() < line);
 
         // All references that appear before the current line in the parent scope
         if (this.parentScope != null) {
@@ -124,7 +124,7 @@ export class Scope {
      */
     getAllAccessableAssignments(identifier: string, lineNumber: number): VarAssignmentStmt[] {
         return this.getAllAssignmentsToVariableWithinScope(identifier)
-            .filter((ref) => ref.line() < lineNumber)
+            .filter((ref) => ref.getLineNumber() < lineNumber)
             .map((ref) => {
                 // If the current node is of the correct type and has the correct identifier, add it to the list of assignments
                 if (ref.statement instanceof VarAssignmentStmt && ref.statement.getIdentifier() === identifier) {
@@ -152,7 +152,7 @@ export class Scope {
      */
     getAccessableAssignments(identifier: string, lineNumber: number): Reference[] {
         const assignments = this.references.filter(
-            (ref) => ref.line() < lineNumber && ref.getReferencedAssignment().getRenderText() === identifier
+            (ref) => ref.getLineNumber() < lineNumber && ref.getReferencedAssignment().getRenderText() === identifier
         );
 
         if (this.parentScope) {
@@ -164,7 +164,7 @@ export class Scope {
 
     /**
      * Check if an assignment with the given identifier is accessible from the current location
-     * 
+     *
      * @param identifier - The identifier to find assignments to (e.g. 'x')
      * @param lineNumber - The current line number
      * @returns true if an assignment with the given identifier is accessible from the current location, false otherwise
@@ -395,7 +395,6 @@ export class Scope {
  */
 export class Reference {
     /**
-     *
      * Currently, either a variable or a function declaration. Could later be a class declaration.
      */
     statement: Statement; // REMOVE IN THE FUTURE
@@ -418,7 +417,7 @@ export class Reference {
         this.scope = scope;
     }
 
-    line(): number {
+    getLineNumber(): number {
         return this.statement.lineNumber;
     }
 

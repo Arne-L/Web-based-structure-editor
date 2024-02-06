@@ -86,7 +86,7 @@ export class Hole {
 
                     const validIdentifierIds = refInsertionTypes.map((ref) => [
                         ((ref[0] as Reference).statement as VarAssignmentStmt).buttonId,
-                        (ref[0] as Reference).line(),
+                        (ref[0] as Reference).getLineNumber(),
                     ]);
 
                     const refInsertionTypeMap = new Map<string, [InsertionType, number]>();
@@ -200,7 +200,7 @@ export class Hole {
 
     /**
      * Adds an outline to the current token if it is an editable (= IdentitierTkn or EditableTextTkn) hole
-     * 
+     *
      * @param context - The current context of the editor
      */
     static outlineTextEditableHole(context: Context) {
@@ -221,7 +221,7 @@ export class Hole {
 
     /**
      * Highlights all valid variable holes before the current line
-     * 
+     *
      * @param context - The current context of the editor
      */
     static highlightValidVarHoles(context: Context) {
