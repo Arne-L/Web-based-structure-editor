@@ -12,6 +12,7 @@ import {
     Expression,
     FormattedStringCurlyBracketsExpr,
     FormattedStringExpr,
+    GeneralStatement,
     IdentifierTkn,
     IfStatement,
     ImportStatement,
@@ -23,7 +24,7 @@ import {
     Statement,
     TypedEmptyExpr,
     ValueOperationExpr,
-    VarAssignmentStmt,
+    // VarAssignmentStmt,
     VariableReferenceExpr,
 } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
@@ -141,7 +142,8 @@ export class Validator {
 
         const hasCorrectRootType =
             context.expressionToRight.rootNode instanceof Modifier ||
-            context.expressionToRight.rootNode instanceof VarAssignmentStmt ||
+            // Updated to work with the new general assignment statement
+            (context.expressionToRight.rootNode instanceof GeneralStatement && context.expressionToRight.rootNode.containsAssignments()) ||
             context.expressionToRight.rootNode instanceof ValueOperationExpr;
 
         return isCorrectExprType && hasCorrectRootType;
@@ -645,13 +647,19 @@ export class Validator {
         return context.expressionToLeft != null && !this.module.focus.isTextEditable(providedContext);
     }
 
+    /**
+     * Checks if the cursor is in a hole of an assignment statement
+     * 
+     * @param providedContext 
+     * @returns true if the cursor is in a hole of an assignment statement, false otherwise
+     */
     shouldDeleteVarAssignmentOnHole(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (context.token instanceof TypedEmptyExpr && context.selected) {
             const root = context.token.rootNode;
 
-            if (root instanceof VarAssignmentStmt) {
+            if (root instanceof GeneralStatement && root.containsAssignments()) {
                 return true; // this.module.variableController.isVarStmtReassignment(root, this.module);
             }
         }
@@ -926,7 +934,7 @@ export class Validator {
 
     /**
      * Returns the previous sibling of the given statement
-     * 
+     *
      * @param statement - Statement to get the previous sibling of
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
@@ -939,7 +947,7 @@ export class Validator {
 
     /**
      * Returns the next sibling of the given statement
-     * 
+     *
      * @param statement - Statement to get the next sibling of
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
@@ -952,9 +960,9 @@ export class Validator {
 
     /**
      * Returns the parent of the given statement
-     * 
+     *
      * @param statement - Statement to get the parent of
-     * @returns - The parent of the given statement, or null if the given statement 
+     * @returns - The parent of the given statement, or null if the given statement
      * is of the {@link Module} type
      */
     getParentOf(statement: Statement): Statement {
@@ -1028,25 +1036,30 @@ export class Validator {
     }
 
     /**
-     * Gets the valid variable references for the given code construct
+     * Gets the valid (or draft) variable references for the given code construct
      *
      * @param code - The code construct to get the valid variable references for
      * @param variableController - The variable controller to use for the validation
-     * @returns - A list of valid variable references for the given code construct
+     * @returns A list of valid (or draft) variable references for the given code construct
      */
     static getValidVariableReferences(
         code: CodeConstruct,
         variableController: VariableController
     ): [Reference, InsertionType][] {
+        // List of all references
         const refs: Reference[] = [];
+        // List of mapped references mapped to their insertion type
         const mappedRefs: [Reference, InsertionType][] = []; //no point of making this a map since we don't have access to the refs whereever this method is used. Otherwise would have to use buttonId or uniqueId as keys into the map.
 
         try {
+            // If the code is an empty expression or an empty line
             if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
+                // Get nearest scope
                 let scope =
                     code instanceof TypedEmptyExpr ? code.getParentStatement()?.scope : (code.rootNode as Module).scope; //line that contains "code"
                 let currRootNode = code.rootNode;
 
+                // Keep going up the tree until we find a non-null scope
                 while (!scope) {
                     if (!(currRootNode instanceof Module)) {
                         if (currRootNode.getParentStatement()?.hasScope()) {
@@ -1061,29 +1074,48 @@ export class Validator {
                     }
                 }
 
+                // Get all accessable assignments
                 refs.push(...scope.getValidReferences(code.getSelection().startLineNumber));
 
+                // // For each of the accessable assignments
+                // for (const ref of refs) {
+                //     // Only add it to the mapped references if it is a variable assignment statement
+                //     if (ref.statement instanceof VarAssignmentStmt) {
+                //         // If it is a typed empty expression
+                //         if (code instanceof TypedEmptyExpr) {
+                //             // If the type of the hole / TypedEmptyExpr is the same as the type of
+                //             // the variable reference, add it to the mapped references with a valid insertion type
+                //             // Else add it to the mapped references with a draft mode insertion type
+                //             if (
+                //                 code.type.indexOf(
+                //                     variableController.getVariableTypeNearLine(
+                //                         scope,
+                //                         code.getLineNumber(),
+                //                         ref.statement.getIdentifier()
+                //                     )
+                //                 ) > -1 ||
+                //                 code.type.indexOf(DataType.Any) > -1
+                //             ) {
+                //                 mappedRefs.push([ref, InsertionType.Valid]);
+                //             } else {
+                //                 mappedRefs.push([ref, InsertionType.DraftMode]);
+                //             }
+                //         } else if (code instanceof EmptyLineStmt) {
+                //             // All variables can become var = --- so allow all of them to trigger draft mode
+                //             mappedRefs.push([ref, InsertionType.DraftMode]);
+                //         }
+                //     }
+                // }
+                // For each of the accessable assignments
                 for (const ref of refs) {
-                    if (ref.statement instanceof VarAssignmentStmt) {
-                        if (code instanceof TypedEmptyExpr) {
-                            if (
-                                code.type.indexOf(
-                                    variableController.getVariableTypeNearLine(
-                                        scope,
-                                        code.getLineNumber(),
-                                        ref.statement.getIdentifier()
-                                    )
-                                ) > -1 ||
-                                code.type.indexOf(DataType.Any) > -1
-                            ) {
-                                mappedRefs.push([ref, InsertionType.Valid]);
-                            } else {
-                                mappedRefs.push([ref, InsertionType.DraftMode]);
-                            }
-                        } else if (code instanceof EmptyLineStmt) {
-                            //all variables can become var = --- so allow all of them to trigger draft mode
-                            mappedRefs.push([ref, InsertionType.DraftMode]);
-                        }
+                    // Only add it to the mapped references if it is a variable assignment statement
+                    // If it is a typed empty expression
+                    if (code instanceof TypedEmptyExpr) {
+                        // No types, thus valid
+                        mappedRefs.push([ref, InsertionType.Valid]);
+                    } else if (code instanceof EmptyLineStmt) {
+                        // STILL NECESSARY? WHY IS THIS NEEDED?
+                        mappedRefs.push([ref, InsertionType.DraftMode]);
                     }
                 }
             }

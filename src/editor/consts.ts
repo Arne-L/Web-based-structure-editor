@@ -57,11 +57,12 @@ import {
     AugmentedAssignmentModifier,
     BinaryOperatorExpr,
     ElseStatement,
-    ForStatement,
+    // ForStatement,
     FormattedStringCurlyBracketsExpr,
     FormattedStringExpr,
     FunctionCallExpr,
     FunctionCallStmt,
+    GeneralStatement,
     IfStatement,
     ImportStatement,
     KeywordStmt,
@@ -74,7 +75,7 @@ import {
     Statement,
     UnaryOperatorExpr,
     ValueOperationExpr,
-    VarAssignmentStmt,
+    // VarAssignmentStmt,
     VarOperationStmt,
     WhileStatement,
 } from "../syntax-tree/ast";
@@ -309,6 +310,11 @@ export class Actions {
     private static inst: Actions;
     actionsList: Array<EditCodeAction>;
     actionsMap: Map<string, EditCodeAction>;
+    /**
+     * Map from datatype to a list of actions that can be performed on that datatype.
+     * Actions that can be performed on a datatype are things like adding,
+     * multiplying, dividing, using a method on it (e.g. .append()), etc.
+     */
     varActionsMap: Map<DataType, Array<VarAction>>;
     toolboxCategories: Array<ToolboxCategory> = [];
 
@@ -968,31 +974,31 @@ export class Actions {
             null
         );
 
-        const BreakStmt = new EditCodeAction(
-            "break",
-            "add-break-stmt-btn",
-            () =>
-                new KeywordStmt("break", null, null, (context: Context) => {
-                    let parent = context.lineStatement.rootNode as Statement | Module;
+        // const BreakStmt = new EditCodeAction(
+        //     "break",
+        //     "add-break-stmt-btn",
+        //     () =>
+        //         new KeywordStmt("break", null, null, (context: Context) => {
+        //             let parent = context.lineStatement.rootNode as Statement | Module;
 
-                    while (
-                        !(parent instanceof WhileStatement) &&
-                        !(parent instanceof ForStatement) &&
-                        !(parent instanceof Module)
-                    ) {
-                        parent = parent.rootNode;
-                    }
+        //             while (
+        //                 !(parent instanceof WhileStatement) &&
+        //                 !(parent instanceof ForStatement) &&
+        //                 !(parent instanceof Module)
+        //             ) {
+        //                 parent = parent.rootNode;
+        //             }
 
-                    if (parent instanceof Module) return false;
-                    else return true;
-                }),
-            InsertActionType.InsertStatement,
-            {},
-            BreakDocs,
-            ["k"],
-            "brea",
-            null
-        );
+        //             if (parent instanceof Module) return false;
+        //             else return true;
+        //         }),
+        //     InsertActionType.InsertStatement,
+        //     {},
+        //     BreakDocs,
+        //     ["k"],
+        //     "brea",
+        //     null
+        // );
 
         const IfStmt = new EditCodeAction(
             "if --- :",
@@ -1030,17 +1036,18 @@ export class Actions {
             null
         );
 
-        const ForStmt = new EditCodeAction(
-            "for -- in --- :",
-            "add-for-expr-btn",
-            () => new ForStatement(),
-            InsertActionType.InsertStatement,
-            {},
-            ForDocs,
-            [" "],
-            "for",
-            null
-        );
+        // Dropped as this is generalised into GeneralStatement
+        // const ForStmt = new EditCodeAction(
+        //     "for -- in --- :",
+        //     "add-for-expr-btn",
+        //     () => new ForStatement(),
+        //     InsertActionType.InsertStatement,
+        //     {},
+        //     ForDocs,
+        //     [" "],
+        //     "for",
+        //     null
+        // );
 
         const ImportStmt = new EditCodeAction(
             "from --- import ---",
@@ -1288,17 +1295,18 @@ export class Actions {
             null
         );
 
-        const VarAssignStmt = new EditCodeAction(
-            "var = ---",
-            "add-var-btn",
-            () => new VarAssignmentStmt(),
-            InsertActionType.InsertNewVariableStmt,
-            {},
-            AddVarDocs,
-            ["="],
-            null,
-            IdentifierRegex
-        );
+        // Can be dropped as we have generalised these into GeneralStatement
+        // const VarAssignStmt = new EditCodeAction(
+        //     "var = ---",
+        //     "add-var-btn",
+        //     () => new VarAssignmentStmt(),
+        //     InsertActionType.InsertNewVariableStmt,
+        //     {},
+        //     AddVarDocs,
+        //     ["="],
+        //     null,
+        //     IdentifierRegex
+        // );
 
         this.actionsList = new Array<EditCodeAction>(
             PrintStmt,
@@ -1346,11 +1354,11 @@ export class Actions {
             UnaryNotExpr,
             FindMethodMod,
             WhileStmt,
-            BreakStmt,
+            // BreakStmt,
             IfStmt,
             ElifStmt,
             ElseStmt,
-            ForStmt,
+            // ForStmt,
             ImportStmt,
             ListLiteralExpr,
             ListCommaItem,
@@ -1366,7 +1374,7 @@ export class Actions {
             SplitMethodMod,
             CastStrExpr,
             CastIntExpr,
-            VarAssignStmt,
+            // VarAssignStmt,
             BinInExpr,
             BinNotInExpr,
             ImportRandintStmt,
@@ -1382,12 +1390,23 @@ export class Actions {
         this.varActionsMap = new Map<DataType, Array<VarAction>>([
             [
                 DataType.Boolean,
-                [new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Set Value")],
+                [
+                    new VarAction(
+                        // Should be changed with a more robust solution in the future
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Set Value"
+                    ),
+                ],
             ],
             [
                 DataType.Number,
                 [
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Set Value"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Set Value"
+                    ),
                     new VarAction(
                         () =>
                             new VarOperationStmt(null, [
@@ -1425,7 +1444,11 @@ export class Actions {
             [
                 DataType.String,
                 [
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Set Value"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Set Value"
+                    ),
                     new VarAction(
                         () =>
                             new VarOperationStmt(null, [
@@ -1434,7 +1457,11 @@ export class Actions {
                         "add text to {VAR_ID}",
                         "Update Value"
                     ),
-                    new VarAction(() => new ForStatement(), "loop through characters of {VAR_ID}", "Loops"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("for")),
+                        "loop through characters of {VAR_ID}",
+                        "Loops"
+                    ),
                     new VarAction(
                         () =>
                             new ValueOperationExpr(null, [
@@ -1524,8 +1551,16 @@ export class Actions {
                         "append value to list {VAR_ID}",
                         "Update List"
                     ),
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Update List"),
-                    new VarAction(() => new ForStatement(), "loop through items of {VAR_ID}", "Loops"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Update List"
+                    ),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("for")),
+                        "loop through items of {VAR_ID}",
+                        "Loops"
+                    ),
                     new VarAction(
                         () => new ValueOperationExpr(null, [new ListAccessModifier()]),
                         "get item from {VAR_ID} at index",
@@ -1554,8 +1589,16 @@ export class Actions {
                         "append value to list {VAR_ID}",
                         "Update List"
                     ),
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Update List"),
-                    new VarAction(() => new ForStatement(), "loop through items of {VAR_ID}", "Loops"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Update List"
+                    ),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("for")),
+                        "loop through items of {VAR_ID}",
+                        "Loops"
+                    ),
                     new VarAction(
                         () => new ValueOperationExpr(null, [new ListAccessModifier()]),
                         "get item from {VAR_ID} at index",
@@ -1584,8 +1627,16 @@ export class Actions {
                         "add value to list {VAR_ID}",
                         "Update List"
                     ),
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Update List"),
-                    new VarAction(() => new ForStatement(), "loop through items of {VAR_ID}", "Loops"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Update List"
+                    ),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("for")),
+                        "loop through items of {VAR_ID}",
+                        "Loops"
+                    ),
                     new VarAction(
                         () => new ValueOperationExpr(null, [new ListAccessModifier()]),
                         "get item from {VAR_ID} at index",
@@ -1614,8 +1665,16 @@ export class Actions {
                         "append value to list {VAR_ID}",
                         "Update List"
                     ),
-                    new VarAction(() => new VarAssignmentStmt(), "set {VAR_ID} to new value", "Update List"),
-                    new VarAction(() => new ForStatement(), "loop through items of {VAR_ID}", "Loops"),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("var=")),
+                        "set {VAR_ID} to new value",
+                        "Update List"
+                    ),
+                    new VarAction(
+                        () => structuredClone(GeneralStatement.constructs.get("for")),
+                        "loop through items of {VAR_ID}",
+                        "Loops"
+                    ),
                     new VarAction(
                         () => new ValueOperationExpr(null, [new ListAccessModifier()]),
                         "get item from {VAR_ID} at index",
@@ -1627,7 +1686,7 @@ export class Actions {
 
         // Should be removed when configuration file can take over
         this.toolboxCategories.push(
-            new ToolboxCategory("Loops", "loops-toolbox-group", [WhileStmt, ForStmt, RangeExpr, BreakStmt])
+            new ToolboxCategory("Loops", "loops-toolbox-group", [WhileStmt, /*ForStmt,*/ RangeExpr/*, BreakStmt*/])
         );
         this.toolboxCategories.push(
             new ToolboxCategory("Conditionals", "conditionals-toolbox-group", [IfStmt, ElifStmt, ElseStmt])
@@ -1637,7 +1696,7 @@ export class Actions {
         );
         this.toolboxCategories.push(
             new ToolboxCategory("Variables", "create-var-toolbox-group", [
-                VarAssignStmt,
+                // VarAssignStmt,
                 AssignmentMod,
                 AugAddAssignmentMod,
                 AugSubAssignmentMod,

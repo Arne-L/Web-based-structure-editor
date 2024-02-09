@@ -5,10 +5,10 @@ import {
     CodeConstruct,
     ElseStatement,
     Expression,
-    ForStatement,
+    // ForStatement,
     IfStatement,
     Statement,
-    VarAssignmentStmt,
+    // VarAssignmentStmt,
     VariableReferenceExpr,
 } from "./ast";
 import { DataType, typeToConversionRecord, TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR } from "./consts";
@@ -43,15 +43,15 @@ export class VariableController {
      *
      * @param assignmentStmt
      */
-    addVariableRefButton(assignmentStmt: VarAssignmentStmt) {
-        const button = addVariableReferenceButton(
-            assignmentStmt.getIdentifier(),
-            assignmentStmt.buttonId,
-            this.module.eventStack,
-            this.module
-        );
-        this.variableButtons.push(button);
-    }
+    // addVariableRefButton(assignmentStmt: VarAssignmentStmt) {
+    //     const button = addVariableReferenceButton(
+    //         assignmentStmt.getIdentifier(),
+    //         assignmentStmt.buttonId,
+    //         this.module.eventStack,
+    //         this.module
+    //     );
+    //     this.variableButtons.push(button);
+    // }
 
     /**
      * Check if the given button id is an existing variable reference button.
@@ -187,15 +187,15 @@ export class VariableController {
      * @param stmt - The assignment statement
      * @returns true if the assignment statement covers the variable reference, false otherwise
      */
-    private doesAssignmentCoverVarRef(
-        ref: VariableReferenceExpr,
-        refScope: Scope,
-        stmtScope: Scope,
-        stmt: VarAssignmentStmt
-    ): boolean {
-        return stmt.lineNumber < ref.lineNumber && (stmtScope === refScope || stmtScope.isAncestor(refScope)); // Is this more accurate?
-        // return (stmt.lineNumber < ref.lineNumber && stmtScope === refScope) || stmtScope.isAncestor(refScope);
-    }
+    // private doesAssignmentCoverVarRef(
+    //     ref: VariableReferenceExpr,
+    //     refScope: Scope,
+    //     stmtScope: Scope,
+    //     stmt: VarAssignmentStmt
+    // ): boolean {
+    //     return stmt.lineNumber < ref.lineNumber && (stmtScope === refScope || stmtScope.isAncestor(refScope)); // Is this more accurate?
+    //     // return (stmt.lineNumber < ref.lineNumber && stmtScope === refScope) || stmtScope.isAncestor(refScope);
+    // }
 
     /**
      * Let the given variable reference point / refer to the given assignment statement.
@@ -204,10 +204,10 @@ export class VariableController {
      * @param varId - CURRENTLY UNUSED
      * @param stmt - The assignment statement to point to
      */
-    private pointVarRefToNewVar(ref: VariableReferenceExpr, varId: string, stmt: VarAssignmentStmt): void {
-        ref.uniqueId = stmt.buttonId;
-        this.updateReturnTypeOfRef(ref, stmt.dataType); // ONLY FOR TYPING
-    }
+    // private pointVarRefToNewVar(ref: VariableReferenceExpr, varId: string, stmt: VarAssignmentStmt): void {
+    //     ref.uniqueId = stmt.buttonId;
+    //     this.updateReturnTypeOfRef(ref, stmt.dataType); // ONLY FOR TYPING
+    // }
 
     /**
      * Add warnings to the variable reference without an assignment statement in scope, or update the reference if there
@@ -218,71 +218,72 @@ export class VariableController {
      * @param module - The current module
      * @param stmtToExclude - The statement to exclude from the search
      */
-    addWarningToVarRefs(varId: string, varIdentifier: string, module: Module, stmtToExclude: VarAssignmentStmt) {
-        // Get all variable reference expressions to the variable with the given varId
-        const varRefs = this.getVarRefsBFS(varId, module);
+    // addWarningToVarRefs(varId: string, varIdentifier: string, module: Module, stmtToExclude: VarAssignmentStmt) {
+    //     // Get all variable reference expressions to the variable with the given varId
+    //     const varRefs = this.getVarRefsBFS(varId, module);
 
-        // Put a warning on every var ref that is not covered by a top-level assignment
-        for (const ref of varRefs) {
-            // Get the scope of the variable reference
-            const refScope = this.getScopeOfVarRef(ref);
+    //     // Put a warning on every var ref that is not covered by a top-level assignment
+    //     for (const ref of varRefs) {
+    //         // Get the scope of the variable reference
+    //         const refScope = this.getScopeOfVarRef(ref);
 
-            // Get all assignments to this variable within the (ancestor's) scope
-            const assignmentsToVarWithinScope = refScope.getAllAssignmentsToVariableWithinScope(
-                varIdentifier,
-                stmtToExclude
-            );
+    //         // Get all assignments to this variable within the (ancestor's) scope
+    //         const assignmentsToVarWithinScope = refScope.getAllAssignmentsToVariableWithinScope(
+    //             varIdentifier,
+    //             stmtToExclude
+    //         );
 
-            // Find assignment with the smallest line number
-            let topLevelAssignmentWithinScope: Reference = null;
+    //         // Find assignment with the smallest line number
+    //         let topLevelAssignmentWithinScope: Reference = null;
 
-            // Check all assignment statements for the one with the smallest line number
-            if (assignmentsToVarWithinScope.length > 0) {
-                topLevelAssignmentWithinScope = assignmentsToVarWithinScope[0];
-                for (const reference of assignmentsToVarWithinScope) {
-                    if (reference.statement.lineNumber < topLevelAssignmentWithinScope.statement.lineNumber) {
-                        topLevelAssignmentWithinScope = reference;
-                    }
-                }
-            }
+    //         // Check all assignment statements for the one with the smallest line number
+    //         if (assignmentsToVarWithinScope.length > 0) {
+    //             topLevelAssignmentWithinScope = assignmentsToVarWithinScope[0];
+    //             for (const reference of assignmentsToVarWithinScope) {
+    //                 if (reference.statement.lineNumber < topLevelAssignmentWithinScope.statement.lineNumber) {
+    //                     topLevelAssignmentWithinScope = reference;
+    //                 }
+    //             }
+    //         }
 
-            // If no assignment covers this variable, then we need to put a warning on it
-            if (
-                !topLevelAssignmentWithinScope ||
-                (topLevelAssignmentWithinScope.statement.lineNumber > ref.lineNumber &&
-                    !topLevelAssignmentWithinScope.scope.isAncestor(refScope))
-            ) {
-                // Either no assignment exists OR the assignment is below the reference when the scope of the
-                // assignment is not an ancestor of the scope of the reference
-                module.openDraftMode(
-                    ref,
-                    "This variable has been removed and cannot be referenced anymore. Consider deleting this reference.",
-                    []
-                );
-            } else {
-                // This reference is actually covered by some assignment and just needs to have its id and type updated. NOTE: Type might not always be updated
-                this.pointVarRefToNewVar(ref, varId, topLevelAssignmentWithinScope.statement as VarAssignmentStmt);
+    //         // If no assignment covers this variable, then we need to put a warning on it
+    //         if (
+    //             !topLevelAssignmentWithinScope ||
+    //             (topLevelAssignmentWithinScope.statement.lineNumber > ref.lineNumber &&
+    //                 !topLevelAssignmentWithinScope.scope.isAncestor(refScope))
+    //         ) {
+    //             // Either no assignment exists OR the assignment is below the reference when the scope of the
+    //             // assignment is not an ancestor of the scope of the reference
+    //             module.openDraftMode(
+    //                 ref,
+    //                 "This variable has been removed and cannot be referenced anymore. Consider deleting this reference.",
+    //                 []
+    //             );
+    //         } else {
+    //             // This reference is actually covered by some assignment and just needs to have its id and type updated. NOTE: Type might not always be updated
+    //             this.pointVarRefToNewVar(ref, varId, topLevelAssignmentWithinScope.statement as VarAssignmentStmt);
 
-                // We actually need to make a button (if it does not yet exist) for the top level assignment and make all other
-                // assignments point to it as well
-                const button = document.getElementById(
-                    (topLevelAssignmentWithinScope.statement as VarAssignmentStmt).buttonId
-                );
-                if (!button) {
-                    // If button does not exist, create it
-                    this.addVariableRefButton(topLevelAssignmentWithinScope.statement as VarAssignmentStmt);
-                }
-                // Assign the button id of the top level assignment to all other varAssignmentStmts
-                for (const assignment of assignmentsToVarWithinScope) {
-                    if (assignment !== topLevelAssignmentWithinScope) {
-                        (assignment.statement as VarAssignmentStmt).buttonId = (
-                            topLevelAssignmentWithinScope.statement as VarAssignmentStmt
-                        ).buttonId;
-                    }
-                }
-            }
-        }
-    }
+    //             // We actually need to make a button (if it does not yet exist) for the top level assignment and make all other
+    //             // assignments point to it as well
+    //             const button = document.getElementById(
+    //                 (topLevelAssignmentWithinScope.statement as VarAssignmentStmt).buttonId
+    //             );
+    //             if (!button) {
+    //                 // If button does not exist, create it
+    //                 this.addVariableRefButton(topLevelAssignmentWithinScope.statement as VarAssignmentStmt);
+    //             }
+    //             // Assign the button id of the top level assignment to all other varAssignmentStmts
+    //             for (const assignment of assignmentsToVarWithinScope) {
+    //                 if (assignment !== topLevelAssignmentWithinScope) {
+    //                     (assignment.statement as VarAssignmentStmt).buttonId = (
+    //                         topLevelAssignmentWithinScope.statement as VarAssignmentStmt
+    //                     ).buttonId;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // SUPERSEDED BY NEW METHOD
 
     /**
      * Update the uniqueId and datatype of all variable reference expressions that reference the given VarAssignmentStmt
@@ -290,43 +291,44 @@ export class VariableController {
      *
      * @param varStmt - The VarAssignmentStmt to check the references against
      */
-    updateExistingRefsOnReinitialization(varStmt: VarAssignmentStmt): void {
-        // List of variable reference expressions to the given VarAssignmentStmt that are in draft mode
-        const varRefs = [];
-        // Go through all constructs and add the construct if it is a variable reference to the given VarAssignmentStmt
-        // and is in draft mode
-        this.module.performActionOnBFS((code) => {
-            if (
-                code instanceof VariableReferenceExpr &&
-                code.identifier === varStmt.getIdentifier() &&
-                code.draftModeEnabled
-            ) {
-                varRefs.push(code);
-            }
-        });
+    // updateExistingRefsOnReinitialization(varStmt: VarAssignmentStmt): void {
+    //     // List of variable reference expressions to the given VarAssignmentStmt that are in draft mode
+    //     const varRefs = [];
+    //     // Go through all constructs and add the construct if it is a variable reference to the given VarAssignmentStmt
+    //     // and is in draft mode
+    //     this.module.performActionOnBFS((code) => {
+    //         if (
+    //             code instanceof VariableReferenceExpr &&
+    //             code.identifier === varStmt.getIdentifier() &&
+    //             code.draftModeEnabled
+    //         ) {
+    //             varRefs.push(code);
+    //         }
+    //     });
 
-        // Go through all variable reference expressions in draft mode and update their uniqueId and dataType if they
-        // are covered by the given VarAssignmentStmt
-        for (const ref of varRefs) {
-            // Scope of the reference expression
-            const refScope = this.getScopeOfVarRef(ref);
+    //     // Go through all variable reference expressions in draft mode and update their uniqueId and dataType if they
+    //     // are covered by the given VarAssignmentStmt
+    //     for (const ref of varRefs) {
+    //         // Scope of the reference expression
+    //         const refScope = this.getScopeOfVarRef(ref);
 
-            // If the assignment statement covers the reference expression, then update the reference expression
-            if (
-                this.doesAssignmentCoverVarRef(
-                    ref,
-                    refScope,
-                    varStmt.scope /* var-assignment */ ?? varStmt.rootNode.scope /* for-loop */,
-                    varStmt
-                )
-            ) {
-                // A valid assignment found, thus remove the warning
-                this.module.closeConstructDraftRecord(ref);
-                // Update uniqueId and dataType of the reference expression
-                this.pointVarRefToNewVar(ref, varStmt.buttonId, varStmt);
-            }
-        }
-    }
+    //         // If the assignment statement covers the reference expression, then update the reference expression
+    //         if (
+    //             this.doesAssignmentCoverVarRef(
+    //                 ref,
+    //                 refScope,
+    //                 varStmt.scope /* var-assignment */ ?? varStmt.rootNode.scope /* for-loop */,
+    //                 varStmt
+    //             )
+    //         ) {
+    //             // A valid assignment found, thus remove the warning
+    //             this.module.closeConstructDraftRecord(ref);
+    //             // Update uniqueId and dataType of the reference expression
+    //             this.pointVarRefToNewVar(ref, varStmt.buttonId, varStmt);
+    //         }
+    //     }
+    // }
+    // LARGELY SUPERSEDED BY NEW METHOD (remaining parts are obsolete because we drop types)
 
     /**
      * The list of all reference expression buttons in the module
@@ -360,32 +362,33 @@ export class VariableController {
      * @param scope - The current scope of the editor
      * @param lineNumber - The current line number of the editor
      */
-    updateToolboxVarsCallback(scope: Scope, lineNumber: number) {
-        // Get all valid references accessible in the given scope and before the given line number
-        // and map them to their button id
-        const availableRefs = scope
-            ?.getValidReferences(lineNumber)
-            ?.map((ref) => (ref.statement as VarAssignmentStmt).buttonId);
+    // updateToolboxVarsCallback(scope: Scope, lineNumber: number) {
+    //     // Get all valid references accessible in the given scope and before the given line number
+    //     // and map them to their button id
+    //     const availableRefs = scope
+    //         ?.getValidReferences(lineNumber)
+    //         ?.map((ref) => (ref.statement as VarAssignmentStmt).buttonId);
 
-        // Hide all buttons that are not in the availableRefs list and make all others visible
-        if (availableRefs) {
-            for (const button of this.variableButtons) {
-                // Hide or show buttons based on availability in scope
-                if (availableRefs.indexOf(button.id) === -1) {
-                    // Reference not available in scope
-                    button.parentElement.parentElement.style.display = "none";
-                } else {
-                    // Reference available in scope
-                    button.parentElement.parentElement.style.display = "flex";
+    //     // Hide all buttons that are not in the availableRefs list and make all others visible
+    //     if (availableRefs) {
+    //         for (const button of this.variableButtons) {
+    //             // Hide or show buttons based on availability in scope
+    //             if (availableRefs.indexOf(button.id) === -1) {
+    //                 // Reference not available in scope
+    //                 button.parentElement.parentElement.style.display = "none";
+    //             } else {
+    //                 // Reference available in scope
+    //                 button.parentElement.parentElement.style.display = "flex";
 
-                    // Get each variable's return type
-                    const varType = this.getVariableTypeNearLine(scope, lineNumber, button.textContent);
-                    // Set each variable's return type
-                    this.setButtonTypeVisuals(button, varType);
-                }
-            }
-        }
-    }
+    //                 // Get each variable's return type
+    //                 const varType = this.getVariableTypeNearLine(scope, lineNumber, button.textContent);
+    //                 // Set each variable's return type
+    //                 this.setButtonTypeVisuals(button, varType);
+    //             }
+    //         }
+    //     }
+    // }
+    // WE DO NOT USE REFERENCE BUTTONS ANYMORE
 
     /**
      * Add/set the type of the given variable reference button.
@@ -450,7 +453,7 @@ export class VariableController {
     }
 
     /**
-     *
+     * Get the type of the assignment closest to the current position in the editor.
      *
      * @param scope -
      * @param lineNumber
@@ -464,115 +467,116 @@ export class VariableController {
         identifier: string,
         excludeCurrentLine: boolean = true
     ): DataType {
-        const focus = this.module.focus;
-        // Get all assignment statements to the given identifier
-        // const assignmentsToVar = scope.getAllAssignmentsToVarAboveLine(
-        //     identifier,
-        //     this.module,
-        //     lineNumber,
-        //     excludeCurrentLine
-        // );
-        // Correct?
-        const assignmentsToVar = scope.getAllAccessableAssignments(identifier, lineNumber);
+        return DataType.Any; // Replacement for all following lines because we do not use typing!
+        // const focus = this.module.focus;
+        // // Get all assignment statements to the given identifier
+        // // const assignmentsToVar = scope.getAllAssignmentsToVarAboveLine(
+        // //     identifier,
+        // //     this.module,
+        // //     lineNumber,
+        // //     excludeCurrentLine
+        // // );
+        // // Correct?
+        // const assignmentsToVar = scope.getAllAccessableAssignments(identifier, lineNumber);
 
-        // Possible fix for ERROR[1]
-        if (assignmentsToVar.length === 0) {
-            // No assignments to the variable, so we are unable to determine the type
-            return DataType.Any;
-        }
+        // // Possible fix for ERROR[1]
+        // if (assignmentsToVar.length === 0) {
+        //     // No assignments to the variable, so we are unable to determine the type
+        //     return DataType.Any;
+        // }
 
-        // Find the assignment statement closest to the given line number, indicated
-        // by the index 'i' in the assignmentsToVar list
-        let smallestDiffIndex = 0;
-        for (let i = 0; i < assignmentsToVar.length; i++) {
-            if (
-                lineNumber - assignmentsToVar[i].lineNumber <
-                lineNumber - assignmentsToVar[smallestDiffIndex].lineNumber
-            ) {
-                smallestDiffIndex = i;
-            }
-        }
+        // // Find the assignment statement closest to the given line number, indicated
+        // // by the index 'i' in the assignmentsToVar list
+        // let smallestDiffIndex = 0;
+        // for (let i = 0; i < assignmentsToVar.length; i++) {
+        //     if (
+        //         lineNumber - assignmentsToVar[i].lineNumber <
+        //         lineNumber - assignmentsToVar[smallestDiffIndex].lineNumber
+        //     ) {
+        //         smallestDiffIndex = i;
+        //     }
+        // }
 
-        // Get the closest assignment statement
-        const closestStatement = assignmentsToVar[smallestDiffIndex];
+        // // Get the closest assignment statement
+        // const closestStatement = assignmentsToVar[smallestDiffIndex];
 
-        /**
-         * WARNING[1]
-         * This is a newly added line making all following code obsolete (together with "scope.getAllAccessableAssignments" 
-         * method above). However, it seems that because of the way the references in a scope are added in the update cycle,
-         * it does not detect the newly added assignment right after insertion but only after the next update cycle. A possible
-         * reason is that the variables on the next line are defined before the references in the scope are updated. So currently
-         * the any type will show up right after insertion. 
-         * 
-         * The solution used by the original code is to search the entire program for all assignments and then filtering, requiring
-         * a lot of unnecessary work and being difficult to generalise. This solution should be more robust, but requires a deeper
-         * look at the update cycle.
-         */
-        return closestStatement.dataType;
+        // /**
+        //  * WARNING[1]
+        //  * This is a newly added line making all following code obsolete (together with "scope.getAllAccessableAssignments" 
+        //  * method above). However, it seems that because of the way the references in a scope are added in the update cycle,
+        //  * it does not detect the newly added assignment right after insertion but only after the next update cycle. A possible
+        //  * reason is that the variables on the next line are defined before the references in the scope are updated. So currently
+        //  * the any type will show up right after insertion. 
+        //  * 
+        //  * The solution used by the original code is to search the entire program for all assignments and then filtering, requiring
+        //  * a lot of unnecessary work and being difficult to generalise. This solution should be more robust, but requires a deeper
+        //  * look at the update cycle.
+        //  */
+        // return closestStatement.dataType;
 
 
-        // Get the statement at the currently focused line
-        // Types will be determined based on the statement at the currently focused line
-        const statementAtLine = focus.getStatementAtLineNumber(lineNumber);
+        // // Get the statement at the currently focused line
+        // // Types will be determined based on the statement at the currently focused line
+        // const statementAtLine = focus.getStatementAtLineNumber(lineNumber);
 
-        // ERROR[1]: "closestStatement" is sometimes undefined (possibly fixed)
-        if (closestStatement.rootNode === statementAtLine.rootNode) {
-            // They have the same parent, meaning they are in the same scope: we can
-            // simply use the type of the closest statement
-            return closestStatement.dataType;
-        } else {
-            // The closest statement is not in the same scope as the currently focused statement
-            // Get a list of all types of the variable assignments up to the currently focused line
-            const types = assignmentsToVar
-                .filter((assignment) => assignment.lineNumber <= lineNumber)
-                .map((filteredRecord) => filteredRecord.dataType);
-            // Get the first type in the list
-            const firstType = types[0];
-            // Scope of the focused statement if it has a scope, otherwise the scope of the parent node
-            const statementAtLineScope = statementAtLine.hasScope()
-                ? statementAtLine.scope
-                : (statementAtLine.rootNode as Module | Statement).scope;
-            // Scope of the closest statement if it has a scope, otherwise the scope of the parent node
-            const closestStatementScope = closestStatement.hasScope()
-                ? closestStatement.scope
-                : (closestStatement.rootNode as Module | Statement).scope;
+        // // ERROR[1]: "closestStatement" is sometimes undefined (possibly fixed)
+        // if (closestStatement.rootNode === statementAtLine.rootNode) {
+        //     // They have the same parent, meaning they are in the same scope: we can
+        //     // simply use the type of the closest statement
+        //     return closestStatement.dataType;
+        // } else {
+        //     // The closest statement is not in the same scope as the currently focused statement
+        //     // Get a list of all types of the variable assignments up to the currently focused line
+        //     const types = assignmentsToVar
+        //         .filter((assignment) => assignment.lineNumber <= lineNumber)
+        //         .map((filteredRecord) => filteredRecord.dataType);
+        //     // Get the first type in the list
+        //     const firstType = types[0];
+        //     // Scope of the focused statement if it has a scope, otherwise the scope of the parent node
+        //     const statementAtLineScope = statementAtLine.hasScope()
+        //         ? statementAtLine.scope
+        //         : (statementAtLine.rootNode as Module | Statement).scope;
+        //     // Scope of the closest statement if it has a scope, otherwise the scope of the parent node
+        //     const closestStatementScope = closestStatement.hasScope()
+        //         ? closestStatement.scope
+        //         : (closestStatement.rootNode as Module | Statement).scope;
 
-            // Check if the closest statement's scope is an ancestor scope of the statement at the currently focused line
-            const closestStatementScopeIsParentScope = closestStatementScope.isAncestor(statementAtLineScope);
-            // Check if the closest statement has as parent an if or an elif statement
-            const closestStmtIsIfElseParent =
-                closestStatement.rootNode instanceof IfStatement ||
-                (closestStatement.rootNode instanceof ElseStatement &&
-                    (closestStatement.rootNode as ElseStatement).hasCondition);
+        //     // Check if the closest statement's scope is an ancestor scope of the statement at the currently focused line
+        //     const closestStatementScopeIsParentScope = closestStatementScope.isAncestor(statementAtLineScope);
+        //     // Check if the closest statement has as parent an if or an elif statement
+        //     const closestStmtIsIfElseParent =
+        //         closestStatement.rootNode instanceof IfStatement ||
+        //         (closestStatement.rootNode instanceof ElseStatement &&
+        //             (closestStatement.rootNode as ElseStatement).hasCondition);
 
-            // If all types are equal, then it is safe to return that type
-            if (types.every((type) => type === firstType)) {
-                return firstType;
-            } else if (
-                // statementAtLineScope.parentScope === closestStatementScope || // Is it correct to remove this? Should be equivalent without it?
-                closestStatementScopeIsParentScope
-            ) {
-                /**
-                 * abc = 123
-                 * abc = ""
-                 *
-                 * if ---:
-                 *    ref abc here should be string, not Any
-                 */
-                return types[types.length - 1];
-            // The following "else if" makes sure that the type of the variable is not Any if it is in an if or an elif statement
-            } else if (closestStmtIsIfElseParent) {
-                // Get the parent scope of the if statement
-                const parentAssignments =
-                    closestStatementScope.parentScope.getAllAssignmentsToVariableWithinScope(identifier);
-                // Get the type of the variable in the parent scope
-                return parentAssignments.length > 0
-                    ? (parentAssignments[parentAssignments.length - 1].statement as VarAssignmentStmt).dataType
-                    : DataType.Any;
-            } else {
-                return DataType.Any;
-            }
-        }
+        //     // If all types are equal, then it is safe to return that type
+        //     if (types.every((type) => type === firstType)) {
+        //         return firstType;
+        //     } else if (
+        //         // statementAtLineScope.parentScope === closestStatementScope || // Is it correct to remove this? Should be equivalent without it?
+        //         closestStatementScopeIsParentScope
+        //     ) {
+        //         /**
+        //          * abc = 123
+        //          * abc = ""
+        //          *
+        //          * if ---:
+        //          *    ref abc here should be string, not Any
+        //          */
+        //         return types[types.length - 1];
+        //     // The following "else if" makes sure that the type of the variable is not Any if it is in an if or an elif statement
+        //     } else if (closestStmtIsIfElseParent) {
+        //         // Get the parent scope of the if statement
+        //         const parentAssignments =
+        //             closestStatementScope.parentScope.getAllAssignmentsToVariableWithinScope(identifier);
+        //         // Get the type of the variable in the parent scope
+        //         return parentAssignments.length > 0
+        //             ? (parentAssignments[parentAssignments.length - 1].statement as VarAssignmentStmt).dataType
+        //             : DataType.Any;
+        //     } else {
+        //         return DataType.Any;
+        //     }
+        // }
     }
 
     /**
@@ -583,33 +587,33 @@ export class VariableController {
      * @returns - true if the given variable assignment statement is a reassignment of a variable that appears before, 
      * false otherwise
      */
-    isVarStmtReassignment(varStmt: VarAssignmentStmt, module: Module): boolean {
-        // List of alle constructs
-        const Q: CodeConstruct[] = [];
-        // Insert all top-level constructs before the given varStmt into the queue
-        Q.unshift(...module.body.filter((stmt) => stmt.lineNumber < varStmt.lineNumber));
+    // isVarStmtReassignment(varStmt: VarAssignmentStmt, module: Module): boolean {
+    //     // List of alle constructs
+    //     const Q: CodeConstruct[] = [];
+    //     // Insert all top-level constructs before the given varStmt into the queue
+    //     Q.unshift(...module.body.filter((stmt) => stmt.lineNumber < varStmt.lineNumber));
 
-        while (Q.length > 0) {
-            const currCodeConstruct = Q.pop();
+    //     while (Q.length > 0) {
+    //         const currCodeConstruct = Q.pop();
 
-            if (currCodeConstruct instanceof Statement) {
-                // Add body of statement to the queue
-                Q.unshift(...currCodeConstruct.body);
+    //         if (currCodeConstruct instanceof Statement) {
+    //             // Add body of statement to the queue
+    //             Q.unshift(...currCodeConstruct.body);
 
-                // If there is a variable assignment statement with the same identifier as varStmt that
-                // appears before varStmt, then varStmt is a reassignment
-                if (
-                    currCodeConstruct instanceof VarAssignmentStmt &&
-                    currCodeConstruct.getIdentifier() === varStmt.getIdentifier() &&
-                    currCodeConstruct.lineNumber < varStmt.lineNumber
-                ) {
-                    return true;
-                }
-            }
-        }
+    //             // If there is a variable assignment statement with the same identifier as varStmt that
+    //             // appears before varStmt, then varStmt is a reassignment
+    //             if (
+    //                 currCodeConstruct instanceof VarAssignmentStmt &&
+    //                 currCodeConstruct.getIdentifier() === varStmt.getIdentifier() &&
+    //                 currCodeConstruct.lineNumber < varStmt.lineNumber
+    //             ) {
+    //                 return true;
+    //             }
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     /**
      * Get all assigments with the given varId in the entire module
@@ -618,36 +622,36 @@ export class VariableController {
      * @param module - The current module
      * @returns - A list of all variable assignment statements with the given varId
      */
-    getAllAssignmentsToVar(varId: string, module: Module): VarAssignmentStmt[] {
-        // List of all constructs
-        const Q: CodeConstruct[] = [];
-        // Result list of all variable assignment statements with the given varId
-        const result: VarAssignmentStmt[] = [];
-        // Add all top-level constructs to the queue
-        Q.push(...module.body);
+    // getAllAssignmentsToVar(varId: string, module: Module): VarAssignmentStmt[] {
+    //     // List of all constructs
+    //     const Q: CodeConstruct[] = [];
+    //     // Result list of all variable assignment statements with the given varId
+    //     const result: VarAssignmentStmt[] = [];
+    //     // Add all top-level constructs to the queue
+    //     Q.push(...module.body);
 
-        while (Q.length > 0) {
-            // Take first element
-            const currCodeConstruct = Q.splice(0, 1)[0];
-            if (currCodeConstruct instanceof Expression) {
-                // Add tokens of expression to the queue
-                Q.push(...currCodeConstruct.tokens);
-            } else if (currCodeConstruct instanceof Statement) {
-                // Add body and tokens of statement to the queue
-                Q.push(...currCodeConstruct.body);
-                Q.push(...currCodeConstruct.tokens);
+    //     while (Q.length > 0) {
+    //         // Take first element
+    //         const currCodeConstruct = Q.splice(0, 1)[0];
+    //         if (currCodeConstruct instanceof Expression) {
+    //             // Add tokens of expression to the queue
+    //             Q.push(...currCodeConstruct.tokens);
+    //         } else if (currCodeConstruct instanceof Statement) {
+    //             // Add body and tokens of statement to the queue
+    //             Q.push(...currCodeConstruct.body);
+    //             Q.push(...currCodeConstruct.tokens);
 
-                // If the current statement is a variable assignment statement with the given varId, add it to the result list
-                if (currCodeConstruct instanceof VarAssignmentStmt && currCodeConstruct.buttonId === varId) {
-                    result.push(currCodeConstruct);
-                } else if (currCodeConstruct instanceof ForStatement && currCodeConstruct.loopVar.buttonId === varId) {
-                    result.push(currCodeConstruct.loopVar);
-                }
-            }
-        }
+    //             // If the current statement is a variable assignment statement with the given varId, add it to the result list
+    //             if (currCodeConstruct instanceof VarAssignmentStmt && currCodeConstruct.buttonId === varId) {
+    //                 result.push(currCodeConstruct);
+    //             } else if (currCodeConstruct instanceof ForStatement && currCodeConstruct.loopVar.buttonId === varId) {
+    //                 result.push(currCodeConstruct.loopVar);
+    //             }
+    //         }
+    //     }
 
-        return result;
-    }
+    //     return result;
+    // }
 
     /**
      * Get all variable reference expressions with the given varId (refering to the same variable)

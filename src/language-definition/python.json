@@ -546,8 +546,8 @@
         }
     },
     {
-        "keyword": "variable assignment",
-        "editorName": "var = ---",
+        "keyword": "var=",
+        "editorName": "-- = ---",
         "format": [
             {
                 "type": "identifier",

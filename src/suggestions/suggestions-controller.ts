@@ -4,7 +4,12 @@ import { Actions, InsertActionType } from "../editor/consts";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
-import { CodeConstruct, ListElementAssignment, TypedEmptyExpr, VarAssignmentStmt } from "../syntax-tree/ast";
+import {
+    CodeConstruct,
+    GeneralStatement,
+    ListElementAssignment,
+    TypedEmptyExpr /*VarAssignmentStmt*/,
+} from "../syntax-tree/ast";
 import { BuiltInFunctions, InsertionType, PythonKeywords } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { TextEnhance } from "../utilities/text-enhance";
@@ -485,8 +490,8 @@ export class MenuController {
     }
 
     /**
-     * Calculate how good the current input text matches the given matchString. 
-     * 
+     * Calculate how good the current input text matches the given matchString.
+     *
      * @param text - The current input text.
      * @param matchString - The string to match against, inherent to a given CodeConstruct.
      * @returns - A string representing the precision of the match. 1 is a perfect match, 0 is no match.
@@ -771,182 +776,245 @@ export class MenuController {
         }
     }
 
+    /**
+     * Update the options of the currently focused menu based on the user's input.
+     *
+     * @param optionText - The user's input.
+     */
     updateMenuOptions(optionText: string) {
-        if (this.isMenuOpen()) {
-            const textEnhance = new TextEnhance();
-            const menu = this.menus[this.focusedMenuIndex];
+        // If menu is not open, return
+        if (!this.isMenuOpen()) return;
 
-            //------UPDATE MATCH STRING FOR ACTIONS THAT DEPEND ON USER INPUT------------
+        // Object for styling each of the options
+        const textEnhance = new TextEnhance();
+        // Select the current menu (focusedMenuIndex should always be zero)
+        const menu = this.menus[this.focusedMenuIndex];
 
-            /*The default text for var assignment is 'var = ---'
+        //------UPDATE MATCH STRING FOR ACTIONS THAT DEPEND ON USER INPUT------------
+
+        /*The default text for var assignment is 'var = ---'
               Change it here so that fuse matches on 'user_input = ---'
               Same goes for ---[---] = --- ==> user_input[---] = ---
             */
-            const assignNewVarAction = menu.editCodeActionsOptions.filter(
-                (action) => action.insertActionType === InsertActionType.InsertNewVariableStmt
-            )[0];
-            if (assignNewVarAction) {
-                assignNewVarAction.optionName = optionText + " = ---";
+        // const assignNewVarAction = menu.editCodeActionsOptions.filter(
+        //     (action) => action.insertActionType === InsertActionType.InsertNewVariableStmt
+        // )[0];
+        // if (assignNewVarAction) {
+        //     assignNewVarAction.optionName = optionText + " = ---";
+        // }
+        menu.editCodeActionsOptions.forEach(
+            (action) => {
+                if (action.optionName.substring(0, 3) === "-- ") {
+                    action.optionName = optionText + action.optionName.substring(2);
+                    action.varChanged = true;
+                
+                }
             }
+        );
 
-            const assignListElementAction = menu.editCodeActionsOptions.filter(
-                (action) => action.insertActionType === InsertActionType.InsertListIndexAssignment
-            )[0];
-            if (assignListElementAction) {
-                assignListElementAction.optionName = optionText + "[---] = ---";
-            }
+        // const assignListElementAction = menu.editCodeActionsOptions.filter(
+        //     (action) => action.insertActionType === InsertActionType.InsertListIndexAssignment
+        // )[0];
+        // if (assignListElementAction) {
+        //     assignListElementAction.optionName = optionText + "[---] = ---";
+        // }
 
-            //------FILTER------
-            //get matching options from fuse
-            let actionsToKeep = Validator.matchEditCodeAction(optionText, menu.editCodeActionsOptions, ["optionName"]);
+        // Two blocks above need to be changed to a general check over all constructs starting with an identifier
+        // and checking if the user input matches the regex of the construct
 
-            /*Second round of filtering for regex-based items
+        //------FILTER------
+        //get matching options from fuse
+        let actionsToKeep = Validator.matchEditCodeAction(optionText, menu.editCodeActionsOptions, ["optionName"]);
+
+        /*Second round of filtering for regex-based items
               Currently only used by variable assignment
             */
-            actionsToKeep = actionsToKeep.filter((editCodeAction) =>
-                editCodeAction.item.matchRegex ? editCodeAction.item.matchRegex.test(optionText) : true
+        actionsToKeep = actionsToKeep.filter((editCodeAction) =>
+            editCodeAction.item.matchRegex ? editCodeAction.item.matchRegex.test(optionText) : true
+        );
+
+        // We move the var assignment to the end of the list so that it is always the last option
+        const indexOfVarAssignment = actionsToKeep
+            .map((result) => result.item.insertActionType)
+            .indexOf(InsertActionType.InsertNewVariableStmt);
+        if (indexOfVarAssignment > -1) {
+            const varAssignmentRes = actionsToKeep.splice(indexOfVarAssignment, 1)[0];
+            actionsToKeep.push(varAssignmentRes);
+        }
+
+        //------RECREATE OPTIONS------
+        let focusedOptionText = "";
+        if (this.focusedOptionIndex > -1) {
+            focusedOptionText = menu.options[this.focusedOptionIndex].text;
+        }
+
+        //clear old options since some of them might not be valid anymore
+        menu.options.forEach((option) => {
+            option.removeFromDOM();
+        });
+        menu.options = [];
+
+        for (const fuseResult of actionsToKeep) {
+            let substringMatchRanges = [];
+            const editAction = fuseResult.item;
+
+            //TODO: If there are more constructs that need to have a custom performAction based on user input then consider changing this to be more general
+            const currentStmt = this.module.focus.getFocusedStatement();
+            const currentScope = currentStmt.hasScope() ? currentStmt.scope : currentStmt.rootNode.scope;
+
+            /**
+             * Strategy:
+             *  Option1:
+             *   String match with the user input and the optionName:
+             *    - If the optionName starts with "--" and the third character is not a
+             *      "-" then we now that the user input starts with an identifier
+             *       -> If the current user input matches an existing variable (partially), then
+             *          we can offer all options that work on the reference AND offer the options
+             *          with the identifier in front that match exactly for assignment. In this case:
+             *          * If the third optionName character is not a space, then we need to
+             *            take all user input up to the character and on typing the character,
+             *            the option will be inserted
+             *          * If the third optionName character is a space, then we can insert the
+             *            reference on pressing space; the parent construct will be determined
+             *            based on the next character(s) in the user input
+             *       -> Else only show assignment options starting with an identifier for the current
+             *          exact user input
+             *    - If the optionName starts with "---" then we know that the user input starts with
+             *      a reference and we can simply insert the reference and allow for the next construct
+             *      only constructs that start with the reference
+             *    - If the optionName starts with something else, then we can simply insert the option
+             *  Option2:
+             *   - Something something with tokens
+             */
+            // SHOULD LATER BE GENERALISED
+            //This case is for displaying [userInput] = --- as a suggestion on empty lines when there are no previous assignments to
+            //a variable with the user input being the identifier
+            // if (
+            //     editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
+            //     currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
+            //         0
+            // ) {
+            console.log(fuseResult)
+            if (
+                editAction.varChanged &&
+                // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
+                //     0
+                currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length ===
+                    0
+            ) {
+                substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
+                // editAction.getCode = () => new VarAssignmentStmt("", optionText);
+                editAction.getCode = () => {
+                    const varStmt = structuredClone(GeneralStatement.constructs.get("var="));
+                    console.log("Original", GeneralStatement.constructs.get("var="))
+                    console.log("Cloned", varStmt)
+                    varStmt.setAssignmentIdentifier(optionText, 0);
+                    return varStmt;
+                };
+                editAction.trimSpacesBeforeTermChar = true;
+            }
+            // CURRENTLY NOT HANDLED
+            // for displaying the correct identifier for the ---[---] = --- option
+            // else if (editAction.insertActionType === InsertActionType.InsertListIndexAssignment) {
+            //     substringMatchRanges = [[[0, optionText.length - 1]]];
+            //     editAction.getCode = () => {
+            //         const code = new ListElementAssignment();
+            //         (code.tokens[0] as TypedEmptyExpr).text = optionText;
+
+            //         return code;
+            //     };
+            // }
+            // Excludes var assignment because it would have been caught by the first case.
+            // If it wasn't then that means that this variable exists and we should offer
+            // only one option for its reassignment which will use a Modifier and turn into
+            // a VarAssignmentStmt in the end anyway.
+
+            // So this is simply for avoiding duplicate options between abc = --- (VarAssignmentStmt)
+            // and abc = --- (VarOperationStmt)
+
+            //The var assignment option cannot be removed any earlier than here because of case 1 of this if block
+            // else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
+            else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
+                // Jump to the next fuseResult as this is not a var assignment but a reassignment, which
+                // falls under the VarOperationStmt case
+                continue;
+            } else {
+                for (const match of fuseResult.matches) {
+                    substringMatchRanges.push(match.indices);
+                }
+            }
+
+            const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
+                editAction.optionName,
+                "matchingText",
+                substringMatchRanges
             );
 
-            //var assignment option has to be moved to the end manually
-            const indexOfVarAssignment = actionsToKeep
-                .map((result) => result.item.insertActionType)
-                .indexOf(InsertActionType.InsertNewVariableStmt);
-            if (indexOfVarAssignment > -1) {
-                const varAssignmentRes = actionsToKeep.splice(indexOfVarAssignment, 1)[0];
-                actionsToKeep.push(varAssignmentRes);
-            }
+            // Create new option from above info
+            let option: MenuOption;
+            // Don't create variables with keywords as identifiers
+            // Either the editaction is an new variable assignment AND not a keyword OR
+            // it is not a new variable assignment
+            if (
+                (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
+                    Object.keys(PythonKeywords).indexOf(optionText) == -1 &&
+                    Object.keys(BuiltInFunctions).indexOf(optionText) == -1) ||
+                editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
+            ) {
+                let extraInfo = null;
 
-            //------RECREATE OPTIONS------
-            let focusedOptionText = "";
-            if (this.focusedOptionIndex > -1) {
-                focusedOptionText = menu.options[this.focusedOptionIndex].text;
-            }
-
-            //clear old options since some of them might not be valid anymore
-            menu.options.forEach((option) => {
-                option.removeFromDOM();
-            });
-            menu.options = [];
-
-            for (const fuseResult of actionsToKeep) {
-                let substringMatchRanges = [];
-                const editAction = fuseResult.item;
-
-                //TODO: If there are more constructs that need to have a custom performAction based on user input then consider changing this to be more general
-                const currentStmt = this.module.focus.getFocusedStatement();
-                const currentScope = currentStmt.hasScope() ? currentStmt.scope : currentStmt.rootNode.scope;
-
-                //This case is for displaying [userInput] = --- as a suggestion on empty lines when there are no previous assignments to
-                //a variable with the user input being the identifier
-                if (
-                    editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
-                    currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber)
-                        .length === 0
-                ) {
-                    substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
-                    editAction.getCode = () => new VarAssignmentStmt("", optionText);
-                    editAction.trimSpacesBeforeTermChar = true;
-                }
-                // for displaying the correct identifier for the ---[---] = --- option
-                else if (editAction.insertActionType === InsertActionType.InsertListIndexAssignment) {
-                    substringMatchRanges = [[[0, optionText.length - 1]]];
-                    editAction.getCode = () => {
-                        const code = new ListElementAssignment();
-                        (code.tokens[0] as TypedEmptyExpr).text = optionText;
-
-                        return code;
-                    };
-                }
-                // Excludes var assignment because it would have been caught by the first case.
-                // If it wasn't then that means that this variable exists and we should offer
-                // only one option for its reassignment which will use a Modifier and turn into
-                // a VarAssignmentStmt in the end anyway.
-
-                // So this is simply for avoiding duplicate options between abc = --- (VarAssignmentStmt)
-                // and abc = --- (VarOperationStmt)
-
-                //The var assignment option cannot be removed any earlier than here because of case 1 of this if block
-                else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
-                    continue;
+                if (editAction.matchRegex?.test(optionText) || editAction.matchString == optionText) {
+                    extraInfo = `press <span class="highlighted-text">${this.convertTerminatingChar(
+                        editAction.terminatingChars[0]
+                    )}</span> to insert`;
                 } else {
-                    for (const match of fuseResult.matches) {
-                        substringMatchRanges.push(match.indices);
-                    }
+                    extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
                 }
 
-                const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
-                    editAction.optionName,
-                    "matchingText",
-                    substringMatchRanges
+                option = new MenuOption(
+                    optionDisplayText,
+                    true,
+                    null,
+                    menu,
+                    null,
+                    () => {
+                        editAction.performAction(
+                            this.module.executer,
+                            this.module.eventRouter,
+                            this.module.focus.getContext(),
+                            {
+                                type: "autocomplete-menu",
+                                precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
+                                length:
+                                    editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
+                                        ? optionText.length + 1
+                                        : editAction.matchString.length + 1,
+                            },
+                            {}
+                        );
+                    },
+                    extraInfo,
+                    editAction.insertionResult.insertionType == InsertionType.DraftMode
                 );
 
-                //Create new option from above info
-                let option: MenuOption;
-                //necessary so that we don't create variables with keywords as identifiers
-                if (
-                    (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
-                        Object.keys(PythonKeywords).indexOf(optionText) == -1 &&
-                        Object.keys(BuiltInFunctions).indexOf(optionText) == -1) ||
-                    editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
-                ) {
-                    let extraInfo = null;
-
-                    if (editAction.matchRegex?.test(optionText) || editAction.matchString == optionText) {
-                        extraInfo = `press <span class="highlighted-text">${this.convertTerminatingChar(
-                            editAction.terminatingChars[0]
-                        )}</span> to insert`;
-                    } else {
-                        extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
-                    }
-
-                    option = new MenuOption(
-                        optionDisplayText,
-                        true,
-                        null,
-                        menu,
-                        null,
-                        () => {
-                            editAction.performAction(
-                                this.module.executer,
-                                this.module.eventRouter,
-                                this.module.focus.getContext(),
-                                {
-                                    type: "autocomplete-menu",
-                                    precision: this.calculateAutocompleteMatchPrecision(
-                                        optionText,
-                                        editAction.matchString
-                                    ),
-                                    length:
-                                        editAction.insertActionType === InsertActionType.InsertNewVariableStmt
-                                            ? optionText.length + 1
-                                            : editAction.matchString.length + 1,
-                                },
-                                {}
-                            );
-                        },
-                        extraInfo,
-                        editAction.insertionResult.insertionType == InsertionType.DraftMode
-                    );
-
-                    this.insertOptionIntoMenu(option, menu);
-                }
-            }
-
-            //focus top option if one exists
-            this.focusedOptionIndex = 0;
-            this.topOptionIndex = 0;
-            this.bottomOptionIndex = menu.getOptionsInViewport() > 0 ? menu.getOptionsInViewport() - 1 : 0;
-
-            //------UPDATE FOCUSED OPTION------
-            if (menu.options.length == 0) {
-                const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
                 this.insertOptionIntoMenu(option, menu);
-                this.focusedOptionIndex = 0;
-            } else if (this.focusedOptionIndex < menu.options.length) {
-                this.focusOption(menu.options[this.focusedOptionIndex]);
-            } else {
-                console.error("suggestion-controller: this.focusedOptionIndex >= menu.options.length");
             }
+        }
+
+        //focus top option if one exists
+        this.focusedOptionIndex = 0;
+        this.topOptionIndex = 0;
+        this.bottomOptionIndex = menu.getOptionsInViewport() > 0 ? menu.getOptionsInViewport() - 1 : 0;
+
+        //------UPDATE FOCUSED OPTION------
+        if (menu.options.length == 0) {
+            const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
+            this.insertOptionIntoMenu(option, menu);
+            this.focusedOptionIndex = 0;
+        } else if (this.focusedOptionIndex < menu.options.length) {
+            this.focusOption(menu.options[this.focusedOptionIndex]);
+        } else {
+            console.error("suggestion-controller: this.focusedOptionIndex >= menu.options.length");
         }
     }
 

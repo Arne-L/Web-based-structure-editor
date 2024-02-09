@@ -13,6 +13,7 @@ import {
     Expression,
     FormattedStringCurlyBracketsExpr,
     FormattedStringExpr,
+    GeneralStatement,
     IdentifierTkn,
     IfStatement,
     Importable,
@@ -30,7 +31,7 @@ import {
     TypedEmptyExpr,
     UnaryOperatorExpr,
     ValueOperationExpr,
-    VarAssignmentStmt,
+    // VarAssignmentStmt,
     VariableReferenceExpr,
     VarOperationStmt,
 } from "../syntax-tree/ast";
@@ -82,13 +83,13 @@ export class ActionExecutor {
         switch (action.type) {
             case EditActionType.InsertGeneralStmt:
                 /**
-                 * Purpose is to try to 
-                 * 1) Include all statements under this type 
-                 * 2) Try to include also all expressions under this type (though this might be 
+                 * Purpose is to try to
+                 * 1) Include all statements under this type
+                 * 2) Try to include also all expressions under this type (though this might be
                  * under a different case initially)
-                 * 3) If all constructs are contained under this case, try to remove it as there is no longer a 
+                 * 3) If all constructs are contained under this case, try to remove it as there is no longer a
                  * necessity for different cases
-                 * 
+                 *
                  * It can be created in multiple ways, but it is only used he in this switch statement
                  */
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
@@ -223,7 +224,8 @@ export class ActionExecutor {
                     // the indexInRoot of the if statement (the parent of the context) and thus need to add one to it
 
                     // indent back and place all of the code below it as its child
-                    const toMoveStatements = curStmtRoot.body.splice( // curStmtRoot is the if statement
+                    const toMoveStatements = curStmtRoot.body.splice(
+                        // curStmtRoot is the if statement
                         context.lineStatement.indexInRoot,
                         curStmtRoot.body.length - context.lineStatement.indexInRoot
                     ); // Place all items from the current (else) line to the end in the body of the else statement
@@ -250,7 +252,7 @@ export class ActionExecutor {
                     const bottomReferences = new Array<Reference>();
 
                     for (const ref of curStmtRoot.scope.references) {
-                        if (ref.statement.indexInRoot > context.lineStatement.indexInRoot) {
+                        if (ref.getAssignment().getParentStatement().indexInRoot > context.lineStatement.indexInRoot) {
                             bottomReferences.push(ref);
                         } else topReferences.push(ref);
                     }
@@ -315,11 +317,11 @@ export class ActionExecutor {
 
             case EditActionType.InsertVarAssignStatement: {
                 //TODO: Might want to change back to use the case above if no new logic is added
-                const statement = action.data?.statement;
+                const stmt = action.data?.statement;
 
                 const id = action.data?.autocompleteData?.identifier?.trim();
 
-                if (statement instanceof VarAssignmentStmt && id) statement.setIdentifier(id);
+                if (stmt instanceof GeneralStatement && stmt.containsAssignments() && id) stmt.setAssignmentIdentifier(id, 0);
 
                 this.replaceEmptyStatement(context.lineStatement, action.data?.statement as Statement);
 
@@ -921,12 +923,16 @@ export class ActionExecutor {
                         }
                         const initialBoundary = this.getBoundaries(context.expressionToLeft);
 
-                        const varAssignStmt = new VarAssignmentStmt(
-                            "",
-                            context.expressionToLeft.identifier,
-                            varOpStmt.rootNode,
-                            varOpStmt.indexInRoot
-                        );
+                        // const varAssignStmt = new VarAssignmentStmt(
+                        //     "",
+                        //     context.expressionToLeft.identifier,
+                        //     varOpStmt.rootNode,
+                        //     varOpStmt.indexInRoot
+                        // );
+                        const varAssignStmt = structuredClone(GeneralStatement.constructs.get("var="));
+                        varAssignStmt.setAssignmentIdentifier(context.expressionToLeft.identifier, 0);
+                        varAssignStmt.rootNode = varOpStmt.rootNode;
+                        varAssignStmt.indexInRoot = varOpStmt.indexInRoot;
 
                         replaceInBody(varOpStmt.rootNode, varOpStmt.indexInRoot, varAssignStmt);
 
@@ -1510,28 +1516,35 @@ export class ActionExecutor {
         return preventDefaultEvent;
     }
 
-    createVarReference(buttonId: string): VariableReferenceExpr {
-        const identifier = document.getElementById(buttonId).innerText;
-        const dataType = this.module.variableController.getVariableTypeNearLine(
-            this.module.focus.getFocusedStatement().scope ??
-                (
-                    this.module.focus.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
-                        .rootNode as Statement | Module
-                ).scope,
-            this.module.editor.monaco.getPosition().lineNumber,
-            identifier
-        );
+    /**
+     * Create a new VariabeReferenceExpr to the given identifier
+     *
+     * @param identifier - The identifier of the variable reference
+     * @returns A new VariableReferenceExpr with the given identifier
+     */
+    createVarReference(identifier: string): VariableReferenceExpr {
+        // const identifier = document.getElementById(buttonId).innerText;
+        // No typing support
+        // const dataType = this.module.variableController.getVariableTypeNearLine(
+        //     this.module.focus.getFocusedStatement().scope ??
+        //         (
+        //             this.module.focus.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
+        //                 .rootNode as Statement | Module
+        //         ).scope,
+        //     this.module.editor.monaco.getPosition().lineNumber,
+        //     identifier
+        // );
 
-        return new VariableReferenceExpr(identifier, dataType, buttonId);
+        return new VariableReferenceExpr(identifier, DataType.Any, "RANDOM_CSS_ID");
     }
 
-    insertVariableReference(buttonId: string, source: {}, providedContext?: Context, autocompleteData?: {}) {
+    insertVariableReference(identifier: string, source: {}, providedContext?: Context, autocompleteData?: {}) {
         let context = providedContext ? providedContext : this.module.focus.getContext();
 
         let { eventType, eventData } = this.getLogEventSource(source);
 
         if (this.module.validator.onBeginningOfLine(context)) {
-            const varRef = this.createVarReference(buttonId);
+            const varRef = this.createVarReference(identifier);
             const stmt = new VarOperationStmt(varRef);
             this.replaceEmptyStatement(context.lineStatement, stmt);
 
@@ -1585,7 +1598,7 @@ export class ActionExecutor {
 
             eventData.code = varRef.getRenderText();
         } else if (this.module.validator.atEmptyExpressionHole(context)) {
-            const expr = this.createVarReference(buttonId);
+            const expr = this.createVarReference(identifier);
             this.insertExpression(context, expr);
 
             if (autocompleteData) {

@@ -736,10 +736,16 @@ export class GeneralStatement extends Statement implements Importable {
      */
     private requiredConstructs: string[] = [];
     private requiredAncestorConstructs: AncestorConstruct[] = [];
+
+    /**
+     * List of all assignments within the statement.
+     */
+    private assignmentIndices: number[] = [];
+
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
-    private static constructs: Map<string, CodeConstruct>;
+    static constructs: Map<string, GeneralStatement>;
 
     constructor(construct: any, root?: Statement | Module, indexInRoot?: number) {
         super();
@@ -842,7 +848,8 @@ export class GeneralStatement extends Statement implements Importable {
                     break;
                 case "identifier":
                     // this.tokens.push(new EditableTextTkn("", RegExp(token.regex), this, this.tokens.length))
-                    this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length, RegExp(token.regex)));
+                    this.tokens.push(new AssignmentToken(undefined, this, this.tokens.length, RegExp(token.regex)));
+                    this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
                 default:
                     // Invalid type => What to do about it?
@@ -891,6 +898,40 @@ export class GeneralStatement extends Statement implements Importable {
             map.set(construct.keyword, construct);
             return map;
         }, new Map());
+    }
+
+    /**
+     * Get all AssignmentTokens within the statement which contain all identifier information.
+     *
+     * @returns All AssignmentTokens within the statement
+     */
+    getAssignments(): AssignmentToken[] {
+        return this.assignmentIndices.map((index) => {
+            if (this.tokens[index] instanceof AssignmentToken) return this.tokens[index] as AssignmentToken;
+            else console.error(`Token at index ${index} within ${this} is not an assignment token`);
+        });
+    }
+
+    addAssignment(index: number) {
+        this.assignmentIndices.push(index);
+    }
+
+    /**
+     * Set the identifier of the assignment token at the given index to the given identifier
+     */
+    setAssignmentIdentifier(identifier: string, index: number) {
+        if (this.tokens[index] instanceof AssignmentToken) {
+            (this.tokens[index] as AssignmentToken).setIdentifierText(identifier); // Should maybe be setEditedText
+        } else console.error(`Token at index ${index} within ${this} is not an assignment token`);
+    }
+
+    /**
+     * Whether the statement contains any assignments
+     *
+     * @returns true if the statement contains any assignments, false otherwise
+     */
+    containsAssignments(): boolean {
+        return this.assignmentIndices.length > 0;
     }
 
     getKeyword(): string {
@@ -1296,14 +1337,14 @@ export abstract class Expression extends Statement implements CodeConstruct {
         return new InsertionResult(InsertionType.Invalid, "", []);
     }
 
-    updateVariableType(dataType: DataType) {
-        //TODO: This probably needs to be recursive since this won't catch nested expression type updates
-        if (this.rootNode instanceof VarAssignmentStmt) {
-            this.rootNode.dataType = dataType;
-        } else if (this.rootNode instanceof ForStatement) {
-            this.rootNode.loopVar.dataType = TypeChecker.getElementTypeFromListType(dataType);
-        }
-    }
+    // updateVariableType(dataType: DataType) {
+    //     //TODO: This probably needs to be recursive since this won't catch nested expression type updates
+    //     if (this.rootNode instanceof VarAssignmentStmt) {
+    //         this.rootNode.dataType = dataType;
+    //     } else if (this.rootNode instanceof ForStatement) {
+    //         this.rootNode.loopVar.dataType = TypeChecker.getElementTypeFromListType(dataType);
+    //     }
+    // }
 
     onDelete(): void {
         return;
@@ -1727,266 +1768,266 @@ export class ImportStatement extends Statement {
 /**
  * For statement construct
  */
-export class ForStatement extends Statement implements VariableContainer {
-    buttonId: string;
-    private identifierIndex: number;
-    private iteratorIndex: number;
+// export class ForStatement extends Statement implements VariableContainer {
+//     buttonId: string;
+//     private identifierIndex: number;
+//     private iteratorIndex: number;
 
-    loopVar: VarAssignmentStmt = null;
+//     loopVar: VarAssignmentStmt = null;
 
-    //TODO: Statements should not have a data type?
-    dataType = DataType.Any;
+//     //TODO: Statements should not have a data type?
+//     dataType = DataType.Any;
 
-    constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
-        super();
+//     constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
+//         super();
 
-        this.buttonId = "";
+//         this.buttonId = "";
 
-        // Can be gotten from the configuration file
-        this.tokens.push(new NonEditableTkn("for ", this, this.tokens.length));
-        this.identifierIndex = this.tokens.length;
-        this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length));
-        this.tokens.push(new NonEditableTkn(" in ", this, this.tokens.length));
-        this.iteratorIndex = this.tokens.length;
-        // Next two lines can be removed (no typing for now)
-        this.tokens.push(
-            new TypedEmptyExpr(
-                [DataType.AnyList, DataType.StringList, DataType.NumberList, DataType.BooleanList, DataType.String],
-                this,
-                this.tokens.length
-            )
-        );
-        this.typeOfHoles[this.tokens.length - 1] = [
-            DataType.AnyList,
-            DataType.StringList,
-            DataType.NumberList,
-            DataType.BooleanList,
-            DataType.String,
-        ];
-        this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
+//         // Can be gotten from the configuration file
+//         this.tokens.push(new NonEditableTkn("for ", this, this.tokens.length));
+//         this.identifierIndex = this.tokens.length;
+//         this.tokens.push(new IdentifierTkn(undefined, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn(" in ", this, this.tokens.length));
+//         this.iteratorIndex = this.tokens.length;
+//         // Next two lines can be removed (no typing for now)
+//         this.tokens.push(
+//             new TypedEmptyExpr(
+//                 [DataType.AnyList, DataType.StringList, DataType.NumberList, DataType.BooleanList, DataType.String],
+//                 this,
+//                 this.tokens.length
+//             )
+//         );
+//         this.typeOfHoles[this.tokens.length - 1] = [
+//             DataType.AnyList,
+//             DataType.StringList,
+//             DataType.NumberList,
+//             DataType.BooleanList,
+//             DataType.String,
+//         ];
+//         this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
 
-        this.body.push(new EmptyLineStmt(this, 0));
+//         this.body.push(new EmptyLineStmt(this, 0));
 
-        this.scope = new Scope();
+//         this.scope = new Scope();
 
-        this.hasEmptyToken = true;
+//         this.hasEmptyToken = true;
 
-        this.loopVar = new VarAssignmentStmt();
-        this.loopVar.rootNode = this;
+//         this.loopVar = new VarAssignmentStmt();
+//         this.loopVar.rootNode = this;
 
-        this.subscribe(
-            CallbackType.onFocusOff,
-            new Callback(() => {
-                this.onFocusOff();
-            })
-        );
+//         this.subscribe(
+//             CallbackType.onFocusOff,
+//             new Callback(() => {
+//                 this.onFocusOff();
+//             })
+//         );
 
-        this.subscribe(
-            CallbackType.delete,
-            new Callback(() => {
-                this.onDelete();
-            })
-        );
-    }
+//         this.subscribe(
+//             CallbackType.delete,
+//             new Callback(() => {
+//                 this.onDelete();
+//             })
+//         );
+//     }
 
-    setIterator(iterator: Expression, runningValidation: boolean = false) {
-        this.tokens[this.iteratorIndex] = iterator;
-        this.updateLoopVarType(iterator);
-    }
+//     setIterator(iterator: Expression, runningValidation: boolean = false) {
+//         this.tokens[this.iteratorIndex] = iterator;
+//         this.updateLoopVarType(iterator);
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    // Usefulness?
-    // rebuild(pos: Position, fromIndex: number) {
-    //     super.rebuild(pos, fromIndex);
-    // }
+//     // Usefulness?
+//     // rebuild(pos: Position, fromIndex: number) {
+//     //     super.rebuild(pos, fromIndex);
+//     // }
 
-    getIdentifier(): string {
-        return this.tokens[this.identifierIndex].getRenderText();
-    }
+//     getIdentifier(): string {
+//         return this.tokens[this.identifierIndex].getRenderText();
+//     }
 
-    onFocusOff(): void {
-        if (!this.loopVar.lineNumber) {
-            this.loopVar.lineNumber = this.lineNumber;
-        }
+//     onFocusOff(): void {
+//         if (!this.loopVar.lineNumber) {
+//             this.loopVar.lineNumber = this.lineNumber;
+//         }
 
-        const currentIdentifier = this.getIdentifier();
-        const oldIdentifier = this.loopVar.getOldIdentifier();
-        const varController = this.getModule().variableController;
+//         const currentIdentifier = this.getIdentifier();
+//         const oldIdentifier = this.loopVar.getOldIdentifier();
+//         const varController = this.getModule().variableController;
 
-        if (currentIdentifier !== oldIdentifier) {
-            if (currentIdentifier === "  " && oldIdentifier !== "") {
-                if (
-                    Scope.getAllScopesOfStmt(this).filter(
-                        (scope) =>
-                            scope.references.filter(
-                                (ref) =>
-                                    ref.statement instanceof VarAssignmentStmt &&
-                                    ref.statement.buttonId === this.buttonId
-                            ).length > 0
-                    ).length === 0
-                ) {
-                    //only delete anything related to the for loop var if no assignment to the same variable exists in a  parent scope.
-                    varController.removeVariableRefButton(this.buttonId);
-                    varController.addWarningToVarRefs(
-                        this.buttonId,
-                        this.getIdentifier(),
-                        this.getModule(),
-                        this.loopVar
-                    );
-                }
+//         if (currentIdentifier !== oldIdentifier) {
+//             if (currentIdentifier === "  " && oldIdentifier !== "") {
+//                 if (
+//                     Scope.getAllScopesOfStmt(this).filter(
+//                         (scope) =>
+//                             scope.references.filter(
+//                                 (ref) =>
+//                                     ref.statement instanceof VarAssignmentStmt &&
+//                                     ref.statement.buttonId === this.buttonId
+//                             ).length > 0
+//                     ).length === 0
+//                 ) {
+//                     //only delete anything related to the for loop var if no assignment to the same variable exists in a  parent scope.
+//                     varController.removeVariableRefButton(this.buttonId);
+//                     varController.addWarningToVarRefs(
+//                         this.buttonId,
+//                         this.getIdentifier(),
+//                         this.getModule(),
+//                         this.loopVar
+//                     );
+//                 }
 
-                this.scope.references = this.scope.references.filter((ref) => ref.statement !== this.loopVar);
+//                 this.scope.references = this.scope.references.filter((ref) => ref.statement !== this.loopVar);
 
-                this.loopVar.updateIdentifier("  ", "  ", false);
-                this.buttonId = "";
-            } else {
-                const currentIdentifierAssignments = this.scope.getAllVarAssignmentsToNewVar(
-                    currentIdentifier,
-                    this.getModule(),
-                    this.lineNumber,
-                    this.loopVar
-                );
+//                 this.loopVar.updateIdentifier("  ", "  ", false);
+//                 this.buttonId = "";
+//             } else {
+//                 const currentIdentifierAssignments = this.scope.getAllVarAssignmentsToNewVar(
+//                     currentIdentifier,
+//                     this.getModule(),
+//                     this.lineNumber,
+//                     this.loopVar
+//                 );
 
-                const oldIdentifierAssignments = (
-                    this.rootNode as Statement | Module
-                ).scope.getAllVarAssignmentsToNewVar(oldIdentifier, this.getModule(), this.lineNumber, this.loopVar);
+//                 const oldIdentifierAssignments = (
+//                     this.rootNode as Statement | Module
+//                 ).scope.getAllVarAssignmentsToNewVar(oldIdentifier, this.getModule(), this.lineNumber, this.loopVar);
 
-                if (this.buttonId === "") {
-                    //when we are changing a new var assignment statement
-                    this.assignVariable(varController, currentIdentifierAssignments);
-                } else {
-                    //when we are changing an existing var assignment statement
-                    this.reassignVar(
-                        this.buttonId,
-                        varController,
-                        currentIdentifierAssignments,
-                        oldIdentifierAssignments
-                    );
-                }
+//                 if (this.buttonId === "") {
+//                     //when we are changing a new var assignment statement
+//                     this.assignVariable(varController, currentIdentifierAssignments);
+//                 } else {
+//                     //when we are changing an existing var assignment statement
+//                     this.reassignVar(
+//                         this.buttonId,
+//                         varController,
+//                         currentIdentifierAssignments,
+//                         oldIdentifierAssignments
+//                     );
+//                 }
 
-                varController.updateVarButtonWithType(
-                    this.loopVar.buttonId,
-                    this.scope,
-                    this.lineNumber,
-                    this.getIdentifier()
-                );
-            }
-        }
-    }
+//                 varController.updateVarButtonWithType(
+//                     this.loopVar.buttonId,
+//                     this.scope,
+//                     this.lineNumber,
+//                     this.getIdentifier()
+//                 );
+//             }
+//         }
+//     }
 
-    assignId() {
-        if (this.buttonId === "") {
-            this.buttonId = "add-var-ref-" + VarAssignmentStmt.uniqueId;
-            this.loopVar.buttonId = this.buttonId;
-            VarAssignmentStmt.uniqueId++;
-        }
-    }
+//     assignId() {
+//         if (this.buttonId === "") {
+//             this.buttonId = "add-var-ref-" + VarAssignmentStmt.uniqueId;
+//             this.loopVar.buttonId = this.buttonId;
+//             VarAssignmentStmt.uniqueId++;
+//         }
+//     }
 
-    assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]) {
-        if (currentIdentifierAssignments.length === 0) {
-            this.assignNewVariable(varController);
-        } else if (currentIdentifierAssignments.length > 0) {
-            this.assignExistingVariable(currentIdentifierAssignments);
-        }
-        varController.updateExistingRefsOnReinitialization(this.loopVar);
-    }
+//     assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]) {
+//         if (currentIdentifierAssignments.length === 0) {
+//             this.assignNewVariable(varController);
+//         } else if (currentIdentifierAssignments.length > 0) {
+//             this.assignExistingVariable(currentIdentifierAssignments);
+//         }
+//         varController.updateExistingRefsOnReinitialization(this.loopVar);
+//     }
 
-    assignNewVariable(varController: VariableController) {
-        this.assignId();
-        this.loopVar.updateIdentifier(this.getIdentifier(), this.getIdentifier(), false);
-        varController.addVariableRefButton(this.loopVar);
-        this.getModule().processNewVariable(
-            this,
-            this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null
-        );
+//     assignNewVariable(varController: VariableController) {
+//         this.assignId();
+//         this.loopVar.updateIdentifier(this.getIdentifier(), this.getIdentifier(), false);
+//         varController.addVariableRefButton(this.loopVar);
+//         this.getModule().processNewVariable(
+//             this,
+//             this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null
+//         );
 
-        this.getModule().variableController.updateVarButtonWithType(
-            this.buttonId,
-            this.scope ?? (this.rootNode as Module | Statement).scope, //NOTE: You just need the closest parent scope, but I think in all cases it will be the scope of the root node since we are either inside of the Module's body or another statement's
-            this.lineNumber,
-            this.getIdentifier()
-        );
-    }
+//         this.getModule().variableController.updateVarButtonWithType(
+//             this.buttonId,
+//             this.scope ?? (this.rootNode as Module | Statement).scope, //NOTE: You just need the closest parent scope, but I think in all cases it will be the scope of the root node since we are either inside of the Module's body or another statement's
+//             this.lineNumber,
+//             this.getIdentifier()
+//         );
+//     }
 
-    assignExistingVariable(currentIdentifierAssignments: Statement[]) {
-        const statement =
-            currentIdentifierAssignments[0] instanceof VarAssignmentStmt
-                ? currentIdentifierAssignments[0]
-                : (currentIdentifierAssignments[0] as ForStatement).loopVar;
+//     assignExistingVariable(currentIdentifierAssignments: Statement[]) {
+//         const statement =
+//             currentIdentifierAssignments[0] instanceof VarAssignmentStmt
+//                 ? currentIdentifierAssignments[0]
+//                 : (currentIdentifierAssignments[0] as ForStatement).loopVar;
 
-        this.buttonId = statement.buttonId;
-        this.loopVar.buttonId = statement.buttonId;
+//         this.buttonId = statement.buttonId;
+//         this.loopVar.buttonId = statement.buttonId;
 
-        this.loopVar.updateIdentifier(this.getIdentifier(), this.getIdentifier());
+//         this.loopVar.updateIdentifier(this.getIdentifier(), this.getIdentifier());
 
-        if (this.scope.references.filter((ref) => ref.statement === this.loopVar).length === 0)
-            this.scope.references.push(new Reference(this.loopVar, this.scope));
-    }
+//         if (this.scope.references.filter((ref) => ref.statement === this.loopVar).length === 0)
+//             this.scope.references.push(new Reference(this.loopVar, this.scope));
+//     }
 
-    reassignVar(
-        oldVarId: string,
-        varController: VariableController,
-        currentIdentifierAssignments: Statement[],
-        oldIdentifierAssignments: Statement[]
-    ) {
-        //just removed last assignment to the old var
-        if (oldIdentifierAssignments.length === 0) {
-            varController.removeVariableRefButton(oldVarId);
-        }
+//     reassignVar(
+//         oldVarId: string,
+//         varController: VariableController,
+//         currentIdentifierAssignments: Statement[],
+//         oldIdentifierAssignments: Statement[]
+//     ) {
+//         //just removed last assignment to the old var
+//         if (oldIdentifierAssignments.length === 0) {
+//             varController.removeVariableRefButton(oldVarId);
+//         }
 
-        if (currentIdentifierAssignments.length === 0) {
-            //variable being reassigned to is a new variable
-            this.buttonId = "";
-            this.assignNewVariable(varController);
-        } else if (currentIdentifierAssignments.length > 0) {
-            //variable being reassigned to already exists
-            this.assignExistingVariable(currentIdentifierAssignments);
-        }
-    }
+//         if (currentIdentifierAssignments.length === 0) {
+//             //variable being reassigned to is a new variable
+//             this.buttonId = "";
+//             this.assignNewVariable(varController);
+//         } else if (currentIdentifierAssignments.length > 0) {
+//             //variable being reassigned to already exists
+//             this.assignExistingVariable(currentIdentifierAssignments);
+//         }
+//     }
 
-    private updateLoopVarType(insertCode?: Expression, type?: DataType) {
-        if (type) {
-            this.loopVar.dataType = type;
-        } else {
-            if (insertCode instanceof ListLiteralExpression || ListTypes.indexOf(insertCode.returns) > -1) {
-                this.loopVar.dataType = TypeChecker.getElementTypeFromListType(insertCode.returns);
-            } else {
-                this.loopVar.dataType = insertCode.returns;
-            }
-        }
-    }
+//     private updateLoopVarType(insertCode?: Expression, type?: DataType) {
+//         if (type) {
+//             this.loopVar.dataType = type;
+//         } else {
+//             if (insertCode instanceof ListLiteralExpression || ListTypes.indexOf(insertCode.returns) > -1) {
+//                 this.loopVar.dataType = TypeChecker.getElementTypeFromListType(insertCode.returns);
+//             } else {
+//                 this.loopVar.dataType = insertCode.returns;
+//             }
+//         }
+//     }
 
-    onInsertInto(insertCode: Expression) {
-        this.updateLoopVarType(insertCode);
-        this.getModule().variableController.updateReturnTypeOfRefs(this.loopVar.buttonId);
-    }
+//     onInsertInto(insertCode: Expression) {
+//         this.updateLoopVarType(insertCode);
+//         this.getModule().variableController.updateReturnTypeOfRefs(this.loopVar.buttonId);
+//     }
 
-    onDelete() {
-        const varController = this.getModule().variableController;
-        const assignments = (this.rootNode as Statement | Module).scope.getAllAssignmentsToVariableWithinScope(
-            this.getIdentifier(),
-            this
-        );
+//     onDelete() {
+//         const varController = this.getModule().variableController;
+//         const assignments = (this.rootNode as Statement | Module).scope.getAllAssignmentsToVariableWithinScope(
+//             this.getIdentifier(),
+//             this
+//         );
 
-        if (assignments.length === 0) {
-            varController.removeVariableRefButton(this.buttonId);
-            varController.addWarningToVarRefs(this.buttonId, this.getIdentifier(), this.getModule(), this.loopVar);
-        }
-    }
+//         if (assignments.length === 0) {
+//             varController.removeVariableRefButton(this.buttonId);
+//             varController.addWarningToVarRefs(this.buttonId, this.getIdentifier(), this.getModule(), this.loopVar);
+//         }
+//     }
 
-    onReplaceToken(args: { indexInRoot: number; replaceWithEmptyExpr: boolean }): void {
-        if (args.replaceWithEmptyExpr) this.updateLoopVarType(null, DataType.Any);
+//     onReplaceToken(args: { indexInRoot: number; replaceWithEmptyExpr: boolean }): void {
+//         if (args.replaceWithEmptyExpr) this.updateLoopVarType(null, DataType.Any);
 
-        if (args.indexInRoot === this.iteratorIndex) {
-            this.getModule().variableController.updateReturnTypeOfRefs(this.loopVar.buttonId);
-        }
-    }
-}
+//         if (args.indexInRoot === this.iteratorIndex) {
+//             this.getModule().variableController.updateReturnTypeOfRefs(this.loopVar.buttonId);
+//         }
+//     }
+// }
 
 /**
  * Empty line construct is created to show the user the body of the statement and allows
@@ -2031,445 +2072,445 @@ export class EmptyLineStmt extends Statement {
  * The default assignment statement to assign a value to a variable.
  * This statement also manages the variable's scope and references as well as the variable's button in the toolbox and the variable updates in the AST
  */
-export class VarAssignmentStmt extends Statement implements VariableContainer {
-    /**
-     * Counter for the unique id keeping track across all instances of VarAssignmentStmt
-     */
-    static uniqueId: number = 0;
-    /**
-     * The DOM id of the reference button in the toolbox AND the unique id of the variable itself
-     */
-    buttonId: string = "";
-    /**
-     * The index of the identifier token (e.g. 'x') in the tokens array
-     */
-    private identifierIndex: number;
-    private valueIndex: number;
-    /**
-     * The data type of the variable; by default it is set to Any
-     */
-    dataType = DataType.Any;
-    /**
-     * PURPOSE? TRY TO DELETE?
-     */
-    codeConstructName = ConstructName.VarAssignment;
-    /**
-     * Keep track of what the variable's name was before it was changed, if it was changed
-     */
-    private oldIdentifier: string;
+// export class VarAssignmentStmt extends Statement implements VariableContainer {
+//     /**
+//      * Counter for the unique id keeping track across all instances of VarAssignmentStmt
+//      */
+//     static uniqueId: number = 0;
+//     /**
+//      * The DOM id of the reference button in the toolbox AND the unique id of the variable itself
+//      */
+//     buttonId: string = "";
+//     /**
+//      * The index of the identifier token (e.g. 'x') in the tokens array
+//      */
+//     private identifierIndex: number;
+//     private valueIndex: number;
+//     /**
+//      * The data type of the variable; by default it is set to Any
+//      */
+//     dataType = DataType.Any;
+//     /**
+//      * PURPOSE? TRY TO DELETE?
+//      */
+//     codeConstructName = ConstructName.VarAssignment;
+//     /**
+//      * Keep track of what the variable's name was before it was changed, if it was changed
+//      */
+//     private oldIdentifier: string;
 
-    /**
-     * Create a new assignment statement
-     *
-     * @param buttonId - The DOM id of the reference button in the toolbox AND the unique id of the variable itself
-     * @param id - The name of the variable, its identifier, e.g. "x" in "x = 5"
-     * @param root - The root construct that this statement is a part of, i.e. its parent
-     * @param indexInRoot - The index of this statement in the root construct
-     */
-    constructor(buttonId?: string, id?: string, root?: Statement | Module, indexInRoot?: number) {
-        super();
+//     /**
+//      * Create a new assignment statement
+//      *
+//      * @param buttonId - The DOM id of the reference button in the toolbox AND the unique id of the variable itself
+//      * @param id - The name of the variable, its identifier, e.g. "x" in "x = 5"
+//      * @param root - The root construct that this statement is a part of, i.e. its parent
+//      * @param indexInRoot - The index of this statement in the root construct
+//      */
+//     constructor(buttonId?: string, id?: string, root?: Statement | Module, indexInRoot?: number) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.identifierIndex = this.tokens.length;
-        this.tokens.push(new IdentifierTkn(id, this, this.tokens.length));
+//         this.identifierIndex = this.tokens.length;
+//         this.tokens.push(new IdentifierTkn(id, this, this.tokens.length));
 
-        if (id) {
-            // Set the id if there is one
-            this.buttonId = buttonId;
-            this.updateIdentifier(id, id); //TODO: This is a crude hack. Should get the name from the scope or something else that is connected to the AST.
-        } else {
-            // Set the old identifier to the current identifier token which is probably empty
-            this.oldIdentifier = this.getIdentifier();
-        }
+//         if (id) {
+//             // Set the id if there is one
+//             this.buttonId = buttonId;
+//             this.updateIdentifier(id, id); //TODO: This is a crude hack. Should get the name from the scope or something else that is connected to the AST.
+//         } else {
+//             // Set the old identifier to the current identifier token which is probably empty
+//             this.oldIdentifier = this.getIdentifier();
+//         }
 
-        this.tokens.push(new NonEditableTkn(" = ", this, this.tokens.length));
-        this.valueIndex = this.tokens.length;
-        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//         this.tokens.push(new NonEditableTkn(" = ", this, this.tokens.length));
+//         this.valueIndex = this.tokens.length;
+//         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
 
-        // An empty hole
-        this.hasEmptyToken = true;
+//         // An empty hole
+//         this.hasEmptyToken = true;
 
-        this.subscribe(
-            CallbackType.onFocusOff,
-            new Callback(() => {
-                this.onFocusOff();
-            })
-        );
+//         this.subscribe(
+//             CallbackType.onFocusOff,
+//             new Callback(() => {
+//                 this.onFocusOff();
+//             })
+//         );
 
-        this.subscribe(
-            CallbackType.delete,
-            new Callback(() => {
-                this.onDelete();
-            })
-        );
-    }
+//         this.subscribe(
+//             CallbackType.delete,
+//             new Callback(() => {
+//                 this.onDelete();
+//             })
+//         );
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    // Just calls superclass; can be removed?
-    // rebuild(pos: Position, fromIndex: number) {
-    //     super.rebuild(pos, fromIndex);
-    // }
+//     // Just calls superclass; can be removed?
+//     // rebuild(pos: Position, fromIndex: number) {
+//     //     super.rebuild(pos, fromIndex);
+//     // }
 
-    /**
-     * The textual representation of the identifier token e.g. "x" in "x = 5"
-     */
-    getIdentifier(): string {
-        return this.tokens[this.identifierIndex].getRenderText();
-    }
+//     /**
+//      * The textual representation of the identifier token e.g. "x" in "x = 5"
+//      */
+//     getIdentifier(): string {
+//         return this.tokens[this.identifierIndex].getRenderText();
+//     }
 
-    /**
-     * Get the old identifier of the variable before
-     *
-     * @returns The old identifier of the variable
-     */
-    getOldIdentifier(): string {
-        return this.oldIdentifier;
-    }
+//     /**
+//      * Get the old identifier of the variable before
+//      *
+//      * @returns The old identifier of the variable
+//      */
+//     getOldIdentifier(): string {
+//         return this.oldIdentifier;
+//     }
 
-    /**
-     * Update the identifier of the variable button
-     */
-    updateButton(): void {
-        document.getElementById(this.buttonId).innerHTML = this.getIdentifier();
-    }
+//     /**
+//      * Update the identifier of the variable button
+//      */
+//     updateButton(): void {
+//         document.getElementById(this.buttonId).innerHTML = this.getIdentifier();
+//     }
 
-    /**
-     * Set the old and new identifier of the variable and update the button's identifier if required
-     *
-     * @param identifier - The new identifier to set the variable to
-     * @param oldIdentifier - The old identifier of the variable
-     * @param updateButton - Whether or not to update the button's identifier
-     */
-    updateIdentifier(identifier: string, oldIdentifier?: string, updateButton: boolean = true) {
-        // Get the old identifier if it is not provided by getting the current identifier
-        this.oldIdentifier = oldIdentifier ?? this.getIdentifier();
+//     /**
+//      * Set the old and new identifier of the variable and update the button's identifier if required
+//      *
+//      * @param identifier - The new identifier to set the variable to
+//      * @param oldIdentifier - The old identifier of the variable
+//      * @param updateButton - Whether or not to update the button's identifier
+//      */
+//     updateIdentifier(identifier: string, oldIdentifier?: string, updateButton: boolean = true) {
+//         // Get the old identifier if it is not provided by getting the current identifier
+//         this.oldIdentifier = oldIdentifier ?? this.getIdentifier();
 
-        // Set the identifier text of the identifier token to the new identifier
-        (this.tokens[this.identifierIndex] as IdentifierTkn).setIdentifierText(identifier);
+//         // Set the identifier text of the identifier token to the new identifier
+//         (this.tokens[this.identifierIndex] as IdentifierTkn).setIdentifierText(identifier);
 
-        // If there is a valid button id and we want to update the button, update the button's identifier
-        if (this.buttonId && this.buttonId !== "" && updateButton) {
-            this.updateButton();
-        }
-    }
+//         // If there is a valid button id and we want to update the button, update the button's identifier
+//         if (this.buttonId && this.buttonId !== "" && updateButton) {
+//             this.updateButton();
+//         }
+//     }
 
-    /**
-     * Update the identifier of assignment statement
-     *
-     * @param identifier - The new identifier to set the variable to
-     */
-    setIdentifier(identifier: string) {
-        // this is only for user-defined variables (coming from the action-filter)
-        (this.tokens[this.identifierIndex] as IdentifierTkn).setIdentifierText(identifier);
-    }
+//     /**
+//      * Update the identifier of assignment statement
+//      *
+//      * @param identifier - The new identifier to set the variable to
+//      */
+//     setIdentifier(identifier: string) {
+//         // this is only for user-defined variables (coming from the action-filter)
+//         (this.tokens[this.identifierIndex] as IdentifierTkn).setIdentifierText(identifier);
+//     }
 
-    /**
-     * When moving off the assignment statement, update the scopes and references based on the changes or additions
-     * in the current assignment statement
-     */
-    onFocusOff(): void {
-        // Get the current identifier
-        const currentIdentifier = this.getIdentifier();
-        const varController = this.getModule().variableController;
+//     /**
+//      * When moving off the assignment statement, update the scopes and references based on the changes or additions
+//      * in the current assignment statement
+//      */
+//     onFocusOff(): void {
+//         // Get the current identifier
+//         const currentIdentifier = this.getIdentifier();
+//         const varController = this.getModule().variableController;
 
-        // If the current identifier differs from the old identifier, or the button id is empty (i.e. it is a new variable)
-        if (currentIdentifier !== this.oldIdentifier || this.buttonId === "") {
-            // If the identifier is (left) empty (i.e. it is a new variable or the identifier was removed)
-            if (currentIdentifier === "  ") {
-                // Remove the current assignment statement from the parent's scope
-                this.removeAssignment();
-                // If there are no assignments to the old identifier in the parent's scope AND there are no assignments
-                // with the button id in the entire program
-                if (
-                    this.rootNode.scope.references.filter(
-                        (ref) => (ref.statement as VarAssignmentStmt).getIdentifier() === this.oldIdentifier
-                    ).length === 0 &&
-                    varController.getAllAssignmentsToVar(this.buttonId, this.getModule()).length === 0
-                ) {
-                    // Remove the variable reference button
-                    varController.removeVariableRefButton(this.buttonId);
-                }
+//         // If the current identifier differs from the old identifier, or the button id is empty (i.e. it is a new variable)
+//         if (currentIdentifier !== this.oldIdentifier || this.buttonId === "") {
+//             // If the identifier is (left) empty (i.e. it is a new variable or the identifier was removed)
+//             if (currentIdentifier === "  ") {
+//                 // Remove the current assignment statement from the parent's scope
+//                 this.removeAssignment();
+//                 // If there are no assignments to the old identifier in the parent's scope AND there are no assignments
+//                 // with the button id in the entire program
+//                 if (
+//                     this.rootNode.scope.references.filter(
+//                         (ref) => (ref.statement as VarAssignmentStmt).getIdentifier() === this.oldIdentifier
+//                     ).length === 0 &&
+//                     varController.getAllAssignmentsToVar(this.buttonId, this.getModule()).length === 0
+//                 ) {
+//                     // Remove the variable reference button
+//                     varController.removeVariableRefButton(this.buttonId);
+//                 }
 
-                // Reset the assignment completely
-                // Reset the button id
-                this.buttonId = "";
-                // Reset the old identifier
-                this.oldIdentifier = "  ";
-            } else {
-                // Get all assignments with the current identifier accessable from the current line
-                const currentIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(
-                    currentIdentifier,
-                    this.getModule(),
-                    this.lineNumber,
-                    this
-                );
+//                 // Reset the assignment completely
+//                 // Reset the button id
+//                 this.buttonId = "";
+//                 // Reset the old identifier
+//                 this.oldIdentifier = "  ";
+//             } else {
+//                 // Get all assignments with the current identifier accessable from the current line
+//                 const currentIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(
+//                     currentIdentifier,
+//                     this.getModule(),
+//                     this.lineNumber,
+//                     this
+//                 );
 
-                // Get all assignments with the old identifier accessable from the current line
-                const oldIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(
-                    this.oldIdentifier,
-                    this.getModule(),
-                    this.lineNumber,
-                    this
-                );
+//                 // Get all assignments with the old identifier accessable from the current line
+//                 const oldIdentifierAssignments = this.rootNode.scope.getAllVarAssignmentsToNewVar(
+//                     this.oldIdentifier,
+//                     this.getModule(),
+//                     this.lineNumber,
+//                     this
+//                 );
 
-                // If the button id is empty and there are no other assignments to the current identifier, assign the variable
-                // This is the case when the assignment statement is new or has been reset and were are changing it
-                if (this.buttonId === "" && currentIdentifierAssignments.length === 0) {
-                    // Assign a new or existing variable
-                    this.assignVariable(varController, currentIdentifierAssignments);
-                } else {
-                    // The identifier to which we are assigning after changing it, already exists (i.e. we are reassigning its value)
-                    this.reassignVar(
-                        this.buttonId,
-                        varController,
-                        currentIdentifierAssignments,
-                        oldIdentifierAssignments
-                    );
-                }
+//                 // If the button id is empty and there are no other assignments to the current identifier, assign the variable
+//                 // This is the case when the assignment statement is new or has been reset and were are changing it
+//                 if (this.buttonId === "" && currentIdentifierAssignments.length === 0) {
+//                     // Assign a new or existing variable
+//                     this.assignVariable(varController, currentIdentifierAssignments);
+//                 } else {
+//                     // The identifier to which we are assigning after changing it, already exists (i.e. we are reassigning its value)
+//                     this.reassignVar(
+//                         this.buttonId,
+//                         varController,
+//                         currentIdentifierAssignments,
+//                         oldIdentifierAssignments
+//                     );
+//                 }
 
-                // Set the old identifier to be the current identifier for future changes
-                this.oldIdentifier = currentIdentifier;
+//                 // Set the old identifier to be the current identifier for future changes
+//                 this.oldIdentifier = currentIdentifier;
 
-                //There are two types of callbacks in focus.ts OnNavChangeCallbacks and OnNavOffCallbacks. They also run in this order.
-                //The variable is created by the latter and the former runs validation checks. When a variable is first created we therefore
-                //have to manually run variable-related validations here.
-                varController.updateVarButtonWithType(
-                    this.buttonId,
-                    this.rootNode.scope,
-                    this.lineNumber,
-                    this.getIdentifier()
-                );
-                const insertions = this.getModule().actionFilter.getProcessedVariableInsertions();
-                // Set toolbox reference buttons to enabled and disabled based on the current insertion possibilities
-                ToolboxController.updateButtonsVisualMode(insertions);
-            }
-        } else if (currentIdentifier === this.oldIdentifier) {
-            // The identifier itself did not change, but its value and thus type might have
-            varController.updateReturnTypeOfRefs(this.buttonId);
-        }
-    }
+//                 //There are two types of callbacks in focus.ts OnNavChangeCallbacks and OnNavOffCallbacks. They also run in this order.
+//                 //The variable is created by the latter and the former runs validation checks. When a variable is first created we therefore
+//                 //have to manually run variable-related validations here.
+//                 varController.updateVarButtonWithType(
+//                     this.buttonId,
+//                     this.rootNode.scope,
+//                     this.lineNumber,
+//                     this.getIdentifier()
+//                 );
+//                 const insertions = this.getModule().actionFilter.getProcessedVariableInsertions();
+//                 // Set toolbox reference buttons to enabled and disabled based on the current insertion possibilities
+//                 ToolboxController.updateButtonsVisualMode(insertions);
+//             }
+//         } else if (currentIdentifier === this.oldIdentifier) {
+//             // The identifier itself did not change, but its value and thus type might have
+//             varController.updateReturnTypeOfRefs(this.buttonId);
+//         }
+//     }
 
-    /**
-     * If the button id is not yet assigned, assign it.
-     * Otherwise the method does nothing.
-     */
-    assignId() {
-        if (this.buttonId === "") {
-            this.buttonId = "add-var-ref-" + VarAssignmentStmt.uniqueId;
-            VarAssignmentStmt.uniqueId++;
-        }
-    }
+//     /**
+//      * If the button id is not yet assigned, assign it.
+//      * Otherwise the method does nothing.
+//      */
+//     assignId() {
+//         if (this.buttonId === "") {
+//             this.buttonId = "add-var-ref-" + VarAssignmentStmt.uniqueId;
+//             VarAssignmentStmt.uniqueId++;
+//         }
+//     }
 
-    /**
-     * Handles the assignment of a variable: either handling the creation of a new variable or the
-     * assignment of an existing variable
-     *
-     * @param varController
-     * @param currentIdentifierAssignments
-     */
-    assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]) {
-        // If there are not yet any assignments to the identifier
-        if (currentIdentifierAssignments.length === 0) {
-            this.assignNewVariable(varController);
-            // If there are already assignments to the identifier
-        } else if (currentIdentifierAssignments.length > 0) {
-            this.assignExistingVariable(currentIdentifierAssignments);
-        }
-    }
+//     /**
+//      * Handles the assignment of a variable: either handling the creation of a new variable or the
+//      * assignment of an existing variable
+//      *
+//      * @param varController
+//      * @param currentIdentifierAssignments
+//      */
+//     assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]) {
+//         // If there are not yet any assignments to the identifier
+//         if (currentIdentifierAssignments.length === 0) {
+//             this.assignNewVariable(varController);
+//             // If there are already assignments to the identifier
+//         } else if (currentIdentifierAssignments.length > 0) {
+//             this.assignExistingVariable(currentIdentifierAssignments);
+//         }
+//     }
 
-    /**
-     * Handle the assignment of a new variable:
-     * * Assign the button id
-     * * Create the variable reference button
-     * * Add the variable to the scope of the parent
-     * * Update the type of the assignment variable
-     * * Update the references as they might now be covered by the assignment where they weren't before
-     *
-     * @param varController - The variable controller
-     */
-    assignNewVariable(varController: VariableController) {
-        // Assign the button id
-        this.assignId();
-        // Create the variable reference button
-        varController.addVariableRefButton(this);
-        // Add the variable to the scope of the parent
-        this.getModule().processNewVariable(
-            this,
-            this.rootNode.scope
-            // this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null // Always true?
-        );
+//     /**
+//      * Handle the assignment of a new variable:
+//      * * Assign the button id
+//      * * Create the variable reference button
+//      * * Add the variable to the scope of the parent
+//      * * Update the type of the assignment variable
+//      * * Update the references as they might now be covered by the assignment where they weren't before
+//      *
+//      * @param varController - The variable controller
+//      */
+//     assignNewVariable(varController: VariableController) {
+//         // Assign the button id
+//         this.assignId();
+//         // Create the variable reference button
+//         varController.addVariableRefButton(this);
+//         // Add the variable to the scope of the parent
+//         this.getModule().processNewVariable(
+//             this,
+//             this.rootNode.scope
+//             // this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null // Always true?
+//         );
 
-        // Update the type of the assignment variable
-        this.getModule().variableController.updateVarButtonWithType(
-            this.buttonId,
-            this.scope ?? this.rootNode.scope, //NOTE: You just need the closest parent scope, but I think in all cases it will be the scope of the root node since we are either inside of the Module's body or another statement's
-            this.lineNumber,
-            this.getIdentifier()
-        );
-        // Update the references as they might now be covered by the assignment where they weren't before
-        varController.updateExistingRefsOnReinitialization(this);
-    }
+//         // Update the type of the assignment variable
+//         this.getModule().variableController.updateVarButtonWithType(
+//             this.buttonId,
+//             this.scope ?? this.rootNode.scope, //NOTE: You just need the closest parent scope, but I think in all cases it will be the scope of the root node since we are either inside of the Module's body or another statement's
+//             this.lineNumber,
+//             this.getIdentifier()
+//         );
+//         // Update the references as they might now be covered by the assignment where they weren't before
+//         varController.updateExistingRefsOnReinitialization(this);
+//     }
 
-    /**
-     * Add the variable to the scope of the parent and update existing assignments to the variable
-     *
-     * @param currentIdentifierAssignments - All assignments to the existing identifier
-     */
-    assignExistingVariable(currentIdentifierAssignments: Statement[]) {
-        // Get the first assignment statement
-        const statement =
-            currentIdentifierAssignments[0] instanceof VarAssignmentStmt
-                ? currentIdentifierAssignments[0]
-                : (currentIdentifierAssignments[0] as ForStatement).loopVar;
+//     /**
+//      * Add the variable to the scope of the parent and update existing assignments to the variable
+//      *
+//      * @param currentIdentifierAssignments - All assignments to the existing identifier
+//      */
+//     assignExistingVariable(currentIdentifierAssignments: Statement[]) {
+//         // Get the first assignment statement
+//         const statement =
+//             currentIdentifierAssignments[0] instanceof VarAssignmentStmt
+//                 ? currentIdentifierAssignments[0]
+//                 : (currentIdentifierAssignments[0] as ForStatement).loopVar;
 
-        // Use the same button id
-        this.buttonId = statement.buttonId;
+//         // Use the same button id
+//         this.buttonId = statement.buttonId;
 
-        // Any for loops that are using this variable need to be connected to it so that
-        // we don't get duplicate variables. This includes for loops nested inside of other blocks as well
-        const module = this.getModule();
-        const forLoopsWithThisVar = [];
-        // Add all for-loops using the same variable but with a different button id
-        module.performActionOnBFS((code) => {
-            if (
-                code instanceof ForStatement &&
-                code.loopVar.buttonId !== this.buttonId &&
-                code.loopVar.getIdentifier() === this.getIdentifier() &&
-                code.lineNumber > this.lineNumber
-            ) {
-                forLoopsWithThisVar.push(code);
-            }
-        });
+//         // Any for loops that are using this variable need to be connected to it so that
+//         // we don't get duplicate variables. This includes for loops nested inside of other blocks as well
+//         const module = this.getModule();
+//         const forLoopsWithThisVar = [];
+//         // Add all for-loops using the same variable but with a different button id
+//         module.performActionOnBFS((code) => {
+//             if (
+//                 code instanceof ForStatement &&
+//                 code.loopVar.buttonId !== this.buttonId &&
+//                 code.loopVar.getIdentifier() === this.getIdentifier() &&
+//                 code.lineNumber > this.lineNumber
+//             ) {
+//                 forLoopsWithThisVar.push(code);
+//             }
+//         });
 
-        // For each of the for loops, remove the old button and set the new one
-        for (const loop of forLoopsWithThisVar) {
-            module.variableController.removeVariableRefButton(loop.loopVar.buttonId);
-            loop.loopVar.buttonId = this.buttonId;
-        }
+//         // For each of the for loops, remove the old button and set the new one
+//         for (const loop of forLoopsWithThisVar) {
+//             module.variableController.removeVariableRefButton(loop.loopVar.buttonId);
+//             loop.loopVar.buttonId = this.buttonId;
+//         }
 
-        // If we reassign above current line number, then we might have changed scopes
-        if (this.lineNumber < statement.lineNumber && statement.rootNode !== this.rootNode) {
-            statement.rootNode.scope.references.splice(
-                statement.rootNode.scope.references.map((ref) => ref.statement).indexOf(statement),
-                1
-            );
-        }
+//         // If we reassign above current line number, then we might have changed scopes
+//         if (this.lineNumber < statement.lineNumber && statement.rootNode !== this.rootNode) {
+//             statement.rootNode.scope.references.splice(
+//                 statement.rootNode.scope.references.map((ref) => ref.statement).indexOf(statement),
+//                 1
+//             );
+//         }
 
-        // Add the assignment to the scope of the parent
-        module.processNewVariable(
-            this,
-            this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null
-        );
+//         // Add the assignment to the scope of the parent
+//         module.processNewVariable(
+//             this,
+//             this.rootNode instanceof Module || this.rootNode instanceof Statement ? this.rootNode.scope : null
+//         );
 
-        module.variableController.updateExistingRefsOnReinitialization(this);
-    }
+//         module.variableController.updateExistingRefsOnReinitialization(this);
+//     }
 
-    /**
-     * Handle the reassignment of a variable. The old identifier is checked for any other assignments and correspondingly handled.
-     * The new assignment is either for a new variable or an existing variable.
-     *
-     * @param oldVarId - The old variable button id
-     * @param varController - The variable controller
-     * @param currentIdentifierAssignments - All assignments to the new identifier
-     * @param oldIdentifierAssignments - All assignments to the old identifier
-     */
-    reassignVar(
-        oldVarId: string,
-        varController: VariableController,
-        currentIdentifierAssignments: Statement[],
-        oldIdentifierAssignments: Statement[]
-    ) {
-        // Just removed the last assignment to the old variable identifier
-        if (oldIdentifierAssignments.length === 0) {
-            // Remove the corresponding button
-            varController.removeVariableRefButton(oldVarId);
-            // Add warnings to the remaining references
-            varController.addWarningToVarRefs(this.buttonId, this.oldIdentifier, this.getModule(), this);
-        }
+//     /**
+//      * Handle the reassignment of a variable. The old identifier is checked for any other assignments and correspondingly handled.
+//      * The new assignment is either for a new variable or an existing variable.
+//      *
+//      * @param oldVarId - The old variable button id
+//      * @param varController - The variable controller
+//      * @param currentIdentifierAssignments - All assignments to the new identifier
+//      * @param oldIdentifierAssignments - All assignments to the old identifier
+//      */
+//     reassignVar(
+//         oldVarId: string,
+//         varController: VariableController,
+//         currentIdentifierAssignments: Statement[],
+//         oldIdentifierAssignments: Statement[]
+//     ) {
+//         // Just removed the last assignment to the old variable identifier
+//         if (oldIdentifierAssignments.length === 0) {
+//             // Remove the corresponding button
+//             varController.removeVariableRefButton(oldVarId);
+//             // Add warnings to the remaining references
+//             varController.addWarningToVarRefs(this.buttonId, this.oldIdentifier, this.getModule(), this);
+//         }
 
-        // If the variable is being reassigned to a new variable (no other assignments existed before)
-        if (currentIdentifierAssignments.length === 0) {
-            // Add warnings to the variable references to the old identifier if necessary
-            varController.addWarningToVarRefs(this.buttonId, this.oldIdentifier, this.getModule(), this);
-            // New variable, so reset the button id
-            this.buttonId = "";
-            this.assignNewVariable(varController);
-        } else {
-            // Variable being reassigned to already exists
-            this.assignExistingVariable(currentIdentifierAssignments);
-        }
+//         // If the variable is being reassigned to a new variable (no other assignments existed before)
+//         if (currentIdentifierAssignments.length === 0) {
+//             // Add warnings to the variable references to the old identifier if necessary
+//             varController.addWarningToVarRefs(this.buttonId, this.oldIdentifier, this.getModule(), this);
+//             // New variable, so reset the button id
+//             this.buttonId = "";
+//             this.assignNewVariable(varController);
+//         } else {
+//             // Variable being reassigned to already exists
+//             this.assignExistingVariable(currentIdentifierAssignments);
+//         }
 
-        varController.updateExistingRefsOnReinitialization(this);
-    }
+//         varController.updateExistingRefsOnReinitialization(this);
+//     }
 
-    /**
-     * Add the return type of the expression to the variable and update the variable references
-     *
-     * @param insertCode - Expression to insert into the assignment statement
-     */
-    onInsertInto(insertCode: Expression) {
-        // Get the return type of the expression and set it as the data type of the variable
-        this.dataType = insertCode.returns; //#344
-        // Update and validate the return type of the variable references
-        this.getModule().variableController.updateReturnTypeOfRefs(this.buttonId);
-    }
+//     /**
+//      * Add the return type of the expression to the variable and update the variable references
+//      *
+//      * @param insertCode - Expression to insert into the assignment statement
+//      */
+//     onInsertInto(insertCode: Expression) {
+//         // Get the return type of the expression and set it as the data type of the variable
+//         this.dataType = insertCode.returns; //#344
+//         // Update and validate the return type of the variable references
+//         this.getModule().variableController.updateReturnTypeOfRefs(this.buttonId);
+//     }
 
-    /**
-     * Remove the current assignment statement from the parent's scope
-     */
-    removeAssignment() {
-        // // Get all assignment statements in the scope of the root node
-        // const varAssignmentsInScope = this.rootNode.scope.references.map((ref) => ref.statement);
+//     /**
+//      * Remove the current assignment statement from the parent's scope
+//      */
+//     removeAssignment() {
+//         // // Get all assignment statements in the scope of the root node
+//         // const varAssignmentsInScope = this.rootNode.scope.references.map((ref) => ref.statement);
 
-        // // Remove this assignment statement from the list of assignment statements in the scope if it is there
-        // if (varAssignmentsInScope.indexOf(this) > -1) {
-        //     varAssignmentsInScope.splice(
-        //         (this.rootNode as Module | Statement).scope.references.map((ref) => ref.statement).indexOf(this),
-        //         1
-        //     );
-        // }
-        // Possibly more efficient?
-        const assignmentScope = this.rootNode.scope;
-        assignmentScope.references = assignmentScope.references.filter((ref) => ref.statement !== this);
-    }
+//         // // Remove this assignment statement from the list of assignment statements in the scope if it is there
+//         // if (varAssignmentsInScope.indexOf(this) > -1) {
+//         //     varAssignmentsInScope.splice(
+//         //         (this.rootNode as Module | Statement).scope.references.map((ref) => ref.statement).indexOf(this),
+//         //         1
+//         //     );
+//         // }
+//         // Possibly more efficient?
+//         const assignmentScope = this.rootNode.scope;
+//         assignmentScope.references = assignmentScope.references.filter((ref) => ref.statement !== this);
+//     }
 
-    /**
-     * On deletion of the assignment statement, check for other assignments to the variable and update the variable references
-     */
-    onDelete() {
-        const varController = this.getModule().variableController;
+//     /**
+//      * On deletion of the assignment statement, check for other assignments to the variable and update the variable references
+//      */
+//     onDelete() {
+//         const varController = this.getModule().variableController;
 
-        // const assignmentScope = this.rootNode.scope;
-        // assignmentScope.references = assignmentScope.references.filter((ref) => ref.statement !== this);
-        // Equivalent?
-        this.removeAssignment();
+//         // const assignmentScope = this.rootNode.scope;
+//         // assignmentScope.references = assignmentScope.references.filter((ref) => ref.statement !== this);
+//         // Equivalent?
+//         this.removeAssignment();
 
-        // Get all assignments to the old identifier within the scope of the root node
-        // We need to do this for the old identifier, as the new identifier is possibly empty or changed
-        const assignments = this.rootNode.scope.getAllAssignmentsToVariableWithinScope(this.oldIdentifier, this);
+//         // Get all assignments to the old identifier within the scope of the root node
+//         // We need to do this for the old identifier, as the new identifier is possibly empty or changed
+//         const assignments = this.rootNode.scope.getAllAssignmentsToVariableWithinScope(this.oldIdentifier, this);
 
-        // If there are no other assignments to the variable, remove the variable reference button and add warnings to the variable references
-        if (assignments.length === 0) {
-            // Try to get a non empty identifier
-            const identifier = this.getIdentifier() === "  " ? this.oldIdentifier : this.getIdentifier();
-            // Remove the reference button
-            varController.removeVariableRefButton(this.buttonId);
-            // Add warnings to the variable references
-            varController.addWarningToVarRefs(this.buttonId, identifier, this.getModule(), this);
-        } else {
-            // If there are still other assignments to the variable, we need to update the variable references' types
-            varController.updateReturnTypeOfRefs(this.buttonId);
-        }
-    }
-}
+//         // If there are no other assignments to the variable, remove the variable reference button and add warnings to the variable references
+//         if (assignments.length === 0) {
+//             // Try to get a non empty identifier
+//             const identifier = this.getIdentifier() === "  " ? this.oldIdentifier : this.getIdentifier();
+//             // Remove the reference button
+//             varController.removeVariableRefButton(this.buttonId);
+//             // Add warnings to the variable references
+//             varController.addWarningToVarRefs(this.buttonId, identifier, this.getModule(), this);
+//         } else {
+//             // If there are still other assignments to the variable, we need to update the variable references' types
+//             varController.updateReturnTypeOfRefs(this.buttonId);
+//         }
+//     }
+// }
 
 /**
  * A reference expression to a variable "x". The value of the expression is equal to the value of the
@@ -3913,7 +3954,7 @@ export class BinaryOperatorExpr extends Expression {
             this.getModule().closeConstructDraftRecord(this.tokens[otherOperand]);
         }
 
-        this.updateVariableType(this.returns);
+        // this.updateVariableType(this.returns);
     }
 
     getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
@@ -4613,7 +4654,7 @@ export class ListLiteralExpression extends Expression {
         }
 
         this.returns = dataType;
-        this.updateVariableType(dataType);
+        // this.updateVariableType(dataType);
 
         if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
     }
@@ -4645,7 +4686,7 @@ export class ListLiteralExpression extends Expression {
             holes.every((hole) => hole instanceof TypedEmptyExpr)
         ) {
             this.returns = DataType.AnyList;
-            this.updateVariableType(this.returns);
+            // this.updateVariableType(this.returns);
         }
 
         if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
@@ -4658,10 +4699,10 @@ export class ListLiteralExpression extends Expression {
 
         if (elements.length > 0 && elements.every((tkn) => (tkn as Expression).returns)) {
             this.returns = TypeChecker.getListTypeFromElementType((elements[0] as Expression).returns);
-            this.updateVariableType(this.returns);
+            // this.updateVariableType(this.returns);
         } else {
             this.returns = DataType.AnyList;
-            this.updateVariableType(this.returns);
+            // this.updateVariableType(this.returns);
         }
 
         if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
