@@ -568,6 +568,8 @@ export class Focus {
             for (const callback of callbackArr) {
                 callback(context);
             }
+        } else {
+            oldStatement.notify(CallbackType.onFocusOff);
         }
     }
 

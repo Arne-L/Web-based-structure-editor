@@ -315,7 +315,7 @@ export class Actions {
      * Actions that can be performed on a datatype are things like adding,
      * multiplying, dividing, using a method on it (e.g. .append()), etc.
      */
-    varActionsMap: Map<DataType, Array<VarAction>>;
+    varActionsMap: Map<DataType, Array<VarAction>> = new Map();
     toolboxCategories: Array<ToolboxCategory> = [];
 
     private constructor() {
@@ -1381,333 +1381,334 @@ export class Actions {
             ImportChoiceStmt
         );
         const loadedCodeActions = getAllCodeActions();
-        this.actionsList.push(...loadedCodeActions); // Add loaded actions
+        // this.actionsList.push(...loadedCodeActions); // Add loaded actions
+        this.actionsList = loadedCodeActions; // Add loaded actions
 
         this.actionsMap = new Map<string, EditCodeAction>(this.actionsList.map((action) => [action.cssId, action])); // Automatically done
 
         // Per datatype determine which actions are available
         // Probably also necessary for autocomplete ... ?
-        this.varActionsMap = new Map<DataType, Array<VarAction>>([
-            [
-                DataType.Boolean,
-                [
-                    new VarAction(
-                        // Should be changed with a more robust solution in the future
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Set Value"
-                    ),
-                ],
-            ],
-            [
-                DataType.Number,
-                [
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Set Value"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Add),
-                            ]),
-                        "add value to {VAR_ID}",
-                        "Update Value"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Subtract),
-                            ]),
-                        "subtract value from {VAR_ID}",
-                        "Update Value"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Multiply),
-                            ]),
-                        "multiply {VAR_ID} by value",
-                        "Update Value"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Divide),
-                            ]),
-                        "divide {VAR_ID} by value",
-                        "Update Value"
-                    ),
-                ],
-            ],
-            [
-                DataType.String,
-                [
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Set Value"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Add),
-                            ]),
-                        "add text to {VAR_ID}",
-                        "Update Value"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("for")),
-                        "loop through characters of {VAR_ID}",
-                        "Loops"
-                    ),
-                    new VarAction(
-                        () =>
-                            new ValueOperationExpr(null, [
-                                new MethodCallModifier(
-                                    "split",
-                                    [new Argument([DataType.String], "sep", false)],
-                                    DataType.StringList,
-                                    DataType.String
-                                ),
-                            ]),
-                        "split {VAR_ID} using text",
-                        "Methods"
-                    ),
-                    new VarAction(
-                        () =>
-                            new ValueOperationExpr(null, [
-                                new MethodCallModifier(
-                                    "join",
-                                    [
-                                        new Argument(
-                                            [
-                                                DataType.AnyList,
-                                                DataType.StringList,
-                                                DataType.NumberList,
-                                                DataType.BooleanList,
-                                            ],
-                                            "items",
-                                            false
-                                        ),
-                                    ],
-                                    DataType.String,
-                                    DataType.String
-                                ),
-                            ]),
-                        "join {VAR_ID} using text",
-                        "Methods"
-                    ),
-                    new VarAction(
-                        () =>
-                            new ValueOperationExpr(null, [
-                                new MethodCallModifier(
-                                    "replace",
-                                    [
-                                        new Argument([DataType.String], "old", false),
-                                        new Argument([DataType.String], "new", false),
-                                    ],
-                                    DataType.String,
-                                    DataType.String
-                                ),
-                            ]),
-                        "replace first text in {VAR_ID} with second text",
-                        "Methods"
-                    ),
-                    new VarAction(
-                        () =>
-                            new ValueOperationExpr(null, [
-                                new MethodCallModifier(
-                                    "find",
-                                    [new Argument([DataType.String], "item", false)],
-                                    DataType.Number,
-                                    DataType.String
-                                ),
-                            ]),
-                        "find position of given text in {VAR_ID}",
-                        "Methods"
-                    ),
-                ],
-            ],
-            [
-                DataType.AnyList,
-                [
-                    new VarAction(
-                        () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
-                        "set an index in {VAR_ID} to value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new MethodCallModifier(
-                                    "append",
-                                    [new Argument([DataType.Any], "object", false)],
-                                    DataType.Void,
-                                    DataType.AnyList
-                                ),
-                            ]),
-                        "append value to list {VAR_ID}",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("for")),
-                        "loop through items of {VAR_ID}",
-                        "Loops"
-                    ),
-                    new VarAction(
-                        () => new ValueOperationExpr(null, [new ListAccessModifier()]),
-                        "get item from {VAR_ID} at index",
-                        "Get Value"
-                    ),
-                ],
-            ],
-            [
-                DataType.Boolean,
-                [
-                    new VarAction(
-                        () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
-                        "set an index in {VAR_ID} to value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new MethodCallModifier(
-                                    "append",
-                                    [new Argument([DataType.Any], "object", false)],
-                                    DataType.Void,
-                                    DataType.AnyList
-                                ),
-                            ]),
-                        "append value to list {VAR_ID}",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("for")),
-                        "loop through items of {VAR_ID}",
-                        "Loops"
-                    ),
-                    new VarAction(
-                        () => new ValueOperationExpr(null, [new ListAccessModifier()]),
-                        "get item from {VAR_ID} at index",
-                        "Get Value"
-                    ),
-                ],
-            ],
-            [
-                DataType.NumberList,
-                [
-                    new VarAction(
-                        () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
-                        "set an index in {VAR_ID} to value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new MethodCallModifier(
-                                    "append",
-                                    [new Argument([DataType.Any], "object", false)],
-                                    DataType.Void,
-                                    DataType.AnyList
-                                ),
-                            ]),
-                        "add value to list {VAR_ID}",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("for")),
-                        "loop through items of {VAR_ID}",
-                        "Loops"
-                    ),
-                    new VarAction(
-                        () => new ValueOperationExpr(null, [new ListAccessModifier()]),
-                        "get item from {VAR_ID} at index",
-                        "Get Value"
-                    ),
-                ],
-            ],
-            [
-                DataType.StringList,
-                [
-                    new VarAction(
-                        () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
-                        "set an index in {VAR_ID} to value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () =>
-                            new VarOperationStmt(null, [
-                                new MethodCallModifier(
-                                    "append",
-                                    [new Argument([DataType.Any], "object", false)],
-                                    DataType.Void,
-                                    DataType.AnyList
-                                ),
-                            ]),
-                        "append value to list {VAR_ID}",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("var=")),
-                        "set {VAR_ID} to new value",
-                        "Update List"
-                    ),
-                    new VarAction(
-                        () => structuredClone(GeneralStatement.constructs.get("for")),
-                        "loop through items of {VAR_ID}",
-                        "Loops"
-                    ),
-                    new VarAction(
-                        () => new ValueOperationExpr(null, [new ListAccessModifier()]),
-                        "get item from {VAR_ID} at index",
-                        "Get Value"
-                    ),
-                ],
-            ],
-        ]);
+        // this.varActionsMap = new Map<DataType, Array<VarAction>>([
+        //     [
+        //         DataType.Boolean,
+        //         [
+        //             new VarAction(
+        //                 // Should be changed with a more robust solution in the future
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Set Value"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.Number,
+        //         [
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Set Value"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Add),
+        //                     ]),
+        //                 "add value to {VAR_ID}",
+        //                 "Update Value"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Subtract),
+        //                     ]),
+        //                 "subtract value from {VAR_ID}",
+        //                 "Update Value"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Multiply),
+        //                     ]),
+        //                 "multiply {VAR_ID} by value",
+        //                 "Update Value"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Divide),
+        //                     ]),
+        //                 "divide {VAR_ID} by value",
+        //                 "Update Value"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.String,
+        //         [
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Set Value"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new AugmentedAssignmentModifier(AugmentedAssignmentOperator.Add),
+        //                     ]),
+        //                 "add text to {VAR_ID}",
+        //                 "Update Value"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("for")),
+        //                 "loop through characters of {VAR_ID}",
+        //                 "Loops"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new ValueOperationExpr(null, [
+        //                         new MethodCallModifier(
+        //                             "split",
+        //                             [new Argument([DataType.String], "sep", false)],
+        //                             DataType.StringList,
+        //                             DataType.String
+        //                         ),
+        //                     ]),
+        //                 "split {VAR_ID} using text",
+        //                 "Methods"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new ValueOperationExpr(null, [
+        //                         new MethodCallModifier(
+        //                             "join",
+        //                             [
+        //                                 new Argument(
+        //                                     [
+        //                                         DataType.AnyList,
+        //                                         DataType.StringList,
+        //                                         DataType.NumberList,
+        //                                         DataType.BooleanList,
+        //                                     ],
+        //                                     "items",
+        //                                     false
+        //                                 ),
+        //                             ],
+        //                             DataType.String,
+        //                             DataType.String
+        //                         ),
+        //                     ]),
+        //                 "join {VAR_ID} using text",
+        //                 "Methods"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new ValueOperationExpr(null, [
+        //                         new MethodCallModifier(
+        //                             "replace",
+        //                             [
+        //                                 new Argument([DataType.String], "old", false),
+        //                                 new Argument([DataType.String], "new", false),
+        //                             ],
+        //                             DataType.String,
+        //                             DataType.String
+        //                         ),
+        //                     ]),
+        //                 "replace first text in {VAR_ID} with second text",
+        //                 "Methods"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new ValueOperationExpr(null, [
+        //                         new MethodCallModifier(
+        //                             "find",
+        //                             [new Argument([DataType.String], "item", false)],
+        //                             DataType.Number,
+        //                             DataType.String
+        //                         ),
+        //                     ]),
+        //                 "find position of given text in {VAR_ID}",
+        //                 "Methods"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.AnyList,
+        //         [
+        //             new VarAction(
+        //                 () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
+        //                 "set an index in {VAR_ID} to value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new MethodCallModifier(
+        //                             "append",
+        //                             [new Argument([DataType.Any], "object", false)],
+        //                             DataType.Void,
+        //                             DataType.AnyList
+        //                         ),
+        //                     ]),
+        //                 "append value to list {VAR_ID}",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("for")),
+        //                 "loop through items of {VAR_ID}",
+        //                 "Loops"
+        //             ),
+        //             new VarAction(
+        //                 () => new ValueOperationExpr(null, [new ListAccessModifier()]),
+        //                 "get item from {VAR_ID} at index",
+        //                 "Get Value"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.Boolean,
+        //         [
+        //             new VarAction(
+        //                 () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
+        //                 "set an index in {VAR_ID} to value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new MethodCallModifier(
+        //                             "append",
+        //                             [new Argument([DataType.Any], "object", false)],
+        //                             DataType.Void,
+        //                             DataType.AnyList
+        //                         ),
+        //                     ]),
+        //                 "append value to list {VAR_ID}",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("for")),
+        //                 "loop through items of {VAR_ID}",
+        //                 "Loops"
+        //             ),
+        //             new VarAction(
+        //                 () => new ValueOperationExpr(null, [new ListAccessModifier()]),
+        //                 "get item from {VAR_ID} at index",
+        //                 "Get Value"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.NumberList,
+        //         [
+        //             new VarAction(
+        //                 () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
+        //                 "set an index in {VAR_ID} to value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new MethodCallModifier(
+        //                             "append",
+        //                             [new Argument([DataType.Any], "object", false)],
+        //                             DataType.Void,
+        //                             DataType.AnyList
+        //                         ),
+        //                     ]),
+        //                 "add value to list {VAR_ID}",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("for")),
+        //                 "loop through items of {VAR_ID}",
+        //                 "Loops"
+        //             ),
+        //             new VarAction(
+        //                 () => new ValueOperationExpr(null, [new ListAccessModifier()]),
+        //                 "get item from {VAR_ID} at index",
+        //                 "Get Value"
+        //             ),
+        //         ],
+        //     ],
+        //     [
+        //         DataType.StringList,
+        //         [
+        //             new VarAction(
+        //                 () => new VarOperationStmt(null, [new ListAccessModifier(), new AssignmentModifier()]),
+        //                 "set an index in {VAR_ID} to value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () =>
+        //                     new VarOperationStmt(null, [
+        //                         new MethodCallModifier(
+        //                             "append",
+        //                             [new Argument([DataType.Any], "object", false)],
+        //                             DataType.Void,
+        //                             DataType.AnyList
+        //                         ),
+        //                     ]),
+        //                 "append value to list {VAR_ID}",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("varAssign")),
+        //                 "set {VAR_ID} to new value",
+        //                 "Update List"
+        //             ),
+        //             new VarAction(
+        //                 () => structuredClone(GeneralStatement.constructs.get("for")),
+        //                 "loop through items of {VAR_ID}",
+        //                 "Loops"
+        //             ),
+        //             new VarAction(
+        //                 () => new ValueOperationExpr(null, [new ListAccessModifier()]),
+        //                 "get item from {VAR_ID} at index",
+        //                 "Get Value"
+        //             ),
+        //         ],
+        //     ],
+        // ]);
 
         // Should be removed when configuration file can take over
-        this.toolboxCategories.push(
-            new ToolboxCategory("Loops", "loops-toolbox-group", [WhileStmt, /*ForStmt,*/ RangeExpr/*, BreakStmt*/])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Conditionals", "conditionals-toolbox-group", [IfStmt, ElifStmt, ElseStmt])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Functions", "functions-toolbox-group", [PrintStmt, InputExpr, LenExpr])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Variables", "create-var-toolbox-group", [
-                // VarAssignStmt,
-                AssignmentMod,
-                AugAddAssignmentMod,
-                AugSubAssignmentMod,
-                AugMulAssignmentMod,
-                AugDivAssignmentMod,
-            ])
-        );
-        this.toolboxCategories.push(new ToolboxCategory("Numbers", "numbers-toolbox-group", [NumberLiteralExpr]));
-        this.toolboxCategories.push(
-            new ToolboxCategory("Random", "randoms-toolbox-group", [RandChoiceExpr, RandIntExpr])
-        );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Loops", "loops-toolbox-group", [WhileStmt, /*ForStmt,*/ RangeExpr/*, BreakStmt*/])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Conditionals", "conditionals-toolbox-group", [IfStmt, ElifStmt, ElseStmt])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Functions", "functions-toolbox-group", [PrintStmt, InputExpr, LenExpr])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Variables", "create-var-toolbox-group", [
+        //         // VarAssignStmt,
+        //         AssignmentMod,
+        //         AugAddAssignmentMod,
+        //         AugSubAssignmentMod,
+        //         AugMulAssignmentMod,
+        //         AugDivAssignmentMod,
+        //     ])
+        // );
+        // this.toolboxCategories.push(new ToolboxCategory("Numbers", "numbers-toolbox-group", [NumberLiteralExpr]));
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Random", "randoms-toolbox-group", [RandChoiceExpr, RandIntExpr])
+        // );
         this.toolboxCategories.push(
             new ToolboxCategory("Texts", "text-toolbox-group", [
                 StringLiteralExpr,

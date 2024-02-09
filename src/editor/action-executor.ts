@@ -929,7 +929,7 @@ export class ActionExecutor {
                         //     varOpStmt.rootNode,
                         //     varOpStmt.indexInRoot
                         // );
-                        const varAssignStmt = structuredClone(GeneralStatement.constructs.get("var="));
+                        const varAssignStmt = structuredClone(GeneralStatement.constructs.get("varAss"));
                         varAssignStmt.setAssignmentIdentifier(context.expressionToLeft.identifier, 0);
                         varAssignStmt.rootNode = varOpStmt.rootNode;
                         varAssignStmt.indexInRoot = varOpStmt.indexInRoot;

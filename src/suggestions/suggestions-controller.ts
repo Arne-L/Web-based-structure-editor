@@ -782,6 +782,7 @@ export class MenuController {
      * @param optionText - The user's input.
      */
     updateMenuOptions(optionText: string) {
+        console.log("updateMenuOptions", optionText)
         // If menu is not open, return
         if (!this.isMenuOpen()) return;
 
@@ -804,9 +805,10 @@ export class MenuController {
         // }
         menu.editCodeActionsOptions.forEach(
             (action) => {
-                if (action.optionName.substring(0, 3) === "-- ") {
-                    action.optionName = optionText + action.optionName.substring(2);
+                if (action.oldOptionName.substring(0, 3) === "-- ") {
+                    action.optionName = optionText + action.oldOptionName.substring(2);
                     action.varChanged = true;
+                    console.log("Tester", action.optionName)
                 
                 }
             }
@@ -854,6 +856,8 @@ export class MenuController {
         });
         menu.options = [];
 
+        console.log(actionsToKeep)
+
         for (const fuseResult of actionsToKeep) {
             let substringMatchRanges = [];
             const editAction = fuseResult.item;
@@ -895,6 +899,7 @@ export class MenuController {
             //         0
             // ) {
             console.log(fuseResult)
+            console.log("Accessible", currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber))
             if (
                 editAction.varChanged &&
                 // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
@@ -904,12 +909,10 @@ export class MenuController {
             ) {
                 substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
                 // editAction.getCode = () => new VarAssignmentStmt("", optionText);
+                const newStmt = editAction.getCode() as GeneralStatement;
                 editAction.getCode = () => {
-                    const varStmt = structuredClone(GeneralStatement.constructs.get("var="));
-                    console.log("Original", GeneralStatement.constructs.get("var="))
-                    console.log("Cloned", varStmt)
-                    varStmt.setAssignmentIdentifier(optionText, 0);
-                    return varStmt;
+                    newStmt.setAssignmentIdentifier(optionText, 0);
+                    return newStmt;
                 };
                 editAction.trimSpacesBeforeTermChar = true;
             }
@@ -934,7 +937,7 @@ export class MenuController {
 
             //The var assignment option cannot be removed any earlier than here because of case 1 of this if block
             // else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
-            else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
+            else if (editAction.varChanged) {
                 // Jump to the next fuseResult as this is not a var assignment but a reassignment, which
                 // falls under the VarOperationStmt case
                 continue;

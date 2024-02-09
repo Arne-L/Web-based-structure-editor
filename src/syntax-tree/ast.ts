@@ -331,8 +331,17 @@ export abstract class Statement implements CodeConstruct {
         if (index >= 0) this.callbacks[type].splice(index, 1);
     }
 
+    /**
+     * 
+     * @param type 
+     */
     notify(type: CallbackType) {
         for (const callback of this.callbacks[type]) callback.callback(this);
+
+        // We call callbacks on all token of a statement as well 
+        for (const token of this.tokens) {
+            token.notify(type);
+        }
 
         if (this.callbacksToBeDeleted.size > 0) {
             for (const entry of this.callbacksToBeDeleted) {
@@ -4850,7 +4859,15 @@ export class AssignmentToken extends IdentifierTkn {
 
     constructor(identifier?: string, root?: Statement, indexInRoot?: number, regex?: RegExp) {
         super(identifier, root, indexInRoot, regex);
+
+        this.subscribe(
+                CallbackType.onFocusOff,
+                new Callback(() => {
+                    this.onFocusOff();
+                })
+            );
     }
+
 
     onFocusOff(): void {
         // Get the current identifier
@@ -4860,7 +4877,9 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
+        console.log(1)
         if (currentIdentifier !== this.oldIdentifier) {
+            console.log(2)
             // The identifier has changed
             if (currentIdentifier === EMPTYIDENTIFIER) {
                 // The identifier has been emptied
@@ -4868,6 +4887,7 @@ export class AssignmentToken extends IdentifierTkn {
                 // Remove the variable from the nearest scope
                 stmtScope.removeAssignment(this);
             } else {
+                console.log(3)
                 // If it goes from empty to non-empty, add the variable to the nearest scope
                 if (this.oldIdentifier === EMPTYIDENTIFIER && currentIdentifier !== EMPTYIDENTIFIER) {
                     stmtScope.addAssignment(this);

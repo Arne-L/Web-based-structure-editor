@@ -546,7 +546,7 @@
         }
     },
     {
-        "keyword": "var=",
+        "keyword": "varAssign",
         "editorName": "-- = ---",
         "format": [
             {
