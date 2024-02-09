@@ -782,7 +782,6 @@ export class MenuController {
      * @param optionText - The user's input.
      */
     updateMenuOptions(optionText: string) {
-        console.log("updateMenuOptions", optionText)
         // If menu is not open, return
         if (!this.isMenuOpen()) return;
 
@@ -807,9 +806,7 @@ export class MenuController {
             (action) => {
                 if (action.oldOptionName.substring(0, 3) === "-- ") {
                     action.optionName = optionText + action.oldOptionName.substring(2);
-                    action.varChanged = true;
-                    console.log("Tester", action.optionName)
-                
+                    action.varChanged = true;                
                 }
             }
         );
@@ -856,8 +853,6 @@ export class MenuController {
         });
         menu.options = [];
 
-        console.log(actionsToKeep)
-
         for (const fuseResult of actionsToKeep) {
             let substringMatchRanges = [];
             const editAction = fuseResult.item;
@@ -898,8 +893,6 @@ export class MenuController {
             //     currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
             //         0
             // ) {
-            console.log(fuseResult)
-            console.log("Accessible", currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber))
             if (
                 editAction.varChanged &&
                 // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===

@@ -112,6 +112,7 @@ export class ActionExecutor {
                 break;
 
             case EditActionType.OpenAutocomplete: {
+                console.log("OpenAutocomplete");
                 const autocompleteTkn = new AutocompleteTkn(
                     action.data.firstChar,
                     action.data.autocompleteType,
@@ -1410,6 +1411,7 @@ export class ActionExecutor {
             }
 
             case EditActionType.OpenValidInsertMenu:
+                console.log("OpenValidInsertMenu")
                 this.openAutocompleteMenu(
                     this.module.actionFilter
                         .getProcessedInsertionsList()

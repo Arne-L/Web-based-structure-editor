@@ -215,7 +215,6 @@ export class Module {
                 // outerRoot.scope.references.push(new Reference(stmt, outerRoot.scope));
 
                 // If the statement contains assignments, push them to their parent scope
-                console.log(stmt)
                 if (stmt instanceof GeneralStatement && stmt.containsAssignments()) root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
             } else {
                 // The current statement has a body

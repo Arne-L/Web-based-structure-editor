@@ -902,7 +902,6 @@ export class GeneralStatement extends Statement implements Importable {
      * @param constructs - The constructs to add to the map
      */
     static addAllConstructs(constructs: GeneralStatement[]) {
-        console.log("Adding constructs", constructs);
         this.constructs = constructs.reduce((map, construct) => {
             map.set(construct.keyword, construct);
             return map;
@@ -4877,9 +4876,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
-        console.log(1)
         if (currentIdentifier !== this.oldIdentifier) {
-            console.log(2)
             // The identifier has changed
             if (currentIdentifier === EMPTYIDENTIFIER) {
                 // The identifier has been emptied
@@ -4887,7 +4884,6 @@ export class AssignmentToken extends IdentifierTkn {
                 // Remove the variable from the nearest scope
                 stmtScope.removeAssignment(this);
             } else {
-                console.log(3)
                 // If it goes from empty to non-empty, add the variable to the nearest scope
                 if (this.oldIdentifier === EMPTYIDENTIFIER && currentIdentifier !== EMPTYIDENTIFIER) {
                     stmtScope.addAssignment(this);
@@ -5026,7 +5022,6 @@ export class AutocompleteTkn extends Token implements TextEditable {
         this.autocompleteType = autocompleteCategory;
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
-        console.log("AutocompleteTkn: " + firstChar);
     }
 
     getToken(): Token {
