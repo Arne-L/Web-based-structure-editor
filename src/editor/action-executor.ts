@@ -1788,28 +1788,42 @@ export class ActionExecutor {
         }
     }
 
+    /**
+     * Insert the given expression into the current context, checking types and updating the Monaco editor
+     * in the process.
+     * 
+     * @param context - The current focus context
+     * @param code - The expression to insert
+     */
     private insertExpression(context: Context, code: Expression) {
         // type checks -- different handling based on type of code construct
         // focusedNode.returns != code.returns would work, but we need more context to get the right error message
+        // context.token is the focused hole in which you want to insert
+        // We can only insert expressions in holes / TypedEmptyExpr
         if (context.token instanceof TypedEmptyExpr) {
+            // The root of the hole (either an expression or a statement)
             const root = context.token.rootNode;
+            // Determine whether the expression "code" can be inserted into the hole
             let insertionResult = root.typeValidateInsertionIntoHole(code, context.token);
 
             if (insertionResult.insertionType != InsertionType.Invalid) {
+                // For all valid or draft mode insertions
+                // This seems to only update the types?
                 if (root instanceof Statement) {
                     root.onInsertInto(code);
                 }
 
+                // Remove message if there is one
                 if (context.token.message && context.selected) {
                     //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
                     this.module.messageController.removeMessageFromConstruct(context.token);
                 }
 
-                // replaces expression with the newly inserted expression
+                // Replaces expression with the newly inserted expression
                 const expr = code as Expression;
-
                 this.module.replaceFocusedExpression(expr);
 
+                // Current range
                 const range = new Range(
                     context.position.lineNumber,
                     context.token.left,
@@ -1817,16 +1831,19 @@ export class ActionExecutor {
                     context.token.right
                 );
 
+                // Update the text in the Monaco editor
                 this.module.editor.executeEdits(range, expr);
 
                 //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
                 if (!context.token.message) {
+                    console.log("Focus update context", code.getInitialFocus());
                     const newContext = code.getInitialFocus();
                     this.module.focus.updateContext(newContext);
                 }
             }
 
             if (root instanceof BinaryOperatorExpr) {
+                // Type check binary expression
                 root.validateTypes(this.module);
             } else if (insertionResult.insertionType == InsertionType.DraftMode) {
                 this.module.openDraftMode(code, insertionResult.message, [

@@ -602,5 +602,75 @@
             ],
             "search-queries": ["create new variable", "variable", "var"]
         }
+    },
+    {
+        "keyword": "stringLit",
+        "constructType": "expression",
+        "editorName": "\"\"",
+        "format": [
+            {
+                "type": "token",
+                "value": "\""
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            },
+            {
+                "type": "token",
+                "value": "\""
+            }
+        ],
+        "holes": [],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "text",
+            "tooltip": {
+                "title": "Insert a Text",
+                "body": "Inserts an editable text that is wrapped by double quotes."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-assign-str",
+                    "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
+                }
+            ],
+            "search-queries": ["create text", "create string", "empty string", "empty text"]
+        }
+    },
+    {
+        "keyword": "numberLit",
+        "constructType": "expression",
+        "editorName": "0",
+        "format": [
+            {
+                "type": "editable",
+                "value": "0",
+                "regex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$"
+            }
+        ],
+        "holes": [],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "123",
+            "tooltip": {
+                "title": "Insert a Number",
+                "body": "Inserts a number and edit its value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-num",
+                    "example": "age = 21\nprint(age)\nprint(21)"
+                }
+            ]
+        }
     }
 ]

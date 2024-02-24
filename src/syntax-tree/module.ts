@@ -539,13 +539,21 @@ export class Module {
         }
     }
 
+    /**
+     * Replace the focussed expression with the given expression
+     * 
+     * @param expr - The expression to replace the focussed expression with
+     */
     replaceFocusedExpression(expr: Expression) {
+        // Current context
         const context = this.focus.getContext();
 
         if (context.expression != null) {
+            // If we currently focussing an expression, replace it with the given expression
             const root = context.expression.rootNode as Statement;
             root.replace(expr, context.expression.indexInRoot);
         } else if (context.token != null) {
+            // If we currently focussing a token, replace it with the given expression
             const root = context.token.rootNode as Statement;
             root.replace(expr, context.token.indexInRoot);
         }

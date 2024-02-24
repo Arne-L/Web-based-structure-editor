@@ -337,15 +337,27 @@ export class Editor {
         }
     }
 
+    /**
+     * Add the text to the monaco editor at the given range and add a hole to the editor
+     * 
+     * @param range - The range in which to insert in the monaco editor
+     * @param code - The code to insert
+     * @param overwrite - The text to overwrite the range with. If null, the code's render text is used.
+     */
     executeEdits(range: Range, code: CodeConstruct, overwrite: string = null) {
+        // Text to use in the given range
         let text = overwrite;
 
+        // If overwrite is null, use the code's render text
         if (overwrite == null) text = code?.getRenderText() ? code.getRenderText() : "";
 
+        // Execute the edit in the monaco editor
         this.monaco.executeEdits("module", [{ range: range, text, forceMoveMarkers: true }]);
 
+        // Add hole to the editor for the current code
         if (code) this.addHoles(code);
 
+        // Update the focus of the browser
         this.monaco.focus();
     }
 

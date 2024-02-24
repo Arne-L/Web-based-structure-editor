@@ -1,6 +1,6 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
-import { Statement, GeneralStatement } from "../syntax-tree/ast";
+import { Statement, GeneralStatement, GeneralExpression } from "../syntax-tree/ast";
 import * as constructs from "./python.json";
 
 /***
@@ -121,7 +121,10 @@ export function addEditCodeActionsToCategories(
  * @returns - a function that returns a GeneralStatement
  */
 function getCodeFunction(construct): () => Statement {
-    return () => new GeneralStatement(construct);
+    // Currently handle expression and statement separately
+    // Merge them into one in the future
+    if (construct.constructType === "expression") return () => new GeneralExpression(construct);
+    else return () => new GeneralStatement(construct);
 }
 
 /* EVERYTHING RELATED TO ... */

@@ -65,7 +65,7 @@ import {
     GeneralStatement,
     IfStatement,
     ImportStatement,
-    KeywordStmt,
+    // KeywordStmt,
     ListAccessModifier,
     ListComma,
     ListLiteralExpression,
@@ -424,20 +424,20 @@ export class Actions {
             null
         );
 
-        const StringLiteralExpr = new EditCodeAction(
-            '""',
-            "add-str-btn",
-            () => new LiteralValExpr(DataType.String, ""),
-            InsertActionType.InsertLiteral,
-            {
-                literalType: DataType.String,
-                initialValue: "",
-            },
-            StrDocs,
-            [],
-            "",
-            null
-        );
+        // const StringLiteralExpr = new EditCodeAction(
+        //     '""',
+        //     "add-str-btn",
+        //     () => new LiteralValExpr(DataType.String, ""),
+        //     InsertActionType.InsertLiteral,
+        //     {
+        //         literalType: DataType.String,
+        //         initialValue: "",
+        //     },
+        //     StrDocs,
+        //     [],
+        //     "",
+        //     null
+        // );
 
         const FormattedStringLiteralExpr = new EditCodeAction(
             "f''",
@@ -1315,7 +1315,7 @@ export class Actions {
             RangeExpr,
             LenExpr,
             InputExpr,
-            StringLiteralExpr,
+            // StringLiteralExpr,
             FormattedStringLiteralExpr,
             FormattedStringItem,
             NumberLiteralExpr,
@@ -1711,7 +1711,7 @@ export class Actions {
         // );
         this.toolboxCategories.push(
             new ToolboxCategory("Texts", "text-toolbox-group", [
-                StringLiteralExpr,
+                // StringLiteralExpr,
                 FormattedStringLiteralExpr,
                 FormattedStringItem,
                 SplitMethodMod,

@@ -332,13 +332,14 @@ export abstract class Statement implements CodeConstruct {
     }
 
     /**
-     * 
-     * @param type 
+     * Call all callbacks of the given type on this statement and on all of its tokens.
+     *
+     * @param type - The type of the callback to be notified
      */
     notify(type: CallbackType) {
         for (const callback of this.callbacks[type]) callback.callback(this);
 
-        // We call callbacks on all token of a statement as well 
+        // We call callbacks on all token of a statement as well
         for (const token of this.tokens) {
             token.notify(type);
         }
@@ -522,7 +523,8 @@ export abstract class Statement implements CodeConstruct {
 
     /**
      * Returns the Module
-     * @returns the parent module of the whole system
+     *
+     * @returns the module of the whole system
      */
     getModule(): Module {
         if (this.rootNode instanceof Module) return this.rootNode;
@@ -860,6 +862,9 @@ export class GeneralStatement extends Statement implements Importable {
                     this.tokens.push(new AssignmentToken(undefined, this, this.tokens.length, RegExp(token.regex)));
                     this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
+                case "editable":
+                    this.tokens.push(new EditableTextTkn(token.value ?? "", RegExp(token.regex), this, this.tokens.length));
+                    break;
                 default:
                     // Invalid type => What to do about it?
                     console.warn("Invalid type: " + token.type);
@@ -1082,6 +1087,7 @@ export class GeneralStatement extends Statement implements Importable {
             // in reality this would probably often be infinite.
 
             // If null, then we are at the top of the tree
+            console.log(context.lineStatement);
             let currentParent = validator.getParentOf(context.lineStatement);
             let level = 0;
             while (currentParent) {
@@ -1195,6 +1201,61 @@ export class GeneralStatement extends Statement implements Importable {
  * zou gebeuren van de toolbox items!
  */
 
+export class GeneralExpression extends GeneralStatement {
+    // Overwrite types of the superclass
+    rootNode: GeneralExpression | GeneralStatement = null;
+
+    constructor(construct: any, root?: GeneralStatement | Module, indexInRoot?: number) {
+        super(construct, root, indexInRoot);
+    }
+
+    getLineNumber(): number {
+        return this.lineNumber ?? this.rootNode.getLineNumber();
+    }
+
+    getSelection(): Selection {
+        const line = this.getLineNumber();
+
+        return new Selection(line, this.right, line, this.left);
+    }
+
+    /**
+     * Get the parent statement of the current expression
+     *
+     * @returns The parent statement of the current expression
+     */
+    getParentStatement(): Statement {
+        // Change to GeneralStatement in the future
+        if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
+        else {
+            console.log(this.rootNode);
+            return this.rootNode.getParentStatement();
+        }
+    }
+
+    canReplaceWithConstruct(newExpr: Expression): InsertionResult {
+        // Currently simply return Valid, change if this poses problems
+        return new InsertionResult(InsertionType.Valid, "", []);
+    }
+
+    validateContext(validator: Validator, providedContext: Context): InsertionType {
+        return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+    }
+
+    getInitialFocus(): UpdatableContext {
+        let newContext = new Context();
+
+        switch (this.tokens.length) {
+            case 3:
+            case 1:
+                return { positionToMove: new Position(this.lineNumber, this.left + 1) };
+
+            case 0:
+                return { positionToMove: new Position(this.lineNumber, this.right) };
+        }
+    }
+}
+
 /**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
  */
@@ -1205,6 +1266,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
 
     // TODO: can change this to an Array to enable type checking when returning multiple items
     returns: DataType; // ONLY FOR TYPING
+    // OVERGEERFT VAN STATEMENT?
     simpleInvalidTooltip = Tooltip.InvalidInsertExpression; // NODIG KINDA
 
     constructor(returns: DataType) {
@@ -1264,43 +1326,45 @@ export abstract class Expression extends Statement implements CodeConstruct {
 
     //TODO: see if this needs any changes for #526
     /**
-     * Return whether this construct can be replaced with replaceWith based on their respective types.
+     * Return whether this construct can be replaced with newExpr based on their respective types.
      * Can replace a bin expression in only two cases
-     *   1: replaceWith has the same return type
-     *   2: replaceWith can be cast/modified to become the same type as the bin op being replaced
+     *   1: newExpr has the same return type
+     *   2: newExpr can be cast/modified to become the same type as the bin op being replaced
      */
-    canReplaceWithConstruct(replaceWith: Expression): InsertionResult {
+    canReplaceWithConstruct(newExpr: Expression): InsertionResult {
         //when we are replacing at the top level (meaning the item above is a Statement),
         //we need to check types against the type of hole that used to be there and not the expression
         //that is currently there
 
         //Might need the same fix for MemberCallStmt in the future, but it does not work right now so cannot check
 
+        // If the rootnode is an valid expression
         if (this.rootNode instanceof Expression && !this.draftModeEnabled) {
             //when replacing within expression we need to check if the replacement can be cast into or already has the same type as the one being replaced
-            if (replaceWith.returns === this.returns || this.returns === DataType.Any) {
+            if (newExpr.returns === this.returns || this.returns === DataType.Any) {
+                // If datatype of newExpr is the same as the datatype of the expression being replaced
+                // or the datatype of the expression being replaced is Any
                 return new InsertionResult(InsertionType.Valid, "", []);
             } else if (
-                replaceWith.returns !== this.returns &&
-                hasMatch(Util.getInstance().typeConversionMap.get(replaceWith.returns), [this.returns]) &&
+                newExpr.returns !== this.returns &&
+                hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), [this.returns]) &&
                 !(this.rootNode instanceof BinaryOperatorExpr)
             ) {
-                const conversionRecords = typeToConversionRecord.has(replaceWith.returns)
-                    ? typeToConversionRecord
-                          .get(replaceWith.returns)
-                          .filter((record) => record.convertTo == this.returns)
+                // Types don't match but can be converted
+                const conversionRecords = typeToConversionRecord.has(newExpr.returns)
+                    ? typeToConversionRecord.get(newExpr.returns).filter((record) => record.convertTo == this.returns)
                     : [];
 
                 return new InsertionResult(
                     InsertionType.DraftMode,
-                    TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(this.getKeyword(), [this.returns], replaceWith.returns),
+                    TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(this.getKeyword(), [this.returns], newExpr.returns),
                     conversionRecords
                 );
             } else if (this.rootNode instanceof BinaryOperatorExpr) {
                 const typeOfHoles = this.rootNode.typeOfHoles[this.indexInRoot];
                 if (
-                    hasMatch(typeOfHoles, [replaceWith.returns]) ||
-                    hasMatch(Util.getInstance().typeConversionMap.get(replaceWith.returns), typeOfHoles)
+                    hasMatch(typeOfHoles, [newExpr.returns]) ||
+                    hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), typeOfHoles)
                 ) {
                     return new InsertionResult(InsertionType.DraftMode, "", []);
                 }
@@ -1308,20 +1372,21 @@ export abstract class Expression extends Statement implements CodeConstruct {
                 return new InsertionResult(InsertionType.Invalid, "", []);
             }
         } else if (!(this.rootNode instanceof Module)) {
+            // rootNode is either a statement or an expression in draft mode
             const rootTypeOfHoles = (this.rootNode as Statement).typeOfHoles;
 
             if (Object.keys(rootTypeOfHoles).length > 0) {
                 const typesOfParentHole = rootTypeOfHoles[this.indexInRoot];
 
                 let canConvertToParentType = hasMatch(
-                    Util.getInstance().typeConversionMap.get(replaceWith.returns),
+                    Util.getInstance().typeConversionMap.get(newExpr.returns),
                     typesOfParentHole
                 );
 
-                if (canConvertToParentType && !hasMatch(typesOfParentHole, [replaceWith.returns])) {
-                    const conversionRecords = typeToConversionRecord.has(replaceWith.returns)
+                if (canConvertToParentType && !hasMatch(typesOfParentHole, [newExpr.returns])) {
+                    const conversionRecords = typeToConversionRecord.has(newExpr.returns)
                         ? typeToConversionRecord
-                              .get(replaceWith.returns)
+                              .get(newExpr.returns)
                               .filter((record) => typesOfParentHole.indexOf(record.convertTo) > -1)
                         : [];
 
@@ -1330,13 +1395,13 @@ export abstract class Expression extends Statement implements CodeConstruct {
                         TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(
                             this.rootNode.getKeyword(),
                             typesOfParentHole,
-                            replaceWith.returns
+                            newExpr.returns
                         ),
                         conversionRecords
                     );
                 } else if (
                     typesOfParentHole?.some((t) => t == DataType.Any) ||
-                    hasMatch(typesOfParentHole, [replaceWith.returns])
+                    hasMatch(typesOfParentHole, [newExpr.returns])
                 ) {
                     return new InsertionResult(InsertionType.Valid, "", []);
                 }
@@ -2040,7 +2105,7 @@ export class ImportStatement extends Statement {
 /**
  * Empty line construct is created to show the user the body of the statement and allows
  * for easy navigation to the body of the statement. In the editor it is represented by an
- * empty intended light blue line.
+ * empty intended light blue line. It is also used to represent a currently empty line.
  */
 export class EmptyLineStmt extends Statement {
     hasEmptyToken = false;
@@ -2532,9 +2597,7 @@ export class VariableReferenceExpr extends Expression {
     constructor(id: string, returns: DataType, uniqueId: string, root?: Statement, indexInRoot?: number) {
         super(returns);
 
-        const idToken = new NonEditableTkn(id);
-        idToken.rootNode = this; // This can be done in the instance creation
-        idToken.indexInRoot = this.tokens.length; // Idem
+        const idToken = new NonEditableTkn(id, this, this.tokens.length);
         this.keywordIndex = this.tokens.length;
         this.tokens.push(idToken);
 
@@ -3377,36 +3440,36 @@ export class ListElementAssignment extends Statement {
 /**
  * Statement consisting of a single keyword like "break", "continue", "pass" ...
  */
-export class KeywordStmt extends Statement {
-    validator: (context: Context) => boolean;
+// export class KeywordStmt extends Statement {
+//     validator: (context: Context) => boolean;
 
-    constructor(
-        keyword,
-        root?: Statement | Expression,
-        indexInRoot?: number,
-        validator?: (context: Context) => boolean
-    ) {
-        super();
+//     constructor(
+//         keyword,
+//         root?: Statement | Expression,
+//         indexInRoot?: number,
+//         validator?: (context: Context) => boolean
+//     ) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-        this.validator = validator;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//         this.validator = validator;
 
-        this.tokens.push(new NonEditableTkn(keyword, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn(keyword, this, this.tokens.length));
 
-        if (keyword === "break") {
-            this.simpleInvalidTooltip = Tooltip.InvalidInsertBreak;
-        }
-    }
+//         if (keyword === "break") {
+//             this.simpleInvalidTooltip = Tooltip.InvalidInsertBreak;
+//         }
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) &&
-            !validator.isAboveElseStatement(providedContext) &&
-            this.validator(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) &&
+//             !validator.isAboveElseStatement(providedContext) &&
+//             this.validator(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 /**
  * DEAD CODE?!?
@@ -3816,6 +3879,11 @@ export class BinaryOperatorExpr extends Expression {
         }
     }
 
+    /**
+     * Update the return type of an expression and its operands when inserting into the expression.
+     * 
+     * @param insertCode - The code to insert
+     */
     performTypeUpdatesOnInsertInto(insertCode: Expression) {
         //return type update
         if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
@@ -4011,6 +4079,14 @@ export class BinaryOperatorExpr extends Expression {
 
     //TODO: Passing module recursively is bad for memory
     //TODO: Function is way too large. Can definitely be split into smaller ones.
+    /**
+     * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
+     * recursively for all nested binary expressions.
+     * 
+     * @param expr - Binary expression
+     * @param module - Current module
+     * @returns Whether the binary expression is valid
+     */
     private validateBinExprTypes(expr: BinaryOperatorExpr, module: Module): boolean {
         const leftOperand = expr.getLeftOperand();
         const rightOperand = expr.getRightOperand();
@@ -4390,7 +4466,6 @@ export class EditableTextTkn extends Token implements TextEditable {
 
     constructor(text: string, regex: RegExp, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
-
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.validatorRegex = regex;
@@ -4860,13 +4935,12 @@ export class AssignmentToken extends IdentifierTkn {
         super(identifier, root, indexInRoot, regex);
 
         this.subscribe(
-                CallbackType.onFocusOff,
-                new Callback(() => {
-                    this.onFocusOff();
-                })
-            );
+            CallbackType.onFocusOff,
+            new Callback(() => {
+                this.onFocusOff();
+            })
+        );
     }
-
 
     onFocusOff(): void {
         // Get the current identifier
