@@ -151,22 +151,35 @@ export class Module {
         Util.getInstance(this);
     }
 
+    /**
+     * Send a notification with the given type to the given construct and all of its children
+     * 
+     * @param code - The code to be notified
+     * @param callbackType - The type of the notification
+     */
     recursiveNotify(code: CodeConstruct, callbackType: CallbackType) {
+        // Notify the current CodeConstruct
         code.notify(callbackType);
 
+        // If the current CodeConstruct is a Statement or an Expression, notify all of its tokens
         if (code instanceof Expression || code instanceof Statement) {
             const codeStack = new Array<CodeConstruct>();
+            // Get all of the tokens of the construct
             codeStack.unshift(...code.tokens);
 
+            // Add all body statements to the stack if it is a statement
             if (code instanceof Statement && code.hasBody()) codeStack.unshift(...code.body);
 
+            // Keep notifying until the stack is empty
             while (codeStack.length > 0) {
                 const curCode = codeStack.pop();
                 curCode.notify(callbackType);
 
+                // Add tokens and body recursively to the stack
                 if (curCode instanceof Statement || curCode instanceof Expression) codeStack.unshift(...curCode.tokens);
                 if (curCode instanceof Statement && curCode.hasBody()) codeStack.unshift(...curCode.body);
             }
+        // If the current CodeConstruct is a Token, send a notification
         } else if (code instanceof Token) code.notify(callbackType);
     }
 

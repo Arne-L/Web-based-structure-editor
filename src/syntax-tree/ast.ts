@@ -2683,6 +2683,8 @@ export class ValueOperationExpr extends Expression {
 }
 
 /**
+ * ONLY USED TO INSERT A VARIABLE REFERENCE ON AN EMPTY LINE ==> DELETE?
+ * 
  * Statement encapsulating a variable assignment operation.
  * Can be a variable reference but also operations on the reference or
  * modifiers on the reference.
@@ -4841,7 +4843,7 @@ export class ListComma extends Expression {
 }
 
 /**
- * Variable reference expression, created within a for loop and a variable assignment statement
+ * Editable token used to represent an identifier
  */
 export class IdentifierTkn extends Token implements TextEditable {
     isTextEditable = true;

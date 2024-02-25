@@ -561,6 +561,9 @@ export class MenuController {
         return null;
     }
 
+    /**
+     * Clear all current menus
+     */
     removeMenus() {
         this.menus.forEach((menu) => {
             menu.close();
@@ -714,11 +717,17 @@ export class MenuController {
         });
     }
 
+    /**
+     * Recreate the options in the menu and set the correct focused option
+     */
     styleMenuOptions() {
         if (this.isMenuOpen()) {
+            // Menu is open
             const textEnhance = new TextEnhance();
+            // Get current menu ... but there should always be only one menu
             const menu = this.menus[this.focusedMenuIndex];
 
+            // All actions
             let actionsToKeep = menu.editCodeActionsOptions;
 
             //------RECREATE OPTIONS------
@@ -734,6 +743,7 @@ export class MenuController {
             menu.options = [];
 
             for (const action of actionsToKeep) {
+                // Create an menu option for each action
                 let option = new MenuOption(
                     action.optionName,
                     true,
@@ -753,8 +763,10 @@ export class MenuController {
                     action.insertionResult.insertionType == InsertionType.DraftMode
                 );
 
+                // Add option to menu
                 this.insertOptionIntoMenu(option, menu);
 
+                // Set the current focused index and give the option a special style
                 if (option.text === focusedOptionText) {
                     this.focusedOptionIndex = menu.options.length - 1;
                     option.htmlElement.classList.add(MenuController.selectedOptionElementClass);
@@ -1014,6 +1026,11 @@ export class MenuController {
         }
     }
 
+    /**
+     * Set the current menu at the given position.
+     * 
+     * @param pos - The position to place the menu at.
+     */
     updatePosition(pos: { left: number; top: number }) {
         const element = this.menus[this.focusedMenuIndex]?.htmlElement;
 

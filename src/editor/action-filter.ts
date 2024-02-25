@@ -533,6 +533,7 @@ export class EditCodeAction extends UserAction {
         source: {},
         autocompleteData?: {}
     ) {
+        // Current context
         let context = providedContext;
 
         if (autocompleteData) context = executor.deleteAutocompleteOnMatch(providedContext);
