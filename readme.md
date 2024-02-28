@@ -47,3 +47,13 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 ### Possible titles
 * Frame-based programming language-agnostic web-based editor
 * Educatieve programming language agnostic structure editor (EPLASE)
+
+
+
+
+### Short cuts / key presses
+The following list is an exhaustive description of all keyboard 
+combinations in the edit
+* 
+* ctrl + space: Open the suggestion menu
+*

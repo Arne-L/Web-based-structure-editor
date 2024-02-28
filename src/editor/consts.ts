@@ -1,4 +1,3 @@
-import * as AddVarDocs from "../docs/add-var.json";
 import * as AddDocs from "../docs/add.json";
 import * as AndDocs from "../docs/and.json";
 import * as AssignAddDocs from "../docs/assign-add.json";
@@ -6,7 +5,6 @@ import * as AssignDivDocs from "../docs/assign-div.json";
 import * as AssignMultDocs from "../docs/assign-mult.json";
 import * as AssignSubDocs from "../docs/assign-sub.json";
 import * as AssignDocs from "../docs/assign.json";
-import * as BreakDocs from "../docs/break.json";
 import * as RandChoiceDocs from "../docs/choice.json";
 import * as CompEqDocs from "../docs/comp-eq.json";
 import * as CompGtDocs from "../docs/comp-gt.json";
@@ -22,7 +20,6 @@ import * as FStringDocs from "../docs/f-str.json";
 import * as FalseDocs from "../docs/false.json";
 import * as FindDocs from "../docs/find.json";
 import * as FloorDivDocs from "../docs/floor-div.json";
-import * as ForDocs from "../docs/for.json";
 import * as IfDocs from "../docs/if.json";
 import * as ImportDocs from "../docs/import.json";
 import * as InDocs from "../docs/in.json";
@@ -44,7 +41,6 @@ import * as RandintDocs from "../docs/randint.json";
 import * as RangeDocs from "../docs/range.json";
 import * as ReplaceDocs from "../docs/replace.json";
 import * as SplitDocs from "../docs/split.json";
-import * as StrDocs from "../docs/str.json";
 import * as SubDocs from "../docs/sub.json";
 import * as CastToIntDocs from "../docs/to-int.json";
 import * as CastToStrDocs from "../docs/to-str.json";
@@ -62,7 +58,6 @@ import {
     FormattedStringExpr,
     FunctionCallExpr,
     FunctionCallStmt,
-    GeneralStatement,
     IfStatement,
     ImportStatement,
     // KeywordStmt,
@@ -74,9 +69,6 @@ import {
     OperatorTkn,
     Statement,
     UnaryOperatorExpr,
-    ValueOperationExpr,
-    // VarAssignmentStmt,
-    VarOperationStmt,
     WhileStatement,
 } from "../syntax-tree/ast";
 import {
@@ -87,12 +79,10 @@ import {
     NumberRegex,
     UnaryOperator,
 } from "../syntax-tree/consts";
-import { Module } from "../syntax-tree/module";
 import { EditCodeAction } from "./action-filter";
-import { Context } from "./focus";
 
 /**
- * Define all special keypresses 
+ * Define all special keypresses
  */
 export enum KeyPress {
     // navigation:
@@ -141,12 +131,13 @@ export enum KeyPress {
 }
 
 /**
- * Enumeration of all possible edit actions that can be made (copy, move left, 
- * delete to end, delete previous token, indent backwards, open suggestion menu, 
- * insert formatted string …) 
+ * Enumeration of all possible edit actions that can be made (copy, move left,
+ * delete to end, delete previous token, indent backwards, open suggestion menu,
+ * insert formatted string …)
  */
 export enum EditActionType {
     InsertGeneralStmt,
+    InsertGeneralExpr,
 
     Copy, // TODO: NYI: could use default or navigator.clipboard.writeText()
     Paste, // TODO: NYI: check navigator.clipboard.readText()
@@ -260,12 +251,13 @@ export enum ConstructName {
 }
 
 /**
- *Type enumeration of (groups of) code structs that can be inserted into the editor. 
- * Some code blocks are grouped under one option if they are similar enough e.g. 
+ *Type enumeration of (groups of) code structs that can be inserted into the editor.
+ * Some code blocks are grouped under one option if they are similar enough e.g.
  * If and While are grouped under “InsertStatement”
  */
 export enum InsertActionType {
     InsertGeneralStmt,
+    InsertGeneralExpr,
 
     InsertNewVariableStmt,
 
@@ -1709,61 +1701,65 @@ export class Actions {
         // this.toolboxCategories.push(
         //     new ToolboxCategory("Random", "randoms-toolbox-group", [RandChoiceExpr, RandIntExpr])
         // );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Texts", "text-toolbox-group", [
-                // StringLiteralExpr,
-                FormattedStringLiteralExpr,
-                FormattedStringItem,
-                SplitMethodMod,
-                JoinMethodMod,
-                FindMethodMod,
-                ReplaceMethodMod,
-            ])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Lists", "list-ops-toolbox-group", [
-                ListLiteralExpr,
-                ListCommaItem,
-                ListIndexAccessor,
-                AppendMethodMod,
-            ])
-        );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Texts", "text-toolbox-group", [
+        //         // StringLiteralExpr,
+        //         // FormattedStringLiteralExpr,
+        //         // FormattedStringItem,
+        //         // SplitMethodMod,
+        //         // JoinMethodMod,
+        //         // FindMethodMod,
+        //         // ReplaceMethodMod,
+        //     ])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Lists", "list-ops-toolbox-group", [
+        //         // ListLiteralExpr,
+        //         // ListCommaItem,
+        //         // ListIndexAccessor,
+        //         // AppendMethodMod,
+        //     ])
+        // );
 
-        this.toolboxCategories.push(
-            new ToolboxCategory("Arithmetics", "arithmetics-toolbox-group", [
-                BinAddExpr,
-                BinSubExpr,
-                BinMultExpr,
-                BinDivExpr,
-                BinFloorDivExpr,
-                BinModExpr,
-            ])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Comparisons", "comparison-ops-toolbox-group", [
-                BinCompEqExpr,
-                BinCompNeqExpr,
-                BinCompLtExpr,
-                BinCompLteExpr,
-                BinCompGtExpr,
-                BinCompGteExpr,
-                BinInExpr,
-                BinNotInExpr,
-            ])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Booleans", "boolean-ops-toolbox-group", [
-                BinAndExpr,
-                BinOrExpr,
-                UnaryNotExpr,
-                BooleanTrueLiteralExpr,
-                BooleanFalseLiteralExpr,
-            ])
-        );
-        this.toolboxCategories.push(
-            new ToolboxCategory("Converts", "convert-ops-toolbox-group", [CastStrExpr, CastIntExpr])
-        );
-        this.toolboxCategories.push(new ToolboxCategory("Imports", "import-ops-toolbox-group", [ImportStmt]));
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Arithmetics", "arithmetics-toolbox-group", [
+        //         // BinAddExpr,
+        //         // BinSubExpr,
+        //         // BinMultExpr,
+        //         // BinDivExpr,
+        //         // BinFloorDivExpr,
+        //         // BinModExpr,
+        //     ])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Comparisons", "comparison-ops-toolbox-group", [
+        //         // BinCompEqExpr,
+        //         // BinCompNeqExpr,
+        //         // BinCompLtExpr,
+        //         // BinCompLteExpr,
+        //         // BinCompGtExpr,
+        //         // BinCompGteExpr,
+        //         // BinInExpr,
+        //         // BinNotInExpr,
+        //     ])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Booleans", "boolean-ops-toolbox-group", [
+        //         // BinAndExpr,
+        //         // BinOrExpr,
+        //         // UnaryNotExpr,
+        //         // BooleanTrueLiteralExpr,
+        //         // BooleanFalseLiteralExpr,
+        //     ])
+        // );
+        // this.toolboxCategories.push(
+        //     new ToolboxCategory("Converts", "convert-ops-toolbox-group", [
+        //         // CastStrExpr, CastIntExpr
+        //     ])
+        // );
+        // this.toolboxCategories.push(new ToolboxCategory("Imports", "import-ops-toolbox-group", [
+        //     // ImportStmt
+        // ]));
 
         // Add all EditCodeActions to the categories that are loaded from the configuration file
         addEditCodeActionsToCategories(this.toolboxCategories, loadedCodeActions);

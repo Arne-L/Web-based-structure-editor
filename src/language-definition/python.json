@@ -606,11 +606,11 @@
     {
         "keyword": "stringLit",
         "constructType": "expression",
-        "editorName": "\"\"",
+        "editorName": "''",
         "format": [
             {
                 "type": "token",
-                "value": "\""
+                "value": "'"
             },
             {
                 "type": "editable",
@@ -618,7 +618,7 @@
             },
             {
                 "type": "token",
-                "value": "\""
+                "value": "'"
             }
         ],
         "holes": [],

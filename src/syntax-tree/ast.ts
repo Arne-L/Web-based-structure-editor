@@ -5109,6 +5109,11 @@ export class AutocompleteTkn extends Token implements TextEditable {
     }
 
     // Why use this function? This is less complete than checkMatch?
+    /**
+     * Get the exact matching EditCodeAction from the list of valid matches
+     * 
+     * @returns - Matching EditCodeAction or null if no match
+     */
     isMatch(): EditCodeAction {
         for (const match of this.validMatches) if (this.text == match.matchString) return match;
 

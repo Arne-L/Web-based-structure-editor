@@ -131,6 +131,14 @@ export class ActionExecutor {
 
                 break;
 
+            // TODO: Merge with InsertGeneralStmt
+            case EditActionType.InsertGeneralExpr:
+                this.insertExpression(context, action.data?.expression);
+
+                if (flashGreen) this.flashGreen(action.data?.expression);
+
+                break;
+
             case EditActionType.OpenAutocomplete: {
                 console.log("OpenAutocomplete");
                 const autocompleteTkn = new AutocompleteTkn(
@@ -221,94 +229,94 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.InsertElseStatement: {
-                const newStatement = new ElseStatement(action.data.hasCondition);
+            // case EditActionType.InsertElseStatement: {
+            //     const newStatement = new ElseStatement(action.data.hasCondition);
 
-                if (action.data.outside) {
-                    // when the else is being inserted outside: The else is at the same level as the if
-                    const elseRoot = context.lineStatement.rootNode as Module | Statement;
-                    // Fit the new else(/elif) statement in the root of the current statement
-                    newStatement.rootNode = elseRoot;
-                    newStatement.indexInRoot = context.lineStatement.indexInRoot;
-                    newStatement.body.push(new EmptyLineStmt(newStatement, 0)); // Add a body to the else/elif
+            //     if (action.data.outside) {
+            //         // when the else is being inserted outside: The else is at the same level as the if
+            //         const elseRoot = context.lineStatement.rootNode as Module | Statement;
+            //         // Fit the new else(/elif) statement in the root of the current statement
+            //         newStatement.rootNode = elseRoot;
+            //         newStatement.indexInRoot = context.lineStatement.indexInRoot;
+            //         newStatement.body.push(new EmptyLineStmt(newStatement, 0)); // Add a body to the else/elif
 
-                    replaceInBody(elseRoot, newStatement.indexInRoot, newStatement);
-                    rebuildBody(elseRoot, newStatement.indexInRoot, context.lineStatement.lineNumber);
-                    this.module.editor.executeEdits(this.getBoundaries(context.lineStatement), newStatement);
-                } else {
-                    // when being inserted inside: The else is in the body of the if
-                    const curStmtRoot = context.lineStatement.rootNode as Statement; // Probably an if statement
-                    const elseRoot = curStmtRoot.rootNode as Module | Statement; // Probably root of if statement
-                    newStatement.rootNode = elseRoot; // Make the else a child of the if's root (so a sibling of the if)
-                    newStatement.indexInRoot = curStmtRoot.indexInRoot + 1; // You need to insert after the if
-                    // In the "outside" case, you take the "indexInRoot" of the current context, while here you take
-                    // the indexInRoot of the if statement (the parent of the context) and thus need to add one to it
+            //         replaceInBody(elseRoot, newStatement.indexInRoot, newStatement);
+            //         rebuildBody(elseRoot, newStatement.indexInRoot, context.lineStatement.lineNumber);
+            //         this.module.editor.executeEdits(this.getBoundaries(context.lineStatement), newStatement);
+            //     } else {
+            //         // when being inserted inside: The else is in the body of the if
+            //         const curStmtRoot = context.lineStatement.rootNode as Statement; // Probably an if statement
+            //         const elseRoot = curStmtRoot.rootNode as Module | Statement; // Probably root of if statement
+            //         newStatement.rootNode = elseRoot; // Make the else a child of the if's root (so a sibling of the if)
+            //         newStatement.indexInRoot = curStmtRoot.indexInRoot + 1; // You need to insert after the if
+            //         // In the "outside" case, you take the "indexInRoot" of the current context, while here you take
+            //         // the indexInRoot of the if statement (the parent of the context) and thus need to add one to it
 
-                    // indent back and place all of the code below it as its child
-                    const toMoveStatements = curStmtRoot.body.splice(
-                        // curStmtRoot is the if statement
-                        context.lineStatement.indexInRoot,
-                        curStmtRoot.body.length - context.lineStatement.indexInRoot
-                    ); // Place all items from the current (else) line to the end in the body of the else statement
+            //         // indent back and place all of the code below it as its child
+            //         const toMoveStatements = curStmtRoot.body.splice(
+            //             // curStmtRoot is the if statement
+            //             context.lineStatement.indexInRoot,
+            //             curStmtRoot.body.length - context.lineStatement.indexInRoot
+            //         ); // Place all items from the current (else) line to the end in the body of the else statement
 
-                    // remove the empty line statement: the current line contains an empty line statement because it was
-                    // initially a space to insert a new statement
-                    toMoveStatements.splice(0, 1)[0];
+            //         // remove the empty line statement: the current line contains an empty line statement because it was
+            //         // initially a space to insert a new statement
+            //         toMoveStatements.splice(0, 1)[0];
 
-                    if (toMoveStatements.length == 0) newStatement.body.push(new EmptyLineStmt(newStatement, 0));
-                    const providedLeftPos = new Position(
-                        context.lineStatement.lineNumber,
-                        context.lineStatement.left - TAB_SPACES
-                    );
-                    newStatement.build(providedLeftPos);
+            //         if (toMoveStatements.length == 0) newStatement.body.push(new EmptyLineStmt(newStatement, 0));
+            //         const providedLeftPos = new Position(
+            //             context.lineStatement.lineNumber,
+            //             context.lineStatement.left - TAB_SPACES
+            //         );
+            //         newStatement.build(providedLeftPos);
 
-                    this.module.editor.executeEdits(
-                        this.getBoundaries(context.lineStatement, { selectIndent: true }),
-                        newStatement
-                    );
+            //         this.module.editor.executeEdits(
+            //             this.getBoundaries(context.lineStatement, { selectIndent: true }),
+            //             newStatement
+            //         );
 
-                    // Split the current references in the references for the if statement and
-                    // the references for the else statement
-                    const topReferences = new Array<Reference>();
-                    const bottomReferences = new Array<Reference>();
+            //         // Split the current references in the references for the if statement and
+            //         // the references for the else statement
+            //         const topReferences = new Array<Reference>();
+            //         const bottomReferences = new Array<Reference>();
 
-                    for (const ref of curStmtRoot.scope.references) {
-                        if (ref.getAssignment().getParentStatement().indexInRoot > context.lineStatement.indexInRoot) {
-                            bottomReferences.push(ref);
-                        } else topReferences.push(ref);
-                    }
+            //         for (const ref of curStmtRoot.scope.references) {
+            //             if (ref.getAssignment().getParentStatement().indexInRoot > context.lineStatement.indexInRoot) {
+            //                 bottomReferences.push(ref);
+            //             } else topReferences.push(ref);
+            //         }
 
-                    if (bottomReferences.length > 0) {
-                        curStmtRoot.scope.references = topReferences;
-                        newStatement.scope.references = bottomReferences;
-                    }
+            //         if (bottomReferences.length > 0) {
+            //             curStmtRoot.scope.references = topReferences;
+            //             newStatement.scope.references = bottomReferences;
+            //         }
 
-                    // Add each of the moved statements to the body of the else statement
-                    for (const [i, stmt] of toMoveStatements.entries()) {
-                        stmt.rootNode = newStatement;
-                        stmt.indexInRoot = i;
-                        newStatement.body.push(stmt);
-                    }
+            //         // Add each of the moved statements to the body of the else statement
+            //         for (const [i, stmt] of toMoveStatements.entries()) {
+            //             stmt.rootNode = newStatement;
+            //             stmt.indexInRoot = i;
+            //             newStatement.body.push(stmt);
+            //         }
 
-                    // Add the else statement itself to the body of its rootNode
-                    newStatement.init(providedLeftPos);
-                    newStatement.rootNode = elseRoot;
-                    newStatement.indexInRoot = newStatement.indexInRoot; // Heu ... Why?
-                    this.module.addStatementToBody(
-                        elseRoot,
-                        newStatement,
-                        newStatement.indexInRoot,
-                        providedLeftPos.lineNumber
-                    );
-                }
+            //         // Add the else statement itself to the body of its rootNode
+            //         newStatement.init(providedLeftPos);
+            //         newStatement.rootNode = elseRoot;
+            //         newStatement.indexInRoot = newStatement.indexInRoot; // Heu ... Why?
+            //         this.module.addStatementToBody(
+            //             elseRoot,
+            //             newStatement,
+            //             newStatement.indexInRoot,
+            //             providedLeftPos.lineNumber
+            //         );
+            //     }
 
-                if (flashGreen) this.flashGreen(newStatement);
+            //     if (flashGreen) this.flashGreen(newStatement);
 
-                let scopeHighlight = new ScopeHighlight(this.module.editor, newStatement);
-                // eventData.code = "else-statement";
+            //     let scopeHighlight = new ScopeHighlight(this.module.editor, newStatement);
+            //     // eventData.code = "else-statement";
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.InsertExpression: {
                 this.insertExpression(context, action.data?.expression);
@@ -336,23 +344,23 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.InsertVarAssignStatement: {
-                //TODO: Might want to change back to use the case above if no new logic is added
-                const stmt = action.data?.statement;
+            // case EditActionType.InsertVarAssignStatement: {
+            //     //TODO: Might want to change back to use the case above if no new logic is added
+            //     const stmt = action.data?.statement;
 
-                const id = action.data?.autocompleteData?.identifier?.trim();
+            //     const id = action.data?.autocompleteData?.identifier?.trim();
 
-                if (stmt instanceof GeneralStatement && stmt.containsAssignments() && id) stmt.setAssignmentIdentifier(id, 0);
+            //     if (stmt instanceof GeneralStatement && stmt.containsAssignments() && id) stmt.setAssignmentIdentifier(id, 0);
 
-                this.replaceEmptyStatement(context.lineStatement, action.data?.statement as Statement);
+            //     this.replaceEmptyStatement(context.lineStatement, action.data?.statement as Statement);
 
-                if (flashGreen) this.flashGreen(action.data?.statement);
+            //     if (flashGreen) this.flashGreen(action.data?.statement);
 
-                // eventData.code = "var-assignment";
-                // eventData.id = id;
+            //     // eventData.code = "var-assignment";
+            //     // eventData.id = id;
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.InsertUnaryOperator: {
                 if (action.data?.replace) {
@@ -566,26 +574,26 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.IndentForwardsIfStmt: {
-                const root = context.lineStatement.rootNode as Statement | Module;
+            // case EditActionType.IndentForwardsIfStmt: {
+            //     const root = context.lineStatement.rootNode as Statement | Module;
 
-                const toIndentStatements = new Array<Statement>();
+            //     const toIndentStatements = new Array<Statement>();
 
-                for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
-                    toIndentStatements.push(root.body[i]);
+            //     for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
+            //         toIndentStatements.push(root.body[i]);
 
-                    if (i + 1 < root.body.length && !(root.body[i + 1] instanceof ElseStatement)) break;
-                }
+            //         if (i + 1 < root.body.length && !(root.body[i + 1] instanceof ElseStatement)) break;
+            //     }
 
-                for (const stmt of toIndentStatements) {
-                    this.module.editor.indentRecursively(stmt, { backward: false });
-                    this.module.indentForwardStatement(stmt);
-                }
+            //     for (const stmt of toIndentStatements) {
+            //         this.module.editor.indentRecursively(stmt, { backward: false });
+            //         this.module.indentForwardStatement(stmt);
+            //     }
 
-                this.module.focus.fireOnNavChangeCallbacks();
+            //     this.module.focus.fireOnNavChangeCallbacks();
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.IndentForwards: {
                 this.module.editor.indentRecursively(context.lineStatement, { backward: false });
@@ -615,104 +623,104 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.InsertFormattedStringItem: {
-                const cursorPos = this.module.editor.monaco.getPosition();
-                const selectedText = this.module.editor.monaco.getSelection();
-                const editableToken = this.module.focus.getTextEditableItem(context);
-                const token = editableToken.getToken();
-                const formattedStringExpr = token.rootNode as FormattedStringExpr;
+            // case EditActionType.InsertFormattedStringItem: {
+            //     const cursorPos = this.module.editor.monaco.getPosition();
+            //     const selectedText = this.module.editor.monaco.getSelection();
+            //     const editableToken = this.module.focus.getTextEditableItem(context);
+            //     const token = editableToken.getToken();
+            //     const formattedStringExpr = token.rootNode as FormattedStringExpr;
 
-                const leftText = token.text.substring(0, cursorPos.column - token.left);
-                const rightText = token.text.substring(cursorPos.column - token.left, token.right);
+            //     const leftText = token.text.substring(0, cursorPos.column - token.left);
+            //     const rightText = token.text.substring(cursorPos.column - token.left, token.right);
 
-                const leftToken = token;
-                leftToken.text = leftText;
-                const rightToken = new EditableTextTkn("", StringRegex, formattedStringExpr, token.indexInRoot + 1);
-                rightToken.text = rightText;
+            //     const leftToken = token;
+            //     leftToken.text = leftText;
+            //     const rightToken = new EditableTextTkn("", StringRegex, formattedStringExpr, token.indexInRoot + 1);
+            //     rightToken.text = rightText;
 
-                formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[rightToken]);
+            //     formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[rightToken]);
 
-                formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
+            //     formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
 
-                let rightTokenRange = new Range(
-                    rightToken.getLineNumber(),
-                    rightToken.left,
-                    rightToken.getLineNumber(),
-                    rightToken.right
-                );
+            //     let rightTokenRange = new Range(
+            //         rightToken.getLineNumber(),
+            //         rightToken.left,
+            //         rightToken.getLineNumber(),
+            //         rightToken.right
+            //     );
 
-                this.module.editor.executeEdits(rightTokenRange, rightToken);
+            //     this.module.editor.executeEdits(rightTokenRange, rightToken);
 
-                const fStringToken = new FormattedStringCurlyBracketsExpr(formattedStringExpr, token.indexInRoot + 1);
+            //     const fStringToken = new FormattedStringCurlyBracketsExpr(formattedStringExpr, token.indexInRoot + 1);
 
-                formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[fStringToken]);
+            //     formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[fStringToken]);
 
-                formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
+            //     formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
 
-                let editRange: Range;
+            //     let editRange: Range;
 
-                if (selectedText.startColumn != selectedText.endColumn) {
-                    editRange = new Range(
-                        cursorPos.lineNumber,
-                        selectedText.startColumn,
-                        cursorPos.lineNumber,
-                        selectedText.endColumn
-                    );
-                } else {
-                    editRange = new Range(
-                        cursorPos.lineNumber,
-                        cursorPos.column,
-                        cursorPos.lineNumber,
-                        cursorPos.column
-                    );
-                }
+            //     if (selectedText.startColumn != selectedText.endColumn) {
+            //         editRange = new Range(
+            //             cursorPos.lineNumber,
+            //             selectedText.startColumn,
+            //             cursorPos.lineNumber,
+            //             selectedText.endColumn
+            //         );
+            //     } else {
+            //         editRange = new Range(
+            //             cursorPos.lineNumber,
+            //             cursorPos.column,
+            //             cursorPos.lineNumber,
+            //             cursorPos.column
+            //         );
+            //     }
 
-                this.module.editor.executeEdits(editRange, fStringToken);
-                this.module.focus.updateContext({ tokenToSelect: fStringToken.tokens[1] });
-                // eventData.code = "f-string-item";
+            //     this.module.editor.executeEdits(editRange, fStringToken);
+            //     this.module.focus.updateContext({ tokenToSelect: fStringToken.tokens[1] });
+            //     // eventData.code = "f-string-item";
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.DeleteFStringCurlyBrackets: {
-                const fStringToRemove = action.data.item as FormattedStringCurlyBracketsExpr;
+            // case EditActionType.DeleteFStringCurlyBrackets: {
+            //     const fStringToRemove = action.data.item as FormattedStringCurlyBracketsExpr;
 
-                const root = fStringToRemove.rootNode;
+            //     const root = fStringToRemove.rootNode;
 
-                const tokenBefore = root.tokens[fStringToRemove.indexInRoot - 1] as EditableTextTkn;
-                const tokenAfter = root.tokens[fStringToRemove.indexInRoot + 1] as EditableTextTkn;
+            //     const tokenBefore = root.tokens[fStringToRemove.indexInRoot - 1] as EditableTextTkn;
+            //     const tokenAfter = root.tokens[fStringToRemove.indexInRoot + 1] as EditableTextTkn;
 
-                const indexToReplace = tokenBefore.indexInRoot;
+            //     const indexToReplace = tokenBefore.indexInRoot;
 
-                const newToken = new EditableTextTkn(
-                    tokenBefore.text + tokenAfter.text,
-                    StringRegex,
-                    root,
-                    fStringToRemove.indexInRoot - 1
-                );
+            //     const newToken = new EditableTextTkn(
+            //         tokenBefore.text + tokenAfter.text,
+            //         StringRegex,
+            //         root,
+            //         fStringToRemove.indexInRoot - 1
+            //     );
 
-                const focusPos = new Position(tokenBefore.getLineNumber(), tokenBefore.right);
+            //     const focusPos = new Position(tokenBefore.getLineNumber(), tokenBefore.right);
 
-                const replaceRange = new Range(
-                    tokenAfter.getLineNumber(),
-                    tokenAfter.right,
-                    tokenBefore.getLineNumber(),
-                    tokenBefore.left
-                );
+            //     const replaceRange = new Range(
+            //         tokenAfter.getLineNumber(),
+            //         tokenAfter.right,
+            //         tokenBefore.getLineNumber(),
+            //         tokenBefore.left
+            //     );
 
-                this.module.removeItem(fStringToRemove);
-                this.module.removeItem(tokenAfter);
-                this.module.removeItem(tokenBefore);
+            //     this.module.removeItem(fStringToRemove);
+            //     this.module.removeItem(tokenAfter);
+            //     this.module.removeItem(tokenBefore);
 
-                root.tokens.splice(indexToReplace, 0, newToken);
+            //     root.tokens.splice(indexToReplace, 0, newToken);
 
-                root.rebuild(root.getLeftPosition(), 0);
+            //     root.rebuild(root.getLeftPosition(), 0);
 
-                this.module.editor.executeEdits(replaceRange, newToken);
-                this.module.focus.updateContext({ positionToMove: focusPos });
+            //     this.module.editor.executeEdits(replaceRange, newToken);
+            //     this.module.focus.updateContext({ positionToMove: focusPos });
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.InsertChar: {
                 const cursorPos = this.module.editor.monaco.getPosition();
@@ -808,6 +816,7 @@ export class ActionExecutor {
 
             case EditActionType.DeletePrevChar:
             case EditActionType.DeleteNextChar: {
+                console.log("We get here... so that is something")
                 const cursorPos = this.module.editor.monaco.getPosition();
                 const selectedText = this.module.editor.monaco.getSelection();
                 const editableToken = this.module.focus.getTextEditableItem(context);
@@ -1244,38 +1253,38 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.InsertEmptyListItem: {
-                if (action.data.toRight) {
-                    const code = [new NonEditableTkn(", "), new TypedEmptyExpr([DataType.Any])];
-                    this.insertEmptyListItem(context.tokenToRight, context.tokenToRight.indexInRoot, code);
-                    this.module.editor.insertAtCurPos(code);
-                    this.module.focus.updateContext({ tokenToSelect: code[1] });
+            // case EditActionType.InsertEmptyListItem: {
+            //     if (action.data.toRight) {
+            //         const code = [new NonEditableTkn(", "), new TypedEmptyExpr([DataType.Any])];
+            //         this.insertEmptyListItem(context.tokenToRight, context.tokenToRight.indexInRoot, code);
+            //         this.module.editor.insertAtCurPos(code);
+            //         this.module.focus.updateContext({ tokenToSelect: code[1] });
 
-                    if (flashGreen) this.flashGreen(code[1]);
-                } else if (action.data.toLeft) {
-                    const code = [new TypedEmptyExpr([DataType.Any]), new NonEditableTkn(", ")];
-                    this.insertEmptyListItem(context.tokenToLeft, context.tokenToLeft.indexInRoot + 1, code);
-                    this.module.editor.insertAtCurPos(code);
-                    this.module.focus.updateContext({ tokenToSelect: code[0] });
+            //         if (flashGreen) this.flashGreen(code[1]);
+            //     } else if (action.data.toLeft) {
+            //         const code = [new TypedEmptyExpr([DataType.Any]), new NonEditableTkn(", ")];
+            //         this.insertEmptyListItem(context.tokenToLeft, context.tokenToLeft.indexInRoot + 1, code);
+            //         this.module.editor.insertAtCurPos(code);
+            //         this.module.focus.updateContext({ tokenToSelect: code[0] });
 
-                    if (flashGreen) this.flashGreen(code[0]);
-                }
-                // eventData.code = "list-item-comma";
+            //         if (flashGreen) this.flashGreen(code[0]);
+            //     }
+            //     // eventData.code = "list-item-comma";
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.DeleteListItem: {
-                if (action.data.toRight) {
-                    const items = this.module.removeItems(context.token.rootNode, context.token.indexInRoot, 2);
-                    this.module.editor.executeEdits(this.getCascadedBoundary(items), null, "");
-                } else if (action.data.toLeft) {
-                    const items = this.module.removeItems(context.token.rootNode, context.token.indexInRoot - 1, 2);
-                    this.module.editor.executeEdits(this.getCascadedBoundary(items), null, "");
-                }
+            // case EditActionType.DeleteListItem: {
+            //     if (action.data.toRight) {
+            //         const items = this.module.removeItems(context.token.rootNode, context.token.indexInRoot, 2);
+            //         this.module.editor.executeEdits(this.getCascadedBoundary(items), null, "");
+            //     } else if (action.data.toLeft) {
+            //         const items = this.module.removeItems(context.token.rootNode, context.token.indexInRoot - 1, 2);
+            //         this.module.editor.executeEdits(this.getCascadedBoundary(items), null, "");
+            //     }
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.DeleteRootNode: {
                 this.deleteCode(context.token.rootNode);

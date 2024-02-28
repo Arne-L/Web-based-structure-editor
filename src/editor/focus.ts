@@ -5,6 +5,7 @@ import {
     EditableTextTkn,
     EmptyLineStmt,
     Expression,
+    GeneralExpression,
     IdentifierTkn,
     LiteralValExpr,
     NonEditableTkn,
@@ -61,9 +62,9 @@ export class Focus {
     // }
 
     /**
-     * Searches for the left, right or parent expression of the focused token and checks if it is 
+     * Searches for the left, right or parent expression of the focused token and checks if it is
      * in draft node and returns it.
-     * 
+     *
      * @param providedContext - The context to search in. If not provided, the current context will be used.
      * @returns - The containing draft node, or null if not found.
      */
@@ -91,10 +92,10 @@ export class Focus {
     /**
      * Check if, in order, the current, left or right token is text editable and return it.
      * Editable tokens are IdentifierTkn, EditableTextTkn and AutocompleteTkn.
-     * 
+     *
      * @param providedContext - The context to search in. If not provided, the current context will be used.
      * @returns - The text editable item, or null if not found.
-     */    
+     */
     getTextEditableItem(providedContext?: Context): TextEditable {
         const context = providedContext ? providedContext : this.getContext();
 
@@ -141,7 +142,7 @@ export class Focus {
 
     /**
      * Searches and returns the focused statement (line) in the editor.
-     * 
+     *
      * @returns - The focused statement (line) in the editor.
      */
     getFocusedStatement(): Statement {
@@ -180,7 +181,7 @@ export class Focus {
 
     /**
      * Will try to navigate the cursor to the nearest valid position to the given position.
-     * 
+     *
      * @param pos - The position you are trying to navigate to.
      * @param runNavOffCallbacks - If true, will run the onNavOff callbacks. Defaults to true.
      */
@@ -448,6 +449,12 @@ export class Focus {
     isTextEditable(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.getContext();
 
+        console.log(
+            "isTextEditable?", context,
+            "1", context.token != null && context.token.isTextEditable,
+            "2", context.tokenToLeft != null && context.tokenToLeft.isTextEditable,
+            "3", context.tokenToRight != null && context.tokenToRight.isTextEditable
+        );
         return (
             (context.token != null && context.token.isTextEditable) ||
             (context.tokenToLeft != null && context.tokenToLeft.isTextEditable) ||
@@ -608,7 +615,7 @@ export class Focus {
 
     /**
      * Given a statement and a selection, this function will return the context of the selection.
-     * 
+     *
      * @param statement - The statement to search in.
      * @param left  - The left position of the selection.
      * @param right - The right position of the selection.
@@ -655,7 +662,7 @@ export class Focus {
 
     /**
      * Finds the non-textual hole, read no string, at the given column in the given statement
-     * 
+     *
      * @param statement - Statement to search in
      * @param column - Column to search for
      * @returns - The non-textual hole at the given column, or null if not found.
@@ -681,7 +688,7 @@ export class Focus {
                 else if (curToken instanceof IdentifierTkn) return curToken;
             }
 
-            if (curToken instanceof Expression)
+            if (curToken instanceof Expression || curToken instanceof GeneralExpression)
                 if (curToken.tokens.length > 0) for (let token of curToken.tokens) tokensStack.unshift(token);
         }
 
@@ -690,7 +697,7 @@ export class Focus {
 
     /**
      * Finds the context of the given column in the given statement.
-     * 
+     *
      * @param statement - The statement to search in.
      * @param column - The column to search for.
      * @returns - The context of the given column in the given statements.

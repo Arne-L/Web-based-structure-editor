@@ -94,7 +94,9 @@ export class Validator {
     }
 
     /**
-     * Determines if the left operand can open an autocomplete menu / switch to autocomplete
+     * Determines if the left literal has ended and if the new character will thus open a new autocomplete
+     * Works specifically for the number literal: checks if the last pressed key is still part of the number
+     * or if a new autocomplete should be opened
      *
      * @param pressedKey - The key that was pressed as an additional character to the left operand
      * @param providedContext - The context to use for the validation. If not provided, the current context will be used
@@ -927,6 +929,7 @@ export class Validator {
     canConvertAutocompleteToString(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        // Check if the token is an autocomplete token and if it is not at the start of a line? (not sure about this)
         return (
             context.tokenToRight instanceof AutocompleteTkn && context.tokenToRight.left != context.lineStatement.left
         );

@@ -10,6 +10,9 @@ import { Context } from "./focus";
 import { Validator } from "./validator";
 import { EmptyLineStmt } from "../syntax-tree/ast";
 
+/**
+ * Handle incoming events and route them to the corresponding action.
+ */
 export class EventRouter {
     module: Module;
     curPosition: Position;
@@ -20,16 +23,34 @@ export class EventRouter {
         this.curPosition = module.editor.monaco.getPosition();
     }
 
+    /**
+     * Given a keyboard event, returns the corresponding action that should be executed.
+     */
     getKeyAction(e: KeyboardEvent, providedContext?: Context): EditAction {
+        /**
+         * Get the current context
+         */
         const context = providedContext ? providedContext : this.module.focus.getContext();
+        /**
+         * Can edits be made in the current context?
+         */
         const inTextEditMode = this.module.focus.isTextEditable(context);
+        /**
+         * Get the current autocomplete token, if any
+         */
         const contextAutocompleteTkn = context.getAutocompleteToken();
+        /**
+         * Checks if the cursor is currently in an autocomplete token
+         */
         const inAutocompleteToken = contextAutocompleteTkn != null;
 
         switch (e.key) {
+            // Language independent
             case KeyPress.ArrowUp: {
+                // If menu is open, move up in the menu
                 if (this.module.menuController.isMenuOpen()) {
                     return new EditAction(EditActionType.SelectMenuSuggestionAbove);
+                // Else select the closest token above
                 } else {
                     this.executeMatchOnNavigation(contextAutocompleteTkn);
 
@@ -37,9 +58,12 @@ export class EventRouter {
                 }
             }
 
+            // Language independent
             case KeyPress.ArrowDown: {
+                // If menu is open, move down in the menu
                 if (this.module.menuController.isMenuOpen()) {
                     return new EditAction(EditActionType.SelectMenuSuggestionBelow);
+                // Else select the closest token below
                 } else {
                     this.executeMatchOnNavigation(contextAutocompleteTkn);
 
@@ -47,15 +71,20 @@ export class EventRouter {
                 }
             }
 
+            // Simplify if the nested if does not work
+            // Language independent
             case KeyPress.ArrowLeft: {
-                if (!inTextEditMode && !inAutocompleteToken && this.module.menuController.isMenuOpen()) {
-                    // Not useful anymore as there are no submenus anymore
-                    return new EditAction(EditActionType.CloseSubMenu);
-                } else if (inTextEditMode) {
+                // if (!inTextEditMode && !inAutocompleteToken && this.module.menuController.isMenuOpen()) {
+                //     // Not useful anymore as there are no submenus anymore
+                //     return new EditAction(EditActionType.CloseSubMenu);
+                // } else 
+                if (inTextEditMode) {
+                    // Move to the token before the current text editable token
                     if (this.module.validator.canMoveToPrevTokenAtTextEditable(context)) {
                         return new EditAction(EditActionType.SelectPrevToken);
                     }
 
+                    // IS THIS EVEN WORKING? (for all cases...)
                     if (e.shiftKey && e.ctrlKey) return new EditAction(EditActionType.SelectToStart);
                     else if (e.shiftKey) return new EditAction(EditActionType.SelectLeft);
                     else if (e.ctrlKey) return new EditAction(EditActionType.MoveCursorStart);
@@ -64,18 +93,24 @@ export class EventRouter {
 
                         return new EditAction(EditActionType.MoveCursorLeft);
                     }
+                // Not in text edit mode -> simply select the previous token
                 } else return new EditAction(EditActionType.SelectPrevToken);
             }
 
+            // Simplify if the nested if does not work
+            // Language independent
             case KeyPress.ArrowRight: {
-                if (!inTextEditMode && !inAutocompleteToken && this.module.menuController.isMenuOpen()) {
-                    // Not useful anymore as there are no submenus anymore
-                    return new EditAction(EditActionType.OpenSubMenu);
-                } else if (inTextEditMode) {
+                // if (!inTextEditMode && !inAutocompleteToken && this.module.menuController.isMenuOpen()) {
+                //     // Not useful anymore as there are no submenus anymore
+                //     return new EditAction(EditActionType.OpenSubMenu);
+                // } else 
+                if (inTextEditMode) {
+                    // Move to the token after the current text editable token
                     if (this.module.validator.canMoveToNextTokenAtTextEditable(context)) {
                         return new EditAction(EditActionType.SelectNextToken);
                     }
 
+                    // IS THIS EVEN WORKING? (for all cases...)
                     if (e.shiftKey && e.ctrlKey) return new EditAction(EditActionType.SelectToEnd);
                     else if (e.shiftKey) return new EditAction(EditActionType.SelectRight);
                     else if (e.ctrlKey) return new EditAction(EditActionType.MoveCursorEnd);
@@ -84,20 +119,27 @@ export class EventRouter {
 
                         return new EditAction(EditActionType.MoveCursorRight);
                     }
+                // Not in text edit mode -> simply select the next token
                 } else return new EditAction(EditActionType.SelectNextToken);
             }
 
+            // Language independent
             case KeyPress.Home: {
                 if (inTextEditMode) {
+                    // Move cursor to the start of the current line
+                    // But this should do nothing ... how can this be ...?
                     if (e.shiftKey) return new EditAction(EditActionType.SelectToStart);
+                    // NYI
                     else return new EditAction(EditActionType.MoveCursorStart);
                 }
 
                 break;
             }
 
+            // Language independent
             case KeyPress.End: {
                 if (inTextEditMode) {
+                    // Idem
                     if (e.shiftKey) return new EditAction(EditActionType.SelectToEnd);
                     else return new EditAction(EditActionType.MoveCursorEnd);
                 }
@@ -105,6 +147,7 @@ export class EventRouter {
                 break;
             }
 
+            // NOT language independent
             case KeyPress.Delete: {
                 if (
                     inTextEditMode &&
@@ -113,14 +156,14 @@ export class EventRouter {
                 ) {
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
                     else return new EditAction(EditActionType.DeleteNextChar);
-                } else if (this.module.validator.canDeleteNextFStringCurlyBrackets(context)) {
-                    return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                        item: context.expressionToRight,
-                    });
-                } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
-                    return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                        item: context.token.rootNode,
-                    });
+                // } else if (this.module.validator.canDeleteNextFStringCurlyBrackets(context)) {
+                //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //         item: context.expressionToRight,
+                //     });
+                // } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
+                //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //         item: context.token.rootNode,
+                //     });
                 } else if (this.module.validator.canDeleteStringLiteral(context)) {
                     return new EditAction(EditActionType.DeleteStringLiteral);
                 } else if (this.module.validator.canDeleteNextStatement(context)) {
@@ -131,14 +174,14 @@ export class EventRouter {
                     return new EditAction(EditActionType.DeleteCurLine);
                 } else if (this.module.validator.canDeleteNextToken(context)) {
                     return new EditAction(EditActionType.DeleteNextToken);
-                } else if (this.module.validator.canDeleteListItemToLeft(context)) {
-                    return new EditAction(EditActionType.DeleteListItem, {
-                        toLeft: true,
-                    });
-                } else if (this.module.validator.canDeleteListItemToRight(context)) {
-                    return new EditAction(EditActionType.DeleteListItem, {
-                        toRight: true,
-                    });
+                // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
+                //     return new EditAction(EditActionType.DeleteListItem, {
+                //         toLeft: true,
+                //     });
+                // } else if (this.module.validator.canDeleteListItemToRight(context)) {
+                //     return new EditAction(EditActionType.DeleteListItem, {
+                //         toRight: true,
+                //     });
                 } else if (this.module.validator.isTknEmpty(context)) {
                     if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
                         return new EditAction(EditActionType.DeleteStatement);
@@ -159,53 +202,69 @@ export class EventRouter {
                 break;
             }
 
+            // NOT language independent
             case KeyPress.Backspace: {
+                console.log("So the backspace is pressed");
+                console.log("In text edit mode: " + inTextEditMode);
+                console.log("Token to the left: " + !(context.tokenToLeft instanceof ast.NonEditableTkn));
+                console.log("At beginning of line: " + !this.module.validator.onBeginningOfLine(context));
                 if (
                     inTextEditMode &&
                     !(context.tokenToLeft instanceof ast.NonEditableTkn) &&
                     !this.module.validator.onBeginningOfLine(context)
                 ) {
+                    console.log("And we are in text mode with a editable token to the left and not at the beginning of the line");
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToStart);
                     else return new EditAction(EditActionType.DeletePrevChar);
-                } else if (this.module.validator.canDeletePrevFStringCurlyBrackets(context)) {
-                    return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                        item: context.expressionToLeft,
-                    });
-                } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
-                    return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                        item: context.token.rootNode,
-                    });
+                // } else if (this.module.validator.canDeletePrevFStringCurlyBrackets(context)) {
+                //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //         item: context.expressionToLeft,
+                //     });
+                // } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
+                //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //         item: context.token.rootNode,
+                //     });
                 } else if (this.module.validator.canDeleteStringLiteral(context)) {
+                    console.log("CASES: string literal")
                     return new EditAction(EditActionType.DeleteStringLiteral);
                 } else if (this.module.validator.canMoveLeftOnEmptyMultilineStatement(context)) {
+                    console.log("CASES: empty multiline statement")
                     return new EditAction(EditActionType.SelectPrevToken);
                 } else if (this.module.validator.canDeletePrevStatement(context)) {
+                    console.log("CASES: prev statement")
                     return new EditAction(EditActionType.DeleteStatement);
                 } else if (this.module.validator.canDeletePrevMultiLineStatement(context)) {
+                    console.log("CASES: prev multiline statement")
                     return new EditAction(EditActionType.DeleteMultiLineStatement);
                 } else if (this.module.validator.canDeleteBackMultiEmptyLines(context)) {
+                    console.log("CASES: back multi empty lines")
                     return new EditAction(EditActionType.DeleteBackMultiLines);
                 } else if (this.module.validator.canDeletePrevLine(context)) {
+                    console.log("CASES: prev line")
                     return new EditAction(EditActionType.DeletePrevLine);
                 } else if (this.module.validator.canIndentBack(context)) {
+                    console.log("CASES: indent back")
                     return new EditAction(EditActionType.IndentBackwards);
-                } else if (this.module.validator.canIndentBackIfStatement(context)) {
-                    return new EditAction(EditActionType.IndentBackwardsIfStmt);
+                // } else if (this.module.validator.canIndentBackIfStatement(context)) {
+                //     return new EditAction(EditActionType.IndentBackwardsIfStmt);
                 } else if (this.module.validator.canDeletePrevToken(context)) {
+                    console.log("CASES: prev token")
                     return new EditAction(EditActionType.DeletePrevToken);
                 } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
+                    console.log("CASES: cur empty line")
                     return new EditAction(EditActionType.DeleteCurLine, {
                         pressedBackspace: true,
                     });
-                } else if (this.module.validator.canDeleteListItemToLeft(context)) {
-                    return new EditAction(EditActionType.DeleteListItem, {
-                        toLeft: true,
-                    });
-                } else if (this.module.validator.canDeleteListItemToRight(context)) {
-                    return new EditAction(EditActionType.DeleteListItem, {
-                        toRight: true,
-                    });
+                // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
+                //     return new EditAction(EditActionType.DeleteListItem, {
+                //         toLeft: true,
+                //     });
+                // } else if (this.module.validator.canDeleteListItemToRight(context)) {
+                //     return new EditAction(EditActionType.DeleteListItem, {
+                //         toRight: true,
+                //     });
                 } else if (this.module.validator.isTknEmpty(context)) {
+                    console.log ("CASES: token is empty")
                     if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
                         return new EditAction(EditActionType.DeleteStatement);
                     }
@@ -221,26 +280,33 @@ export class EventRouter {
                         }
                     }
                 } else if (this.module.validator.shouldDeleteVarAssignmentOnHole(context)) {
+                    console.log("CASES: var assignment on hole")
                     return new EditAction(EditActionType.DeleteStatement);
                 } else if (this.module.validator.shouldDeleteHole(context)) {
+                    console.log("CASES: hole")
                     return new EditAction(EditActionType.DeleteSelectedModifier);
                 }
 
                 break;
             }
 
+            // Language independent
             case KeyPress.Tab: {
                 if (this.module.validator.canIndentForward(context)) {
                     return new EditAction(EditActionType.IndentForwards);
-                } else if (this.module.validator.canIndentForwardIfStatement(context)) {
-                    return new EditAction(EditActionType.IndentForwardsIfStmt);
-                }
+                } 
+                // else if (this.module.validator.canIndentForwardIfStatement(context)) {
+                //     return new EditAction(EditActionType.IndentForwardsIfStmt);
+                // }
 
                 break;
             }
 
+            // Language independent
             case KeyPress.Enter: {
+                // If the menu is open, select the current suggestion
                 if (this.module.menuController.isMenuOpen()) return new EditAction(EditActionType.SelectMenuSuggestion);
+                // If an empty line can be inserted, insert an empty line
                 else if (this.module.validator.canInsertEmptyLine()) {
                     return new EditAction(EditActionType.InsertEmptyLine);
                 }
@@ -248,15 +314,22 @@ export class EventRouter {
                 break;
             }
 
+            // Language independent
             case KeyPress.Escape: {
+                // If the menu is open
                 if (this.module.menuController.isMenuOpen()) {
+                    // Check if one of the options is an exact match
+                    // If so, perform the corresponding action
                     this.executeMatchOnNavigation(contextAutocompleteTkn);
 
+                    // Close the menu
                     return new EditAction(EditActionType.CloseValidInsertMenu);
                 } else {
+                    // Check for any draft mode nodes
                     const draftModeNode = this.module.focus.getContainingDraftNode(context);
 
                     if (draftModeNode) {
+                        // If any draft mode nodes are found, close the draft mode
                         return new EditAction(EditActionType.CloseDraftMode, {
                             codeNode: draftModeNode,
                         });
@@ -266,8 +339,11 @@ export class EventRouter {
                 break;
             }
 
+            // Language independent
             case KeyPress.Space: {
+                // If in text edit mode, insert a space
                 if (inTextEditMode) return new EditAction(EditActionType.InsertChar);
+                // If not in text edit mode, open the autocomplete menu / options menu
                 if (!inTextEditMode && e.ctrlKey && e.key.length == 1) {
                     return new EditAction(EditActionType.OpenValidInsertMenu);
                 }
@@ -275,9 +351,12 @@ export class EventRouter {
                 break;
             }
 
+            // NOT language independent
             default: {
+                // Should be the printable characters (excluding things like arrow keys etc)
                 if (e.key.length == 1) {
                     if (inTextEditMode) {
+                        // Handle flow control keys (Not currently implemented)
                         switch (e.key) {
                             // Are any of these implemented?
                             case KeyPress.C:
@@ -301,12 +380,17 @@ export class EventRouter {
                                 break;
                         }
 
+                        // Check if a sequence of sequence of characters, e.g. abc, can be converted to a string
+                        // At least, I think ... 
                         if (this.module.validator.canConvertAutocompleteToString(context)) { // String literals
                             return new EditAction(EditActionType.ConvertAutocompleteToString, {
                                 token: context.tokenToRight,
                             });
                         }
 
+                        // If a key is being pressed right after a number literal, check if 
+                        // the new literal is not part of the literal (e.g. 12+) and if so 
+                        // open the autocomplete menu
                         if (this.module.validator.canSwitchLeftNumToAutocomplete(e.key)) {
                             return new EditAction(EditActionType.OpenAutocomplete, {
                                 autocompleteType: AutoCompleteType.RightOfExpression,
@@ -315,6 +399,7 @@ export class EventRouter {
                                     .getProcessedInsertionsList()
                                     .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                             });
+                        // Idem but now for (+12)
                         } else if (this.module.validator.canSwitchRightNumToAutocomplete(e.key)) {
                             return new EditAction(EditActionType.OpenAutocomplete, {
                                 autocompleteType: AutoCompleteType.LeftOfExpression,
@@ -323,8 +408,11 @@ export class EventRouter {
                                     .getProcessedInsertionsList()
                                     .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                             });
+                        // Else just simply insert the character
                         } else return new EditAction(EditActionType.InsertChar);
+                    // If at a slot where an operator token is expected, e.g. 1 ... 15
                     } else if (this.module.validator.atEmptyOperatorTkn(context)) {
+                        // Return the autocomplete menu for the operator token
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
                             firstChar: e.key,
@@ -332,17 +420,23 @@ export class EventRouter {
                                 .getProcessedInsertionsList()
                                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                         });
+                    // If at an expression hole, the "---" in the editor
                     } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                        // If the pressed character is a number
                         if (["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].indexOf(e.key) > -1) {
+                            // Insert the number literal
                             return new EditAction(EditActionType.InsertLiteral, {
                                 literalType: DataType.Number,
                                 initialValue: e.key,
                             });
+                        // If the pressed character is a double quote
                         } else if (['"'].indexOf(e.key) > -1) {
+                            // Insert the string literal
                             return new EditAction(EditActionType.InsertLiteral, {
                                 literalType: DataType.String,
                             });
                         } else {
+                            // Else open the autocomplete menu
                             return new EditAction(EditActionType.OpenAutocomplete, {
                                 autocompleteType: AutoCompleteType.AtExpressionHole,
                                 firstChar: e.key,
@@ -351,7 +445,9 @@ export class EventRouter {
                                     .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                             });
                         }
+                    // If on an empty line and the identifier regex matches the pressed character
                     } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
+                        // Open the autocomplete menu
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.StartOfLine,
                             firstChar: e.key,
@@ -360,7 +456,9 @@ export class EventRouter {
                                 .getProcessedInsertionsList()
                                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                         });
+                    // If at the right of an expresssion and a single character key is pressed
                     } else if (this.module.validator.atRightOfExpression(context)) {
+                        // Open the autocomplete menu starting from all possible matches
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.RightOfExpression,
                             firstChar: e.key,
@@ -368,6 +466,7 @@ export class EventRouter {
                                 .getProcessedInsertionsList()
                                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                         });
+                    // Idem but now the cursor is at the left of an expression
                     } else if (this.module.validator.atLeftOfExpression(context)) {
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.LeftOfExpression,
@@ -381,6 +480,7 @@ export class EventRouter {
             }
         }
 
+        // No edit action could be matched
         return new EditAction(EditActionType.None);
     }
 
@@ -388,69 +488,119 @@ export class EventRouter {
      * Given the event, finds the corresponding action and executes this action. Can also prevent the default
      * event from being triggered depending on the return value of the action execution.
      * 
-     * @param e 
+     * @param e - The keyboard event
      */
     onKeyDown(e: IKeyboardEvent) {
+        // Current context
         const context = this.module.focus.getContext();
+        // Get the EditAction corresponding to the event
         const action = this.getKeyAction(e.browserEvent, context);
 
+        // If there is data, set its source to "keyboard"
         if (action?.data) action.data.source = { type: "keyboard" };
 
+        // Execute the action and prevent the default event from being triggered if necessary
         const preventDefaultEvent = this.module.executer.execute(action, context, e.browserEvent);
 
         if (preventDefaultEvent) { 
-            // Prevents the keystroke from being registered by the editor (e.g. for commands)
+            // Prevents the keystroke from performing its normal functionality (e.g. commands)
             e.preventDefault();
             e.stopPropagation();
         }
     }
 
+    /**
+     * Actions that should be performed when the cursor position has changed.
+     * This includes inserting all exact matching and open autocompletes and
+     * updating the current position.
+     * 
+     * @param e - An event describing how the cursor position has changed
+     */
     onCursorPosChange(e: editor.ICursorPositionChangedEvent) {
+        // If the event originates from a mouse click
         if (e.source === "mouse") {
+            // Get the context at the old position
             const context = this.module.focus.getContext(this.curPosition);
+            // Return the current / adjacent autocomplete token, if any
             const contextAutocompleteTkn = context.getAutocompleteToken();
 
+            // If an exact match is found, perform the corresponding action
+            // Thus if you were completing something like "print", then it 
+            // will try to insert it when moving away
             this.executeMatchOnNavigation(contextAutocompleteTkn, context);
 
+            // Update the position to the new position
             this.module.focus.navigatePos(e.position);
         }
 
         // this.module.focus.updateCurPosition(e.position);
+        // Update the current position
         this.curPosition = e.position;
     }
 
+    /**
+     * Handle a scroll event accordingly
+     * 
+     * @param e - An event describing how the editor has been scrolled
+     */
     onDidScrollChange(e: IScrollEvent) {
+        // Change the scroll in the editor
         this.module.editor.scrollOffsetTop = e.scrollTop;
+        // Update the position of the open menu
         this.module.menuController.updateFocusedMenuScroll(e.scrollTop);
     }
 
+    /**
+     * When a toolbox button is clicked, perform the corresponding action
+     * 
+     * @param id - The id of the button that was clicked
+     */
     onButtonDown(id: string) {
+        // Get current context
         const context = this.module.focus.getContext();
 
+        // If the button is disabled, do nothing
         if ((document.getElementById(id) as HTMLButtonElement).disabled) return;
 
-        if (this.module.variableController.isVariableReferenceButton(id)) {
-            this.module.executer.insertVariableReference(id, { type: "defined-variables" }, context);
-            this.incrementButtonClicks("insert-var");
-        } else {
-            const action = Actions.instance().actionsMap.get(id);
+        // If the button is a variable reference button, insert the corresponding variable reference
+        // if (this.module.variableController.isVariableReferenceButton(id)) {
+        //     this.module.executer.insertVariableReference(id, { type: "defined-variables" }, context);
+        //     this.incrementButtonClicks("insert-var");
+        // } else {
 
-            if (action) {
-                this.module.executer.execute(this.routeToolboxEvents(action, context, { type: "toolbox" }), context);
+        // Get the EditCodeAction corresponding to the button
+        const action = Actions.instance().actionsMap.get(id);
 
-                this.incrementButtonClicks(id);
-            }
+        // If an action is found
+        if (action) {
+            // Execute the action
+            this.module.executer.execute(this.routeToolboxEvents(action, context, { type: "toolbox" }), context);
+
+            // Increment the number of button clicks
+            this.incrementButtonClicks(id);
         }
+        // }
 
+        // Reset the search box in the toolbox
         (document.getElementById("toolbox-search-box") as HTMLInputElement).value = "";
 
+        // Update the toolbox
         this.module.toolboxController.updateToolbox();
     }
 
+    /**
+     * When clicked on a button, increment the number of clicks and show a typing message
+     * 
+     * @param id - The id of the button that was clicked
+     */
     incrementButtonClicks(id: string) {
+        // If the button has a count, increment the number of clicks
         if (this.buttonClicksCount.has(id)) this.buttonClicksCount.set(id, this.buttonClicksCount.get(id) + 1);
+        // Else set the number of clicks to 1
         else this.buttonClicksCount.set(id, 1);
 
+        // If the button has been clicked twice, show a typing message 
+        // and reset the number of clicks
         if (this.buttonClicksCount.get(id) == 2) {
             this.buttonClicksCount.set(id, 0);
 
@@ -463,13 +613,13 @@ export class EventRouter {
     }
 
     /**
-     * Performed on a button click, routes the event to the corresponding action which
-     * in turn returns the corresponding Construct.
+     * Performed on a button click in the toolbox, routes the event to the corresponding action
+     * while performing checks on the EditCodeAction
      * 
-     * @param e 
-     * @param context 
-     * @param source 
-     * @returns 
+     * @param e - An EditCodeAction to check for validity
+     * @param context - The current context
+     * @param source - The source of the EditCodeAction
+     * @returns - The corresponding EditAction
      */
     routeToolboxEvents(e: EditCodeAction, context: Context, source: {}): EditAction {
         switch (e.insertActionType) {
@@ -487,7 +637,7 @@ export class EventRouter {
                  * TODO: Is the if statement really necessary? Do we need to check if the context is valid?
                  */
                 const statement = e.getCode(); // Should be replaced with the construct object in the future
-                if (statement.validateContext(this.module.validator, context) == InsertionType.Valid) {
+                if (statement.validateContext(this.module.validator, context) === InsertionType.Valid) {
                     // console.log(context.lineStatement instanceof EmptyLineStmt);
                     return new EditAction(EditActionType.InsertGeneralStmt, {
                         statement: statement,
@@ -496,62 +646,72 @@ export class EventRouter {
                 }
                 break;
 
-            case InsertActionType.InsertNewVariableStmt: {
-                return new EditAction(EditActionType.InsertVarAssignStatement, {
-                    statement: e.getCode(),
-                    source,
-                });
-            }
-
-            case InsertActionType.InsertElifStmt: {
-                const canInsertAtCurIndent = this.module.validator.canInsertElifStmtAtCurIndent(context);
-                const canInsertAtPrevIndent = this.module.validator.canInsertElifStmtAtPrevIndent(context);
-
-                // prioritize inserting at current indentation over prev one
-                if (canInsertAtCurIndent || canInsertAtPrevIndent) {
-                    return new EditAction(EditActionType.InsertElseStatement, {
-                        hasCondition: true,
-                        outside: canInsertAtCurIndent,
+            case InsertActionType.InsertGeneralExpr:
+                const expression = e.getCode();
+                if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
+                    return new EditAction(EditActionType.InsertGeneralExpr, {
+                        expression: expression,
                         source,
                     });
                 }
-
                 break;
-            }
 
-            case InsertActionType.InsertElseStmt: {
-                const canInsertAtCurIndent = this.module.validator.canInsertElseStmtAtCurIndent(context);
-                const canInsertAtPrevIndent = this.module.validator.canInsertElseStmtAtPrevIndent(context);
+            // case InsertActionType.InsertNewVariableStmt: {
+            //     return new EditAction(EditActionType.InsertVarAssignStatement, {
+            //         statement: e.getCode(),
+            //         source,
+            //     });
+            // }
 
-                // prioritize inserting at current indentation over prev one
-                if (canInsertAtCurIndent || canInsertAtPrevIndent) {
-                    return new EditAction(EditActionType.InsertElseStatement, {
-                        hasCondition: false,
-                        outside: canInsertAtCurIndent,
-                        source,
-                    });
-                }
+            // case InsertActionType.InsertElifStmt: {
+            //     const canInsertAtCurIndent = this.module.validator.canInsertElifStmtAtCurIndent(context);
+            //     const canInsertAtPrevIndent = this.module.validator.canInsertElifStmtAtPrevIndent(context);
 
-                break;
-            }
+            //     // prioritize inserting at current indentation over prev one
+            //     if (canInsertAtCurIndent || canInsertAtPrevIndent) {
+            //         return new EditAction(EditActionType.InsertElseStatement, {
+            //             hasCondition: true,
+            //             outside: canInsertAtCurIndent,
+            //             source,
+            //         });
+            //     }
 
-            case InsertActionType.InsertFormattedStringItem: {
-                return new EditAction(EditActionType.InsertFormattedStringItem, { source });
-            }
+            //     break;
+            // }
+
+            // case InsertActionType.InsertElseStmt: {
+            //     const canInsertAtCurIndent = this.module.validator.canInsertElseStmtAtCurIndent(context);
+            //     const canInsertAtPrevIndent = this.module.validator.canInsertElseStmtAtPrevIndent(context);
+
+            //     // prioritize inserting at current indentation over prev one
+            //     if (canInsertAtCurIndent || canInsertAtPrevIndent) {
+            //         return new EditAction(EditActionType.InsertElseStatement, {
+            //             hasCondition: false,
+            //             outside: canInsertAtCurIndent,
+            //             source,
+            //         });
+            //     }
+
+            //     break;
+            // }
+
+            // case InsertActionType.InsertFormattedStringItem: {
+            //     return new EditAction(EditActionType.InsertFormattedStringItem, { source });
+            // }
 
             // Obsolete
-            case InsertActionType.InsertStatement:
-            case InsertActionType.InsertListIndexAssignment:
-            case InsertActionType.InsertPrintFunctionStmt: {
-                if (!this.module.validator.isAboveElseStatement()) {
-                    return new EditAction(EditActionType.InsertStatement, {
-                        statement: e.getCode(),
-                        source,
-                    });
-                }
+            // case InsertActionType.InsertStatement:
+            // case InsertActionType.InsertListIndexAssignment:
+            // case InsertActionType.InsertPrintFunctionStmt: {
+            //     if (!this.module.validator.isAboveElseStatement()) {
+            //         return new EditAction(EditActionType.InsertStatement, {
+            //             statement: e.getCode(),
+            //             source,
+            //         });
+            //     }
 
-                break;
-            }
+            //     break;
+            // }
 
             case InsertActionType.InsertExpression: {
                 return new EditAction(EditActionType.InsertExpression, {
@@ -562,22 +722,22 @@ export class EventRouter {
                 break;
             }
 
-            case InsertActionType.InsertAssignmentModifier:
-            case InsertActionType.InsertAugmentedAssignmentModifier: {
-                return new EditAction(EditActionType.InsertAssignmentModifier, {
-                    modifier: e.getCode(),
-                    source,
-                });
-            }
+            // case InsertActionType.InsertAssignmentModifier:
+            // case InsertActionType.InsertAugmentedAssignmentModifier: {
+            //     return new EditAction(EditActionType.InsertAssignmentModifier, {
+            //         modifier: e.getCode(),
+            //         source,
+            //     });
+            // }
 
-            case InsertActionType.InsertListIndexAccessor:
-            case InsertActionType.InsertListAppendMethod:
-            case InsertActionType.InsertStringSplitMethod:
-            case InsertActionType.InsertStringJoinMethod:
-            case InsertActionType.InsertStringReplaceMethod:
-            case InsertActionType.InsertStringFindMethod: {
-                return new EditAction(EditActionType.InsertModifier, { modifier: e.getCode(), source });
-            }
+            // case InsertActionType.InsertListIndexAccessor:
+            // case InsertActionType.InsertListAppendMethod:
+            // case InsertActionType.InsertStringSplitMethod:
+            // case InsertActionType.InsertStringJoinMethod:
+            // case InsertActionType.InsertStringReplaceMethod:
+            // case InsertActionType.InsertStringFindMethod: {
+            //     return new EditAction(EditActionType.InsertModifier, { modifier: e.getCode(), source });
+            // }
 
             case InsertActionType.InsertInputExpr:
             case InsertActionType.InsertLenExpr: {
@@ -725,12 +885,25 @@ export class EventRouter {
         return new EditAction(EditActionType.None);
     }
 
+    /**
+     * Check for an exact match for the current autocomplete text and perform the corresponding action
+     * if a match is found. Otherwise, if the token is not an autocomplete token or there is no match,
+     * do nothing.
+     * 
+     * @param token - The current token
+     * @param providedContext - The current context
+     */
     private executeMatchOnNavigation(token: ast.Token, providedContext?: Context) {
+        // Get the current context
         const context = providedContext ?? this.module.focus.getContext();
 
+        // If the current token is an autocomplete token
         if (token && token instanceof ast.AutocompleteTkn) {
+            // Get the exact matching EditCodeAction for the current text of the autocomplete token,
+            // if any
             const match = token.isMatch();
 
+            // If there is a(n exact) match, perform the corresponding action
             if (match) {
                 match.performAction(
                     this.module.executer,

@@ -1,6 +1,6 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
-import { Statement, GeneralStatement, GeneralExpression } from "../syntax-tree/ast";
+import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
 import * as constructs from "./python.json";
 
 /***
@@ -52,7 +52,9 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.editorName,
             `add-${construct.keyword}-btn-${toolboxId++}`,
             getCodeFunction(construct),
-            InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
+            construct.constructType === "expression"
+                ? InsertActionType.InsertGeneralExpr
+                : InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
             // InsertActionType.InsertPrintStmt is superfluous
             {}, // EXTRACT; context info; maybe extractable from format?
             construct.toolbox,
@@ -64,22 +66,21 @@ export function getAllCodeActions(): EditCodeAction[] {
         );
         // Add the action to the list
 
-        
         editCodeActions.push(action);
     }
 
     // Add all corresponding constructs to the AST class field "this.constructs".
-    // This field contains all constructs available to the editor, with the keys being 
+    // This field contains all constructs available to the editor, with the keys being
     // the heywords of the constructs and the values being the constructs themselves.
     GeneralStatement.addAllConstructs(editCodeActions.map((action) => action.getCode() as GeneralStatement));
-    
+
     /**
      * Ideally for cleaner code we would write this as a single statement without
      * repetition => To look at latet!
-    */
-   
-   // If no implementations, create an EditCodeAction for the general codestruct
-   
+     */
+
+    // If no implementations, create an EditCodeAction for the general codestruct
+
     // const action = new EditCodeAction()
     // editCodeActions.push(action)
     return editCodeActions;
