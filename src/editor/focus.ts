@@ -538,7 +538,7 @@ export class Focus {
 
             if (column >= curToken.left && column < curToken.right && curToken instanceof Token) return curToken;
 
-            if (curToken instanceof Expression)
+            if (curToken instanceof GeneralExpression)
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else return curToken;
         }
@@ -636,10 +636,10 @@ export class Focus {
                 context.selected = true;
 
                 if (curToken instanceof Token) context.token = curToken;
-                else if (curToken instanceof Expression) context.expression = curToken; // (1)
+                else if (curToken instanceof GeneralExpression) context.expression = curToken; // (1)
 
                 return context;
-            } else if (curToken instanceof Expression) {
+            } else if (curToken instanceof GeneralExpression) {
                 if (left == curToken.left && right == curToken.right) {
                     // Literally the same as (1) above
                     context.expression = curToken;
@@ -688,7 +688,7 @@ export class Focus {
                 else if (curToken instanceof IdentifierTkn) return curToken;
             }
 
-            if (curToken instanceof Expression || curToken instanceof GeneralExpression)
+            if (curToken instanceof GeneralExpression)
                 if (curToken.tokens.length > 0) for (let token of curToken.tokens) tokensStack.unshift(token);
         }
 
@@ -770,7 +770,7 @@ export class Focus {
 
                     break;
                 }
-            } else if (curToken instanceof Expression) {
+            } else if (curToken instanceof GeneralExpression) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
@@ -786,8 +786,8 @@ export class Focus {
     /**
      * Finds the parent expression of a given token that meets the given 'check' condition.
      */
-    private getExpression(token: Token, check: boolean): Expression {
-        if (token.rootNode instanceof Expression && check) return token.rootNode;
+    private getExpression(token: Token, check: boolean): GeneralExpression {
+        if (token.rootNode instanceof GeneralExpression && check) return token.rootNode;
 
         return null;
     }
@@ -805,7 +805,7 @@ export class Focus {
 
             if (curToken instanceof Token && curToken.left != curToken.right && check(curToken)) return curToken;
 
-            if (curToken instanceof Expression) {
+            if (curToken instanceof GeneralExpression) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
             }
         }
@@ -825,9 +825,9 @@ export class Context {
      * Immediate items
      */
     // parentExpression?: Expression = null;
-    expression?: Expression = null;
-    expressionToLeft?: Expression = null;
-    expressionToRight?: Expression = null;
+    expression?: GeneralExpression = null;
+    expressionToLeft?: GeneralExpression = null;
+    expressionToRight?: GeneralExpression = null;
 
     lineStatement: Statement;
 

@@ -876,9 +876,10 @@ export class Validator {
 
         return (
             !this.insideFormattedString(context) &&
-            context?.expressionToLeft != null &&
-            context?.expressionToLeft?.returns != null &&
-            context?.expressionToLeft?.returns != DataType.Void
+            context?.expressionToLeft != null 
+            // &&
+            // context?.expressionToLeft?.returns != null &&
+            // context?.expressionToLeft?.returns != DataType.Void
         );
     }
 
@@ -887,9 +888,10 @@ export class Validator {
 
         return (
             !this.insideFormattedString(context) &&
-            context?.expressionToRight != null &&
-            context?.expressionToRight?.returns != null &&
-            context?.expressionToRight?.returns != DataType.Void
+            context?.expressionToRight != null 
+            // &&
+            // context?.expressionToRight?.returns != null &&
+            // context?.expressionToRight?.returns != DataType.Void
         );
     }
 

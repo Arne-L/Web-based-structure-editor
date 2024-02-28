@@ -362,40 +362,41 @@ export class ActionExecutor {
             //     break;
             // }
 
-            case EditActionType.InsertUnaryOperator: {
-                if (action.data?.replace) {
-                    this.insertExpression(
-                        context,
-                        new UnaryOperatorExpr(action.data.operator, (context.token as TypedEmptyExpr).type[0])
-                    );
-                } else if (action.data?.wrap) {
-                    const expr = context.expressionToRight as Expression;
+            // TODO: Disabled as this should be handled generally => IMPORTANT STILL TO DO
+            // case EditActionType.InsertUnaryOperator: {
+            //     if (action.data?.replace) {
+            //         this.insertExpression(
+            //             context,
+            //             new UnaryOperatorExpr(action.data.operator, (context.token as TypedEmptyExpr).type[0])
+            //         );
+            //     } else if (action.data?.wrap) {
+            //         const expr = context.expressionToRight as Expression;
 
-                    const initialBoundary = this.getBoundaries(expr);
-                    const root = expr.rootNode as Statement;
+            //         const initialBoundary = this.getBoundaries(expr);
+            //         const root = expr.rootNode as Statement;
 
-                    const newCode = new UnaryOperatorExpr(
-                        action.data.operator,
-                        expr.returns,
-                        expr.returns,
-                        expr.rootNode,
-                        expr.indexInRoot
-                    );
+            //         const newCode = new UnaryOperatorExpr(
+            //             action.data.operator,
+            //             expr.returns,
+            //             expr.returns,
+            //             expr.rootNode,
+            //             expr.indexInRoot
+            //         );
 
-                    newCode.setOperand(expr);
-                    root.tokens[newCode.indexInRoot] = newCode;
-                    root.rebuild(root.getLeftPosition(), 0);
+            //         newCode.setOperand(expr);
+            //         root.tokens[newCode.indexInRoot] = newCode;
+            //         root.rebuild(root.getLeftPosition(), 0);
 
-                    this.module.editor.executeEdits(initialBoundary, newCode);
-                    this.module.focus.updateContext({
-                        positionToMove: newCode.tokens[1].getLeftPosition(),
-                    });
-                }
+            //         this.module.editor.executeEdits(initialBoundary, newCode);
+            //         this.module.focus.updateContext({
+            //             positionToMove: newCode.tokens[1].getLeftPosition(),
+            //         });
+            //     }
 
-                // eventData.code = action.data.operator;
+            //     // eventData.code = action.data.operator;
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.DeleteNextToken: {
                 if (context.expressionToRight instanceof OperatorTkn) {
@@ -848,19 +849,23 @@ export class ActionExecutor {
                 if (newText.length == 0) {
                     let removableExpr: CodeConstruct = null;
 
-                    if (context.expression instanceof LiteralValExpr) {
+                    console.log("Deciding if it needs to be a hole again", context)
+
+                    if (context.expression && !context.expression.hasSubValues /*context.expression instanceof LiteralValExpr*/) {
                         removableExpr = context.expression;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
-                    } else if (context.expressionToLeft instanceof LiteralValExpr) {
+                    } else if (context.expressionToLeft && !context.expressionToLeft.hasSubValues /*instanceof LiteralValExpr*/) {
                         removableExpr = context.expressionToLeft;
                     } else if (context.tokenToLeft instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToLeft;
-                    } else if (context.expressionToRight instanceof LiteralValExpr) {
+                    } else if (context.expressionToRight && !context.expressionToRight.hasSubValues /*instanceof LiteralValExpr*/) {
                         removableExpr = context.expressionToRight;
                     } else if (context.tokenToRight instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToRight;
                     }
+
+                    console.log(removableExpr);
 
                     if (removableExpr != null) {
                         if (
@@ -993,236 +998,240 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.InsertModifier: {
-                const modifier = action.data.modifier as Modifier;
+            // TODO: Disabled as this should be handled generally => STILL TO DO
+            // case EditActionType.InsertModifier: {
+            //     const modifier = action.data.modifier as Modifier;
 
-                if (context.expressionToLeft instanceof Modifier) {
-                    if (context.expressionToLeft.rootNode instanceof ValueOperationExpr) {
-                        const valOprExpr = context.expressionToLeft.rootNode;
-                        const valOprExprRoot = valOprExpr.rootNode as Statement;
+            //     if (context.expressionToLeft instanceof Modifier) {
+            //         if (context.expressionToLeft.rootNode instanceof ValueOperationExpr) {
+            //             const valOprExpr = context.expressionToLeft.rootNode;
+            //             const valOprExprRoot = valOprExpr.rootNode as Statement;
 
-                        let replacementResult = valOprExpr.rootNode.checkInsertionAtHole(
-                            valOprExpr.indexInRoot,
-                            modifier.returns
-                        );
+            //             let replacementResult = valOprExpr.rootNode.checkInsertionAtHole(
+            //                 valOprExpr.indexInRoot,
+            //                 modifier.returns
+            //             );
 
-                        const holeTypes = valOprExpr.rootNode.typeOfHoles[valOprExpr.indexInRoot];
+            //             const holeTypes = valOprExpr.rootNode.typeOfHoles[valOprExpr.indexInRoot];
 
-                        if (replacementResult.insertionType !== InsertionType.Invalid) {
-                            valOprExpr.appendModifier(modifier);
-                            valOprExprRoot.rebuild(valOprExprRoot.getLeftPosition(), 0);
+            //             if (replacementResult.insertionType !== InsertionType.Invalid) {
+            //                 valOprExpr.appendModifier(modifier);
+            //                 valOprExprRoot.rebuild(valOprExprRoot.getLeftPosition(), 0);
 
-                            this.module.editor.insertAtCurPos([modifier]);
-                            this.module.focus.updateContext(modifier.getInitialFocus());
+            //                 this.module.editor.insertAtCurPos([modifier]);
+            //                 this.module.focus.updateContext(modifier.getInitialFocus());
 
-                            if (replacementResult.insertionType == InsertionType.DraftMode)
-                                this.module.openDraftMode(
-                                    valOprExpr,
-                                    TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
-                                        valOprExpr.getKeyword(),
-                                        holeTypes,
-                                        valOprExpr.returns
-                                    ),
-                                    [
-                                        ...replacementResult.conversionRecords.map((conversionRecord) => {
-                                            return conversionRecord.getConversionButton(
-                                                valOprExpr.getKeyword(),
-                                                this.module,
-                                                valOprExpr
-                                            );
-                                        }),
-                                    ]
-                                );
-                        }
+            //                 if (replacementResult.insertionType == InsertionType.DraftMode)
+            //                     this.module.openDraftMode(
+            //                         valOprExpr,
+            //                         TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
+            //                             valOprExpr.getKeyword(),
+            //                             holeTypes,
+            //                             valOprExpr.returns
+            //                         ),
+            //                         [
+            //                             ...replacementResult.conversionRecords.map((conversionRecord) => {
+            //                                 return conversionRecord.getConversionButton(
+            //                                     valOprExpr.getKeyword(),
+            //                                     this.module,
+            //                                     valOprExpr
+            //                                 );
+            //                             }),
+            //                         ]
+            //                     );
+            //             }
 
-                        if (valOprExpr.rootNode instanceof Statement) valOprExpr.rootNode.onInsertInto(valOprExpr);
-                    }
-                } else if (
-                    context.expressionToLeft instanceof VariableReferenceExpr &&
-                    context.expressionToLeft.rootNode instanceof VarOperationStmt
-                ) {
-                    if (context.expressionToLeft.rootNode.draftModeEnabled) {
-                        this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
-                    }
-                    const varOpStmt = context.expressionToLeft.rootNode;
+            //             if (valOprExpr.rootNode instanceof Statement) valOprExpr.rootNode.onInsertInto(valOprExpr);
+            //         }
+            //     } else if (
+            //         context.expressionToLeft instanceof VariableReferenceExpr &&
+            //         context.expressionToLeft.rootNode instanceof VarOperationStmt
+            //     ) {
+            //         if (context.expressionToLeft.rootNode.draftModeEnabled) {
+            //             this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
+            //         }
+            //         const varOpStmt = context.expressionToLeft.rootNode;
 
-                    varOpStmt.appendModifier(modifier);
-                    varOpStmt.rebuild(varOpStmt.getLeftPosition(), 0);
+            //         varOpStmt.appendModifier(modifier);
+            //         varOpStmt.rebuild(varOpStmt.getLeftPosition(), 0);
 
-                    this.module.editor.insertAtCurPos([modifier]);
-                    this.module.focus.updateContext(modifier.getInitialFocus());
+            //         this.module.editor.insertAtCurPos([modifier]);
+            //         this.module.focus.updateContext(modifier.getInitialFocus());
 
-                    if (modifier instanceof MethodCallModifier && modifier.returns !== DataType.Void) {
-                        //TODO: PropertyAccessModifier should also be included here once we have them
-                        this.module.openDraftMode(
-                            varOpStmt,
-                            "This statement has no effect since the value it returns is not stored anywhere.",
-                            []
-                        ); //TODO: Offer fixes?
-                    }
-                } else {
-                    const exprToLeftRoot = context.expressionToLeft.rootNode as Statement;
-                    const exprToLeftIndexInRoot = context.expressionToLeft.indexInRoot;
+            //         if (modifier instanceof MethodCallModifier && modifier.returns !== DataType.Void) {
+            //             //TODO: PropertyAccessModifier should also be included here once we have them
+            //             this.module.openDraftMode(
+            //                 varOpStmt,
+            //                 "This statement has no effect since the value it returns is not stored anywhere.",
+            //                 []
+            //             ); //TODO: Offer fixes?
+            //         }
+            //     } else {
+            //         const exprToLeftRoot = context.expressionToLeft.rootNode as Statement;
+            //         const exprToLeftIndexInRoot = context.expressionToLeft.indexInRoot;
 
-                    if (modifier instanceof ListAccessModifier) {
-                        modifier.returns = TypeChecker.getElementTypeFromListType(context.expressionToLeft.returns);
+            //         // Data type related stuff
+            //         if (modifier instanceof ListAccessModifier) {
+            //             modifier.returns = TypeChecker.getElementTypeFromListType(context.expressionToLeft.returns);
 
-                        if (!modifier.returns) modifier.returns = DataType.Any;
-                    }
+            //             if (!modifier.returns) modifier.returns = DataType.Any;
+            //         }
 
-                    const replacementResult = exprToLeftRoot.checkInsertionAtHole(
-                        context.expressionToLeft.indexInRoot,
-                        modifier.returns
-                    );
-                    const holeDataTypes = exprToLeftRoot.typeOfHoles[context.expressionToLeft.indexInRoot];
+            //         const replacementResult = exprToLeftRoot.checkInsertionAtHole(
+            //             context.expressionToLeft.indexInRoot,
+            //             modifier.returns
+            //         );
+            //         const holeDataTypes = exprToLeftRoot.typeOfHoles[context.expressionToLeft.indexInRoot];
 
-                    const valOprExpr = new ValueOperationExpr(
-                        context.expressionToLeft,
-                        [modifier],
-                        context.expressionToLeft.rootNode,
-                        context.expressionToLeft.indexInRoot
-                    );
+            //         const valOprExpr = new ValueOperationExpr(
+            //             context.expressionToLeft,
+            //             [modifier],
+            //             context.expressionToLeft.rootNode,
+            //             context.expressionToLeft.indexInRoot
+            //         );
 
-                    if (valOprExpr.rootNode instanceof Statement) valOprExpr.rootNode.onInsertInto(valOprExpr);
+            //         if (valOprExpr.rootNode instanceof Statement) valOprExpr.rootNode.onInsertInto(valOprExpr);
 
-                    context.expressionToLeft.indexInRoot = 0;
-                    context.expressionToLeft.rootNode = valOprExpr;
+            //         context.expressionToLeft.indexInRoot = 0;
+            //         context.expressionToLeft.rootNode = valOprExpr;
 
-                    if (replacementResult.insertionType !== InsertionType.Invalid) {
-                        this.module.closeConstructDraftRecord(context.expressionToLeft);
+            //         if (replacementResult.insertionType !== InsertionType.Invalid) {
+            //             this.module.closeConstructDraftRecord(context.expressionToLeft);
 
-                        exprToLeftRoot.tokens[exprToLeftIndexInRoot] = valOprExpr;
-                        exprToLeftRoot.rebuild(exprToLeftRoot.getLeftPosition(), 0);
+            //             exprToLeftRoot.tokens[exprToLeftIndexInRoot] = valOprExpr;
+            //             exprToLeftRoot.rebuild(exprToLeftRoot.getLeftPosition(), 0);
 
-                        this.module.editor.insertAtCurPos([modifier]);
-                        this.module.focus.updateContext(modifier.getInitialFocus());
+            //             this.module.editor.insertAtCurPos([modifier]);
+            //             this.module.focus.updateContext(modifier.getInitialFocus());
 
-                        if (replacementResult.insertionType == InsertionType.DraftMode) {
-                            if (valOprExpr.returns === DataType.Any) {
-                                this.module.openDraftMode(
-                                    valOprExpr,
-                                    TYPE_MISMATCH_ANY(holeDataTypes, valOprExpr.returns),
-                                    [
-                                        new IgnoreConversionRecord(
-                                            "",
-                                            null,
-                                            null,
-                                            "",
-                                            null,
-                                            Tooltip.IgnoreWarning
-                                        ).getConversionButton("", this.module, valOprExpr),
-                                    ]
-                                );
-                            } else {
-                                this.module.openDraftMode(
-                                    valOprExpr,
-                                    TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
-                                        valOprExpr.getKeyword(),
-                                        holeDataTypes,
-                                        valOprExpr.returns
-                                    ),
-                                    [
-                                        ...replacementResult.conversionRecords.map((conversionRecord) => {
-                                            return conversionRecord.getConversionButton(
-                                                valOprExpr.getKeyword(),
-                                                this.module,
-                                                valOprExpr
-                                            );
-                                        }),
-                                    ]
-                                );
-                            }
-                        }
-                    }
-                }
+            //             if (replacementResult.insertionType == InsertionType.DraftMode) {
+            //                 if (valOprExpr.returns === DataType.Any) {
+            //                     this.module.openDraftMode(
+            //                         valOprExpr,
+            //                         TYPE_MISMATCH_ANY(holeDataTypes, valOprExpr.returns),
+            //                         [
+            //                             new IgnoreConversionRecord(
+            //                                 "",
+            //                                 null,
+            //                                 null,
+            //                                 "",
+            //                                 null,
+            //                                 Tooltip.IgnoreWarning
+            //                             ).getConversionButton("", this.module, valOprExpr),
+            //                         ]
+            //                     );
+            //                 } else {
+            //                     this.module.openDraftMode(
+            //                         valOprExpr,
+            //                         TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
+            //                             valOprExpr.getKeyword(),
+            //                             holeDataTypes,
+            //                             valOprExpr.returns
+            //                         ),
+            //                         [
+            //                             ...replacementResult.conversionRecords.map((conversionRecord) => {
+            //                                 return conversionRecord.getConversionButton(
+            //                                     valOprExpr.getKeyword(),
+            //                                     this.module,
+            //                                     valOprExpr
+            //                                 );
+            //                             }),
+            //                         ]
+            //                     );
+            //                 }
+            //             }
+            //         }
+            //     }
 
-                if (flashGreen) this.flashGreen(action.data.modifier);
-                // eventData.code = action.data.modifier.getRenderText();
+            //     if (flashGreen) this.flashGreen(action.data.modifier);
+            //     // eventData.code = action.data.modifier.getRenderText();
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.InsertBinaryOperator: {
-                let binExpr: BinaryOperatorExpr;
+            // TODO: Disabled as this should be handled generally => IMPORTANT STILL TO DO!
+            // case EditActionType.InsertBinaryOperator: {
+            //     let binExpr: BinaryOperatorExpr;
 
-                if (action.data.toRight) {
-                    binExpr = this.replaceWithBinaryOp(action.data.operator, context.expressionToLeft, {
-                        toLeft: true,
-                    });
-                } else if (action.data.toLeft) {
-                    binExpr = this.replaceWithBinaryOp(action.data.operator, context.expressionToRight, {
-                        toRight: true,
-                    });
-                } else if (action.data.replace) {
-                    binExpr = new BinaryOperatorExpr(action.data.operator, (context.token as TypedEmptyExpr).type[0]);
-                    this.insertExpression(context, binExpr);
-                }
+            //     if (action.data.toRight) {
+            //         binExpr = this.replaceWithBinaryOp(action.data.operator, context.expressionToLeft, {
+            //             toLeft: true,
+            //         });
+            //     } else if (action.data.toLeft) {
+            //         binExpr = this.replaceWithBinaryOp(action.data.operator, context.expressionToRight, {
+            //             toRight: true,
+            //         });
+            //     } else if (action.data.replace) {
+            //         binExpr = new BinaryOperatorExpr(action.data.operator, (context.token as TypedEmptyExpr).type[0]);
+            //         this.insertExpression(context, binExpr);
+            //     }
 
-                if (flashGreen) this.flashGreen(binExpr);
-                // eventData.code = action.data.operator;
+            //     if (flashGreen) this.flashGreen(binExpr);
+            //     // eventData.code = action.data.operator;
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.WrapExpressionWithItem: {
-                // both lists and str work on any, so the first step of validation is always OK.
+            // TODO: Disabled as this should be handled generally => STILL TO DO
+            // case EditActionType.WrapExpressionWithItem: {
+            //     // both lists and str work on any, so the first step of validation is always OK.
 
-                const initialBoundary = this.getBoundaries(context.expressionToRight);
-                const expr = context.expressionToRight as Expression;
-                const indexInRoot = expr.indexInRoot;
-                const root = expr.rootNode as Statement;
+            //     const initialBoundary = this.getBoundaries(context.expressionToRight);
+            //     const expr = context.expressionToRight as Expression;
+            //     const indexInRoot = expr.indexInRoot;
+            //     const root = expr.rootNode as Statement;
 
-                const newCode = action.data.expression as Expression;
-                newCode.indexInRoot = expr.indexInRoot;
-                newCode.rootNode = expr.rootNode;
+            //     const newCode = action.data.expression as Expression;
+            //     newCode.indexInRoot = expr.indexInRoot;
+            //     newCode.rootNode = expr.rootNode;
 
-                const isValidRootInsertion =
-                    newCode.returns == DataType.Any ||
-                    root.typeOfHoles[indexInRoot].indexOf(newCode.returns) >= 0 ||
-                    root.typeOfHoles[indexInRoot] == DataType.Any;
+            //     const isValidRootInsertion =
+            //         newCode.returns == DataType.Any ||
+            //         root.typeOfHoles[indexInRoot].indexOf(newCode.returns) >= 0 ||
+            //         root.typeOfHoles[indexInRoot] == DataType.Any;
 
-                let replaceIndex: number = 0;
+            //     let replaceIndex: number = 0;
 
-                for (const [i, token] of newCode.tokens.entries()) {
-                    if (token instanceof TypedEmptyExpr) {
-                        replaceIndex = i;
+            //     for (const [i, token] of newCode.tokens.entries()) {
+            //         if (token instanceof TypedEmptyExpr) {
+            //             replaceIndex = i;
 
-                        break;
-                    }
-                }
+            //             break;
+            //         }
+            //     }
 
-                if (isValidRootInsertion) {
-                    this.module.closeConstructDraftRecord(root.tokens[indexInRoot]);
-                }
+            //     if (isValidRootInsertion) {
+            //         this.module.closeConstructDraftRecord(root.tokens[indexInRoot]);
+            //     }
 
-                newCode.tokens[replaceIndex] = context.expressionToRight;
-                context.expressionToRight.indexInRoot = replaceIndex;
-                context.expressionToRight.rootNode = newCode;
-                root.tokens[indexInRoot] = newCode;
-                root.rebuild(root.getLeftPosition(), 0);
-                this.module.editor.executeEdits(initialBoundary, newCode);
-                this.module.focus.updateContext({
-                    positionToMove: new Position(newCode.lineNumber, newCode.right),
-                });
+            //     newCode.tokens[replaceIndex] = context.expressionToRight;
+            //     context.expressionToRight.indexInRoot = replaceIndex;
+            //     context.expressionToRight.rootNode = newCode;
+            //     root.tokens[indexInRoot] = newCode;
+            //     root.rebuild(root.getLeftPosition(), 0);
+            //     this.module.editor.executeEdits(initialBoundary, newCode);
+            //     this.module.focus.updateContext({
+            //         positionToMove: new Position(newCode.lineNumber, newCode.right),
+            //     });
 
-                if (newCode.rootNode instanceof BinaryOperatorExpr) {
-                    newCode.rootNode.onInsertInto(newCode);
-                    newCode.rootNode.validateTypes(this.module);
-                } else if (newCode.rootNode instanceof Statement) {
-                    newCode.rootNode.onInsertInto(newCode);
-                }
+            //     if (newCode.rootNode instanceof BinaryOperatorExpr) {
+            //         newCode.rootNode.onInsertInto(newCode);
+            //         newCode.rootNode.validateTypes(this.module);
+            //     } else if (newCode.rootNode instanceof Statement) {
+            //         newCode.rootNode.onInsertInto(newCode);
+            //     }
 
-                if (!isValidRootInsertion) {
-                    this.module.closeConstructDraftRecord(expr);
-                    this.module.openDraftMode(newCode, "DEBUG THIS", []);
-                }
+            //     if (!isValidRootInsertion) {
+            //         this.module.closeConstructDraftRecord(expr);
+            //         this.module.openDraftMode(newCode, "DEBUG THIS", []);
+            //     }
 
-                if (flashGreen) this.flashGreen(newCode);
-                // eventData.code = action.data.expression.getRenderText();
-                // eventData.wrap = true;
+            //     if (flashGreen) this.flashGreen(newCode);
+            //     // eventData.code = action.data.expression.getRenderText();
+            //     // eventData.wrap = true;
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.ConvertAutocompleteToString: {
                 const autocompleteToken = action.data.token as AutocompleteTkn;

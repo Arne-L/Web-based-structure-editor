@@ -724,6 +724,7 @@ export class GeneralStatement extends Statement implements Importable {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     requiredModule: string;
+    hasSubValues: boolean = false;
     /**
      * Constructs which depend on this construct. For example, the "elif" construct depends on the "if" construct.
      * If this list is empty, constructs can still depend on this, but their order and frequency is not fixed. (E.g.
@@ -849,10 +850,12 @@ export class GeneralStatement extends Statement implements Importable {
                     }
                     if (holeParts.length > 0) this.hasEmptyToken = true;
                     holeIndex++;
+                    this.hasSubValues = true;
                     break;
                 case "body":
                     this.body.push(new EmptyLineStmt(this, this.body.length));
                     this.scope = new Scope();
+                    this.hasSubValues = true;
                     /**
                      * We still need to add scope for constructs without a body like else and elif
                      */
@@ -2795,8 +2798,8 @@ export class ListAccessModifier extends Modifier {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return IndexableTypes.indexOf(providedContext?.expressionToLeft?.returns) > -1 &&
-            !validator.insideFormattedString(providedContext)
+        // return IndexableTypes.indexOf(providedContext?.expressionToLeft?.returns) > -1 &&
+        return !validator.insideFormattedString(providedContext)
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
@@ -2941,9 +2944,10 @@ export class MethodCallModifier extends Modifier {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        let doTypesMatch = this.leftExprTypes.some((type) =>
-            areEqualTypes(providedContext?.expressionToLeft?.returns, type)
-        );
+        // let doTypesMatch = this.leftExprTypes.some((type) =>
+        //     areEqualTypes(providedContext?.expressionToLeft?.returns, type)
+        // );
+        let doTypesMatch = true;
 
         //#514
         if (
@@ -3065,8 +3069,9 @@ export class AugmentedAssignmentModifier extends Modifier {
         return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
             providedContext.expressionToLeft instanceof ListAccessModifier ||
             providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
-            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt &&
-            this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
+            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt 
+            // &&
+            // this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
@@ -3136,36 +3141,37 @@ export class FunctionCallExpr extends Expression implements Importable {
          * we want to insert AND if the function can be inserted at the current hole. (first case however seems bugged)
          * * Otherwise we simply check whether or not we are at an empty expression hole
          */
-        if (validator.atLeftOfExpression(providedContext) && this.args.length == 1) {
-            // check if we can add to next
-            // has only one arg
+        // TEMPORARY DISABLED FOR EASY BUG FIXING => SHOULD BE REPLACED BY GENERALISATION
+        // if (validator.atLeftOfExpression(providedContext) && this.args.length == 1) {
+        //     // check if we can add to next
+        //     // has only one arg
 
-            const argType = this.args[0].type;
-            const canInsertExprIntoThisFunction =
-                argType.some((x) => x == DataType.Any) ||
-                hasMatch(argType, [providedContext.expressionToRight.returns]);
+        //     const argType = this.args[0].type;
+        //     const canInsertExprIntoThisFunction =
+        //         argType.some((x) => x == DataType.Any) ||
+        //         hasMatch(argType, [providedContext.expressionToRight.returns]);
 
-            if (providedContext.expressionToRight.returns) {
-                const map = Util.getInstance().typeConversionMap.get(providedContext.expressionToRight.returns);
+        //     if (providedContext.expressionToRight.returns) {
+        //         const map = Util.getInstance().typeConversionMap.get(providedContext.expressionToRight.returns);
 
-                const willItBeDraftMode = hasMatch(map, argType);
-                const canFunctionBeInsertedAtCurrentHole =
-                    providedContext.expressionToRight.canReplaceWithConstruct(this);
+        //         const willItBeDraftMode = hasMatch(map, argType);
+        //         const canFunctionBeInsertedAtCurrentHole =
+        //             providedContext.expressionToRight.canReplaceWithConstruct(this);
 
-                if (
-                    canInsertExprIntoThisFunction &&
-                    canFunctionBeInsertedAtCurrentHole.insertionType == InsertionType.Valid
-                ) {
-                    return InsertionType.Valid;
-                } else {
-                    const states = [willItBeDraftMode, canFunctionBeInsertedAtCurrentHole.insertionType];
+        //         if (
+        //             canInsertExprIntoThisFunction &&
+        //             canFunctionBeInsertedAtCurrentHole.insertionType == InsertionType.Valid
+        //         ) {
+        //             return InsertionType.Valid;
+        //         } else {
+        //             const states = [willItBeDraftMode, canFunctionBeInsertedAtCurrentHole.insertionType];
 
-                    if (states.some((s) => s == InsertionType.Invalid)) return InsertionType.Invalid;
-                    else if (states.every((s) => s == InsertionType.Valid)) return InsertionType.Valid;
-                    else if (states.some((s) => s == InsertionType.DraftMode)) return InsertionType.DraftMode;
-                }
-            } else return InsertionType.Invalid;
-        }
+        //             if (states.some((s) => s == InsertionType.Invalid)) return InsertionType.Invalid;
+        //             else if (states.every((s) => s == InsertionType.Valid)) return InsertionType.Valid;
+        //             else if (states.some((s) => s == InsertionType.DraftMode)) return InsertionType.DraftMode;
+        //         }
+        //     } else return InsertionType.Invalid;
+        // }
 
         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
@@ -3695,15 +3701,15 @@ export class BinaryOperatorExpr extends Expression {
          */
         return validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
             (validator.atLeftOfExpression(providedContext) &&
-                !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt) &&
+                !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt) /*&&
                 TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
                     (x) => x === this.operator
-                )) ||
+                )*/) ||
             (validator.atRightOfExpression(providedContext) &&
-                !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt) &&
+                !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt) /*&&
                 TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
                     (x) => x === this.operator
-                ))
+                )*/)
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
@@ -4440,9 +4446,10 @@ export class UnaryOperatorExpr extends Expression {
          * * We are at the left of an expression and the current expression to the right is any
          */
         return validator.atEmptyExpressionHole(providedContext) ||
-            (validator.atLeftOfExpression(providedContext) &&
-                providedContext?.expressionToRight?.returns == DataType.Boolean) ||
-            providedContext?.expressionToRight?.returns == DataType.Any
+            (validator.atLeftOfExpression(providedContext)) 
+            // &&
+            //     providedContext?.expressionToRight?.returns == DataType.Boolean) ||
+            // providedContext?.expressionToRight?.returns == DataType.Any
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
