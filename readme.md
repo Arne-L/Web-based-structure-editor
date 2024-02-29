@@ -54,6 +54,21 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 ### Short cuts / key presses
 The following list is an exhaustive description of all keyboard 
 combinations in the edit
-* 
-* ctrl + space: Open the suggestion menu
+* <kbd>↑</kbd>: Move the focus up in an open menu, otherwise the cursor up in the editor
+* <kbd>↓</kbd>: Move the focus down in an open menu, otherwise the cursor down in the editor
+* <kbd>←</kbd>: Move the cursor left in the editor, either to the previous character when text-editable, otherwise to the previous token
+* <kbd>→</kbd>: Move the cursor right in the editor, either to the next character when text-editable, otherwise to the next token
+* <kbd>Home</kbd>: NYI
+* <kbd>End</kbd>: NYI
+* <kbd>Delete</kbd>: NOT FULLY LANGUAGE INDEPENDENT
+* <kbd>Backspace</kbd>: NOT FULLY LANGUAGE INDEPENDENT
+* <kbd>⇥ Tab</kbd>: Indent the current line forwards
+* <kbd>Enter</kbd>: If the menu is open, select the currently focused item, otherwise insert a newline
+* <kbd>Esc</kbd>: If the menu is open, check for an exact match of the current input and insert it if found, otherwise close the menu
+* <kbd>Ctrl</kbd> + <kbd>Space</kbd>: Open the suggestion menu
+* <kbd>Crtl</kbd> + <kbd>C</kbd>: NYI (Copy) 
+* <kbd>Crtl</kbd> + <kbd>V</kbd>: NYI (Paste) 
+* <kbd>Crtl</kbd> + <kbd>Z</kbd>: NYI (Undo) 
+* <kbd>Crtl</kbd> + <kbd>Y</kbd>: NYI (Redo) 
+* <kbd>Space</kbd>: 
 *
