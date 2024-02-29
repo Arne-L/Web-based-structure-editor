@@ -147,11 +147,13 @@ export class EventRouter {
 
             // NOT language independent
             case KeyPress.Delete: {
+                console.log("DELETE", context.tokenToLeft, context.tokenToRight, context.token, context.expression);
                 if (
                     inTextEditMode &&
                     !(context.tokenToRight instanceof ast.NonEditableTkn) &&
                     !context.tokenToRight?.isEmpty
                 ) {
+                    // Currently left as this is sort of a shortcut and thus general
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
                     else return new EditAction(EditActionType.DeleteNextChar);
                     // } else if (this.module.validator.canDeleteNextFStringCurlyBrackets(context)) {
@@ -163,6 +165,7 @@ export class EventRouter {
                     //         item: context.token.rootNode,
                     //     });
                 } else if (this.module.validator.canDeleteStringLiteral(context)) {
+                    console.log("CASES: string literal");
                     return new EditAction(EditActionType.DeleteStringLiteral);
                 } else if (this.module.validator.canDeleteNextStatement(context)) {
                     return new EditAction(EditActionType.DeleteStatement);

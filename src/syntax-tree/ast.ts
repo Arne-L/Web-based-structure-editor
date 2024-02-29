@@ -1094,7 +1094,6 @@ export class GeneralStatement extends Statement implements Importable {
             // in reality this would probably often be infinite.
 
             // If null, then we are at the top of the tree
-            console.log(context.lineStatement);
             let currentParent = validator.getParentOf(context.lineStatement);
             let level = 0;
             while (currentParent) {

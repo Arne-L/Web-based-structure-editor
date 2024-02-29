@@ -367,6 +367,7 @@ export class Validator {
     canDeleteCurLine(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        // If on an empty line
         if (context.lineStatement instanceof EmptyLineStmt) {
             return (
                 (context.lineStatement.rootNode instanceof Statement ||
@@ -419,14 +420,18 @@ export class Validator {
     canDeleteNextStatement(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        // Cursor position should be at the beginning of a non-empty line without a body
         if (
             !(context.lineStatement instanceof EmptyLineStmt) &&
             this.module.focus.onBeginningOfLine() &&
             !context.lineStatement.hasBody()
         ) {
+            // If the statement is text editable (e.g. autocomplete)
             if (this.module.focus.isTextEditable(providedContext)) {
+                // if the next token is empty, return true (otherwise there are characters that should be deleted first)
                 if (context.tokenToRight.isEmpty) return true;
                 else return false;
+            // Else always true
             } else return true;
         }
 
@@ -440,6 +445,8 @@ export class Validator {
     canDeleteNextMultilineStatement(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        // Idem to {@link canDeleteNextStatement} but with the third condition being that the statement has a body
+        // instead of not having a condition
         if (
             !(context.lineStatement instanceof EmptyLineStmt) &&
             this.module.focus.onBeginningOfLine() &&
@@ -633,6 +640,7 @@ export class Validator {
     canDeleteNextToken(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        // Not at the start of a line and not text editable, but there is an expression to the right
         return (
             !this.module.focus.onBeginningOfLine() &&
             context.expressionToRight != null &&
