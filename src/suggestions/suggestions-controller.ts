@@ -814,14 +814,16 @@ export class MenuController {
         // if (assignNewVarAction) {
         //     assignNewVarAction.optionName = optionText + " = ---";
         // }
-        menu.editCodeActionsOptions.forEach(
-            (action) => {
-                if (action.oldOptionName.substring(0, 3) === "-- ") {
-                    action.optionName = optionText + action.oldOptionName.substring(2);
-                    action.varChanged = true;                
-                }
-            }
-        );
+
+        // Try to get rid of this
+        // menu.editCodeActionsOptions.forEach(
+        //     (action) => {
+        //         if (action.oldOptionName.substring(0, 3) === "-- ") {
+        //             action.optionName = optionText + action.oldOptionName.substring(2);
+        //             action.varChanged = true;
+        //         }
+        //     }
+        // );
 
         // const assignListElementAction = menu.editCodeActionsOptions.filter(
         //     (action) => action.insertActionType === InsertActionType.InsertListIndexAssignment
@@ -834,24 +836,39 @@ export class MenuController {
         // and checking if the user input matches the regex of the construct
 
         //------FILTER------
+        // Try to integrate all filter logic in this method
         //get matching options from fuse
-        let actionsToKeep = Validator.matchEditCodeAction(optionText, menu.editCodeActionsOptions, ["optionName"]);
+        // let actionsToKeep = Validator.matchEditCodeAction(optionText, menu.editCodeActionsOptions, ["optionName"]);
 
         /*Second round of filtering for regex-based items
               Currently only used by variable assignment
             */
-        actionsToKeep = actionsToKeep.filter((editCodeAction) =>
-            editCodeAction.item.matchRegex ? editCodeAction.item.matchRegex.test(optionText) : true
-        );
+
+        // Try to get rid of this
+        // actionsToKeep = actionsToKeep.filter((editCodeAction) =>
+        //     editCodeAction.item.matchRegex ? editCodeAction.item.matchRegex.test(optionText) : true
+        // );
+
+        // Get all EditCodeActions that match the user input
+        const actionsToKeep = menu.editCodeActionsOptions.filter(editAction => {
+            if (editAction.matchString) {
+                return editAction.matchString.includes(optionText) || optionText.includes(editAction.matchString);
+            } else if (editAction.matchRegex) {
+                return editAction.matchRegex.test(optionText);
+            } else {
+                console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
+                return false;
+            }
+        })
 
         // We move the var assignment to the end of the list so that it is always the last option
-        const indexOfVarAssignment = actionsToKeep
-            .map((result) => result.item.insertActionType)
-            .indexOf(InsertActionType.InsertNewVariableStmt);
-        if (indexOfVarAssignment > -1) {
-            const varAssignmentRes = actionsToKeep.splice(indexOfVarAssignment, 1)[0];
-            actionsToKeep.push(varAssignmentRes);
-        }
+        // const indexOfVarAssignment = actionsToKeep
+        //     .map((result) => result.item.insertActionType)
+        //     .indexOf(InsertActionType.InsertNewVariableStmt);
+        // if (indexOfVarAssignment > -1) {
+        //     const varAssignmentRes = actionsToKeep.splice(indexOfVarAssignment, 1)[0];
+        //     actionsToKeep.push(varAssignmentRes);
+        // }
 
         //------RECREATE OPTIONS------
         let focusedOptionText = "";
@@ -865,9 +882,9 @@ export class MenuController {
         });
         menu.options = [];
 
-        for (const fuseResult of actionsToKeep) {
+        for (const editAction of actionsToKeep) {
             let substringMatchRanges = [];
-            const editAction = fuseResult.item;
+            // const editAction = fuseResult.item;
 
             //TODO: If there are more constructs that need to have a custom performAction based on user input then consider changing this to be more general
             const currentStmt = this.module.focus.getFocusedStatement();
@@ -947,9 +964,9 @@ export class MenuController {
                 // falls under the VarOperationStmt case
                 continue;
             } else {
-                for (const match of fuseResult.matches) {
-                    substringMatchRanges.push(match.indices);
-                }
+                // for (const match of fuseResult.matches) {
+                //     substringMatchRanges.push(match.indices);
+                // }
             }
 
             const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
@@ -979,6 +996,7 @@ export class MenuController {
                     extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
                 }
 
+                if (editAction.matchRegex) console.log(editAction.matchRegex.exec(optionText).slice(1));
                 option = new MenuOption(
                     optionDisplayText,
                     true,
@@ -994,11 +1012,15 @@ export class MenuController {
                                 type: "autocomplete-menu",
                                 precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
                                 length:
-                                    editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
+                                    editAction.matchRegex // editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
                                         ? optionText.length + 1
                                         : editAction.matchString.length + 1,
                             },
-                            {}
+                            {
+                                // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                                // they can be used in the autocomplete
+                                values: editAction.matchRegex ? editAction.matchRegex.exec(optionText) : []
+                            }
                         );
                     },
                     extraInfo,

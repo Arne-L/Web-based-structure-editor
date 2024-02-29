@@ -3,25 +3,24 @@ import { ErrorMessage } from "../messages/error-msg-generator";
 import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
     AssignmentModifier,
+    AssignmentToken,
     AutocompleteTkn,
     BinaryOperatorExpr,
     CodeConstruct,
     EditableTextTkn,
     ElseStatement,
-    EmptyLineStmt,
     EmptyOperatorTkn,
     Expression,
-    FormattedStringCurlyBracketsExpr,
     FormattedStringExpr,
+    GeneralExpression,
     GeneralStatement,
     IdentifierTkn,
     IfStatement,
-    Importable,
     ImportStatement,
+    Importable,
     ListAccessModifier,
     ListLiteralExpression,
     LiteralValExpr,
-    MethodCallModifier,
     Modifier,
     NonEditableTkn,
     OperatorTkn,
@@ -29,33 +28,24 @@ import {
     TemporaryStmt,
     Token,
     TypedEmptyExpr,
-    UnaryOperatorExpr,
     ValueOperationExpr,
+    VarOperationStmt,
     // VarAssignmentStmt,
     VariableReferenceExpr,
-    VarOperationStmt,
 } from "../syntax-tree/ast";
-import { rebuildBody, replaceInBody } from "../syntax-tree/body";
+import { replaceInBody } from "../syntax-tree/body";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 import {
-    addClassToDraftModeResolutionButton,
     AutoCompleteType,
     BuiltInFunctions,
-    getOperatorCategory,
-    IgnoreConversionRecord,
     PythonKeywords,
-    StringRegex,
     TAB_SPACES,
-    Tooltip,
-    TYPE_MISMATCH_ANY,
-    TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR,
     TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR,
+    addClassToDraftModeResolutionButton,
+    getOperatorCategory,
 } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
-import { Reference } from "../syntax-tree/scope";
-import { TypeChecker } from "../syntax-tree/type-checker";
-import { getUserFriendlyType, isImportable } from "../utilities/util";
-import { LogEvent, Logger, LogType } from "./../logger/analytics";
+import { isImportable } from "../utilities/util";
 import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType } from "./consts";
@@ -63,7 +53,7 @@ import { EditAction } from "./data-types";
 import { Context, UpdatableContext } from "./focus";
 
 /**
- * General logic class responsible for executing the given action. 
+ * General logic class responsible for executing the given action.
  */
 export class ActionExecutor {
     /**
@@ -78,7 +68,7 @@ export class ActionExecutor {
     /**
      * Given an action, execute it.
      * Often this is performing an insertion, change or deletion of a construct in the editor.
-     * 
+     *
      * @param action - The action to execute
      * @param providedContext - The current context
      * @param e - The keyboard event
@@ -99,8 +89,11 @@ export class ActionExecutor {
 
         // let { eventType, eventData } = this.getLogEventSource(action?.data?.source);
 
+        let index;
+
         // Handle each of the different action types
         switch (action.type) {
+            // KInda language independent
             case EditActionType.InsertGeneralStmt:
                 /**
                  * Purpose is to try to
@@ -115,6 +108,20 @@ export class ActionExecutor {
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
                 const statement = action.data?.statement as Statement;
+                var autocompleteValues = action.data?.autocompleteData?.values;
+
+                // Update the contents of the tokens
+                index = 0;
+                for (const token of statement.tokens) {
+                    if (
+                        (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
+                        autocompleteValues &&
+                        autocompleteValues.length > index
+                    ) {
+                        token.text = action.data?.autocompleteData?.values[index];
+                    }
+                }
+
                 // Will always be needed?
                 this.replaceEmptyStatement(context.lineStatement, statement);
 
@@ -132,13 +139,30 @@ export class ActionExecutor {
                 break;
 
             // TODO: Merge with InsertGeneralStmt
+            // Kinda language independent
             case EditActionType.InsertGeneralExpr:
-                this.insertExpression(context, action.data?.expression);
+                const expression = action.data?.expression as Expression;
+                var autocompleteValues = action.data?.autocompleteData?.values;
 
-                if (flashGreen) this.flashGreen(action.data?.expression);
+                // Update the contents of the tokens when the data was already available in the autocomplete
+                index = 0;
+                for (const token of expression.tokens) {
+                    if (
+                        (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
+                        autocompleteValues &&
+                        autocompleteValues.length > index
+                    ) {
+                        token.text = autocompleteValues[index];
+                    }
+                }
+
+                this.insertExpression(context, expression);
+
+                if (flashGreen) this.flashGreen(expression);
 
                 break;
 
+            // NOT language independent
             case EditActionType.OpenAutocomplete: {
                 console.log("OpenAutocomplete");
                 const autocompleteTkn = new AutocompleteTkn(
@@ -318,31 +342,31 @@ export class ActionExecutor {
             //     break;
             // }
 
-            case EditActionType.InsertExpression: {
-                this.insertExpression(context, action.data?.expression);
+            // case EditActionType.InsertExpression: {
+            //     this.insertExpression(context, action.data?.expression);
 
-                if (flashGreen) this.flashGreen(action.data?.expression);
+            //     if (flashGreen) this.flashGreen(action.data?.expression);
 
-                // eventData.code = action.data?.expression?.getRenderText();
+            //     // eventData.code = action.data?.expression?.getRenderText();
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.InsertStatement: {
-                const statement = action.data?.statement as Statement;
+            // case EditActionType.InsertStatement: {
+            //     const statement = action.data?.statement as Statement;
 
-                this.replaceEmptyStatement(context.lineStatement, statement);
+            //     this.replaceEmptyStatement(context.lineStatement, statement);
 
-                if (flashGreen) this.flashGreen(action.data?.statement);
+            //     if (flashGreen) this.flashGreen(action.data?.statement);
 
-                if (statement.hasBody()) {
-                    let scopeHighlight = new ScopeHighlight(this.module.editor, statement);
-                }
+            //     if (statement.hasBody()) {
+            //         let scopeHighlight = new ScopeHighlight(this.module.editor, statement);
+            //     }
 
-                // eventData.code = action.data?.statement?.getRenderText();
+            //     // eventData.code = action.data?.statement?.getRenderText();
 
-                break;
-            }
+            //     break;
+            // }
 
             // case EditActionType.InsertVarAssignStatement: {
             //     //TODO: Might want to change back to use the case above if no new logic is added
@@ -398,6 +422,7 @@ export class ActionExecutor {
             //     break;
             // }
 
+            // NOT language indpendent
             case EditActionType.DeleteNextToken: {
                 if (context.expressionToRight instanceof OperatorTkn) {
                     this.replaceCode(
@@ -413,6 +438,7 @@ export class ActionExecutor {
                 break;
             }
 
+            // NOT language independent
             case EditActionType.DeletePrevToken: {
                 if (context.expressionToLeft instanceof OperatorTkn) {
                     this.replaceCode(
@@ -430,12 +456,16 @@ export class ActionExecutor {
                 break;
             }
 
+            // NOT language independent => Try to remove as statements should not be hardcoded
             case EditActionType.DeleteStatement: {
                 this.deleteCode(context.lineStatement, { statement: true });
 
                 break;
             }
 
+            // NOT language independent => Try to remove as statements should not be hardcoded
+            // Also: try to merge all deletes into one single delete and write logic to determine
+            // what to delete based on the context
             case EditActionType.DeleteMultiLineStatement: {
                 // Maybe delete everything inside this if, as this is just to show a message?
                 if (
@@ -477,6 +507,8 @@ export class ActionExecutor {
                 break;
             }
 
+            // NOT language independent
+            // See before
             case EditActionType.DeleteCurLine: {
                 this.module.deleteLine(context.lineStatement);
                 let range: Range;
@@ -506,12 +538,15 @@ export class ActionExecutor {
                 break;
             }
 
+            // NOT language independent
+            // Idem
             case EditActionType.DeleteSelectedModifier: {
                 this.deleteModifier(context.token.rootNode as Modifier, { deleting: true });
 
                 break;
             }
 
+            // NOT language independent
             case EditActionType.DeletePrevLine: {
                 const prevLine = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
 
@@ -532,25 +567,26 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.IndentBackwardsIfStmt: {
-                const root = context.lineStatement.rootNode as Statement | Module;
+            // case EditActionType.IndentBackwardsIfStmt: {
+            //     const root = context.lineStatement.rootNode as Statement | Module;
 
-                const toIndentStatements = new Array<Statement>();
+            //     const toIndentStatements = new Array<Statement>();
 
-                for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
-                    toIndentStatements.push(root.body[i]);
-                }
+            //     for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
+            //         toIndentStatements.push(root.body[i]);
+            //     }
 
-                for (const stmt of toIndentStatements.reverse()) {
-                    this.module.editor.indentRecursively(stmt, { backward: true });
-                    this.module.indentBackStatement(stmt);
-                }
+            //     for (const stmt of toIndentStatements.reverse()) {
+            //         this.module.editor.indentRecursively(stmt, { backward: true });
+            //         this.module.indentBackStatement(stmt);
+            //     }
 
-                this.module.focus.fireOnNavChangeCallbacks();
+            //     this.module.focus.fireOnNavChangeCallbacks();
 
-                break;
-            }
+            //     break;
+            // }
 
+            // Mostly language independent: except for "indentBackStatement"
             case EditActionType.DeleteBackMultiLines: {
                 for (
                     let i = context.lineStatement.rootNode.body.length - 1;
@@ -566,6 +602,7 @@ export class ActionExecutor {
                 break;
             }
 
+            // Mostly language independent: except for "indentBackStatement"
             case EditActionType.IndentBackwards: {
                 this.module.editor.indentRecursively(context.lineStatement, { backward: true });
                 this.module.indentBackStatement(context.lineStatement);
@@ -596,6 +633,7 @@ export class ActionExecutor {
             //     break;
             // }
 
+            // Mostly language independent: except for "indentForwardStatement"
             case EditActionType.IndentForwards: {
                 this.module.editor.indentRecursively(context.lineStatement, { backward: false });
                 this.module.indentForwardStatement(context.lineStatement);
@@ -605,6 +643,7 @@ export class ActionExecutor {
                 break;
             }
 
+            // Language independent as we will likely keep the concept of an empty line
             case EditActionType.InsertEmptyLine: {
                 const newEmptyLine = this.module.insertEmptyLine();
                 this.module.focus.fireOnNavOffCallbacks(context.lineStatement, newEmptyLine);
@@ -612,12 +651,14 @@ export class ActionExecutor {
                 break;
             }
 
+            // Language independent
             case EditActionType.SelectPrevToken: {
                 this.module.focus.navigateLeft();
 
                 break;
             }
 
+            // Language independent
             case EditActionType.SelectNextToken: {
                 this.module.focus.navigateRight();
 
@@ -723,22 +764,29 @@ export class ActionExecutor {
             //     break;
             // }
 
+            //
             case EditActionType.InsertChar: {
+                // Current caret position and current seelection
                 const cursorPos = this.module.editor.monaco.getPosition();
                 const selectedText = this.module.editor.monaco.getSelection();
+                // Get the focused or adjacent editable
                 const editableToken = this.module.focus.getTextEditableItem(context);
+                // Get the editable text
                 const editableText = editableToken.getEditableText();
+                // Get the corresponding editable token
                 const token = editableToken.getToken();
                 let newText = "";
 
-                if ((pressedKey == "{" || pressedKey == "}") && token.rootNode instanceof FormattedStringExpr) {
-                    this.execute(
-                        new EditAction(EditActionType.InsertFormattedStringItem, { source: { type: "autocomplete" } })
-                    );
+                // Should be generalised
+                // if ((pressedKey == "{" || pressedKey == "}") && token.rootNode instanceof FormattedStringExpr) {
+                //     this.execute(
+                //         new EditAction(EditActionType.InsertFormattedStringItem, { source: { type: "autocomplete" } })
+                //     );
 
-                    break;
-                }
+                //     break;
+                // }
 
+                // Handle the editing of an existing identifier
                 if (token instanceof IdentifierTkn && token.isEmptyIdentifier()) {
                     const curText = "";
                     newText = curText + pressedKey;
@@ -753,10 +801,12 @@ export class ActionExecutor {
                     newText = curText.join("");
                 }
 
+                // Add warnings if the given text is reserved
                 this.validateIdentifier(context, newText);
 
                 let editRange: Range;
 
+                // If start and end column are different, we have a selection
                 if (selectedText.startColumn != selectedText.endColumn) {
                     editRange = new Range(
                         cursorPos.lineNumber,
@@ -764,11 +814,13 @@ export class ActionExecutor {
                         cursorPos.lineNumber,
                         selectedText.endColumn
                     );
+                    // If the token to the right is an identifier and empty
                 } else if (
                     context.tokenToRight?.isTextEditable &&
                     context.tokenToRight instanceof IdentifierTkn &&
                     context.tokenToRight.isEmpty
                 ) {
+                    // Select the token for the given range
                     editRange = new Range(
                         cursorPos.lineNumber,
                         context.tokenToRight.left,
@@ -776,6 +828,7 @@ export class ActionExecutor {
                         context.tokenToRight.right
                     );
                 } else {
+                    // Otherwise make an empty range for the given cursor position
                     editRange = new Range(
                         cursorPos.lineNumber,
                         cursorPos.column,
@@ -785,6 +838,7 @@ export class ActionExecutor {
                 }
 
                 if (editableToken instanceof AutocompleteTkn) {
+                    // If with the pressed key there is one remaining match, perform the match action
                     let match = editableToken.checkMatch(pressedKey);
 
                     if (match) {
@@ -793,22 +847,27 @@ export class ActionExecutor {
                         break;
                     }
 
+                    // If there is an option with the current pressed key as terminating character
+                    // perform that match action
                     match = editableToken.isInsertableTerminatingMatch(pressedKey);
 
                     if (match) {
                         this.performMatchAction(match, editableToken);
 
+                        // CAN THIS BE REMOVED? This should also happen within "performMatchAction"
                         this.execute(this.module.eventRouter.getKeyAction(e));
 
                         break;
                     }
                 }
 
+                // Add the text to the token and if it could be rebuild (it is in the editor), execute the edit
                 if (editableToken.setEditedText(newText)) this.module.editor.executeEdits(editRange, null, pressedKey);
 
                 break;
             }
 
+            // NOT language independent
             case EditActionType.DeleteStringLiteral: {
                 this.deleteCode(context.tokenToLeft.rootNode);
 
@@ -817,20 +876,25 @@ export class ActionExecutor {
 
             case EditActionType.DeletePrevChar:
             case EditActionType.DeleteNextChar: {
-                console.log("We get here... so that is something")
+                // Current caret position and current selection
                 const cursorPos = this.module.editor.monaco.getPosition();
                 const selectedText = this.module.editor.monaco.getSelection();
+                // Get the focused or adjacent editable
                 const editableToken = this.module.focus.getTextEditableItem(context);
+                // Get the text editable token
                 const token = editableToken.getToken();
 
                 let newText = "";
 
+                // The current token text
                 const curText = editableToken.getEditableText().split("");
+                // The number of items to delete
                 const toDeleteItems =
                     selectedText.startColumn == selectedText.endColumn
                         ? 1
                         : Math.abs(selectedText.startColumn - selectedText.endColumn);
 
+                // 0 if the action is "DeleteNextChar", 1 if the action is "DeletePrevChar"
                 const toDeletePos = action.type == EditActionType.DeleteNextChar ? 0 : 1;
 
                 curText.splice(
@@ -843,40 +907,41 @@ export class ActionExecutor {
 
                 newText = curText.join("");
 
+                // Check against reserved words
                 this.validateIdentifier(context, newText);
 
-                // check if it needs to turn back into a hole:
+                // Check if it needs to turn back into a hole:
                 if (newText.length == 0) {
                     let removableExpr: CodeConstruct = null;
 
-                    console.log("Deciding if it needs to be a hole again", context)
-
-                    if (context.expression && !context.expression.hasSubValues /*context.expression instanceof LiteralValExpr*/) {
+                    // If the current expression is atomic (has no subexpressions or editable token)
+                    if (context.expression?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
                         removableExpr = context.expression;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
-                    } else if (context.expressionToLeft && !context.expressionToLeft.hasSubValues /*instanceof LiteralValExpr*/) {
+                    } else if (context.expressionToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
                         removableExpr = context.expressionToLeft;
                     } else if (context.tokenToLeft instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToLeft;
-                    } else if (context.expressionToRight && !context.expressionToRight.hasSubValues /*instanceof LiteralValExpr*/) {
+                    } else if (context.expressionToRight?.isAtomic() /*instanceof LiteralValExpr*/) {
                         removableExpr = context.expressionToRight;
                     } else if (context.tokenToRight instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToRight;
                     }
 
-                    console.log(removableExpr);
-
+                    // If the expression is removable, delete it
                     if (removableExpr != null) {
                         if (
                             removableExpr instanceof AutocompleteTkn &&
                             removableExpr.rootNode instanceof TemporaryStmt
                         ) {
+                            // Remove the temporary statement encapsulating the autocomplete token
                             this.deleteCode(removableExpr.rootNode, { statement: true });
                         } else if (
                             removableExpr instanceof AutocompleteTkn &&
                             removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
                         ) {
+                            // When at an operator, replace it with an empty operator
                             this.replaceCode(
                                 removableExpr,
                                 new EmptyOperatorTkn(" ", removableExpr.rootNode, removableExpr.indexInRoot)
@@ -886,13 +951,16 @@ export class ActionExecutor {
                             (removableExpr.autocompleteType == AutoCompleteType.RightOfExpression ||
                                 removableExpr.autocompleteType == AutoCompleteType.LeftOfExpression)
                         ) {
+                            // Remove the autocomplete token
                             this.deleteAutocompleteToken(removableExpr);
+                            // Else just remove the expression
                         } else this.deleteCode(removableExpr);
 
                         break;
                     }
 
                     let identifier: IdentifierTkn = null;
+                    // Try to get the identifier token by looking to the left, right and at the current token
                     if (context.tokenToLeft instanceof IdentifierTkn) {
                         identifier = context.tokenToLeft;
                     } else if (context.tokenToRight instanceof IdentifierTkn) {
@@ -901,12 +969,13 @@ export class ActionExecutor {
                         identifier = context.token;
                     }
 
+                    // If the identifier is found, reset it
                     if (identifier != null) {
                         // reset identifier:
                         identifier.text = "  ";
                         identifier.isEmpty = true;
 
-                        // change editor
+                        // Update the editor with the new value
                         this.module.editor.executeEdits(
                             new Range(cursorPos.lineNumber, identifier.left, cursorPos.lineNumber, identifier.right),
                             null,
@@ -921,6 +990,8 @@ export class ActionExecutor {
                     }
                 }
 
+                // If the editableToken is after rebuilding in the editor, execute the edit in the
+                // Monaco editor
                 if (editableToken.setEditedText(newText)) {
                     let editRange = new Range(
                         cursorPos.lineNumber,
@@ -938,6 +1009,7 @@ export class ActionExecutor {
                         );
                     }
 
+                    // DOES THIS LINE SOMETHIMES HAPPEN WHEN THE PREVIOUS "executeEdits" IS CALLED AS WELL?
                     this.module.editor.executeEdits(editRange, null, "");
                     preventDefaultEvent = false;
                 }
@@ -945,17 +1017,25 @@ export class ActionExecutor {
                 break;
             }
 
+            // NOT NOT language independent
             case EditActionType.InsertAssignmentModifier: {
+                // If the expression to the left is a variable reference on its own
                 if (context.expressionToLeft.rootNode instanceof VarOperationStmt) {
+                    // Get the parent of the variable reference
                     const varOpStmt = context.expressionToLeft.rootNode;
 
+                    // If the current insertion is an assignment modifier
+                    // and the expression to the left is a variable reference
                     if (
                         action.data.modifier instanceof AssignmentModifier &&
                         context.expressionToLeft instanceof VariableReferenceExpr
                     ) {
+                        // Close draft mode of the variable reference; it is now correctly contained
+                        // in an assignment statement
                         if (context.expressionToLeft.rootNode.draftModeEnabled) {
                             this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
                         }
+                        // Get the boundaries of the variable reference expression
                         const initialBoundary = this.getBoundaries(context.expressionToLeft);
 
                         // const varAssignStmt = new VarAssignmentStmt(
@@ -964,17 +1044,22 @@ export class ActionExecutor {
                         //     varOpStmt.rootNode,
                         //     varOpStmt.indexInRoot
                         // );
+                        // Construct a new variable assignment statement, set the identifier,
+                        // the root node and the index in the root
                         const varAssignStmt = structuredClone(GeneralStatement.constructs.get("varAss"));
                         varAssignStmt.setAssignmentIdentifier(context.expressionToLeft.identifier, 0);
                         varAssignStmt.rootNode = varOpStmt.rootNode;
                         varAssignStmt.indexInRoot = varOpStmt.indexInRoot;
 
+                        // Generalise to a simple "replace" call
                         replaceInBody(varOpStmt.rootNode, varOpStmt.indexInRoot, varAssignStmt);
 
+                        // Perform the edits in the Monaco editor and update the focus
                         this.module.editor.executeEdits(initialBoundary, varAssignStmt);
                         this.module.focus.updateContext(varAssignStmt.getInitialFocus());
 
                         if (flashGreen) this.flashGreen(varAssignStmt);
+                        // Else: WHEN IS THIS CASE VALID?
                     } else {
                         if (
                             context.expressionToLeft instanceof VariableReferenceExpr &&
@@ -1233,34 +1318,35 @@ export class ActionExecutor {
             //     break;
             // }
 
-            case EditActionType.ConvertAutocompleteToString: {
-                const autocompleteToken = action.data.token as AutocompleteTkn;
-                const literalValExpr = new LiteralValExpr(
-                    DataType.String,
-                    autocompleteToken.text,
-                    autocompleteToken.rootNode as Expression | Statement,
-                    autocompleteToken.indexInRoot
-                );
+            // Should be generalised
+            // case EditActionType.ConvertAutocompleteToString: {
+            //     const autocompleteToken = action.data.token as AutocompleteTkn;
+            //     const literalValExpr = new LiteralValExpr(
+            //         DataType.String,
+            //         autocompleteToken.text,
+            //         autocompleteToken.rootNode as Expression | Statement,
+            //         autocompleteToken.indexInRoot
+            //     );
 
-                autocompleteToken.draftModeEnabled = false;
-                this.deleteCode(autocompleteToken);
-                this.insertExpression(this.module.focus.getContext(), literalValExpr);
+            //     autocompleteToken.draftModeEnabled = false;
+            //     this.deleteCode(autocompleteToken);
+            //     this.insertExpression(this.module.focus.getContext(), literalValExpr);
 
-                // eventData.code = "double-quote";
-                // eventData.wrap = true;
+            //     // eventData.code = "double-quote";
+            //     // eventData.wrap = true;
 
-                break;
-            }
+            //     break;
+            // }
 
-            case EditActionType.InsertEmptyList: {
-                const newLiteral = new ListLiteralExpression();
-                this.insertExpression(context, newLiteral);
+            // case EditActionType.InsertEmptyList: {
+            //     const newLiteral = new ListLiteralExpression();
+            //     this.insertExpression(context, newLiteral);
 
-                if (flashGreen) this.flashGreen(newLiteral);
-                // eventData.code = "empty-list";
+            //     if (flashGreen) this.flashGreen(newLiteral);
+            //     // eventData.code = "empty-list";
 
-                break;
-            }
+            //     break;
+            // }
 
             // case EditActionType.InsertEmptyListItem: {
             //     if (action.data.toRight) {
@@ -1295,15 +1381,22 @@ export class ActionExecutor {
             //     break;
             // }
 
+            // Generalise in one single delete function
             case EditActionType.DeleteRootNode: {
                 this.deleteCode(context.token.rootNode);
                 break;
             }
 
+            // Mostly language independent
+            // USE CASE?
             case EditActionType.ReplaceExpressionWithItem: {
-                const rootNode = context.token.rootNode as Expression;
-                let replacementTkn;
+                // Get the parent of the token
+                const rootNode = context.token.rootNode as GeneralExpression;
+                // The token which will replace the expression
+                let replacementTkn: CodeConstruct;
                 for (let i = 0; i < rootNode.tokens.length; i++) {
+                    // Set the last occuring construct that is not a hole, non-editable or operator token
+                    // to be the replacementTkn
                     if (
                         !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
                         !(rootNode.tokens[i] instanceof NonEditableTkn) &&
@@ -1312,84 +1405,88 @@ export class ActionExecutor {
                         replacementTkn = rootNode.tokens[i];
                     }
                 }
+                // Replace the expression with the replacement token
                 this.replaceCode(rootNode, replacementTkn);
                 break;
             }
 
-            case EditActionType.InsertImportFromDraftMode: {
-                let currContext = context;
-                this.module.editor.monaco.setPosition(new Position(1, 1));
-                this.module.editor.cursor.setSelection(null);
-                this.module.insertEmptyLine();
-                this.module.editor.monaco.setPosition(new Position(1, 1));
-                this.module.editor.cursor.setSelection(null);
-                currContext = this.module.focus.getContext();
+            // Temporary disabled functionality
+            // case EditActionType.InsertImportFromDraftMode: {
+            //     let currContext = context;
+            //     this.module.editor.monaco.setPosition(new Position(1, 1));
+            //     this.module.editor.cursor.setSelection(null);
+            //     this.module.insertEmptyLine();
+            //     this.module.editor.monaco.setPosition(new Position(1, 1));
+            //     this.module.editor.cursor.setSelection(null);
+            //     currContext = this.module.focus.getContext();
 
-                const stmt = new ImportStatement(action.data?.moduleName, action.data?.itemName);
-                const insertAction = new EditCodeAction(
-                    "from --- import --- :",
-                    "add-import-btn",
-                    () => stmt,
-                    InsertActionType.InsertStatement,
-                    {},
-                    null,
-                    [" "],
-                    "import",
-                    null
-                );
+            //     const stmt = new ImportStatement(action.data?.moduleName, action.data?.itemName);
+            //     const insertAction = new EditCodeAction(
+            //         "from --- import --- :",
+            //         "add-import-btn",
+            //         () => stmt,
+            //         InsertActionType.InsertStatement,
+            //         {},
+            //         null,
+            //         [" "],
+            //         "import",
+            //         null
+            //     );
 
-                insertAction.performAction(this, this.module.eventRouter, currContext, { type: "draft-mode" });
-                // eventData.code = stmt.getRenderText();
+            //     insertAction.performAction(this, this.module.eventRouter, currContext, { type: "draft-mode" });
+            //     // eventData.code = stmt.getRenderText();
 
-                break;
-            }
-            case EditActionType.InsertMemberCallConversion:
-            case EditActionType.InsertMemberAccessConversion: {
-                const root = action.data.codeToReplace;
-                this.module.focus.updateContext(
-                    new UpdatableContext(null, action.data.codeToReplace.getRightPosition())
-                );
-                this.execute(
-                    new EditAction(EditActionType.InsertModifier, {
-                        source: action?.data?.source,
-                        modifier: Actions.instance()
-                            .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
-                            .getCodeFunction() as Modifier,
-                    }),
-                    this.module.focus.getContext()
-                );
+            //     break;
+            // }
 
-                this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
+            // case EditActionType.InsertMemberCallConversion:
+            // case EditActionType.InsertMemberAccessConversion: {
+            //     const root = action.data.codeToReplace;
+            //     this.module.focus.updateContext(
+            //         new UpdatableContext(null, action.data.codeToReplace.getRightPosition())
+            //     );
+            //     this.execute(
+            //         new EditAction(EditActionType.InsertModifier, {
+            //             source: action?.data?.source,
+            //             modifier: Actions.instance()
+            //                 .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
+            //                 .getCodeFunction() as Modifier,
+            //         }),
+            //         this.module.focus.getContext()
+            //     );
 
-                if (root instanceof Expression) root.validateTypes(this.module);
+            //     this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
 
-                // eventData.code = action.data.codeToReplace.getRenderText();
+            //     if (root instanceof Expression) root.validateTypes(this.module);
 
-                break;
-            }
-            case EditActionType.InsertFunctionConversion:
-            case EditActionType.InsertTypeCast:
-            case EditActionType.InsertComparisonConversion: {
-                const root = action.data.codeToReplace;
-                this.deleteCode(action.data.codeToReplace, {
-                    statement: null,
-                    replaceType: action.data.typeToConvertTo,
-                });
-                this.insertExpression(
-                    this.module.focus.getContext(),
-                    Actions.instance()
-                        .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
-                        .getCodeFunction() as Expression
-                );
-                action.data.codeToReplace.draftModeEnabled = false;
-                this.insertExpression(this.module.focus.getContext(), action.data.codeToReplace as Expression);
-                this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
+            //     // eventData.code = action.data.codeToReplace.getRenderText();
 
-                if (root instanceof Expression) root.validateTypes(this.module);
-                // eventData.code = action.data.codeToReplace.getRenderText();
+            //     break;
+            // }
 
-                break;
-            }
+            // case EditActionType.InsertFunctionConversion:
+            // case EditActionType.InsertTypeCast:
+            // case EditActionType.InsertComparisonConversion: {
+            //     const root = action.data.codeToReplace;
+            //     this.deleteCode(action.data.codeToReplace, {
+            //         statement: null,
+            //         replaceType: action.data.typeToConvertTo,
+            //     });
+            //     this.insertExpression(
+            //         this.module.focus.getContext(),
+            //         Actions.instance()
+            //             .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
+            //             .getCodeFunction() as Expression
+            //     );
+            //     action.data.codeToReplace.draftModeEnabled = false;
+            //     this.insertExpression(this.module.focus.getContext(), action.data.codeToReplace as Expression);
+            //     this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
+
+            //     if (root instanceof Expression) root.validateTypes(this.module);
+            //     // eventData.code = action.data.codeToReplace.getRenderText();
+
+            //     break;
+            // }
 
             case EditActionType.SelectClosestTokenAbove: {
                 this.module.focus.navigateUp();
@@ -1433,23 +1530,24 @@ export class ActionExecutor {
                 preventDefaultEvent = false;
                 break;
 
-            case EditActionType.InsertLiteral: {
-                const newLiteral = new LiteralValExpr(action.data?.literalType, action.data?.initialValue);
-                this.insertExpression(context, newLiteral);
+            // case EditActionType.InsertLiteral: {
+            //     const newLiteral = new LiteralValExpr(action.data?.literalType, action.data?.initialValue);
+            //     this.insertExpression(context, newLiteral);
 
-                if (flashGreen) this.flashGreen(newLiteral);
+            //     if (flashGreen) this.flashGreen(newLiteral);
 
-                if (action.data?.source?.type === "keyboard") {
-                    // eventType = LogType.InsertCode;
-                    // eventData.source = "keyboard";
-                    // eventData.code = `literal-${getUserFriendlyType(newLiteral.returns)}`;
-                }
+            //     if (action.data?.source?.type === "keyboard") {
+            //         // eventType = LogType.InsertCode;
+            //         // eventData.source = "keyboard";
+            //         // eventData.code = `literal-${getUserFriendlyType(newLiteral.returns)}`;
+            //     }
 
-                break;
-            }
+            //     break;
+            // }
 
+            // When
             case EditActionType.OpenValidInsertMenu:
-                console.log("OpenValidInsertMenu")
+                console.log("OpenValidInsertMenu");
                 this.openAutocompleteMenu(
                     this.module.actionFilter
                         .getProcessedInsertionsList()
@@ -1581,7 +1679,7 @@ export class ActionExecutor {
     /**
      * Insert a variable reference into the current context, handling cases on an empty line or
      * at an expression hole
-     * 
+     *
      * @param identifier - The name of the variable to insert
      * @param source - Contains logging information
      * @param providedContext - The context to insert the variable reference into
@@ -1677,7 +1775,7 @@ export class ActionExecutor {
 
     // /**
     //  * Given a source, returns the event type and event data to log
-    //  * 
+    //  *
     //  * @param source - Logging information
     //  * @returns - The event type (always LogType.InsertCode) and event data to log
     //  */
@@ -1729,9 +1827,9 @@ export class ActionExecutor {
     // }
 
     /**
-     * Delete the currently focused autocomplete token from the editor 
+     * Delete the currently focused autocomplete token from the editor
      * TODO: Why variants depending on the type of token? ==> Delete later?
-     * 
+     *
      * @param context - The current focus context
      * @returns - The updated context
      */
@@ -1739,7 +1837,7 @@ export class ActionExecutor {
         // Get the current (autocomplete) token
         let token: AutocompleteTkn;
 
-        // If the current focus is on or near an autocomplete token, set that token as the 
+        // If the current focus is on or near an autocomplete token, set that token as the
         // current token
         if (context.token instanceof AutocompleteTkn) token = context.token;
         if (context.tokenToLeft instanceof AutocompleteTkn) token = context.tokenToLeft;
@@ -1763,7 +1861,7 @@ export class ActionExecutor {
                         this.deleteCode(token.rootNode, {
                             statement: true,
                         });
-                    // Else just delete the token
+                        // Else just delete the token
                     } else {
                         this.deleteCode(token);
                     }
@@ -1784,7 +1882,7 @@ export class ActionExecutor {
 
     /**
      * Highlight the given construct for a short period of time in green
-     * 
+     *
      * @param code - The construct to highlight
      */
     private flashGreen(code: CodeConstruct) {
@@ -1798,7 +1896,7 @@ export class ActionExecutor {
                 if (highlight) {
                     highlight.changeHighlightColour([255, 255, 255, 0]);
 
-                    // Remove the highlight 
+                    // Remove the highlight
                     setTimeout(() => {
                         highlight.removeFromDOM();
                         highlight = null;
@@ -1809,9 +1907,9 @@ export class ActionExecutor {
     }
 
     /**
-     * Insert the given list of constructs into the parent of the focused code construct 
+     * Insert the given list of constructs into the parent of the focused code construct
      * at the given index
-     * 
+     *
      * @param focusedCode - The focused code construct
      * @param index - The index to insert the constructs at in the parent of the focused code
      * @param items - The list of constructs to insert
@@ -1841,13 +1939,13 @@ export class ActionExecutor {
 
     /**
      * Perform the given match action ==> TODO: what does this mean?
-     * 
-     * @param match 
-     * @param token 
-     * @returns 
+     *
+     * @param match
+     * @param token
+     * @returns
      */
     private performMatchAction(match: EditCodeAction, token: AutocompleteTkn) {
-        // If you are matching a new variable statement and the token is a keyword 
+        // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
             match.insertActionType == InsertActionType.InsertNewVariableStmt &&
@@ -1880,7 +1978,7 @@ export class ActionExecutor {
     /**
      * Insert the token in the current context, either by replacing the focused token / expression
      * or by inserting right before or after the focused expression if toLeft or toRight is true.
-     * 
+     *
      * @param context - The current focus context
      * @param code - The token to insert
      * @param param2 - { toLeft, toRight }: Whether to insert to the left or right of the focused expression;
@@ -1895,7 +1993,7 @@ export class ActionExecutor {
                 const root = context.expression.rootNode as Statement; // Statement or any of its derived classes
                 // Replace in the parent the expression with the given token
                 root.replace(code, context.expression.indexInRoot);
-            // If there is not a focused expression but there is a focused token
+                // If there is not a focused expression but there is a focused token
             } else if (context.token != null) {
                 // Get the parent of the token
                 const root = context.token.rootNode as Statement;
@@ -1913,7 +2011,7 @@ export class ActionExecutor {
 
             // Update the Monaco editor with the given token
             this.module.editor.executeEdits(range, code);
-        // Insert the given token to the right of an expression on the left
+            // Insert the given token to the right of an expression on the left
         } else if (toRight && context.expressionToLeft != null) {
             // Get the parent of the expression to the left
             const root = context.expressionToLeft.rootNode;
@@ -1926,7 +2024,7 @@ export class ActionExecutor {
             root.rebuild(root.getLeftPosition(), 0);
             // Add code construct to Monaco editor
             this.module.editor.insertAtCurPos([code]);
-        // Insert the given token to the left of an expression on the right
+            // Insert the given token to the left of an expression on the right
         } else if (toLeft && context.expressionToRight != null) {
             // Get the parent of the expression to the right
             const root = context.expressionToRight.rootNode;
@@ -1944,7 +2042,7 @@ export class ActionExecutor {
     /**
      * Insert the given expression into the current context, checking types and updating the Monaco editor
      * in the process.
-     * 
+     *
      * @param context - The current focus context
      * @param code - The expression to insert
      */
@@ -2019,7 +2117,7 @@ export class ActionExecutor {
 
     /**
      * Check if all imports are satisfied and if not, open the draft mode for the given importable
-     * 
+     *
      * @param insertedCode - The code to check for imports
      * @param currentInsertionType - The current insertion type of the insertedCode
      */
@@ -2039,7 +2137,7 @@ export class ActionExecutor {
     /**
      * Open an auto complete menu with the given insertions if the menu is not already open, otherwise
      * close all open ones
-     * 
+     *
      * @param inserts - The EditCodeActions to display in the menu
      */
     private openAutocompleteMenu(inserts: EditCodeAction[]) {
@@ -2049,13 +2147,13 @@ export class ActionExecutor {
             inserts = inserts.filter((insert) => insert.insertionResult.insertionType !== InsertionType.Invalid);
             // Build the menu
             this.module.menuController.buildSingleLevelMenu(inserts);
-        // Close all open menu's
+            // Close all open menu's
         } else this.module.menuController.removeMenus();
     }
 
     /**
      * Replace the empty line statement with the given statement
-     * 
+     *
      * @param emptyLine - The empty line statement to replace
      * @param statement - The statement to replace the empty line with
      */
@@ -2086,9 +2184,9 @@ export class ActionExecutor {
     }
 
     /**
-     * Replace the given expression with a binary operator expression with the given 
+     * Replace the given expression with a binary operator expression with the given
      * expressions as one of its operands
-     * 
+     *
      * @param op - The binary operator to create an expression with
      * @param expr - The expression to replace with the binary operator expression and be placed as
      * an operand
@@ -2191,12 +2289,12 @@ export class ActionExecutor {
      * Get the range starting from the first construct and ending at the last construct
      * NOTE: In between elements are not (explicitly) checked and and all the constructs
      * are assumed to be on the same line
-     * 
-     * @param codes 
-     * @returns 
+     *
+     * @param codes
+     * @returns
      */
     private getCascadedBoundary(codes: Array<CodeConstruct>): Range {
-        // Get the range of all the constructs, assuming they are ordered according to their appearance 
+        // Get the range of all the constructs, assuming they are ordered according to their appearance
         // in the text editor
         if (codes.length > 1) {
             // Starting line number (and ending line number, because only used for list elements)
@@ -2204,13 +2302,13 @@ export class ActionExecutor {
 
             // Return the range from the first to the last construct
             return new Range(lineNumber, codes[0].left, lineNumber, codes[codes.length - 1].right);
-        // Simply return the range of the one construct
+            // Simply return the range of the one construct
         } else return this.getBoundaries(codes[0]);
     }
 
     /**
      * Get the range of the entire construct, including potential body statements
-     * 
+     *
      * @param code - The construct to get the boundaries in the Monaco editor of
      * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
      * @returns THe range of the construct
@@ -2254,9 +2352,9 @@ export class ActionExecutor {
 
     /**
      * Delete the given modifier from the editor
-     * 
+     *
      * @param mod - The modifier to delete
-     * @param param1 
+     * @param param1
      */
     private deleteModifier(mod: Modifier, { deleting = false } = {}) {
         // TODO: this will be a prototype version of the code. needs to be cleaned and iterated on ->
@@ -2279,7 +2377,7 @@ export class ActionExecutor {
         let built = false;
         let positionToMove: Position;
 
-        // If only one child token is remaining (the right-hand side value or left-hand 
+        // If only one child token is remaining (the right-hand side value or left-hand
         // side variable reference)
         if (rootOfExprToLeft.tokens.length == 1) {
             // only a val or var-ref is remaining:
@@ -2383,7 +2481,7 @@ export class ActionExecutor {
 
     /**
      * Remove the given token from the editor and update the focus context
-     * 
+     *
      * @param token - The token to remove
      */
     private deleteAutocompleteToken(token: Token) {
@@ -2403,9 +2501,9 @@ export class ActionExecutor {
     }
 
     /**
-     * Replace the given code with the given replacement, updating the Monaco 
+     * Replace the given code with the given replacement, updating the Monaco
      * editor and focus context
-     * 
+     *
      * @param code - The construct to replace
      * @param replace - The construct to replace the given code with
      */
@@ -2425,7 +2523,7 @@ export class ActionExecutor {
 
             // Update the index and parent of all the tokens in the parent
             for (let i = 0; i < root.tokens.length; i++) {
-                // All tokens after the replaced token need to have their index in 
+                // All tokens after the replaced token need to have their index in
                 // the parent updated
                 root.tokens[i].indexInRoot = i;
                 root.tokens[i].rootNode = root;
@@ -2445,9 +2543,9 @@ export class ActionExecutor {
 
     /**
      * Remove the given Construct from the editor and update the focus context
-     * 
-     * @param code 
-     * @param param1 
+     *
+     * @param code
+     * @param param1
      */
     private deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
         // The parent construct of the code to delete
@@ -2471,11 +2569,11 @@ export class ActionExecutor {
         if (root instanceof Expression) root.validateTypes(this.module);
     }
 
-    // Maybe replace with a list of all words that can not occur as a variable name? 
+    // Maybe replace with a list of all words that can not occur as a variable name?
     /**
-     * Checks if the given identifier is not a keyword or built-in function, and 
+     * Checks if the given identifier is not a keyword or built-in function, and
      * adds a message if it is
-     * 
+     *
      * @param context - The current focus context
      * @param identifierText - The name of the identifier to check
      */
@@ -2486,12 +2584,12 @@ export class ActionExecutor {
         // If the current selected token is an identifier, it is the focused node
         if (context.token && context.selected && context.token instanceof IdentifierTkn) {
             focusedNode = context.token;
-        // If the token to the left is an identifier (and the current token is not selected), 
-        // it is the focused node
+            // If the token to the left is an identifier (and the current token is not selected),
+            // it is the focused node
         } else if (context.tokenToLeft && context.tokenToLeft instanceof IdentifierTkn) {
             focusedNode = context.tokenToLeft;
-        // If the token to the right is an identifier (and the current token is not selected),
-        // it is the focused node
+            // If the token to the right is an identifier (and the current token is not selected),
+            // it is the focused node
         } else if (context.tokenToRight && context.tokenToRight instanceof IdentifierTkn) {
             focusedNode = context.tokenToRight;
         }
@@ -2520,7 +2618,7 @@ export class ActionExecutor {
 
     /**
      * Update the autocomplete menu for the given AutocompleteTkn, by updating the options and position
-     * 
+     *
      * @param autocompleteTkn - The token to update the autocomplete menu for
      */
     private updateAutocompleteMenu(autocompleteTkn: AutocompleteTkn) {
@@ -2532,7 +2630,7 @@ export class ActionExecutor {
 
     /**
      * Give styling to the autocomplete menu and update its position
-     * 
+     *
      * @param pos - The position to place the autocomplete menu
      */
     private styleAutocompleteMenu(pos: Position) {

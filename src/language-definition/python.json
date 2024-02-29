@@ -570,7 +570,7 @@
             ]
         ],
         "match": null,
-        "matchRegex": "^[^\\d\\W]\\w*$",
+        "matchRegex": "^([^\\d\\W]\\w*)$",
         "triggerInsertion": ["="],
         "toolbox": {
             "category": "Tests",
@@ -623,8 +623,8 @@
         ],
         "holes": [],
         "match": "",
-        "matchRegex": null,
-        "triggerInsertion": [],
+        "matchRegex": "^([^\\r\\n\\\"]*)$",
+        "triggerInsertion": ["'"],
         "toolbox": {
             "category": "Tests",
             "title": "text",
@@ -655,7 +655,7 @@
         ],
         "holes": [],
         "match": "",
-        "matchRegex": null,
+        "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
         "triggerInsertion": [],
         "toolbox": {
             "category": "Tests",
@@ -706,6 +706,52 @@
         "match": "",
         "matchRegex": null,
         "triggerInsertion": ["+"],
+        "toolbox": {
+            "category": "Tests",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-sum-strings",
+                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                }
+            ],
+            "search-queries": ["add", "sum"]
+        }
+    },
+    {
+        "keyword": "minUnExpr",
+        "constructType": "expression",
+        "editorName": "- ---",
+        "format": [
+            {
+                "type": "token",
+                "value": "-"
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": ["-"],
         "toolbox": {
             "category": "Tests",
             "title": "add",

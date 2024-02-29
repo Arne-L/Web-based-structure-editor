@@ -954,6 +954,10 @@ export class GeneralStatement extends Statement implements Importable {
         return this.keyword;
     }
 
+    isAtomic(): boolean {
+        return !this.hasSubValues;
+    }
+
     /**
      * Currently only implemented for statements (or is being implemented for statements ...)
      *
