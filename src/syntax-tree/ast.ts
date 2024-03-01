@@ -1016,24 +1016,57 @@ export class GeneralStatement extends Statement implements Importable {
                 // are correctly defined
                 if (dependingIndex === -1) continue;
 
+                // Depending / requiring construct to start checking from
+                let currentConstruct = context.lineStatement;
+
+                // There is no construct in front of the current one, so the insertion is invalid
+                if (!currentConstruct) break;
+                
+                // Get the next construct in the editor after this
+                let nextConstruct = validator.getNextSiblingOf(currentConstruct);
+
+                if (nextConstruct) {
+                    // Check if it appears in the depending constructs list
+                    let nextIndex = depConstructsInfo.findIndex(
+                        (construct) => construct.getConstructName() === this.getKeyword()
+                    );
+                    // If it appears in the depending constructs at the same place of after the last
+                    // found depending construct, then we take that as the next construct 
+                    while (nextIndex >= dependingIndex) {
+                        // Update the current with all the next construct information
+                        dependingIndex = nextIndex;
+                        currentConstruct = nextConstruct;
+
+                        // Check if the following construct in the editor also appears 
+                        // in the depending constructs list
+                        nextConstruct = validator.getNextSiblingOf(nextConstruct);
+
+                        if (!nextConstruct) break;
+
+                        nextIndex = depConstructsInfo.findIndex(
+                            (construct) => construct.getConstructName() === this.getKeyword()
+                        );
+                    }
+                }
                 // Keep track of how many times each depending construct has been visited / appeared, starting
                 // from the current construct to the first requiring construct
-                const dependingVisited = new Array(dependingIndex).fill(0);
+                const dependingVisited = new Array(dependingIndex + 1).fill(0);
 
                 // The current construct we want to insert also needs to be counted
                 // Because we assume that each requiring construct can appear at least once, we do not need to
                 // check the constraints
-                dependingVisited[dependingIndex] = 1;
+                // dependingVisited[dependingIndex] = 1;
 
-                // Depending / requiring construct to start checking from
-                let currentConstruct = validator.getPrevSiblingOf(context.lineStatement);
-                let prevConstruct = this as Statement; // NOT OKAY
-
-                // There is no construct in front of the current one, so the insertion is invalid
-                if (!currentConstruct) break;
+                let prevConstruct = currentConstruct; // NOT OKAY
 
                 // TODO: Not completely correct: what if there are multiple of the first requiring construct?
                 while (dependingIndex >= 0) {
+                    const currentEditorConstruct = currentConstruct
+                    if (currentConstruct === context.lineStatement) {
+                        prevConstruct = prevConstruct === currentConstruct ? this : prevConstruct
+                        currentConstruct = this
+                    }
+
                     // Still the same construct
                     if (currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
                         // Check if it is allowed to have many of the same construct
@@ -1059,6 +1092,7 @@ export class GeneralStatement extends Statement implements Importable {
                             dependingIndex--;
                         }
                     }
+
                     // Increase the amount of times the current construct type has been visited
                     dependingVisited[dependingIndex]++;
 
@@ -1066,7 +1100,7 @@ export class GeneralStatement extends Statement implements Importable {
                     // Else the current construct is the required construct
                     if (dependingIndex >= 0) {
                         prevConstruct = currentConstruct;
-                        currentConstruct = validator.getPrevSiblingOf(currentConstruct) as GeneralStatement; // NOT OKAY
+                        currentConstruct = validator.getPrevSiblingOf(currentEditorConstruct) as GeneralStatement; // NOT OKAY
 
                         // In case there are not yet any constructs in front of the current position
                         if (!currentConstruct) {
@@ -1080,6 +1114,7 @@ export class GeneralStatement extends Statement implements Importable {
                     // We found the required construct
                     canInsertConstruct = true;
                 }
+
             }
 
             if (!canInsertConstruct) return InsertionType.Invalid;
