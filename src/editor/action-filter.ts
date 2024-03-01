@@ -230,7 +230,7 @@ export class ActionFilter {
      * @returns Combined list of all insertions at the current location
      */
     getProcessedInsertionsList(): EditCodeAction[] {
-        const inserts = [];
+        const inserts: EditCodeAction[] = [];
         inserts.push(...this.getProcessedConstructInsertions());
         inserts.push(...this.getProcessedEditInsertions());
         inserts.push(...this.getProcessedVariableInsertions());

@@ -674,6 +674,66 @@
         }
     },
     {
+        "keyword": "False",
+        "constructType": "expression",
+        "editorName": "False",
+        "format": [
+            {
+                "type": "token",
+                "value": "False"
+            }
+        ],
+        "holes": [],
+        "match": "False",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "123",
+            "tooltip": {
+                "title": "Insert a Number",
+                "body": "Inserts a number and edit its value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-num",
+                    "example": "age = 21\nprint(age)\nprint(21)"
+                }
+            ]
+        }
+    },
+    {
+        "keyword": "True",
+        "constructType": "expression",
+        "editorName": "True",
+        "format": [
+            {
+                "type": "token",
+                "value": "True"
+            }
+        ],
+        "holes": [],
+        "match": "True",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "123",
+            "tooltip": {
+                "title": "Insert a Number",
+                "body": "Inserts a number and edit its value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-num",
+                    "example": "age = 21\nprint(age)\nprint(21)"
+                }
+            ]
+        }
+    },
+    {
         "keyword": "addBinExpr",
         "constructType": "expression",
         "editorName": "--- + ---",

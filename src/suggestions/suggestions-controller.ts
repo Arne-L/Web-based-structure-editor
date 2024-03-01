@@ -996,7 +996,6 @@ export class MenuController {
                     extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
                 }
 
-                if (editAction.matchRegex) console.log(editAction.matchRegex.exec(optionText).slice(1));
                 option = new MenuOption(
                     optionDisplayText,
                     true,
