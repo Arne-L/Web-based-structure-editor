@@ -430,10 +430,10 @@ export class ActionExecutor {
                         new EmptyOperatorTkn(" ", context.expressionToRight, context.expressionToRight.indexInRoot)
                     );
                 } else if (this.module.validator.atBeginningOfValOperation(context)) {
-                    this.deleteCode(context.expressionToRight.rootNode);
+                    this.module.deleteCode(context.expressionToRight.rootNode);
                 } else if (context.expressionToRight instanceof Modifier) {
                     this.deleteModifier(context.expressionToRight, { deleting: true });
-                } else this.deleteCode(context.expressionToRight);
+                } else this.module.deleteCode(context.expressionToRight);
 
                 break;
             }
@@ -449,16 +449,16 @@ export class ActionExecutor {
                     context.expressionToLeft instanceof VariableReferenceExpr &&
                     context.expressionToLeft.rootNode instanceof VarOperationStmt
                 ) {
-                    this.deleteCode(context.expressionToLeft.rootNode, { statement: true });
+                    this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
                 } else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
-                else this.deleteCode(context.expressionToLeft);
+                else this.module.deleteCode(context.expressionToLeft);
 
                 break;
             }
 
             // NOT language independent => Try to remove as statements should not be hardcoded
             case EditActionType.DeleteStatement: {
-                this.deleteCode(context.lineStatement, { statement: true });
+                this.module.deleteCode(context.lineStatement, { statement: true });
 
                 break;
             }
@@ -502,7 +502,7 @@ export class ActionExecutor {
                     this.module.indentBackStatement(context.lineStatement.body[context.lineStatement.body.length - 1]);
                 }
 
-                this.deleteCode(context.lineStatement, { statement: true });
+                this.module.deleteCode(context.lineStatement, { statement: true });
 
                 break;
             }
@@ -869,7 +869,7 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.DeleteStringLiteral: {
-                this.deleteCode(context.tokenToLeft.rootNode);
+                this.module.deleteCode(context.tokenToLeft.rootNode);
 
                 break;
             }
@@ -936,7 +936,7 @@ export class ActionExecutor {
                             removableExpr.rootNode instanceof TemporaryStmt
                         ) {
                             // Remove the temporary statement encapsulating the autocomplete token
-                            this.deleteCode(removableExpr.rootNode, { statement: true });
+                            this.module.deleteCode(removableExpr.rootNode, { statement: true });
                         } else if (
                             removableExpr instanceof AutocompleteTkn &&
                             removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
@@ -954,7 +954,7 @@ export class ActionExecutor {
                             // Remove the autocomplete token
                             this.deleteAutocompleteToken(removableExpr);
                             // Else just remove the expression
-                        } else this.deleteCode(removableExpr);
+                        } else this.module.deleteCode(removableExpr);
 
                         break;
                     }
@@ -1036,7 +1036,7 @@ export class ActionExecutor {
                             this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
                         }
                         // Get the boundaries of the variable reference expression
-                        const initialBoundary = this.getBoundaries(context.expressionToLeft);
+                        const initialBoundary = context.expressionToLeft.getBoundaries();
 
                         // const varAssignStmt = new VarAssignmentStmt(
                         //     "",
@@ -1383,7 +1383,7 @@ export class ActionExecutor {
 
             // Generalise in one single delete function
             case EditActionType.DeleteRootNode: {
-                this.deleteCode(context.token.rootNode);
+                this.module.deleteCode(context.token.rootNode);
                 break;
             }
 
@@ -1598,7 +1598,7 @@ export class ActionExecutor {
                 break;
 
             case EditActionType.CloseDraftMode:
-                this.deleteCode(action.data.codeNode);
+                this.module.deleteCode(action.data.codeNode);
 
                 break;
 
@@ -1634,7 +1634,7 @@ export class ActionExecutor {
             case EditActionType.DeleteUnconvertibleOperandWarning: {
                 if (action.data.codeToDelete.draftModeEnabled)
                     this.module.closeConstructDraftRecord(action.data.codeToDelete);
-                this.deleteCode(action.data.codeToDelete);
+                this.module.deleteCode(action.data.codeToDelete);
 
                 //TODO: Eventually this if statement should go as all constructs will have this method
                 if (
@@ -1858,19 +1858,19 @@ export class ActionExecutor {
                 case AutoCompleteType.StartOfLine:
                     // If the parent is a temporary statement, remove the entire statement
                     if (token.rootNode instanceof TemporaryStmt) {
-                        this.deleteCode(token.rootNode, {
+                        this.module.deleteCode(token.rootNode, {
                             statement: true,
                         });
                         // Else just delete the token
                     } else {
-                        this.deleteCode(token);
+                        this.module.deleteCode(token);
                     }
 
                     break;
 
                 // If at an expression hole, remove the token
                 case AutoCompleteType.AtExpressionHole:
-                    this.deleteCode(token, {});
+                    this.module.deleteCode(token, {});
 
                     break;
             }
@@ -2202,7 +2202,7 @@ export class ActionExecutor {
         if (expr instanceof Modifier) expr = expr.rootNode as Expression;
 
         // Get the range of the current expression
-        const initialBoundary = this.getBoundaries(expr);
+        const initialBoundary = expr.getBoundaries();
         // Parent node of the current expression
         const root = expr.rootNode as Statement;
         // Index of the current expression in the parent node
@@ -2303,52 +2303,52 @@ export class ActionExecutor {
             // Return the range from the first to the last construct
             return new Range(lineNumber, codes[0].left, lineNumber, codes[codes.length - 1].right);
             // Simply return the range of the one construct
-        } else return this.getBoundaries(codes[0]);
+        } else return codes[0].getBoundaries();
     }
 
-    /**
-     * Get the range of the entire construct, including potential body statements
-     *
-     * @param code - The construct to get the boundaries in the Monaco editor of
-     * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
-     * @returns THe range of the construct
-     */
-    private getBoundaries(code: CodeConstruct, { selectIndent = false } = {}): Range {
-        // Linenumber of the given construct
-        const lineNumber = code.getLineNumber();
+    // /**
+    //  * Get the range of the entire construct, including potential body statements
+    //  *
+    //  * @param code - The construct to get the boundaries in the Monaco editor of
+    //  * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
+    //  * @returns The range of the construct
+    //  */
+    // private getBoundaries(code: CodeConstruct, { selectIndent = false } = {}): Range {
+    //     // Linenumber of the given construct
+    //     const lineNumber = code.getLineNumber();
 
-        // If the given construct has a body
-        if (code instanceof Statement && code.hasBody()) {
-            const stmtStack = new Array<Statement>();
-            // Add all the body statements to the stack
-            stmtStack.unshift(...code.body);
-            // Initialize the end line number and column
-            let endLineNumber = 0;
-            let endColumn = 0;
+    //     // If the given construct has a body
+    //     if (code instanceof Statement && code.hasBody()) {
+    //         const stmtStack = new Array<Statement>();
+    //         // Add all the body statements to the stack
+    //         stmtStack.unshift(...code.body);
+    //         // Initialize the end line number and column
+    //         let endLineNumber = 0;
+    //         let endColumn = 0;
 
-            while (stmtStack.length > 0) {
-                // Pop an element from the stack
-                const curStmt = stmtStack.pop();
+    //         while (stmtStack.length > 0) {
+    //             // Pop an element from the stack
+    //             const curStmt = stmtStack.pop();
 
-                // Add all its sub-statements to the stack
-                if (curStmt instanceof Statement && curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
+    //             // Add all its sub-statements to the stack
+    //             if (curStmt instanceof Statement && curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
 
-                // Update the line number and column if necessary
-                if (endLineNumber < curStmt.lineNumber) {
-                    endLineNumber = curStmt.lineNumber;
-                    endColumn = curStmt.right;
-                }
-            }
+    //             // Update the line number and column if necessary
+    //             if (endLineNumber < curStmt.lineNumber) {
+    //                 endLineNumber = curStmt.lineNumber;
+    //                 endColumn = curStmt.right;
+    //             }
+    //         }
 
-            // Return the range of the construct
-            return new Range(lineNumber, code.left, endLineNumber, endColumn);
-        } else if (code instanceof Statement || code instanceof Token) {
-            // If the indent (one indent) has to be included in the selection range
-            if (selectIndent) {
-                return new Range(lineNumber, code.left - TAB_SPACES, lineNumber, code.right);
-            } else return new Range(lineNumber, code.left, lineNumber, code.right);
-        }
-    }
+    //         // Return the range of the construct
+    //         return new Range(lineNumber, code.left, endLineNumber, endColumn);
+    //     } else if (code instanceof Statement || code instanceof Token) {
+    //         // If the indent (one indent) has to be included in the selection range
+    //         if (selectIndent) {
+    //             return new Range(lineNumber, code.left - TAB_SPACES, lineNumber, code.right);
+    //         } else return new Range(lineNumber, code.left, lineNumber, code.right);
+    //     }
+    // }
 
     /**
      * Delete the given modifier from the editor
@@ -2362,7 +2362,7 @@ export class ActionExecutor {
 
         // TODO: if deleting, should not move cursor
         // Get the range of the modifier to delete
-        const removeRange = this.getBoundaries(mod);
+        const removeRange = mod.getBoundaries();
         // The parent construct of the modifier
         const rootOfExprToLeft = mod.rootNode;
 
@@ -2486,7 +2486,7 @@ export class ActionExecutor {
      */
     private deleteAutocompleteToken(token: Token) {
         // Get the range of the token to delete
-        const range = this.getBoundaries(token);
+        const range = token.getBoundaries();
         // The parent construct of the token
         const root = token.rootNode as Statement;
         // Remove token from the parent's tokens
@@ -2507,9 +2507,9 @@ export class ActionExecutor {
      * @param code - The construct to replace
      * @param replace - The construct to replace the given code with
      */
-    private replaceCode(code: CodeConstruct, replace: CodeConstruct) {
+    /*private */replaceCode(code: CodeConstruct, replace: CodeConstruct) {
         // Get the range of the construct to replace
-        const replacementRange = this.getBoundaries(code);
+        const replacementRange = code.getBoundaries();
         // Get the parent construct
         const root = code.rootNode;
 
@@ -2541,33 +2541,34 @@ export class ActionExecutor {
         }
     }
 
-    /**
-     * Remove the given Construct from the editor and update the focus context
-     *
-     * @param code
-     * @param param1
-     */
-    private deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
-        // The parent construct of the code to delete
-        const root = code.rootNode;
-        // Get range of the construct to delete
-        const replacementRange = this.getBoundaries(code);
-        // The construct to replace the deleted code with
-        let replacement: CodeConstruct;
+    // /**
+    //  * Remove the given Construct from the editor and update the focus context
+    //  * It also replaces the construct with the correct "placeholder" construct
+    //  *
+    //  * @param code
+    //  * @param param1
+    //  */
+    // /*private */deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
+    //     // The parent construct of the code to delete
+    //     const root = code.rootNode;
+    //     // Get range of the construct to delete
+    //     const replacementRange = code.getBoundaries();
+    //     // The construct to replace the deleted code with
+    //     let replacement: CodeConstruct;
 
-        // If the construct to delete is a statement
-        if (statement) replacement = this.module.removeStatement(code as Statement);
-        // If the construct to delete is a expression
-        else replacement = this.module.replaceItemWTypedEmptyExpr(code, replaceType);
+    //     // If the construct to delete is a statement
+    //     if (statement) replacement = this.module.removeStatement(code as Statement);
+    //     // If the construct to delete is a expression
+    //     else replacement = this.module.replaceItemWTypedEmptyExpr(code, replaceType);
 
-        // Replace all characters in the Monaco editor with the replacement construct
-        this.module.editor.executeEdits(replacementRange, replacement);
-        // Update the focus context
-        this.module.focus.updateContext({ tokenToSelect: replacement });
+    //     // Replace all characters in the Monaco editor with the replacement construct
+    //     this.module.editor.executeEdits(replacementRange, replacement);
+    //     // Update the focus context
+    //     this.module.focus.updateContext({ tokenToSelect: replacement });
 
-        // If the parent is an expression, recheck the types
-        if (root instanceof Expression) root.validateTypes(this.module);
-    }
+    //     // If the parent is an expression, recheck the types
+    //     // if (root instanceof Expression) root.validateTypes(this.module);
+    // }
 
     // Maybe replace with a list of all words that can not occur as a variable name?
     /**

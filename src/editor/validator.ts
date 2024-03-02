@@ -520,7 +520,7 @@ export class Validator {
 
         if (rootNode.hasBody()) {
             for (let i = 0; i < rootNode.body.length; i++) {
-                // Everything need to be an empty line
+                // Everything needs to be an empty line
                 if (!(rootNode.body[i] instanceof EmptyLineStmt)) return false;
             }
         }

@@ -361,7 +361,15 @@ export class Editor {
         this.monaco.focus();
     }
 
+    /**
+     * Recursively indent the given statement and its body to the left or right, 
+     * depending on the value of backward
+     * 
+     * @param statement - The statement to indent
+     * @param param1 - { backward: boolean } - Whether to indent to the left or right
+     */
     indentRecursively(statement: Statement, { backward = false }) {
+        // Indent the given statement to the left or right
         this.module.editor.executeEdits(
             new Range(
                 statement.lineNumber,
@@ -373,6 +381,7 @@ export class Editor {
             backward ? "" : "    "
         );
 
+        // If the statement has a body, indent the body as well (recursively)
         if (statement.hasBody()) {
             const stmtStack = new Array<Statement>();
 

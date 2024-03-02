@@ -1,4 +1,4 @@
-import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
+import { editor, IKeyboardEvent, IScrollEvent, Position, Range } from "monaco-editor";
 
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
@@ -146,13 +146,174 @@ export class EventRouter {
             }
 
             // NOT language independent
+            /**
+             * Bug:
+             * * When the cursor is on an empty next line after a print and the backspace is pressed,
+             * the ')' of the print statement is removed while the cursor should simply jump to the end
+             * of the previous line.
+             */
             case KeyPress.Delete: {
-                console.log("DELETE", context.tokenToLeft, context.tokenToRight, context.token, context.expression);
+                /**
+                 * Handle the indentation of constructs, including the editor and the AST
+                 * 
+                 * @param backwards - True if the indentation should be performed backwards, 
+                 * false if forwards
+                 */
+                const indentConstructs = (backwards: boolean) => {
+                    while (context.lineStatement.body.length > 0) {
+                        // Performs the indentation of the last statement in the body
+                        this.module.editor.indentRecursively(
+                            context.lineStatement.body[context.lineStatement.body.length - 1],
+                            { backward: backwards }
+                        );
+                        // Restructures the AST to following the new indentation
+                        // This action results in the current last statement being removed from the body
+                        // of the current line statement
+                        if (backwards) {
+                            this.module.indentBackStatement(
+                                context.lineStatement.body[context.lineStatement.body.length - 1]
+                            );
+                        } else {
+                            this.module.indentForwardStatement(
+                                context.lineStatement.body[context.lineStatement.body.length - 1]
+                            );
+                        }
+                    }
+                };
+
+                /**
+                 * Step by step description of how deletion is handled:
+                 * * If the current construct is an empty line contained in a body consisting of more than 
+                 *   one line and it is not the last line, then we can remove the current line.
+                 * * If the current line is not empty and the cursor is at the beginning of the line, then
+                 *   remove the statement at the current line.
+                 *      Extra considerations:
+                 *       - If the current focus is in an editable text, then the statement is only removed
+                 *         if the editable text is empty
+                 *       - Otherwise the line can be removed directly
+                 * * If the token to the right of the current position is non-editable, then remove the entire
+                 *   construct containing the token.
+                 * * if the current focus is in an editable text and there is no token to the right of the current
+                 *   (aka there is editable text to the right), then the next character is removed.
+                 * * If there is an expression to the right of the current position, then remove the expression.
+                 * * If the current token is empty, then ... (TODO)
+                 */
+
+
+
                 if (
-                    inTextEditMode &&
-                    !(context.tokenToRight instanceof ast.NonEditableTkn) &&
-                    !context.tokenToRight?.isEmpty
+                    context.lineStatement instanceof ast.EmptyLineStmt &&
+                    context.lineStatement.rootNode.body.length > 1 && // So rootNode.body.length > 1
+                    context.lineStatement.indexInRoot != context.lineStatement.rootNode.body.length - 1 // Can not be the last line
                 ) {
+                    // Delete an entire empty line
+                    console.log("First first case");
+                    this.module.deleteLine(context.lineStatement);
+                    let range: Range;
+
+                    range = new Range(
+                        context.lineStatement.lineNumber,
+                        context.lineStatement.left,
+                        context.lineStatement.lineNumber + 1,
+                        context.lineStatement.left
+                    );
+
+                    this.module.editor.executeEdits(range, null, "");
+
+
+                } else if (
+                    !(context.lineStatement instanceof ast.EmptyLineStmt) &&
+                    this.module.focus.onBeginningOfLine()
+                ) {
+                    // Delete the directly following statement at the current line if it has no body
+                    console.log("First * 1.5 case");
+                    if (this.module.focus.isTextEditable(providedContext)) {
+                        if (context.tokenToRight.isEmpty) {
+                            if (context.lineStatement.hasBody()) {
+                                indentConstructs(true);
+                            }
+                            this.module.deleteCode(context.lineStatement, { statement: true });
+                        }
+                    } else {
+                        if (context.lineStatement.hasBody()) {
+                            indentConstructs(true);
+                        }
+                        this.module.deleteCode(context.lineStatement, { statement: true });
+                    }
+                    // } else if (context.token instanceof ast.TypedEmptyExpr) {
+                    // Currently nothing
+
+
+                } else if (context.tokenToRight instanceof ast.NonEditableTkn) {
+                    console.log("First case");
+                    // Token to the right of the current position is non-editable
+                    console.log("It has been executed", context.tokenToRight.rootNode);
+                    this.module.deleteCode(context.tokenToRight.rootNode);
+
+
+                } else if (inTextEditMode && !context.tokenToRight) {
+                    console.log("Second case");
+                    // Free text edit mode with editable text to the right
+                    // CONDITION WILL PROBABLY NEED TO BE UPDATED
+                    if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
+                    else return new EditAction(EditActionType.DeleteNextChar);
+                    // } else if (context.expression) {
+                    // Remove the expression you are currently in
+
+
+                } else if (context.expressionToRight) {
+                    console.log("Fourth case");
+                    // Remove the expression to the right
+                    this.module.deleteCode(context.expressionToRight);
+
+
+                } else if (this.module.validator.isTknEmpty(context)) {
+                    // Not the same as "atEmptyExpressionHole"; the second one does not work for e.g. "print(...)"
+                    if (context.token.rootNode instanceof ast.Expression) {
+                        if (this.module.validator.canDeleteExpression(context)) {
+                            this.module.deleteCode(context.token.rootNode);
+                        } else {
+                            // Get the parent of the token
+                            const rootNode = context.token.rootNode as ast.CodeConstruct as ast.GeneralExpression; //NOT OKAY!!
+                            // The token which will replace the expression
+                            let replacementTkn: ast.CodeConstruct;
+                            for (let i = 0; i < rootNode.tokens.length; i++) {
+                                // Set the last occuring construct that is not a hole, non-editable or operator token
+                                // to be the replacementTkn
+                                if (
+                                    !(rootNode.tokens[i] instanceof ast.TypedEmptyExpr) &&
+                                    !(rootNode.tokens[i] instanceof ast.NonEditableTkn) &&
+                                    !(rootNode.tokens[i] instanceof ast.OperatorTkn)
+                                ) {
+                                    replacementTkn = rootNode.tokens[i];
+                                }
+                            }
+                            // Replace the expression with the replacement token
+                            this.module.executer.replaceCode(rootNode, replacementTkn);
+                        }
+                    }
+                    if (context.token.rootNode instanceof ast.Statement) {
+                        if (this.module.validator.canDeleteStatement(context)) {
+                            this.module.deleteCode(context.lineStatement, { statement: true });
+                        }
+                    }
+                }
+
+                // console.log("DELETE");
+                // console.log("Token to left", context.tokenToLeft);
+                // console.log("Token to right", context.tokenToRight);
+                // console.log("Current token", context.token);
+                // console.log("Expression to left", context.expressionToLeft);
+                // console.log("Expression to right", context.expressionToRight);
+                // console.log("Current expression", context.expression);
+                break;
+                if (
+                    false
+                    // inTextEditMode &&
+                    // !(context.tokenToRight instanceof ast.NonEditableTkn) &&
+                    // !context.tokenToRight?.isEmpty
+                ) {
+                    console.log("In text edit mode", context.tokenToRight, context.tokenToRight?.isEmpty);
                     // Currently left as this is sort of a shortcut and thus general
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
                     else return new EditAction(EditActionType.DeleteNextChar);
@@ -164,21 +325,25 @@ export class EventRouter {
                     //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
                     //         item: context.token.rootNode,
                     //     });
-                } else if (this.module.validator.canDeleteStringLiteral(context)) {
-                    console.log("CASES: string literal");
-                    return new EditAction(EditActionType.DeleteStringLiteral);
+                    // See first if case
+                    // } else if (this.module.validator.canDeleteStringLiteral(context)) {
+                    //     console.log("CASES: string literal");
+                    //     return new EditAction(EditActionType.DeleteStringLiteral);
                 } else if (this.module.validator.canDeleteNextStatement(context)) {
                     return new EditAction(EditActionType.DeleteStatement);
                 } else if (this.module.validator.canDeleteNextMultilineStatement(context)) {
                     return new EditAction(EditActionType.DeleteMultiLineStatement);
                 } else if (this.module.validator.canDeleteCurLine(context)) {
+                    console.log("Is it me?");
                     return new EditAction(EditActionType.DeleteCurLine);
+                    // Temporary disabled; check later!
                 } else if (this.module.validator.canDeleteNextToken(context)) {
                     return new EditAction(EditActionType.DeleteNextToken);
-                    // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
-                    //     return new EditAction(EditActionType.DeleteListItem, {
-                    //         toLeft: true,
-                    //     });
+                } else if (this.module.validator.canDeleteListItemToLeft(context)) {
+                    console.log("It can not possibly be me?");
+                    return new EditAction(EditActionType.DeleteListItem, {
+                        toLeft: true,
+                    });
                     // } else if (this.module.validator.canDeleteListItemToRight(context)) {
                     //     return new EditAction(EditActionType.DeleteListItem, {
                     //         toRight: true,
@@ -195,6 +360,7 @@ export class EventRouter {
                     }
                     if (context.token.rootNode instanceof ast.Statement) {
                         if (this.module.validator.canDeleteStatement(context)) {
+                            console.log("It certainly is this one");
                             return new EditAction(EditActionType.DeleteStatement);
                         }
                     }
@@ -437,14 +603,14 @@ export class EventRouter {
                         //         literalType: DataType.String,
                         //     });
                         // } else {
-                            // Else open the autocomplete menu
-                            return new EditAction(EditActionType.OpenAutocomplete, {
-                                autocompleteType: AutoCompleteType.AtExpressionHole,
-                                firstChar: e.key,
-                                validMatches: this.module.actionFilter
-                                    .getProcessedInsertionsList()
-                                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                            });
+                        // Else open the autocomplete menu
+                        return new EditAction(EditActionType.OpenAutocomplete, {
+                            autocompleteType: AutoCompleteType.AtExpressionHole,
+                            firstChar: e.key,
+                            validMatches: this.module.actionFilter
+                                .getProcessedInsertionsList()
+                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        });
                         // }
                         // If on an empty line and the identifier regex matches the pressed character
                     } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
@@ -774,7 +940,7 @@ export class EventRouter {
                     });
                 }
             }
-            
+
             case InsertActionType.InsertBinaryExpr: {
                 if (this.module.validator.atRightOfExpression(context)) {
                     return new EditAction(EditActionType.InsertBinaryOperator, {

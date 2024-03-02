@@ -19,7 +19,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "implementations": [
             {
                 "keyword": "print",
@@ -54,7 +56,52 @@
                             "example": "a = \"abc\"\nprint(a)"
                         }
                     ],
-                    "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
+                    "search-queries": [
+                        "output",
+                        "say",
+                        "print",
+                        "print output",
+                        "console",
+                        "write",
+                        "see output"
+                    ]
+                }
+            },
+            {
+                "keyword": "input",
+                "method_name": "input",
+                "holes": [
+                    [
+                        {
+                            "name": "text",
+                            "optional": false
+                        }
+                    ]
+                ],
+                "editorName": "input(---)",
+                "match": "input",
+                "toolbox": {
+                    "category": "Tests",
+                    "title": "input(prompt: text)",
+                    "tooltip": {
+                        "title": "Ask User for Textual Input",
+                        "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
+                    },
+                    "tips": [
+                        {
+                            "type": "executable",
+                            "id": "ex-input-1",
+                            "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
+                        }
+                    ],
+                    "search-queries": [
+                        "input",
+                        "prompt",
+                        "text",
+                        "user",
+                        "ask input",
+                        "ask user"
+                    ]
                 }
             }
         ]
@@ -62,7 +109,14 @@
     {
         "keyword": "break",
         "editorName": "break",
-        "requiresAncestor": [{ "ref": "while", "min_level": 0, "max_level": null }, "for"],
+        "requiresAncestor": [
+            {
+                "ref": "while",
+                "min_level": 0,
+                "max_level": null
+            },
+            "for"
+        ],
         "format": [
             {
                 "type": "token",
@@ -70,7 +124,9 @@
             }
         ],
         "match": "brea",
-        "triggerInsertion": ["k"],
+        "triggerInsertion": [
+            "k"
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "Break out of loops",
@@ -168,7 +224,11 @@
                     ]
                 }
             ],
-            "search-queries": ["exit", "loop", "break"]
+            "search-queries": [
+                "exit",
+                "loop",
+                "break"
+            ]
         }
     },
     {
@@ -199,7 +259,10 @@
             ]
         ],
         "match": "while",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "while loop",
@@ -303,7 +366,10 @@
             ]
         ],
         "match": "if",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "if statement",
@@ -332,7 +398,13 @@
                     "id": "check-val-variable"
                 }
             ],
-            "search-queries": ["if", "condition", "conditional", "choose", "path"]
+            "search-queries": [
+                "if",
+                "condition",
+                "conditional",
+                "choose",
+                "path"
+            ]
         }
     },
     {
@@ -349,7 +421,9 @@
             }
         ],
         "match": "else",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Tests",
             "invalidTooltip": "Can only be inserted directly below an if or elif statement.",
@@ -365,7 +439,11 @@
                     "example": "a = 2\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)\nelse:\n\tprint(\"None of the above are true.\")"
                 }
             ],
-            "search-queries": ["else", "otherwise", "if"]
+            "search-queries": [
+                "else",
+                "otherwise",
+                "if"
+            ]
         }
     },
     {
@@ -397,7 +475,10 @@
             ]
         ],
         "match": "elif",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Tests",
             "invalidTooltip": "Can only be inserted directly below an if statement.",
@@ -436,7 +517,14 @@
                     "id": "elif-after-elif"
                 }
             ],
-            "search-queries": ["else if", "else", "else condition", "choose", "path", "elif"]
+            "search-queries": [
+                "else if",
+                "else",
+                "else condition",
+                "choose",
+                "path",
+                "elif"
+            ]
         }
     },
     {
@@ -480,7 +568,9 @@
             ]
         ],
         "match": "for",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "for loop",
@@ -542,7 +632,14 @@
                     "id": "loop-chars-of-str"
                 }
             ],
-            "search-queries": ["for", "loop", "repeat", "go through", "iterate", "list"]
+            "search-queries": [
+                "for",
+                "loop",
+                "repeat",
+                "go through",
+                "iterate",
+                "list"
+            ]
         }
     },
     {
@@ -571,7 +668,9 @@
         ],
         "match": null,
         "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": ["="],
+        "triggerInsertion": [
+            "="
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "Create/Reassign Variable",
@@ -600,7 +699,11 @@
                     ]
                 }
             ],
-            "search-queries": ["create new variable", "variable", "var"]
+            "search-queries": [
+                "create new variable",
+                "variable",
+                "var"
+            ]
         }
     },
     {
@@ -624,7 +727,9 @@
         "holes": [],
         "match": "",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": ["'"],
+        "triggerInsertion": [
+            "'"
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "text",
@@ -639,7 +744,12 @@
                     "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
                 }
             ],
-            "search-queries": ["create text", "create string", "empty string", "empty text"]
+            "search-queries": [
+                "create text",
+                "create string",
+                "empty string",
+                "empty text"
+            ]
         }
     },
     {
@@ -765,7 +875,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["+"],
+        "triggerInsertion": [
+            "+"
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "add",
@@ -785,7 +897,10 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": ["add", "sum"]
+            "search-queries": [
+                "add",
+                "sum"
+            ]
         }
     },
     {
@@ -811,7 +926,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["-"],
+        "triggerInsertion": [
+            "-"
+        ],
         "toolbox": {
             "category": "Tests",
             "title": "add",
@@ -831,7 +948,10 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": ["add", "sum"]
+            "search-queries": [
+                "add",
+                "sum"
+            ]
         }
     }
 ]

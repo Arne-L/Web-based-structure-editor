@@ -1,13 +1,12 @@
-import { Position, Selection } from "monaco-editor";
+import { Position, Range, Selection } from "monaco-editor";
 import { EditCodeAction, InsertionResult } from "../editor/action-filter";
 import { ConstructName, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { DraftRecord } from "../editor/draft";
 import { Context, UpdatableContext } from "../editor/focus";
-import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
 import { CodeBackground, HoverMessage, InlineMessage } from "../messages/messages";
-import { Util, areEqualTypes, createWarningButton, hasMatch } from "../utilities/util";
+import { Util, createWarningButton, hasMatch } from "../utilities/util";
 import { Callback, CallbackType } from "./callback";
 import {
     AugmentedAssignmentOperator,
@@ -20,7 +19,6 @@ import {
     GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG,
     GET_TYPE_CANNOT_BE_CONVERTED_MSG,
     IgnoreConversionRecord,
-    IndexableTypes,
     InsertionType,
     ListTypes,
     NumberRegex,
@@ -36,10 +34,10 @@ import {
     typeToConversionRecord,
 } from "./consts";
 import { Module } from "./module";
-import { Reference, Scope } from "./scope";
+import { Scope } from "./scope";
+import { EMPTYIDENTIFIER } from "./settings";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
-import { EMPTYIDENTIFIER } from "./settings";
 
 export interface CodeConstruct {
     /**
@@ -80,6 +78,15 @@ export interface CodeConstruct {
 
     simpleDraftTooltip: Tooltip;
     simpleInvalidTooltip: Tooltip;
+
+    /**
+         * Get the range of the entire construct, including potential body statements
+         *
+         * @param code - The construct to get the boundaries in the Monaco editor of
+         * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
+         * @returns The range of the construct
+         */
+    getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
 
     /**
      * Builds the left and right positions of this node and all of its children nodes recursively.
@@ -293,6 +300,44 @@ export abstract class Statement implements CodeConstruct {
 
     hasBody(): boolean {
         return this.body.length > 0;
+    }
+
+    getBoundaries({ selectIndent = false } = {}): Range {
+        // Linenumber of the given construct
+        const lineNumber = this.getLineNumber();
+
+        // If the given construct has a body
+        if (this.hasBody()) {
+            const stmtStack = new Array<Statement>();
+            // Add all the body statements to the stack
+            stmtStack.unshift(...this.body);
+            // Initialize the end line number and column
+            let endLineNumber = 0;
+            let endColumn = 0;
+
+            while (stmtStack.length > 0) {
+                // Pop an element from the stack
+                const curStmt = stmtStack.pop();
+
+                // Add all its sub-statements to the stack
+                if (curStmt instanceof Statement && curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
+
+                // Update the line number and column if necessary
+                if (endLineNumber < curStmt.lineNumber) {
+                    endLineNumber = curStmt.lineNumber;
+                    endColumn = curStmt.right;
+                }
+            }
+
+            // Return the range of the construct
+            return new Range(lineNumber, this.left, endLineNumber, endColumn);
+        // } else if (this instanceof Statement || this instanceof Token) {
+        } else {
+            // If the indent (one indent) has to be included in the selection range
+            if (selectIndent) {
+                return new Range(lineNumber, this.left - TAB_SPACES, lineNumber, this.right);
+            } else return new Range(lineNumber, this.left, lineNumber, this.right);
+        }
     }
 
     toString(): string {
@@ -866,7 +911,9 @@ export class GeneralStatement extends Statement implements Importable {
                     this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
                 case "editable":
-                    this.tokens.push(new EditableTextTkn(token.value ?? "", RegExp(token.regex), this, this.tokens.length));
+                    this.tokens.push(
+                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), this, this.tokens.length)
+                    );
                     break;
                 default:
                     // Invalid type => What to do about it?
@@ -1021,7 +1068,7 @@ export class GeneralStatement extends Statement implements Importable {
 
                 // There is no construct in front of the current one, so the insertion is invalid
                 if (!currentConstruct) break;
-                
+
                 // Get the next construct in the editor after this
                 let nextConstruct = validator.getNextSiblingOf(currentConstruct);
 
@@ -1031,13 +1078,13 @@ export class GeneralStatement extends Statement implements Importable {
                         (construct) => construct.getConstructName() === this.getKeyword()
                     );
                     // If it appears in the depending constructs at the same place of after the last
-                    // found depending construct, then we take that as the next construct 
+                    // found depending construct, then we take that as the next construct
                     while (nextIndex >= dependingIndex) {
                         // Update the current with all the next construct information
                         dependingIndex = nextIndex;
                         currentConstruct = nextConstruct;
 
-                        // Check if the following construct in the editor also appears 
+                        // Check if the following construct in the editor also appears
                         // in the depending constructs list
                         nextConstruct = validator.getNextSiblingOf(nextConstruct);
 
@@ -1061,10 +1108,10 @@ export class GeneralStatement extends Statement implements Importable {
 
                 // TODO: Not completely correct: what if there are multiple of the first requiring construct?
                 while (dependingIndex >= 0) {
-                    const currentEditorConstruct = currentConstruct
+                    const currentEditorConstruct = currentConstruct;
                     if (currentConstruct === context.lineStatement) {
-                        prevConstruct = prevConstruct === currentConstruct ? this : prevConstruct
-                        currentConstruct = this
+                        prevConstruct = prevConstruct === currentConstruct ? this : prevConstruct;
+                        currentConstruct = this;
                     }
 
                     // Still the same construct
@@ -1114,7 +1161,6 @@ export class GeneralStatement extends Statement implements Importable {
                     // We found the required construct
                     canInsertConstruct = true;
                 }
-
             }
 
             if (!canInsertConstruct) return InsertionType.Invalid;
@@ -1532,6 +1578,16 @@ export abstract class Token implements CodeConstruct {
 
         this.rootNode = root;
         this.text = text;
+    }
+
+    getBoundaries({ selectIndent = false } = {}): Range {
+        // Linenumber of the given construct
+        const lineNumber = this.getLineNumber();
+
+        // If the indent (one indent) has to be included in the selection range
+        if (selectIndent) {
+            return new Range(lineNumber, this.left - TAB_SPACES, lineNumber, this.right);
+        } else return new Range(lineNumber, this.left, lineNumber, this.right);
     }
 
     subscribe(type: CallbackType, callback: Callback) {
@@ -2725,7 +2781,7 @@ export class ValueOperationExpr extends Expression {
 
 /**
  * ONLY USED TO INSERT A VARIABLE REFERENCE ON AN EMPTY LINE ==> DELETE?
- * 
+ *
  * Statement encapsulating a variable assignment operation.
  * Can be a variable reference but also operations on the reference or
  * modifiers on the reference.
@@ -2837,9 +2893,7 @@ export class ListAccessModifier extends Modifier {
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         // return IndexableTypes.indexOf(providedContext?.expressionToLeft?.returns) > -1 &&
-        return !validator.insideFormattedString(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
+        return !validator.insideFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
 
     getModifierText(): string {
@@ -3107,10 +3161,10 @@ export class AugmentedAssignmentModifier extends Modifier {
         return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
             providedContext.expressionToLeft instanceof ListAccessModifier ||
             providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
-            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt 
-            // &&
-            // this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
-            ? InsertionType.Valid
+            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt
+            ? // &&
+              // this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
+              InsertionType.Valid
             : InsertionType.Invalid;
     }
 
@@ -3739,15 +3793,15 @@ export class BinaryOperatorExpr extends Expression {
          */
         return validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
             (validator.atLeftOfExpression(providedContext) &&
-                !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt) /*&&
+                !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt)) /*&&
                 TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
                     (x) => x === this.operator
-                )*/) ||
+                )*/ ||
             (validator.atRightOfExpression(providedContext) &&
-                !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt) /*&&
+                !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt)) /*&&
                 TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
                     (x) => x === this.operator
-                )*/)
+                )*/
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
@@ -3927,7 +3981,7 @@ export class BinaryOperatorExpr extends Expression {
 
     /**
      * Update the return type of an expression and its operands when inserting into the expression.
-     * 
+     *
      * @param insertCode - The code to insert
      */
     performTypeUpdatesOnInsertInto(insertCode: Expression) {
@@ -4128,7 +4182,7 @@ export class BinaryOperatorExpr extends Expression {
     /**
      * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
      * recursively for all nested binary expressions.
-     * 
+     *
      * @param expr - Binary expression
      * @param module - Current module
      * @returns Whether the binary expression is valid
@@ -4483,12 +4537,11 @@ export class UnaryOperatorExpr extends Expression {
          * (e.g. True when you want to insert "and")
          * * We are at the left of an expression and the current expression to the right is any
          */
-        return validator.atEmptyExpressionHole(providedContext) ||
-            (validator.atLeftOfExpression(providedContext)) 
-            // &&
-            //     providedContext?.expressionToRight?.returns == DataType.Boolean) ||
-            // providedContext?.expressionToRight?.returns == DataType.Any
-            ? InsertionType.Valid
+        return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
+            ? // &&
+              //     providedContext?.expressionToRight?.returns == DataType.Boolean) ||
+              // providedContext?.expressionToRight?.returns == DataType.Any
+              InsertionType.Valid
             : InsertionType.Invalid;
     }
 
@@ -5156,7 +5209,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
     // Why use this function? This is less complete than checkMatch?
     /**
      * Get the exact matching EditCodeAction from the list of valid matches
-     * 
+     *
      * @returns - Matching EditCodeAction or null if no match
      */
     isMatch(): EditCodeAction {

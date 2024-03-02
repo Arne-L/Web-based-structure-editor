@@ -184,7 +184,7 @@ export class Module {
     }
 
     /**
-     * Indent a statement to the left
+     * Perform the AST rebuilding to reflect the changes after a backwards indent
      * 
      * @param stmt - The statement to be indented back / to the left
      */
@@ -350,6 +350,11 @@ export class Module {
         return null;
     }
 
+    /**
+     * Remove a statement without replacing
+     * 
+     * @param line - The line to be removed without replacing it with an empty line
+     */
     deleteLine(line: Statement) {
         const root = line.rootNode;
 
@@ -358,6 +363,32 @@ export class Module {
             root.body.splice(line.indexInRoot, 1);
             rebuildBody(this, 0, 1);
         }
+    }
+
+    /**
+     * MAYBE PLACE THIS IN THE AST ASWELL?
+     * 
+     * Remove the given Construct from the editor and update the focus context
+     * It also replaces the construct with the correct "placeholder" construct
+     *
+     * @param code
+     * @param param1
+     */
+    deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
+        // Get range of the construct to delete
+        const replacementRange =code.getBoundaries();
+        // The construct to replace the deleted code with
+        let replacement: CodeConstruct;
+
+        // If the construct to delete is a statement
+        if (statement) replacement = this.removeStatement(code as Statement);
+        // If the construct to delete is a expression
+        else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
+
+        // Replace all characters in the Monaco editor with the replacement construct
+        this.editor.executeEdits(replacementRange, replacement);
+        // Update the focus context
+        this.focus.updateContext({ tokenToSelect: replacement });
     }
 
     private rebuildOnConstructDeletion(item: CodeConstruct, root: Statement) {

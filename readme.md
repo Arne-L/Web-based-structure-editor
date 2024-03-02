@@ -48,6 +48,13 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 * Frame-based programming language-agnostic web-based editor
 * Educatieve programming language agnostic structure editor (EPLASE)
 
+### TODOs
+* How to fuse statements and expressions; more precisely, how to handle something that takes at least one line and something that is nested? What if one 'statement' is spread over multiple lines (without including the body)?
+    - To determine whether a construct is a "statement", we can check if its root is on a different line or not. If it is, the current construct can be seen as a statement, otherwise it is not
+    - Is this always true?
+    - Is this even necessary?
+* Cursor movement: make the cursor jump to the right place after insertion of a construct
+* Make it impossible for the cursor to be placed in the middle of a construct (e.g. between two non editable tokens)
 
 
 
