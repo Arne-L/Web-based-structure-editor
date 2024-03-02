@@ -852,7 +852,9 @@ export class MenuController {
         // Get all EditCodeActions that match the user input
         const actionsToKeep = menu.editCodeActionsOptions.filter(editAction => {
             if (editAction.matchString) {
-                return editAction.matchString.includes(optionText) || optionText.includes(editAction.matchString);
+                const actionLowerCase = editAction.matchString.toLowerCase();
+                const optionTextLowerCase = optionText.toLowerCase();
+                return actionLowerCase.includes(optionTextLowerCase) || optionTextLowerCase.includes(actionLowerCase);
             } else if (editAction.matchRegex) {
                 return editAction.matchRegex.test(optionText);
             } else {
