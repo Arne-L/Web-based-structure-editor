@@ -55,6 +55,8 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
     - Is this even necessary?
 * Cursor movement: make the cursor jump to the right place after insertion of a construct
 * Make it impossible for the cursor to be placed in the middle of a construct (e.g. between two non editable tokens)
+* Fix variable in the for-loop
+* Ask daily supervisor if he might be willing to add a language to the editor himself add the end of the thesis (probably May)
 
 
 

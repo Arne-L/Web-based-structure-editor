@@ -136,6 +136,9 @@ export enum KeyPress {
  * insert formatted string …)
  */
 export enum EditActionType {
+    DeleteStmt, // Self added
+    DeleteRootOfToken, // Self added
+
     InsertGeneralStmt,
     InsertGeneralExpr,
 
@@ -178,7 +181,7 @@ export enum EditActionType {
     DeletePrevToken,
     DeletePrevLine,
     DeleteBackMultiLines,
-    DeleteCurLine,
+    DeleteEmptyLine,
     DeleteStatement,
     DeleteSelectedModifier,
     DeleteMultiLineStatement,

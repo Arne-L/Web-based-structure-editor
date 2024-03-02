@@ -11,16 +11,12 @@ import {
     ElseStatement,
     EmptyOperatorTkn,
     Expression,
-    FormattedStringExpr,
     GeneralExpression,
     GeneralStatement,
     IdentifierTkn,
     IfStatement,
-    ImportStatement,
     Importable,
     ListAccessModifier,
-    ListLiteralExpression,
-    LiteralValExpr,
     Modifier,
     NonEditableTkn,
     OperatorTkn,
@@ -39,7 +35,6 @@ import {
     AutoCompleteType,
     BuiltInFunctions,
     PythonKeywords,
-    TAB_SPACES,
     TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR,
     addClassToDraftModeResolutionButton,
     getOperatorCategory,
@@ -48,9 +43,9 @@ import { Module } from "../syntax-tree/module";
 import { isImportable } from "../utilities/util";
 import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
-import { Actions, EditActionType, InsertActionType } from "./consts";
+import { EditActionType, InsertActionType } from "./consts";
 import { EditAction } from "./data-types";
-import { Context, UpdatableContext } from "./focus";
+import { Context } from "./focus";
 
 /**
  * General logic class responsible for executing the given action.
@@ -164,7 +159,6 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.OpenAutocomplete: {
-                console.log("OpenAutocomplete");
                 const autocompleteTkn = new AutocompleteTkn(
                     action.data.firstChar,
                     action.data.autocompleteType,
@@ -422,7 +416,7 @@ export class ActionExecutor {
             //     break;
             // }
 
-            // NOT language indpendent
+            // NOT language independent
             case EditActionType.DeleteNextToken: {
                 if (context.expressionToRight instanceof OperatorTkn) {
                     this.replaceCode(
@@ -456,8 +450,33 @@ export class ActionExecutor {
                 break;
             }
 
+            case EditActionType.DeleteRootOfToken: {
+                if (action.data?.backwards) {
+                    const stmt =
+                    context.tokenToLeft.rootNode instanceof GeneralStatement &&
+                    !(context.tokenToLeft.rootNode instanceof GeneralExpression);
+                    this.module.deleteCode(context.tokenToLeft.rootNode, { statement: stmt });
+                } else {
+                    const stmt =
+                    context.tokenToRight.rootNode instanceof GeneralStatement &&
+                    !(context.tokenToRight.rootNode instanceof GeneralExpression);
+                    this.module.deleteCode(context.tokenToRight.rootNode, { statement: stmt });
+                }
+
+                break;
+            }
+
             // NOT language independent => Try to remove as statements should not be hardcoded
             case EditActionType.DeleteStatement: {
+                this.module.deleteCode(context.lineStatement, { statement: true });
+
+                break;
+            }
+
+            case EditActionType.DeleteStmt: {
+                // Remove the currently focused statement and update the body to
+                // reflect the new correct indentation
+                this.module.indentBodyConstructs(context, true);
                 this.module.deleteCode(context.lineStatement, { statement: true });
 
                 break;
@@ -509,7 +528,7 @@ export class ActionExecutor {
 
             // NOT language independent
             // See before
-            case EditActionType.DeleteCurLine: {
+            case EditActionType.DeleteEmptyLine: {
                 this.module.deleteLine(context.lineStatement);
                 let range: Range;
 
@@ -1547,7 +1566,6 @@ export class ActionExecutor {
 
             // When
             case EditActionType.OpenValidInsertMenu:
-                console.log("OpenValidInsertMenu");
                 this.openAutocompleteMenu(
                     this.module.actionFilter
                         .getProcessedInsertionsList()
@@ -2087,7 +2105,6 @@ export class ActionExecutor {
 
                 //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
                 if (!context.token.message) {
-                    console.log("Focus update context", code.getInitialFocus());
                     const newContext = code.getInitialFocus();
                     this.module.focus.updateContext(newContext);
                 }
@@ -2507,7 +2524,7 @@ export class ActionExecutor {
      * @param code - The construct to replace
      * @param replace - The construct to replace the given code with
      */
-    /*private */replaceCode(code: CodeConstruct, replace: CodeConstruct) {
+    /*private */ replaceCode(code: CodeConstruct, replace: CodeConstruct) {
         // Get the range of the construct to replace
         const replacementRange = code.getBoundaries();
         // Get the parent construct

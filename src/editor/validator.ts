@@ -145,7 +145,8 @@ export class Validator {
         const hasCorrectRootType =
             context.expressionToRight.rootNode instanceof Modifier ||
             // Updated to work with the new general assignment statement
-            (context.expressionToRight.rootNode instanceof GeneralStatement && context.expressionToRight.rootNode.containsAssignments()) ||
+            (context.expressionToRight.rootNode instanceof GeneralStatement &&
+                context.expressionToRight.rootNode.containsAssignments()) ||
             context.expressionToRight.rootNode instanceof ValueOperationExpr;
 
         return isCorrectExprType && hasCorrectRootType;
@@ -431,7 +432,7 @@ export class Validator {
                 // if the next token is empty, return true (otherwise there are characters that should be deleted first)
                 if (context.tokenToRight.isEmpty) return true;
                 else return false;
-            // Else always true
+                // Else always true
             } else return true;
         }
 
@@ -590,49 +591,110 @@ export class Validator {
         return false;
     }
 
-    /**
-     * Checks whether there are currly brackets to the left of the current position
-     *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if the current position is at the end of a line, false otherwise
-     */
-    canDeletePrevFStringCurlyBrackets(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-
-        // "print(f'{}|')"
-        return context.expressionToLeft instanceof FormattedStringCurlyBracketsExpr;
+    canDeleteEmptyLine(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
+        if (
+            providedContext.lineStatement instanceof EmptyLineStmt &&
+            providedContext.lineStatement.rootNode.body.length > 1
+        ) {
+            // So rootNode.body.length > 1
+            if (backwards) {
+                // Can no be the first line
+                return providedContext.lineStatement.lineNumber != 1;
+            } else {
+                // Can not be the last line
+                console.log("Linenumber", providedContext.lineStatement.lineNumber);
+                return (
+                    providedContext.lineStatement.indexInRoot != providedContext.lineStatement.rootNode.body.length - 1
+                );
+            }
+        }
     }
 
     /**
-     * Checks whether there are currly brackets to the right of the current position
+     * Check if the following statement can be deleted
      *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if the current position is at the end of a line, false otherwise
+     * Logic:
+     * * The current line is not an empty line AND
+     * * The cursor is at the beginning of the line AND
+     * * The cursor is not in a text editable area OR is, but the area behind it is empty
+     *
+     * @param providedContext - The current context
+     * @returns true if the following statement can be deleted, false otherwise
      */
-    canDeleteNextFStringCurlyBrackets(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-
-        // "print(f'|{}')"
-        return context.expressionToRight instanceof FormattedStringCurlyBracketsExpr;
-    }
-
-    canDeleteSelectedFStringCurlyBrackets(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-
+    canDeleteNextStmt(providedContext?: Context): boolean {
         return (
-            context.token instanceof TypedEmptyExpr &&
-            context.token.rootNode instanceof FormattedStringCurlyBracketsExpr
+            !(providedContext.lineStatement instanceof EmptyLineStmt) &&
+            this.module.focus.onBeginningOfLine() &&
+            (!this.module.focus.isTextEditable(providedContext) || providedContext.tokenToRight.isEmpty)
         );
     }
 
-    canDeleteStringLiteral(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    /**
+     * Check if the following construct, containing a token to the right
+     * of the current position, can be deleted
+     *
+     * Logic:
+     * * If the token to the right is a non-editable token, then the
+     *   construct containing the token should be deleted
+     *
+     * @param providedContext - The current context
+     * @returns true if the following construct can be deleted, false otherwise
+     */
+    canDeleteNextTkn(providedContext?: Context): boolean {
+        return providedContext.tokenToRight instanceof NonEditableTkn;
+    }
 
+    canDeleteNextChar(providedContext?: Context): boolean {
         return (
-            (context.tokenToLeft?.text == '"' || context.tokenToLeft?.text == "'") &&
-            (context.tokenToRight?.text == '"' || context.tokenToRight?.text == "'")
+            this.module.focus.isTextEditable(providedContext) &&
+            !(providedContext.tokenToRight instanceof NonEditableTkn) &&
+            !providedContext.tokenToRight?.isEmpty
         );
     }
+
+    // /**
+    //  * Checks whether there are currly brackets to the left of the current position
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if the current position is at the end of a line, false otherwise
+    //  */
+    // canDeletePrevFStringCurlyBrackets(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+
+    //     // "print(f'{}|')"
+    //     return context.expressionToLeft instanceof FormattedStringCurlyBracketsExpr;
+    // }
+
+    // /**
+    //  * Checks whether there are currly brackets to the right of the current position
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if the current position is at the end of a line, false otherwise
+    //  */
+    // canDeleteNextFStringCurlyBrackets(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+
+    //     // "print(f'|{}')"
+    //     return context.expressionToRight instanceof FormattedStringCurlyBracketsExpr;
+    // }
+
+    // canDeleteSelectedFStringCurlyBrackets(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+
+    //     return (
+    //         context.token instanceof TypedEmptyExpr &&
+    //         context.token.rootNode instanceof FormattedStringCurlyBracketsExpr
+    //     );
+    // }
+
+    // canDeleteStringLiteral(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+
+    //     return (
+    //         (context.tokenToLeft?.text == '"' || context.tokenToLeft?.text == "'") &&
+    //         (context.tokenToRight?.text == '"' || context.tokenToRight?.text == "'")
+    //     );
+    // }
 
     /**
      * logic: checks if at the beginning of an expression, and not at the beginning of a line (statement)
@@ -659,8 +721,8 @@ export class Validator {
 
     /**
      * Checks if the cursor is in a hole of an assignment statement
-     * 
-     * @param providedContext 
+     *
+     * @param providedContext
      * @returns true if the cursor is in a hole of an assignment statement, false otherwise
      */
     shouldDeleteVarAssignmentOnHole(providedContext?: Context): boolean {
@@ -689,30 +751,30 @@ export class Validator {
         return false;
     }
 
-    canIndentBackIfStatement(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canIndentBackIfStatement(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (
-            this.module.focus.onBeginningOfLine() &&
-            context.lineStatement.rootNode instanceof Statement &&
-            context.lineStatement.rootNode.hasBody() &&
-            context.lineStatement instanceof IfStatement &&
-            !(this.getNextSiblingOfRoot() instanceof ElseStatement) &&
-            !this.canDeletePrevLine(context)
-        ) {
-            const rootsBody = context.lineStatement.rootNode.body;
+    //     if (
+    //         this.module.focus.onBeginningOfLine() &&
+    //         context.lineStatement.rootNode instanceof Statement &&
+    //         context.lineStatement.rootNode.hasBody() &&
+    //         context.lineStatement instanceof IfStatement &&
+    //         !(this.getNextSiblingOfRoot() instanceof ElseStatement) &&
+    //         !this.canDeletePrevLine(context)
+    //     ) {
+    //         const rootsBody = context.lineStatement.rootNode.body;
 
-            if (rootsBody.length != 1) {
-                for (let i = context.lineStatement.indexInRoot + 1; i < rootsBody.length; i++) {
-                    if (!(rootsBody[i] instanceof ElseStatement)) return false;
-                }
-            }
+    //         if (rootsBody.length != 1) {
+    //             for (let i = context.lineStatement.indexInRoot + 1; i < rootsBody.length; i++) {
+    //                 if (!(rootsBody[i] instanceof ElseStatement)) return false;
+    //             }
+    //         }
 
-            return true;
-        }
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     isAboveLineIndentedForward(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
@@ -724,15 +786,15 @@ export class Validator {
         }
     }
 
-    canIndentForwardIfStatement(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canIndentForwardIfStatement(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            this.module.focus.onBeginningOfLine() &&
-            this.isAboveLineIndentedForward() &&
-            context.lineStatement instanceof IfStatement
-        );
-    }
+    //     return (
+    //         this.module.focus.onBeginningOfLine() &&
+    //         this.isAboveLineIndentedForward() &&
+    //         context.lineStatement instanceof IfStatement
+    //     );
+    // }
 
     /**
      * logic:
@@ -815,15 +877,15 @@ export class Validator {
         );
     }
 
-    canInsertEmptyList(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canInsertEmptyList(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            context.token instanceof TypedEmptyExpr &&
-            context.token.isEmpty &&
-            (context.token.type.indexOf(DataType.Any) >= 0 || context.token.type.indexOf(DataType.AnyList) >= 0)
-        );
-    }
+    //     return (
+    //         context.token instanceof TypedEmptyExpr &&
+    //         context.token.isEmpty &&
+    //         (context.token.type.indexOf(DataType.Any) >= 0 || context.token.type.indexOf(DataType.AnyList) >= 0)
+    //     );
+    // }
 
     canDeleteListItemToLeft(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
@@ -883,8 +945,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
-            !this.insideFormattedString(context) &&
-            context?.expressionToLeft != null 
+            !this.insideFormattedString(context) && context?.expressionToLeft != null
             // &&
             // context?.expressionToLeft?.returns != null &&
             // context?.expressionToLeft?.returns != DataType.Void
@@ -895,8 +956,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
-            !this.insideFormattedString(context) &&
-            context?.expressionToRight != null 
+            !this.insideFormattedString(context) && context?.expressionToRight != null
             // &&
             // context?.expressionToRight?.returns != null &&
             // context?.expressionToRight?.returns != DataType.Void

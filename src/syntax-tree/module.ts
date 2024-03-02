@@ -319,6 +319,36 @@ export class Module {
     }
 
     /**
+     * Indents all constructs in the body of the current line statement
+     * 
+     * @param providedContext - The context of the current line statement
+     * @param backwards - Whether to indent backwards or forwards
+     */
+    indentBodyConstructs(providedContext: Context, backwards: boolean) {
+        if (!providedContext.lineStatement.hasBody()) return
+
+        while (providedContext.lineStatement.body.length > 0) {
+            // Performs the indentation of the last statement in the body
+            this.editor.indentRecursively(
+                providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1],
+                { backward: backwards }
+            );
+            // Restructures the AST to following the new indentation
+            // This action results in the current last statement being removed from the body
+            // of the current line statement
+            if (backwards) {
+                this.indentBackStatement(
+                    providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1]
+                );
+            } else {
+                this.indentForwardStatement(
+                    providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1]
+                );
+            }
+        }
+    }
+
+    /**
      * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
      * 
      * @param code 

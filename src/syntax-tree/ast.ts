@@ -1315,7 +1315,6 @@ export class GeneralExpression extends GeneralStatement {
         // Change to GeneralStatement in the future
         if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
         else {
-            console.log(this.rootNode);
             return this.rootNode.getParentStatement();
         }
     }

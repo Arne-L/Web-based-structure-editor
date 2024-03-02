@@ -449,12 +449,6 @@ export class Focus {
     isTextEditable(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.getContext();
 
-        console.log(
-            "isTextEditable?", context,
-            "1", context.token != null && context.token.isTextEditable,
-            "2", context.tokenToLeft != null && context.tokenToLeft.isTextEditable,
-            "3", context.tokenToRight != null && context.tokenToRight.isTextEditable
-        );
         return (
             (context.token != null && context.token.isTextEditable) ||
             (context.tokenToLeft != null && context.tokenToLeft.isTextEditable) ||
