@@ -318,6 +318,14 @@ export class Module {
         }
     }
 
+    /**
+     * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
+     * 
+     * @param code 
+     * @param start 
+     * @param count 
+     * @returns 
+     */
     removeItems(code: CodeConstruct, start: number, count: number): Array<CodeConstruct> {
         if (code instanceof Statement) {
             const removedItems = code.tokens.splice(start, count);
@@ -334,7 +342,7 @@ export class Module {
         return [];
     }
 
-    removeStatement(line: Statement): CodeConstruct {
+    private removeStatement(line: Statement): CodeConstruct {
         const root = line.rootNode;
 
         if (root instanceof Module || root instanceof Statement) {
