@@ -1095,12 +1095,13 @@ export class GeneralStatement extends Statement implements Importable {
 
                 // Get the next construct in the editor after this
                 let nextConstruct = validator.getNextSiblingOf(currentConstruct);
-
+                
                 if (nextConstruct) {
                     // Check if it appears in the depending constructs list
                     let nextIndex = depConstructsInfo.findIndex(
-                        (construct) => construct.getConstructName() === this.getKeyword()
+                        (construct) => construct.getConstructName() === nextConstruct.getKeyword()
                     );
+
                     // If it appears in the depending constructs at the same place of after the last
                     // found depending construct, then we take that as the next construct
                     while (nextIndex >= dependingIndex) {
@@ -1115,10 +1116,11 @@ export class GeneralStatement extends Statement implements Importable {
                         if (!nextConstruct) break;
 
                         nextIndex = depConstructsInfo.findIndex(
-                            (construct) => construct.getConstructName() === this.getKeyword()
+                            (construct) => construct.getConstructName() === nextConstruct.getKeyword()
                         );
                     }
                 }
+                
                 // Keep track of how many times each depending construct has been visited / appeared, starting
                 // from the current construct to the first requiring construct
                 const dependingVisited = new Array(dependingIndex + 1).fill(0);
@@ -1183,6 +1185,7 @@ export class GeneralStatement extends Statement implements Importable {
                 // Now we are at required construct and we have handled all the depending constructs
                 if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
                     // We found the required construct
+                    if (this.getKeyword() == "else") console.log("Check 6")
                     canInsertConstruct = true;
                 }
             }
