@@ -964,6 +964,30 @@ export class GeneralStatement extends Statement implements Importable {
     }
 
     /**
+     * Check if the current construct is depending on / requires the given construct.
+     * The given construct is required by the current construct.
+     * 
+     * @param construct - The construct to check if the current construct is depending 
+     * on / requires it
+     * @returns true if the current construct is depending on / requires the given construct,
+     */
+    isDependentOf(construct: GeneralStatement): boolean {
+        if (!construct) return false;
+        return this.requiredConstructs.includes(construct.getKeyword());
+    }
+
+    /**
+     * Check if the current construct has the given construct as a dependent / requiring construct
+     * 
+     * @param construct - The construct to check if it is depending on / requires the current construct
+     * @returns true if the current construct has the given construct as a dependent / requiring construct
+     */
+    hasDependent(construct: GeneralStatement): boolean {
+        if (!construct) return false;
+        return this.requiringConstructs.some((dependent) => dependent.getConstructName() === construct.getKeyword());
+    }
+
+    /**
      * Get all AssignmentTokens within the statement which contain all identifier information.
      *
      * @returns All AssignmentTokens within the statement
