@@ -565,13 +565,13 @@ export class ActionExecutor {
                 break;
             }
 
-            // NOT language independent
+            // Partly language independent
             case EditActionType.DeletePrevLine: {
                 const prevLine = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
 
                 if (prevLine.left != context.lineStatement.left) {
-                    this.module.editor.indentRecursively(context.lineStatement, { backward: false });
-                    this.module.indentForwardStatement(context.lineStatement);
+                    // Indent the current line
+                    this.module.indentConstruct(context.lineStatement, false);
                 }
 
                 const deleteRange = new Range(
@@ -623,8 +623,7 @@ export class ActionExecutor {
 
             // Mostly language independent: except for "indentBackStatement"
             case EditActionType.IndentBackwards: {
-                this.module.editor.indentRecursively(context.lineStatement, { backward: true });
-                this.module.indentBackStatement(context.lineStatement);
+                this.module.indentConstruct(context.lineStatement, true);
 
                 this.module.focus.fireOnNavChangeCallbacks();
 

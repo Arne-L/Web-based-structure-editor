@@ -194,7 +194,7 @@ export class EventRouter {
                 } else if (this.module.validator.canDeleteNextTkn(context)) {
                     // Token to the right of the current position is non-editable
                     return new EditAction(EditActionType.DeleteRootOfToken, {backwards: false});
-                } else if (this.module.validator.canDeleteNextChar(context)) {
+                } else if (this.module.validator.canDeleteAdjacentChar(context, {backwards: false})) {
                     // Free text edit mode with editable text to the right
                     if (e.ctrlKey) {
                         return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
@@ -204,13 +204,13 @@ export class EventRouter {
                 } else if (this.module.validator.isTknEmpty(context)) {
                     // Not the same as "atEmptyExpressionHole"; the second one does not work for e.g. "print(...)"
                     // SHOULD BE MERGED INTO ONE IN THE FUTURE
-                    if (context.token.rootNode instanceof ast.Expression) {
+                    if (context.token.rootNode instanceof ast.GeneralExpression) {
                         if (this.module.validator.canDeleteExpression(context)) {
                             return new EditAction(EditActionType.DeleteRootNode);
                         }
                         return new EditAction(EditActionType.ReplaceExpressionWithItem);
                     }
-                    if (context.token.rootNode instanceof ast.Statement) {
+                    if (context.token.rootNode instanceof ast.GeneralStatement) {
                         if (this.module.validator.canDeleteStatement(context)) {
                             return new EditAction(EditActionType.DeleteStatement);
                         }
@@ -283,47 +283,41 @@ export class EventRouter {
             // NOT language independent
             case KeyPress.Backspace: {
                 if (
-                    inTextEditMode &&
-                    !(context.tokenToLeft instanceof ast.NonEditableTkn) &&
-                    !this.module.validator.onBeginningOfLine(context)
+                    this.module.validator.canDeleteAdjacentChar(context, {backwards: true})
                 ) {
+                    // Delete char in front of the cursor in a text editable area
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToStart);
                     else return new EditAction(EditActionType.DeletePrevChar);
-                    // } else if (this.module.validator.canDeletePrevFStringCurlyBrackets(context)) {
-                    //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                    //         item: context.expressionToLeft,
-                    //     });
-                    // } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
-                    //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                    //         item: context.token.rootNode,
-                    //     });
-                    // } else if (this.module.validator.canDeleteStringLiteral(context)) {
-                    //     console.log("CASES: string literal");
-                    //     return new EditAction(EditActionType.DeleteStringLiteral);
                 } else if (this.module.validator.canMoveLeftOnEmptyMultilineStatement(context)) {
+                    // When on the first line of the body, move to the previous token
+                    // if it is empty 
                     console.log("CASES: empty multiline statement");
                     return new EditAction(EditActionType.SelectPrevToken);
-                } else if (this.module.validator.canDeletePrevStatement(context)) {
+                } else if (this.module.validator.canDeletePrevStmt(context)) {
+                    // Delete the statement right before the current position, if any
                     console.log("CASES: prev statement");
-                    return new EditAction(EditActionType.DeleteStatement);
-                } else if (this.module.validator.canDeletePrevMultiLineStatement(context)) {
-                    console.log("CASES: prev multiline statement");
-                    return new EditAction(EditActionType.DeleteMultiLineStatement);
+                    return new EditAction(EditActionType.DeleteStmt);
                 } else if (this.module.validator.canDeleteBackMultiEmptyLines(context)) {
+                    // When the cursor is on an empty line and all lines behind it are empty without
+                    // a depending construct thereafter, delete all empty lines
                     console.log("CASES: back multi empty lines");
                     return new EditAction(EditActionType.DeleteBackMultiLines);
                 } else if (this.module.validator.canDeletePrevLine(context)) {
+                    // When the line above is an empty line construct, it can be deleted
                     console.log("CASES: prev line");
                     return new EditAction(EditActionType.DeletePrevLine);
                 } else if (this.module.validator.canIndentBack(context)) {
+                    // When the cursor is at the beginning of a line and there is something
+                    // on the line before, indent the current line back
                     console.log("CASES: indent back");
                     return new EditAction(EditActionType.IndentBackwards);
-                    // } else if (this.module.validator.canIndentBackIfStatement(context)) {
-                    //     return new EditAction(EditActionType.IndentBackwardsIfStmt);
-                } else if (this.module.validator.canDeletePrevToken(context)) {
+                // } else if (this.module.validator.canDeletePrevToken(context)) {
+                } else if (this.module.validator.canDeletePrevTkn(context)) {
                     console.log("CASES: prev token");
-                    return new EditAction(EditActionType.DeletePrevToken);
-                } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
+                    // return new EditAction(EditActionType.DeletePrevToken);
+                    return new EditAction(EditActionType.DeleteRootOfToken, {backwards: true});
+                } else if (this.module.validator.canDeleteEmptyLine(context, {backwards : true})) {
+                // } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
                     console.log("CASES: cur empty line");
                     return new EditAction(EditActionType.DeleteEmptyLine, {
                         pressedBackspace: true,
@@ -338,10 +332,10 @@ export class EventRouter {
                     //     });
                 } else if (this.module.validator.isTknEmpty(context)) {
                     console.log("CASES: token is empty");
-                    if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
-                        return new EditAction(EditActionType.DeleteStatement);
-                    }
-                    if (context.token.rootNode instanceof ast.Expression) {
+                    // if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
+                    //     return new EditAction(EditActionType.DeleteStatement);
+                    // }
+                    if (context.token.rootNode instanceof ast.GeneralExpression) {
                         if (this.module.validator.canDeleteExpression(context)) {
                             return new EditAction(EditActionType.DeleteRootNode);
                         }
@@ -352,12 +346,14 @@ export class EventRouter {
                             return new EditAction(EditActionType.DeleteStatement);
                         }
                     }
-                } else if (this.module.validator.shouldDeleteVarAssignmentOnHole(context)) {
-                    console.log("CASES: var assignment on hole");
-                    return new EditAction(EditActionType.DeleteStatement);
-                } else if (this.module.validator.shouldDeleteHole(context)) {
-                    console.log("CASES: hole");
-                    return new EditAction(EditActionType.DeleteSelectedModifier);
+                    // Maybe useful later?
+                // } else if (this.module.validator.shouldDeleteVarAssignmentOnHole(context)) {
+                //     console.log("CASES: var assignment on hole");
+                //     return new EditAction(EditActionType.DeleteStatement);
+                    // Maybe useful later?
+                // } else if (this.module.validator.shouldDeleteHole(context)) {
+                //     console.log("CASES: hole");
+                //     return new EditAction(EditActionType.DeleteSelectedModifier);
                 }
 
                 break;

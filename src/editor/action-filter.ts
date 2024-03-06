@@ -533,6 +533,7 @@ export class EditCodeAction extends UserAction {
         source: {},
         autocompleteData?: {}
     ) {
+        console.log("Performing action: " + this.optionName)
         // Current context
         let context = providedContext;
 

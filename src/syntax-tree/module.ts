@@ -325,26 +325,40 @@ export class Module {
      * @param backwards - Whether to indent backwards or forwards
      */
     indentBodyConstructs(providedContext: Context, backwards: boolean) {
-        if (!providedContext.lineStatement.hasBody()) return
+        // The parent statement
+        const parent = providedContext.lineStatement;
 
-        while (providedContext.lineStatement.body.length > 0) {
-            // Performs the indentation of the last statement in the body
-            this.editor.indentRecursively(
-                providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1],
-                { backward: backwards }
+        if (!parent.hasBody()) return
+
+        while (parent.body.length > 0) {
+            // Indent the last statement in the body
+            this.indentConstruct(parent.body[parent.body.length - 1], backwards);
+        }
+    }
+
+    /**
+     * Indent the given statement backwards or forwards
+     * 
+     * @param statement - The statement to be indented
+     * @param backwards - Whether to indent backwards or forwards
+     */
+    indentConstruct(statement: Statement, backwards: boolean) {
+        // Performs the indentation of the last statement in the body
+        this.editor.indentRecursively(
+            statement,
+            { backward: backwards }
+        );
+        // Restructures the AST to following the new indentation
+        // This action results in the current last statement being removed from the body
+        // of the current line statement
+        if (backwards) {
+            this.indentBackStatement(
+                statement
             );
-            // Restructures the AST to following the new indentation
-            // This action results in the current last statement being removed from the body
-            // of the current line statement
-            if (backwards) {
-                this.indentBackStatement(
-                    providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1]
-                );
-            } else {
-                this.indentForwardStatement(
-                    providedContext.lineStatement.body[providedContext.lineStatement.body.length - 1]
-                );
-            }
+        } else {
+            this.indentForwardStatement(
+                statement
+            );
         }
     }
 

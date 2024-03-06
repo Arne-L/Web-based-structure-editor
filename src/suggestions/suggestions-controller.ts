@@ -533,6 +533,7 @@ export class MenuController {
                     );
                 });
             }
+            console.log(menuOptions)
 
             const menu = new Menu(menuOptions);
 

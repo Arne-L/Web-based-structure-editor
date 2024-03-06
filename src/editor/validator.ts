@@ -404,6 +404,8 @@ export class Validator {
     }
 
     /**
+     * Check if the previous line is an empty line construct that can be remvoed
+     * 
      * logic: checks if the above line is an empty line.
      * AND should be at the beginning of the line.
      */
@@ -591,6 +593,28 @@ export class Validator {
         return false;
     }
 
+    canDeletePrevStmt(providedContext: Context): boolean {
+        if (
+            !(providedContext.lineStatement instanceof EmptyLineStmt) &&
+            this.module.focus.onEndOfLine() &&
+            !this.module.focus.isTextEditable(providedContext)
+        ) {
+            if (providedContext.expressionToLeft != null) return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the currently focused line is an empty line and if it could be
+     * deleted
+     *
+     * @param providedContext - The current context
+     * @param param1 - The direction to check for
+     * @returns true if the current line can be deleted, false otherwise
+     */
     canDeleteEmptyLine(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
         if (
             providedContext.lineStatement instanceof EmptyLineStmt &&
@@ -602,7 +626,6 @@ export class Validator {
                 return providedContext.lineStatement.lineNumber != 1;
             } else {
                 // Can not be the last line
-                console.log("Linenumber", providedContext.lineStatement.lineNumber);
                 return (
                     providedContext.lineStatement.indexInRoot != providedContext.lineStatement.rootNode.body.length - 1
                 );
@@ -644,12 +667,17 @@ export class Validator {
         return providedContext.tokenToRight instanceof NonEditableTkn;
     }
 
-    canDeleteNextChar(providedContext?: Context): boolean {
-        return (
-            this.module.focus.isTextEditable(providedContext) &&
-            !(providedContext.tokenToRight instanceof NonEditableTkn) &&
-            !providedContext.tokenToRight?.isEmpty
-        );
+    canDeleteAdjacentChar(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
+        if (!this.module.focus.isTextEditable(providedContext)) return false;
+
+        if (backwards) {
+            return (
+                !(providedContext.tokenToLeft instanceof NonEditableTkn) &&
+                !this.module.validator.onBeginningOfLine(providedContext)
+            );
+        } else {
+            return !(providedContext.tokenToRight instanceof NonEditableTkn) && !providedContext.tokenToRight?.isEmpty;
+        }
     }
 
     // /**
@@ -717,6 +745,21 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return context.expressionToLeft != null && !this.module.focus.isTextEditable(providedContext);
+    }
+
+    /**
+     * Check if the following construct, containing a token to the right
+     * of the current position, can be deleted
+     *
+     * Logic:
+     * * If the token to the right is a non-editable token, then the
+     *   construct containing the token should be deleted
+     *
+     * @param providedContext - The current context
+     * @returns true if the following construct can be deleted, false otherwise
+     */
+    canDeletePrevTkn(providedContext: Context): boolean {
+        return providedContext.tokenToLeft instanceof NonEditableTkn;
     }
 
     /**
@@ -810,16 +853,18 @@ export class Validator {
         if (
             this.module.focus.onBeginningOfLine() &&
             context.lineStatement.rootNode instanceof Statement &&
-            !(context.lineStatement instanceof ElseStatement) &&
-            !(context.lineStatement instanceof IfStatement) &&
-            !(this.getNextSiblingOfRoot(context) instanceof ElseStatement) &&
+            // !(context.lineStatement instanceof ElseStatement) &&
+            // !(context.lineStatement instanceof IfStatement) &&
+            // !(this.getNextSiblingOfRoot(context) instanceof ElseStatement) &&
             context.lineStatement.rootNode.hasBody()
         ) {
             const rootsBody = context.lineStatement.rootNode.body;
 
             return (
                 !this.canDeletePrevLine(context) &&
+                // Can not be the only and direct child of the parent
                 rootsBody.length != 1 &&
+                // Needs to be the last construct in the body
                 context.lineStatement.indexInRoot == rootsBody.length - 1
             );
         }
@@ -828,6 +873,11 @@ export class Validator {
     }
 
     /**
+     * When in the body of a statement with only empty lines after the current line,
+     * remove the empty lines and the line itself
+     *
+     * ==> WOULD BE NICE TO KEEP, but then we need to check if a depending structure
+     *
      * logic:
      * checks if at the beginning of an empty line
      * AND if it is inside the body of another statement
@@ -842,7 +892,9 @@ export class Validator {
             context.lineStatement instanceof EmptyLineStmt &&
             context.lineStatement.rootNode instanceof Statement &&
             context.lineStatement.rootNode.hasBody() &&
-            !(this.getNextSiblingOfRoot(context) instanceof ElseStatement)
+            !(context.lineStatement.rootNode as GeneralStatement).hasDependent(
+                this.getNextSiblingOfRoot(context) as GeneralStatement
+            ) // NOT OK: Clean up types later
         ) {
             const rootsBody = context.lineStatement.rootNode.body;
             let onlyEmptyLines = true;

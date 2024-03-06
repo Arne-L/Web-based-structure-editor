@@ -56,8 +56,9 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 * Cursor movement: make the cursor jump to the right place after insertion of a construct
 * Make it impossible for the cursor to be placed in the middle of a construct (e.g. between two non editable tokens)
 * Fix variable in the for-loop
-* Ask daily supervisor if he might be willing to add a language to the editor himself add the end of the thesis (probably May)
-
+* Debugging
+* Rewrite deletion logic (and more generally the editor) to not hardcode statements & expressions.
+* Make it so that the delete / backspace keys just delete "the adjacent construct" without making a distinction between statements, expressions and tokens
 
 
 ### Short cuts / key presses
@@ -80,4 +81,8 @@ combinations in the edit
 * <kbd>Crtl</kbd> + <kbd>Z</kbd>: NYI (Undo) 
 * <kbd>Crtl</kbd> + <kbd>Y</kbd>: NYI (Redo) 
 * <kbd>Space</kbd>: 
-*
+
+### Design philisophy
+* We try our best to keep the editor in a valid state, but this will always be best effort
+  - Most effort is spent on insertion, while during editing there is higher likelihood of 
+    invalid states
