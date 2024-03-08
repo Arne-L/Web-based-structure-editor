@@ -1,5 +1,5 @@
 import { ConstructDoc } from "../suggestions/construct-doc";
-import { CodeConstruct, Importable } from "../syntax-tree/ast";
+import { CodeConstruct, GeneralStatement, Importable, Statement } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { addClassToDraftModeResolutionButton, DataType, ListTypes } from "./../syntax-tree/consts";
 
@@ -156,8 +156,16 @@ export function hasMatchWithIndex<T>(list1: T[], list2: T[]): [number, number] {
     return matchingIndices;
 }
 
-export function isImportable(object: unknown): object is Importable {
-    return Object.prototype.hasOwnProperty.call(object, "requiredModule"); //calling hasOwnProperty with call() because 'object' is not necessarily an object
+/**
+ * Check if the given object is importable.
+ * NEEDS FUTURE UPDATES
+ * 
+ * @param object - A code construct
+ * @returns true if the object is importable, false otherwise
+ */
+export function isImportable(object: object): object is Importable {
+    console.log((object as Importable).requiredModule);
+    return Object.hasOwn(object, "requiredModule") && !!(object as Importable).requiredModule; //calling hasOwnProperty with call() because 'object' is not necessarily an object
 }
 
 export function getUserFriendlyType(type: DataType): string {

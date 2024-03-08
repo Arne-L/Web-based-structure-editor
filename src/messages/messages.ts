@@ -453,7 +453,7 @@ export class PopUpMessage extends InlineMessage {
 }
 
 export class CodeBackground extends CodeHighlight {
-    code: Statement;
+    declare code: Statement;
 
     constructor(editor: Editor, statement: Statement) {
         super(editor, statement);

@@ -1566,7 +1566,7 @@ export abstract class Expression extends Statement implements CodeConstruct {
 }
 
 export abstract class Modifier extends Expression {
-    rootNode: Expression | Statement; // Why? Already defined in Expression?
+    declare rootNode: Expression | Statement; // Why? Already defined in Expression?
     leftExprTypes: Array<DataType>;
     simpleInvalidTooltip = Tooltip.InvalidInsertModifier;
 
@@ -1805,7 +1805,7 @@ export class Argument {
  * While construct
  */
 export class WhileStatement extends Statement {
-    scope: Scope;
+    declare scope: Scope;
     private conditionIndex: number;
 
     constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
@@ -3025,7 +3025,7 @@ export class PropertyAccessorModifier extends Modifier {
 export class MethodCallModifier extends Modifier {
     functionName: string = "";
     args: Array<Argument>;
-    returns: DataType;
+    declare returns: DataType;
 
     constructor(
         functionName: string,
@@ -3120,7 +3120,7 @@ export class MethodCallModifier extends Modifier {
  * * RootNode needs to be a VarOperationStmt
  */
 export class AssignmentModifier extends Modifier {
-    rootNode: VarOperationStmt;
+    declare rootNode: VarOperationStmt;
     simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
 
     constructor(root?: VarOperationStmt, indexInRoot?: number) {
@@ -3162,7 +3162,7 @@ export class AssignmentModifier extends Modifier {
  * Similar to {@link AssignmentModifier}
  */
 export class AugmentedAssignmentModifier extends Modifier {
-    rootNode: VarOperationStmt;
+    declare rootNode: VarOperationStmt;
     private operation: AugmentedAssignmentOperator;
     simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
 

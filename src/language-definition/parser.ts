@@ -1,7 +1,7 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
-import * as constructs from "./python.json";
+import constructs from "./python.json";
 
 /***
  * TODO: Remove any's and comments between code when API is stable!
@@ -127,32 +127,3 @@ function getCodeFunction(construct): () => Statement {
     if (construct.constructType === "expression") return () => new GeneralExpression(construct);
     else return () => new GeneralStatement(construct);
 }
-
-/* EVERYTHING RELATED TO ... */
-
-/* Not implemented, but IMPORTANT */
-/**
- * HOW KeywordStmt should be implemented:
- * 
- * () =>
-                new KeywordStmt("break", null, null, (context: Context) => {
-                    let parent = context.lineStatement.rootNode as Statement | Module;
-
-                    while (
-                        !(parent instanceof WhileStatement) &&
-                        !(parent instanceof ForStatement) &&
-                        !(parent instanceof Module)
-                    ) {
-                        parent = parent.rootNode;
-                    }
-
-                    if (parent instanceof Module) return false;
-                    else return true;
-                }),
- */
-
-/**
- * Notes:
- * * In EditCodeAction, the third argument, being a function to a statement or expression
- * is heavily dependent on the specific language feature and is used through all files
- */
