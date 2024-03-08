@@ -1,7 +1,17 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
-import constructs from "./python.json";
+import config from "./config.json";
+
+// Dynamically import the correct language and constructs
+let languageConfig: any;
+if (config["language-file"]) languageConfig = (await import(`../language-definition/${config["language-file"]}`)).default;
+else throw new Error("No construct file specified in the language configuration file");
+
+let constructs: any;
+if (languageConfig["construct-file"]) constructs = (await import(`../language-definition/${languageConfig["construct-file"]}`)).default;
+else throw new Error("No construct file specified in the language configuration file");
+
 
 /***
  * TODO: Remove any's and comments between code when API is stable!
