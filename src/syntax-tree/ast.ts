@@ -910,6 +910,9 @@ export class GeneralStatement extends Statement implements Importable {
                     this.tokens.push(new AssignmentToken(undefined, this, this.tokens.length, RegExp(token.regex)));
                     this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
+                case "collection":
+                    
+                    break;
                 case "editable":
                     this.tokens.push(
                         new EditableTextTkn(token.value ?? "", RegExp(token.regex), this, this.tokens.length)
