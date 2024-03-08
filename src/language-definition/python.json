@@ -1,6 +1,6 @@
 {
-    "construct-file": "python-constructs.json",
-    "reserved-words": [
+    "constructFile": "python-constructs.json",
+    "reservedWords": [
         
     ]
 }
