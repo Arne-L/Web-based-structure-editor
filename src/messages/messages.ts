@@ -664,7 +664,7 @@ export class ScopeHighlight {
             }).bind(this)
         );
 
-        // For each line of the body, update the dimensions of this visual element (for the parent = this) 
+        // For each line of the body, update the dimensions of this visual element (for the parent = this)
         // when the line changes
         for (const line of this.statement.body) {
             line.subscribe(CallbackType.delete, onChange);
@@ -778,10 +778,11 @@ export class ScopeHighlight {
  * * right: number
  * * width: number
  * * height: number
- * 
+ *
  * Each of the numbers represent a pixel value.
  */
-export class LineDimension { // Can remove export
+export class LineDimension {
+    // Can remove export
     top: number;
     left: number;
     right: number;

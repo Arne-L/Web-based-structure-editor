@@ -47,7 +47,6 @@ export class ActionFilter {
 
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
-        console.log("Actions.instance().actionsList", Actions.instance().actionsList)
         for (const action of Actions.instance().actionsList) {
             validOptionMap.set(
                 action.optionName,

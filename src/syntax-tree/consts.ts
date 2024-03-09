@@ -648,6 +648,7 @@ export class MemberAccessConversion extends TypeConversionRecord { // Can remove
 
 //this map is for converting from one type to another, to see what each type can be converted to see typeConversionMap in util.ts
 //really the two can be combined, but that can be done in the future
+console.log(EditActionType, EditActionType.InsertTypeCast)
 export const typeToConversionRecord = new Map<String, TypeConversionRecord[]>([
     [
         DataType.Number,

@@ -453,13 +453,13 @@ export class ActionExecutor {
             case EditActionType.DeleteRootOfToken: {
                 if (action.data?.backwards) {
                     const stmt =
-                    context.tokenToLeft.rootNode instanceof GeneralStatement &&
-                    !(context.tokenToLeft.rootNode instanceof GeneralExpression);
+                        context.tokenToLeft.rootNode instanceof GeneralStatement &&
+                        !(context.tokenToLeft.rootNode instanceof GeneralExpression);
                     this.module.deleteCode(context.tokenToLeft.rootNode, { statement: stmt });
                 } else {
                     const stmt =
-                    context.tokenToRight.rootNode instanceof GeneralStatement &&
-                    !(context.tokenToRight.rootNode instanceof GeneralExpression);
+                        context.tokenToRight.rootNode instanceof GeneralStatement &&
+                        !(context.tokenToRight.rootNode instanceof GeneralExpression);
                     this.module.deleteCode(context.tokenToRight.rootNode, { statement: stmt });
                 }
 
@@ -1965,9 +1965,8 @@ export class ActionExecutor {
         // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
-            match.insertActionType == InsertActionType.InsertNewVariableStmt &&
-            (Object.keys(PythonKeywords).indexOf(token.text.trim()) >= 0 ||
-                Object.keys(BuiltInFunctions).indexOf(token.text.trim()) >= 0)
+            (match.getCode() as GeneralStatement).containsAssignments() &&
+            this.module.language.isReservedWord(token.text.trim())
         ) {
             // TODO: can insert an interesting warning
             // Can not match, thus simply return
@@ -1977,7 +1976,7 @@ export class ActionExecutor {
         // Length of the match token
         let length = 0;
         // Get the length of the text token if it is a variable
-        if (match.insertActionType == InsertActionType.InsertNewVariableStmt) length = token.text.length + 1;
+        if ((match.getCode() as GeneralStatement).containsAssignments()) length = token.text.length + 1;
         // Otherwise, get the length of the match string
         else length = match.matchString.length + 1;
 
@@ -2630,6 +2629,10 @@ export class ActionExecutor {
                     ErrorMessage.identifierIsBuiltInFunc
                 );
             }
+            // Everything above should be replaced with the line below ... but the first
+            // if block can for some weird reason not be removed without breaking the code
+            // in the strangest possible way!
+            // this.module.language.validateReservedWord(identifierText, focusedNode);
         }
     }
 

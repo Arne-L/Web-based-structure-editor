@@ -39,6 +39,7 @@ import { DataType, MISSING_IMPORT_DRAFT_MODE_STR, TAB_SPACES } from "./consts";
 import { Reference, Scope } from "./scope";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
+import { Language } from "./language";
 
 const ERROR_HIGHLIGHT_COLOUR: [number, number, number, number] = [255, 153, 153, 0.5];
 
@@ -59,6 +60,7 @@ export class Module {
     typeSystem: TypeChecker;
     notificationManager: NotificationManager;
     toolboxController: ToolboxController;
+    language: Language
 
     scope: Scope;
     draftExpressions: DraftRecord[];
@@ -78,6 +80,7 @@ export class Module {
         this.actionFilter = new ActionFilter(this);
         this.notificationManager = new NotificationManager(this);
         this.toolboxController = new ToolboxController(this);
+        this.language = new Language(this)
 
         this.globals = {
             hoveringOverCascadedMenu: false,

@@ -519,7 +519,7 @@ export class MenuController {
      * @returns the constructed menu. Null if no options was empty.
      */
     private buildMenu(options: EditCodeAction[], pos: any = { left: 0, top: 0 }): Menu {
-        console.log(options)
+        console.log(options);
         if (options.length > 0) {
             const menuOptions = new Map<string, Function>();
 
@@ -851,7 +851,7 @@ export class MenuController {
         // );
 
         // Get all EditCodeActions that match the user input
-        const actionsToKeep = menu.editCodeActionsOptions.filter(editAction => {
+        const actionsToKeep = menu.editCodeActionsOptions.filter((editAction) => {
             if (editAction.matchString) {
                 const actionLowerCase = editAction.matchString.toLowerCase();
                 const optionTextLowerCase = optionText.toLowerCase();
@@ -862,7 +862,7 @@ export class MenuController {
                 console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
                 return false;
             }
-        })
+        });
 
         // We move the var assignment to the end of the list so that it is always the last option
         // const indexOfVarAssignment = actionsToKeep
@@ -929,8 +929,7 @@ export class MenuController {
                 editAction.varChanged &&
                 // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
                 //     0
-                currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length ===
-                    0
+                currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length === 0
             ) {
                 substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
                 // editAction.getCode = () => new VarAssignmentStmt("", optionText);
@@ -984,10 +983,12 @@ export class MenuController {
             // Either the editaction is an new variable assignment AND not a keyword OR
             // it is not a new variable assignment
             if (
-                (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
-                    Object.keys(PythonKeywords).indexOf(optionText) == -1 &&
-                    Object.keys(BuiltInFunctions).indexOf(optionText) == -1) ||
-                editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
+                // (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
+                //     !this.module.language.isReservedWord(optionText)) ||
+                // editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
+                ((editAction.getCode() as GeneralStatement).containsAssignments() &&
+                    !this.module.language.isReservedWord(optionText)) ||
+                !(editAction.getCode() as GeneralStatement).containsAssignments()
             ) {
                 let extraInfo = null;
 
@@ -1013,15 +1014,14 @@ export class MenuController {
                             {
                                 type: "autocomplete-menu",
                                 precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
-                                length:
-                                    editAction.matchRegex // editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
-                                        ? optionText.length + 1
-                                        : editAction.matchString.length + 1,
+                                length: editAction.matchRegex // editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
+                                    ? optionText.length + 1
+                                    : editAction.matchString.length + 1,
                             },
                             {
                                 // Capture all the groups for regex (sub)constructs that appear in the construct so that
                                 // they can be used in the autocomplete
-                                values: editAction.matchRegex ? editAction.matchRegex.exec(optionText) : []
+                                values: editAction.matchRegex ? editAction.matchRegex.exec(optionText) : [],
                             }
                         );
                     },
@@ -1052,7 +1052,7 @@ export class MenuController {
 
     /**
      * Set the current menu at the given position.
-     * 
+     *
      * @param pos - The position to place the menu at.
      */
     updatePosition(pos: { left: number; top: number }) {

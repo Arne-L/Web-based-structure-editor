@@ -164,7 +164,6 @@ export function hasMatchWithIndex<T>(list1: T[], list2: T[]): [number, number] {
  * @returns true if the object is importable, false otherwise
  */
 export function isImportable(object: object): object is Importable {
-    console.log((object as Importable).requiredModule);
     return Object.hasOwn(object, "requiredModule") && !!(object as Importable).requiredModule; //calling hasOwnProperty with call() because 'object' is not necessarily an object
 }
 

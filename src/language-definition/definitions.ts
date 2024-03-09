@@ -6,14 +6,21 @@ export interface ConfigDefinition {
 }
 export interface LanguageDefinition {
     /**
+     * The name of the language.
+     */
+    name: string;
+    /**
      * The path to the language file containing each of the constructs.
      * This should be relative to the language-definition folder
      */
     constructFile: string;
     /**
-     * A list of (key)words that can / should not be used as identifier names.
+     * A list of (key)words that can / should not be used as identifier names,
+     * nested within the reason for which they are reserved. This allows for the
+     * creation of multiple categories with a different reason. The reason is
+     * shown in the editor as an error when one of the accompanying words is detected.
      */
-    reservedWords: string[];
+    reservedWords: { reason: string; words: string[] }[];
 }
 /**
  * Structure of a single construct definition

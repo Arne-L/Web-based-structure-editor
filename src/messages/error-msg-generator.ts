@@ -5,6 +5,8 @@ import { CSSClasses, TextEnhance } from "../utilities/text-enhance";
  * Enumeration of all the error messages that can be generated.
  */
 export enum ErrorMessage {
+    general, // Self added to use the current infrastructure; change / remove
+    // this dependency in the future
     default,
     outOfScopeVarReference,
     methodCallObjectTypeMismatch,
@@ -383,6 +385,9 @@ export class ErrorMessageGenerator {
                     args.addedType,
                     CSSClasses.type
                 )} cannot be inserted at this location.`;
+
+            case ErrorMessage.general:
+                return args.message;
 
             default:
                 if (usePersonalizedMessages) return "I cannot do that here.";

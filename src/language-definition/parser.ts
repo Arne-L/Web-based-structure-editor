@@ -10,7 +10,8 @@ if (config.languageFile) languageConfig = (await import(`../language-definition/
 else throw new Error("The language-file field is not correctly specified in the configuration file");
 
 let constructs: ConstructDefinition[];
-if (languageConfig.constructFile) constructs = (await import(`../language-definition/${languageConfig.constructFile}`)).default;
+if (languageConfig.constructFile)
+    constructs = (await import(`../language-definition/${languageConfig.constructFile}`)).default;
 else throw new Error("No construct file specified in the language configuration file");
 
 /* EVERYTHING RELATED TO ACTIONS AND EDITCODEACTIONS AND AST */
@@ -125,4 +126,11 @@ function getCodeFunction(construct): () => Statement {
     // Merge them into one in the future
     if (construct.constructType === "expression") return () => new GeneralExpression(construct);
     else return () => new GeneralStatement(construct);
+}
+
+export function initLanguage() {
+    return {
+        language: languageConfig.name,
+        reservedWords: new Map<string, Set<string>>(languageConfig.reservedWords.map((reservedCategory) => [reservedCategory.reason, new Set(reservedCategory.words)])),
+    };
 }
