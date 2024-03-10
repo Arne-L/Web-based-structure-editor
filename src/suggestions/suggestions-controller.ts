@@ -925,8 +925,9 @@ export class MenuController {
             //     currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
             //         0
             // ) {
-            if (
-                editAction.varChanged &&
+            // We do not really match anymore, so maybe this can be removed as well?
+            const code = editAction.getCode();
+            if (code instanceof GeneralStatement && code.containsAssignments() &&
                 // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
                 //     0
                 currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length === 0
@@ -961,15 +962,15 @@ export class MenuController {
 
             //The var assignment option cannot be removed any earlier than here because of case 1 of this if block
             // else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
-            else if (editAction.varChanged) {
-                // Jump to the next fuseResult as this is not a var assignment but a reassignment, which
-                // falls under the VarOperationStmt case
-                continue;
-            } else {
-                // for (const match of fuseResult.matches) {
-                //     substringMatchRanges.push(match.indices);
-                // }
-            }
+            // else if (editAction.varChanged) {
+            //     // Jump to the next fuseResult as this is not a var assignment but a reassignment, which
+            //     // falls under the VarOperationStmt case
+            //     continue;
+            // } else {
+            //     // for (const match of fuseResult.matches) {
+            //     //     substringMatchRanges.push(match.indices);
+            //     // }
+            // }
 
             const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
                 editAction.optionName,
@@ -986,13 +987,16 @@ export class MenuController {
                 // (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
                 //     !this.module.language.isReservedWord(optionText)) ||
                 // editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
-                ((editAction.getCode() as GeneralStatement).containsAssignments() &&
+                (code instanceof GeneralStatement && code.containsAssignments() &&
                     !this.module.language.isReservedWord(optionText)) ||
-                !(editAction.getCode() as GeneralStatement).containsAssignments()
+                (code instanceof GeneralStatement && !code.containsAssignments()) || !(code instanceof GeneralStatement)
             ) {
                 let extraInfo = null;
 
-                if (editAction.matchRegex?.test(optionText) || editAction.matchString == optionText) {
+                if (
+                    (editAction.matchRegex?.test(optionText) || editAction.matchString == optionText) &&
+                    editAction.terminatingChars.length > 0
+                ) {
                     extraInfo = `press <span class="highlighted-text">${this.convertTerminatingChar(
                         editAction.terminatingChars[0]
                     )}</span> to insert`;

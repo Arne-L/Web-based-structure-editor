@@ -396,8 +396,6 @@ export class EditCodeAction extends UserAction {
     trimSpacesBeforeTermChar: boolean;
     documentation: any;
     shortDescription?: string;
-    // Temporary ... hopefully
-    varChanged = false;
 
     /**
      * Handles the code action from the toolbox / suggestion menu to the eventual insertion in the editor
