@@ -86,3 +86,59 @@ combinations in the edit
 * We try our best to keep the editor in a valid state, but this will always be best effort
   - Most effort is spent on insertion, while during editing there is higher likelihood of 
     invalid states
+
+
+
+
+### Ideale config file
+#### Prolog
+
+*Code*
+```Prolog
+find_max(X, Y, X) :- X >= Y, !.
+find_max(X, Y, Y) :- X < Y.
+
+find_min(X, Y, X) :- X =< Y, !.
+find_min(X, Y, Y) :- X > Y.
+
+find_max(100, 200, Max).
+% Max = 200
+```
+
+*Template*
+{regex voor identifier characters}({identifiers}*) :- {body}.
+
+{reference}({args}[\# afh van definition])
+
+
+
+#### TypeScript
+```TypeScript
+function findMax(x: number, y: number): number {
+    return x >= y ? x : y;
+}
+
+function findMin(x: number, y: number): number {
+    return x <= y ? x : y;
+}
+```
+
+*Template*
+function {identifier}((?:{identifier}(?:: {type})?)*)(?:: {type}) {\n?\t?{body}} 
+
+body = (?:{statement};\n?)+
+
+
+#### Python
+```Python
+def find_max(x, y):
+    return x if x >= y else y
+
+def find_min(x, y):
+    return x if x <= y else y
+```
+
+*Template*
+def {identifier}({identifier}*):\n{body}
+
+body = (?:\t{statement}\n)
