@@ -85,7 +85,15 @@ export interface ConstructDefinition {
     match?: string;
     /**
      * Regex against which the user's input is matched when typing. Valid / matching options
-     * are shown in the autocompletion menu.
+     * are shown in the autocompletion menu. 
+     * 
+     * Capturing groups can be used to identify parts of the regex that need to be used to fill
+     * different editable / assignment tokens. Most often this will only be one, in which case 
+     * no capturing group is required. When there is the need to fill multiple tokens, each
+     * capturing group will be used in order, e.g. 
+     * "{capturing group 1 regex} IN {capturing group 2 regex} FOR SOME SYNTAX". If the user thus types
+     * until the second capturing group, its input will be used in the final insertion so that no 
+     * user input is lost.
      *
      * Mutually exclusive with matchRegex, but one of the two has to be defined. Defining both
      * will result in the matchRegex being skipped.
