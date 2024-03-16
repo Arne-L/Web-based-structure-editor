@@ -155,8 +155,7 @@ export class Focus {
      */
     updateContext(newContext: UpdatableContext) {
         // Update monaco selection and cursor position
-        const curPos = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber);
+        const focusedLineStatement = this.getFocusedStatement()
 
         if (newContext.tokenToSelect != undefined) {
             const selection = new Selection(
@@ -174,7 +173,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
+            this.getFocusedStatement()
         );
         this.fireOnNavChangeCallbacks();
     }

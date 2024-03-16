@@ -47,6 +47,13 @@ A browser window should open automatically. If not, navigate to `localhost:8080`
 ### Possible titles
 * Frame-based programming language-agnostic web-based editor
 * Educatieve programming language agnostic structure editor (EPLASE)
+Een aantal suggesties voor een naam:
+CodeBlox
+CodeScribble / ScriptScribble
+ScriptStitch
+Prostructor (program constructor) / Codestructor (idem)
+
+binnen de "construct editors"
 
 ### TODOs
 * How to fuse statements and expressions; more precisely, how to handle something that takes at least one line and something that is nested? What if one 'statement' is spread over multiple lines (without including the body)?
@@ -106,7 +113,7 @@ find_max(100, 200, Max).
 ```
 
 *Template*
-{regex voor identifier characters}({identifiers}*) :- {body}.
+{identifier}({identifiers}*) :- {body}.
 
 {reference}({args}[\# afh van definition])
 
@@ -142,3 +149,17 @@ def find_min(x, y):
 def {identifier}({identifier}*):\n{body}
 
 body = (?:\t{statement}\n)
+
+
+==> Dit vertalen naar JSON:
+* Kleene-star operator -> min & max repetition van de structuur
+* + operator -> idem
+* 
+
+Dit in de plaats van de huidige body format elements in de python-constructs.json file
+{
+    "type": "reference",
+    "name": "body",
+    "min": 1,
+    "max": 1
+}

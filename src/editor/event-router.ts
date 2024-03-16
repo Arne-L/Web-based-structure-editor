@@ -2,7 +2,7 @@ import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
 
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
-import { AutoCompleteType, DataType, IdentifierRegex, InsertionType } from "./../syntax-tree/consts";
+import { AutoCompleteType, IdentifierRegex, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
@@ -187,14 +187,14 @@ export class EventRouter {
                 // console.log("Expression to right", context.expressionToRight);
                 // console.log("Current expression", context.expression);
 
-                if (this.module.validator.canDeleteEmptyLine(context, {backwards: false})) {
+                if (this.module.validator.canDeleteEmptyLine(context, { backwards: false })) {
                     return new EditAction(EditActionType.DeleteEmptyLine);
                 } else if (this.module.validator.canDeleteNextStmt(context)) {
                     return new EditAction(EditActionType.DeleteStmt);
                 } else if (this.module.validator.canDeleteNextTkn(context)) {
                     // Token to the right of the current position is non-editable
-                    return new EditAction(EditActionType.DeleteRootOfToken, {backwards: false});
-                } else if (this.module.validator.canDeleteAdjacentChar(context, {backwards: false})) {
+                    return new EditAction(EditActionType.DeleteRootOfToken, { backwards: false });
+                } else if (this.module.validator.canDeleteAdjacentChar(context, { backwards: false })) {
                     // Free text edit mode with editable text to the right
                     if (e.ctrlKey) {
                         return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
@@ -282,15 +282,13 @@ export class EventRouter {
 
             // NOT language independent
             case KeyPress.Backspace: {
-                if (
-                    this.module.validator.canDeleteAdjacentChar(context, {backwards: true})
-                ) {
+                if (this.module.validator.canDeleteAdjacentChar(context, { backwards: true })) {
                     // Delete char in front of the cursor in a text editable area
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToStart);
                     else return new EditAction(EditActionType.DeletePrevChar);
                 } else if (this.module.validator.canMoveLeftOnEmptyMultilineStatement(context)) {
                     // When on the first line of the body, move to the previous token
-                    // if it is empty 
+                    // if it is empty
                     console.log("CASES: empty multiline statement");
                     return new EditAction(EditActionType.SelectPrevToken);
                 } else if (this.module.validator.canDeletePrevStmt(context)) {
@@ -311,13 +309,13 @@ export class EventRouter {
                     // on the line before, indent the current line back
                     console.log("CASES: indent back");
                     return new EditAction(EditActionType.IndentBackwards);
-                // } else if (this.module.validator.canDeletePrevToken(context)) {
+                    // } else if (this.module.validator.canDeletePrevToken(context)) {
                 } else if (this.module.validator.canDeletePrevTkn(context)) {
                     console.log("CASES: prev token");
                     // return new EditAction(EditActionType.DeletePrevToken);
-                    return new EditAction(EditActionType.DeleteRootOfToken, {backwards: true});
-                } else if (this.module.validator.canDeleteEmptyLine(context, {backwards : true})) {
-                // } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
+                    return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
+                } else if (this.module.validator.canDeleteEmptyLine(context, { backwards: true })) {
+                    // } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
                     console.log("CASES: cur empty line");
                     return new EditAction(EditActionType.DeleteEmptyLine, {
                         pressedBackspace: true,
@@ -347,13 +345,13 @@ export class EventRouter {
                         }
                     }
                     // Maybe useful later?
-                // } else if (this.module.validator.shouldDeleteVarAssignmentOnHole(context)) {
-                //     console.log("CASES: var assignment on hole");
-                //     return new EditAction(EditActionType.DeleteStatement);
+                    // } else if (this.module.validator.shouldDeleteVarAssignmentOnHole(context)) {
+                    //     console.log("CASES: var assignment on hole");
+                    //     return new EditAction(EditActionType.DeleteStatement);
                     // Maybe useful later?
-                // } else if (this.module.validator.shouldDeleteHole(context)) {
-                //     console.log("CASES: hole");
-                //     return new EditAction(EditActionType.DeleteSelectedModifier);
+                    // } else if (this.module.validator.shouldDeleteHole(context)) {
+                    //     console.log("CASES: hole");
+                    //     return new EditAction(EditActionType.DeleteSelectedModifier);
                 }
                 console.log("nothing");
                 console.log(context);
@@ -714,9 +712,8 @@ export class EventRouter {
                  */
                 const statement = e.getCode(); // Should be replaced with the construct object in the future
                 if (statement.validateContext(this.module.validator, context) === InsertionType.Valid) {
-                    // console.log(context.lineStatement instanceof EmptyLineStmt);
                     return new EditAction(EditActionType.InsertGeneralStmt, {
-                        statement: statement,
+                        construct: statement,
                         source,
                     });
                 }
@@ -726,7 +723,7 @@ export class EventRouter {
                 const expression = e.getCode();
                 if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
                     return new EditAction(EditActionType.InsertGeneralExpr, {
-                        expression: expression,
+                        construct: expression,
                         source,
                     });
                 }
@@ -832,23 +829,23 @@ export class EventRouter {
             //     break;
             // }
 
-            case InsertActionType.InsertLiteral: {
-                if (
-                    e.insertData?.literalType === DataType.String &&
-                    context.tokenToRight instanceof ast.AutocompleteTkn
-                ) {
-                    return new EditAction(EditActionType.ConvertAutocompleteToString, {
-                        token: context.tokenToRight,
-                        source,
-                    });
-                } else {
-                    return new EditAction(EditActionType.InsertLiteral, {
-                        literalType: e.insertData?.literalType,
-                        initialValue: e.insertData?.initialValue,
-                        source,
-                    });
-                }
-            }
+            // case InsertActionType.InsertLiteral: {
+            //     if (
+            //         e.insertData?.literalType === DataType.String &&
+            //         context.tokenToRight instanceof ast.AutocompleteTkn
+            //     ) {
+            //         return new EditAction(EditActionType.ConvertAutocompleteToString, {
+            //             token: context.tokenToRight,
+            //             source,
+            //         });
+            //     } else {
+            //         return new EditAction(EditActionType.InsertLiteral, {
+            //             literalType: e.insertData?.literalType,
+            //             initialValue: e.insertData?.initialValue,
+            //             source,
+            //         });
+            //     }
+            // }
 
             case InsertActionType.InsertBinaryExpr: {
                 if (this.module.validator.atRightOfExpression(context)) {

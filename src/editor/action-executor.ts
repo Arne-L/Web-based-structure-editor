@@ -61,6 +61,39 @@ export class ActionExecutor {
     }
 
     /**
+     * Create the final resulting construct that needs to be inserted from
+     * an EditAction. It also integrates context data such as the current
+     * text the user has typed in a free text spot. 
+     * 
+     * @param action - The edit action that needs to be executed. Only 
+     * actions resulting in a construct are valid.
+     * @returns - The resulting construct of the action. This construct 
+     * can be used directly in the editor.
+     */
+    createFinalConstruct(action: EditAction): GeneralStatement {
+        const construct = action.data?.construct as GeneralStatement;
+        const autocompleteValues: string[] = action.data?.autocompleteData?.values;
+
+        console.log(construct, autocompleteValues);
+
+        // Update the contents of the tokens
+        let index = 0;
+        for (const token of construct.tokens) {
+            if (
+                (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
+                autocompleteValues &&
+                autocompleteValues.length > index
+            ) {
+                token.text = autocompleteValues[index];
+            }
+        }
+
+        console.log(construct)
+
+        return construct
+    }
+
+    /**
      * Given an action, execute it.
      * Often this is performing an insertion, change or deletion of a construct in the editor.
      *
@@ -102,20 +135,11 @@ export class ActionExecutor {
                  */
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
-                const statement = action.data?.statement as Statement;
-                var autocompleteValues = action.data?.autocompleteData?.values;
+                const statement = this.createFinalConstruct(action);
 
-                // Update the contents of the tokens
-                index = 0;
-                for (const token of statement.tokens) {
-                    if (
-                        (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
-                        autocompleteValues &&
-                        autocompleteValues.length > index
-                    ) {
-                        token.text = action.data?.autocompleteData?.values[index];
-                    }
-                }
+                // Probably best to use this to get the final construct text to compare against 
+                // in the suggestion controller
+                // statement.getRenderText()
 
                 // Will always be needed?
                 this.replaceEmptyStatement(context.lineStatement, statement);
@@ -136,22 +160,10 @@ export class ActionExecutor {
             // TODO: Merge with InsertGeneralStmt
             // Kinda language independent
             case EditActionType.InsertGeneralExpr:
-                const expression = action.data?.expression as Expression;
-                var autocompleteValues = action.data?.autocompleteData?.values;
+                const expression = this.createFinalConstruct(action);
 
-                // Update the contents of the tokens when the data was already available in the autocomplete
-                index = 0;
-                for (const token of expression.tokens) {
-                    if (
-                        (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
-                        autocompleteValues &&
-                        autocompleteValues.length > index
-                    ) {
-                        token.text = autocompleteValues[index];
-                    }
-                }
-
-                this.insertExpression(context, expression);
+                // NOT OKAY!!!
+                this.insertExpression(context, expression as unknown as Expression);
 
                 if (flashGreen) this.flashGreen(expression);
 
@@ -886,11 +898,11 @@ export class ActionExecutor {
             }
 
             // NOT language independent
-            case EditActionType.DeleteStringLiteral: {
-                this.module.deleteCode(context.tokenToLeft.rootNode);
+            // case EditActionType.DeleteStringLiteral: {
+            //     this.module.deleteCode(context.tokenToLeft.rootNode);
 
-                break;
-            }
+            //     break;
+            // }
 
             case EditActionType.DeletePrevChar:
             case EditActionType.DeleteNextChar: {
@@ -1965,7 +1977,7 @@ export class ActionExecutor {
         // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
-            (match.getCode() as GeneralStatement).containsAssignments() &&
+            (match.getCode() as GeneralStatement)?.containsAssignments() &&
             this.module.language.isReservedWord(token.text.trim())
         ) {
             // TODO: can insert an interesting warning
@@ -1976,7 +1988,7 @@ export class ActionExecutor {
         // Length of the match token
         let length = 0;
         // Get the length of the text token if it is a variable
-        if ((match.getCode() as GeneralStatement).containsAssignments()) length = token.text.length + 1;
+        if ((match.getCode() as GeneralStatement)?.containsAssignments()) length = token.text.length + 1;
         // Otherwise, get the length of the match string
         else length = match.matchString.length + 1;
 
@@ -2629,6 +2641,7 @@ export class ActionExecutor {
                     ErrorMessage.identifierIsBuiltInFunc
                 );
             }
+            console.log("validateIdentifier")
             // Everything above should be replaced with the line below ... but the first
             // if block can for some weird reason not be removed without breaking the code
             // in the strangest possible way!

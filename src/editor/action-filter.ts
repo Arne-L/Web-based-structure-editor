@@ -364,16 +364,10 @@ export class ActionFilter {
 export class UserAction {
     // Can remove export
     optionName: string;
-    /**
-     * If optionName gets changed, we still need to know the old
-     * name; this could be a temporary solution
-     */
-    oldOptionName: string;
     cssId: string;
 
     constructor(optionName: string, cssId: string) {
         this.optionName = optionName;
-        this.oldOptionName = optionName;
         this.cssId = cssId;
     }
 
@@ -531,7 +525,6 @@ export class EditCodeAction extends UserAction {
         source: {},
         autocompleteData?: {}
     ) {
-        console.log("Performing action: " + this.optionName)
         // Current context
         let context = providedContext;
 

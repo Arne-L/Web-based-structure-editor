@@ -1,16 +1,11 @@
 import { Position } from "monaco-editor";
 import { EditCodeAction } from "../editor/action-filter";
-import { Actions, InsertActionType } from "../editor/consts";
+import { EditActionType } from "../editor/consts";
+import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../editor/toolbox";
-import { Validator } from "../editor/validator";
-import {
-    CodeConstruct,
-    GeneralStatement,
-    ListElementAssignment,
-    TypedEmptyExpr /*VarAssignmentStmt*/,
-} from "../syntax-tree/ast";
-import { BuiltInFunctions, InsertionType, PythonKeywords } from "../syntax-tree/consts";
+import { CodeConstruct, GeneralStatement } from "../syntax-tree/ast";
+import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { TextEnhance } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
@@ -864,6 +859,34 @@ export class MenuController {
             }
         });
 
+        // Sorting (optimisations possible ... lots of optimisations!)
+        const context = this.module.focus.getContext();
+
+        function sortActions(a: EditCodeAction, b: EditCodeAction) {
+            if (a.matchString && b.matchRegex) return -1;
+            if (a.matchRegex && b.matchString) return 1;
+
+            const aText = getConstructText(a),
+                bText = getConstructText(b);
+            const aStart = aText.indexOf(optionText),
+                bStart = bText.indexOf(optionText),
+                aDiff = aText.length - optionText.length,
+                bDiff = bText.length - optionText.length;
+
+            if (bStart - bStart !== 0) return aStart - bStart;
+
+            return aDiff - bDiff;
+        }
+
+        const getConstructText = (action: EditCodeAction) => {
+            const editaction = new EditAction(EditActionType.InsertGeneralStmt, {
+                construct: action.getCode(),
+                autocompleteData: { values: action.matchRegex ? action.matchRegex.exec(optionText) : [] },
+            });
+            return this.module.executer.createFinalConstruct(editaction).getRenderText();
+        };
+
+        actionsToKeep.sort(sortActions);
         // We move the var assignment to the end of the list so that it is always the last option
         // const indexOfVarAssignment = actionsToKeep
         //     .map((result) => result.item.insertActionType)
@@ -927,7 +950,9 @@ export class MenuController {
             // ) {
             // We do not really match anymore, so maybe this can be removed as well?
             const code = editAction.getCode();
-            if (code instanceof GeneralStatement && code.containsAssignments() &&
+            if (
+                code instanceof GeneralStatement &&
+                code.containsAssignments() &&
                 // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
                 //     0
                 currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length === 0
@@ -987,9 +1012,11 @@ export class MenuController {
                 // (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
                 //     !this.module.language.isReservedWord(optionText)) ||
                 // editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
-                (code instanceof GeneralStatement && code.containsAssignments() &&
+                (code instanceof GeneralStatement &&
+                    code.containsAssignments() &&
                     !this.module.language.isReservedWord(optionText)) ||
-                (code instanceof GeneralStatement && !code.containsAssignments()) || !(code instanceof GeneralStatement)
+                (code instanceof GeneralStatement && !code.containsAssignments()) ||
+                !(code instanceof GeneralStatement)
             ) {
                 let extraInfo = null;
 

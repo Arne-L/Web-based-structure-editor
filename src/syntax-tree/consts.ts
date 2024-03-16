@@ -23,7 +23,7 @@ export enum InsertionType {
 /**
  * All datatypes that are supported by the editor.
  * Contains both primitive types and composite datatypes (primarily lists)
- * 
+ *
  * This enum also includes types that are not (yet) supported by the editor.
  */
 export enum DataType {
@@ -563,7 +563,8 @@ export class IgnoreConversionRecord extends TypeConversionRecord {
     }
 }
 
-export class CastConversionRecord extends TypeConversionRecord { // Can remove export
+export class CastConversionRecord extends TypeConversionRecord {
+    // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -582,7 +583,8 @@ export class CastConversionRecord extends TypeConversionRecord { // Can remove e
     }
 }
 
-export class ComparisonConversionRecord extends TypeConversionRecord { // Can remove export
+export class ComparisonConversionRecord extends TypeConversionRecord {
+    // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -598,7 +600,8 @@ export class ComparisonConversionRecord extends TypeConversionRecord { // Can re
     }
 }
 
-export class MemberFunctionConversionRecord extends TypeConversionRecord { // Can remove export
+export class MemberFunctionConversionRecord extends TypeConversionRecord {
+    // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -614,7 +617,8 @@ export class MemberFunctionConversionRecord extends TypeConversionRecord { // Ca
     }
 }
 
-export class FunctionExprConversionRecord extends CastConversionRecord { // Can remove export
+export class FunctionExprConversionRecord extends CastConversionRecord {
+    // Can remove export
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -630,7 +634,8 @@ export class FunctionExprConversionRecord extends CastConversionRecord { // Can 
     }
 }
 
-export class MemberAccessConversion extends TypeConversionRecord { // Can remove export?
+export class MemberAccessConversion extends TypeConversionRecord {
+    // Can remove export?
     constructor(
         conversionConstruct: string,
         convertTo: DataType,
@@ -648,7 +653,6 @@ export class MemberAccessConversion extends TypeConversionRecord { // Can remove
 
 //this map is for converting from one type to another, to see what each type can be converted to see typeConversionMap in util.ts
 //really the two can be combined, but that can be done in the future
-console.log(EditActionType, EditActionType.InsertTypeCast)
 export const typeToConversionRecord = new Map<String, TypeConversionRecord[]>([
     [
         DataType.Number,
