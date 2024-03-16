@@ -1,0 +1,38 @@
+[
+    {
+        "name": "body",
+        "format": [
+            {
+                "type": "token",
+                "value": "\n\t",
+                "min": 1,
+                "max": null
+            },
+            {
+                "type": "reference",
+                "name": "body_helper"
+            }
+        ]
+    },
+    {
+        "name": "body_helper",
+        "format": [
+            {
+                "type": "reference",
+                "name": "statement"
+            },
+            {
+                "type": "token",
+                "value": "\n\t",
+                "min": 1,
+                "max": null
+            },
+            {
+                "type": "reference",
+                "name": "body_helper",
+                "min": 0,
+                "max": 1
+            }
+        ]
+    }
+]
