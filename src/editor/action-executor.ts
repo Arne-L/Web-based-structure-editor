@@ -40,7 +40,7 @@ import {
     getOperatorCategory,
 } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
-import { isImportable } from "../utilities/util";
+import { createFinalConstruct, isImportable } from "../utilities/util";
 import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
 import { EditActionType, InsertActionType } from "./consts";
@@ -58,39 +58,6 @@ export class ActionExecutor {
 
     constructor(module: Module) {
         this.module = module;
-    }
-
-    /**
-     * Create the final resulting construct that needs to be inserted from
-     * an EditAction. It also integrates context data such as the current
-     * text the user has typed in a free text spot. 
-     * 
-     * @param action - The edit action that needs to be executed. Only 
-     * actions resulting in a construct are valid.
-     * @returns - The resulting construct of the action. This construct 
-     * can be used directly in the editor.
-     */
-    createFinalConstruct(action: EditAction): GeneralStatement {
-        const construct = action.data?.construct as GeneralStatement;
-        const autocompleteValues: string[] = action.data?.autocompleteData?.values;
-
-        console.log(construct, autocompleteValues);
-
-        // Update the contents of the tokens
-        let index = 0;
-        for (const token of construct.tokens) {
-            if (
-                (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
-                autocompleteValues &&
-                autocompleteValues.length > index
-            ) {
-                token.text = autocompleteValues[index];
-            }
-        }
-
-        console.log(construct)
-
-        return construct
     }
 
     /**
@@ -135,7 +102,7 @@ export class ActionExecutor {
                  */
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
-                const statement = this.createFinalConstruct(action);
+                const statement = createFinalConstruct(action);
 
                 // Probably best to use this to get the final construct text to compare against 
                 // in the suggestion controller
@@ -160,7 +127,7 @@ export class ActionExecutor {
             // TODO: Merge with InsertGeneralStmt
             // Kinda language independent
             case EditActionType.InsertGeneralExpr:
-                const expression = this.createFinalConstruct(action);
+                const expression = createFinalConstruct(action);
 
                 // NOT OKAY!!!
                 this.insertExpression(context, expression as unknown as Expression);

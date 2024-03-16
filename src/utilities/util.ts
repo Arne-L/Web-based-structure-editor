@@ -1,5 +1,6 @@
+import { EditAction } from "../editor/data-types";
 import { ConstructDoc } from "../suggestions/construct-doc";
-import { CodeConstruct, GeneralStatement, Importable, Statement } from "../syntax-tree/ast";
+import { AssignmentToken, CodeConstruct, EditableTextTkn, GeneralStatement, Importable, Statement } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { addClassToDraftModeResolutionButton, DataType, ListTypes } from "./../syntax-tree/consts";
 
@@ -211,4 +212,33 @@ export function createWarningButton(buttonTxt: string, warningCode: CodeConstruc
     addClassToDraftModeResolutionButton(button, warningCode);
 
     return button;
+}
+
+/**
+ * Create the final resulting construct that needs to be inserted from
+ * an EditAction. It also integrates context data such as the current
+ * text the user has typed in a free text spot. 
+ * 
+ * @param action - The edit action that needs to be executed. Only 
+ * actions resulting in a construct are valid.
+ * @returns - The resulting construct of the action. This construct 
+ * can be used directly in the editor.
+ */
+export function createFinalConstruct(action: EditAction): GeneralStatement {
+    const construct = action.data?.construct as GeneralStatement;
+    const autocompleteValues: string[] = action.data?.autocompleteData?.values;
+
+    // Update the contents of the tokens
+    let index = 0;
+    for (const token of construct.tokens) {
+        if (
+            (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
+            autocompleteValues &&
+            autocompleteValues.length > index
+        ) {
+            token.text = autocompleteValues[index];
+        }
+    }
+
+    return construct
 }

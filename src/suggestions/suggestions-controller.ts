@@ -9,6 +9,7 @@ import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { TextEnhance } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
+import { createFinalConstruct } from "../utilities/util";
 
 /*
  *A tree menu that can hold options for the user and link through those options to other menus.
@@ -798,54 +799,9 @@ export class MenuController {
         // Select the current menu (focusedMenuIndex should always be zero)
         const menu = this.menus[this.focusedMenuIndex];
 
-        //------UPDATE MATCH STRING FOR ACTIONS THAT DEPEND ON USER INPUT------------
-
-        /*The default text for var assignment is 'var = ---'
-              Change it here so that fuse matches on 'user_input = ---'
-              Same goes for ---[---] = --- ==> user_input[---] = ---
-            */
-        // const assignNewVarAction = menu.editCodeActionsOptions.filter(
-        //     (action) => action.insertActionType === InsertActionType.InsertNewVariableStmt
-        // )[0];
-        // if (assignNewVarAction) {
-        //     assignNewVarAction.optionName = optionText + " = ---";
-        // }
-
-        // Try to get rid of this
-        // menu.editCodeActionsOptions.forEach(
-        //     (action) => {
-        //         if (action.oldOptionName.substring(0, 3) === "-- ") {
-        //             action.optionName = optionText + action.oldOptionName.substring(2);
-        //             action.varChanged = true;
-        //         }
-        //     }
-        // );
-
-        // const assignListElementAction = menu.editCodeActionsOptions.filter(
-        //     (action) => action.insertActionType === InsertActionType.InsertListIndexAssignment
-        // )[0];
-        // if (assignListElementAction) {
-        //     assignListElementAction.optionName = optionText + "[---] = ---";
-        // }
-
-        // Two blocks above need to be changed to a general check over all constructs starting with an identifier
-        // and checking if the user input matches the regex of the construct
-
         //------FILTER------
-        // Try to integrate all filter logic in this method
-        //get matching options from fuse
-        // let actionsToKeep = Validator.matchEditCodeAction(optionText, menu.editCodeActionsOptions, ["optionName"]);
 
-        /*Second round of filtering for regex-based items
-              Currently only used by variable assignment
-            */
-
-        // Try to get rid of this
-        // actionsToKeep = actionsToKeep.filter((editCodeAction) =>
-        //     editCodeAction.item.matchRegex ? editCodeAction.item.matchRegex.test(optionText) : true
-        // );
-
-        // Get all EditCodeActions that match the user input
+        // Get all EditCodeActions that match the user input, either based on the exact string or the regex
         const actionsToKeep = menu.editCodeActionsOptions.filter((editAction) => {
             if (editAction.matchString) {
                 const actionLowerCase = editAction.matchString.toLowerCase();
@@ -859,50 +815,36 @@ export class MenuController {
             }
         });
 
-        // Sorting (optimisations possible ... lots of optimisations!)
-        const context = this.module.focus.getContext();
-
+        // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
+            // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
             if (a.matchRegex && b.matchString) return 1;
 
-            const aText = getConstructText(a),
-                bText = getConstructText(b);
+            // Get the final rendered text, as a string, for both options
+            const aText = a.getConstructText(optionText),
+                bText = b.getConstructText(optionText);
+            // Get the position of the current text in both options, as well as the
+            // difference in length between the current text and both options
             const aStart = aText.indexOf(optionText),
                 bStart = bText.indexOf(optionText),
                 aDiff = aText.length - optionText.length,
                 bDiff = bText.length - optionText.length;
 
+            // Give preference to the option that has the current text the closest 
+            // to the front
             if (bStart - bStart !== 0) return aStart - bStart;
 
+            // Give preference to the option that differs the least from the current
+            // text in terms of length
             return aDiff - bDiff;
         }
 
-        const getConstructText = (action: EditCodeAction) => {
-            const editaction = new EditAction(EditActionType.InsertGeneralStmt, {
-                construct: action.getCode(),
-                autocompleteData: { values: action.matchRegex ? action.matchRegex.exec(optionText) : [] },
-            });
-            return this.module.executer.createFinalConstruct(editaction).getRenderText();
-        };
-
+        // Use the above defined function to sort the options in the autocomplete menu
         actionsToKeep.sort(sortActions);
-        // We move the var assignment to the end of the list so that it is always the last option
-        // const indexOfVarAssignment = actionsToKeep
-        //     .map((result) => result.item.insertActionType)
-        //     .indexOf(InsertActionType.InsertNewVariableStmt);
-        // if (indexOfVarAssignment > -1) {
-        //     const varAssignmentRes = actionsToKeep.splice(indexOfVarAssignment, 1)[0];
-        //     actionsToKeep.push(varAssignmentRes);
-        // }
 
         //------RECREATE OPTIONS------
-        let focusedOptionText = "";
-        if (this.focusedOptionIndex > -1) {
-            focusedOptionText = menu.options[this.focusedOptionIndex].text;
-        }
-
-        //clear old options since some of them might not be valid anymore
+        // Clear old options since some of them might not be valid anymore
         menu.options.forEach((option) => {
             option.removeFromDOM();
         });
@@ -910,51 +852,18 @@ export class MenuController {
 
         for (const editAction of actionsToKeep) {
             let substringMatchRanges = [];
-            // const editAction = fuseResult.item;
 
             //TODO: If there are more constructs that need to have a custom performAction based on user input then consider changing this to be more general
             const currentStmt = this.module.focus.getFocusedStatement();
-            const currentScope = currentStmt.hasScope() ? currentStmt.scope : currentStmt.rootNode.scope;
+            const currentScope = currentStmt.getNearestScope();
 
-            /**
-             * Strategy:
-             *  Option1:
-             *   String match with the user input and the optionName:
-             *    - If the optionName starts with "--" and the third character is not a
-             *      "-" then we now that the user input starts with an identifier
-             *       -> If the current user input matches an existing variable (partially), then
-             *          we can offer all options that work on the reference AND offer the options
-             *          with the identifier in front that match exactly for assignment. In this case:
-             *          * If the third optionName character is not a space, then we need to
-             *            take all user input up to the character and on typing the character,
-             *            the option will be inserted
-             *          * If the third optionName character is a space, then we can insert the
-             *            reference on pressing space; the parent construct will be determined
-             *            based on the next character(s) in the user input
-             *       -> Else only show assignment options starting with an identifier for the current
-             *          exact user input
-             *    - If the optionName starts with "---" then we know that the user input starts with
-             *      a reference and we can simply insert the reference and allow for the next construct
-             *      only constructs that start with the reference
-             *    - If the optionName starts with something else, then we can simply insert the option
-             *  Option2:
-             *   - Something something with tokens
-             */
-            // SHOULD LATER BE GENERALISED
-            //This case is for displaying [userInput] = --- as a suggestion on empty lines when there are no previous assignments to
-            //a variable with the user input being the identifier
-            // if (
-            //     editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
-            //     currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
-            //         0
-            // ) {
             // We do not really match anymore, so maybe this can be removed as well?
-            const code = editAction.getCode();
+            const code = editAction.getConstruct(optionText);
+
+            // KAN DIT WEL VERWIJDERD WORDEN?!
             if (
                 code instanceof GeneralStatement &&
                 code.containsAssignments() &&
-                // currentScope.getAllAssignmentsToVarAboveLine(optionText, this.module, currentStmt.lineNumber).length ===
-                //     0
                 currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length === 0
             ) {
                 substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
@@ -997,8 +906,9 @@ export class MenuController {
             //     // }
             // }
 
+            console.log(editAction.optionName)
             const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
-                editAction.optionName,
+                editAction.optionName, //code.getRenderText(),
                 "matchingText",
                 substringMatchRanges
             );
@@ -1045,7 +955,7 @@ export class MenuController {
                             {
                                 type: "autocomplete-menu",
                                 precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
-                                length: editAction.matchRegex // editAction.varChanged // Should be changed to something more robust in the future: signifies a new var assignment
+                                length: editAction.matchRegex
                                     ? optionText.length + 1
                                     : editAction.matchString.length + 1,
                             },

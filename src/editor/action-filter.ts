@@ -14,9 +14,10 @@ import {
 import { DataType, InsertionType, TypeConversionRecord } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
-import { getUserFriendlyType } from "../utilities/util";
+import { createFinalConstruct, getUserFriendlyType } from "../utilities/util";
 import { ActionExecutor } from "./action-executor";
-import { Actions, InsertActionType } from "./consts";
+import { Actions, EditActionType, InsertActionType } from "./consts";
+import { EditAction } from "./data-types";
 import { EventRouter } from "./event-router";
 import { Context } from "./focus";
 import { Validator } from "./validator";
@@ -477,6 +478,40 @@ export class EditCodeAction extends UserAction {
     getCode() {
         return this.getCodeFunction();
     }
+
+    /**
+     * Get the final text string of the given editCodeAction, augmented with possible 
+     * user input
+     * 
+     * @param action - The editCodeAction to get the full rendered text of. This includes the 
+     * base text as well as all possible completions through the input text of the user
+     * @returns Final construct that would be put in the editor
+     */
+    getConstruct(userInput: string): GeneralStatement {
+        // Create an EditAction that contains all information to create the final construct
+        // The EditActionType is not used in the createFinalConstruct function and can thus
+        // be anythin
+        const editaction = new EditAction(EditActionType.InsertGeneralStmt, {
+            construct: this.getCode(),
+            autocompleteData: { values: this.matchRegex ? this.matchRegex.exec(userInput) : [] },
+        });
+        // Get the final code construct
+        return createFinalConstruct(editaction);
+    };
+
+
+    /**
+     * Get the final text string of the given editCodeAction, augmented with possible 
+     * user input
+     * 
+     * @param action - The editCodeAction to get the full rendered text of. This includes the 
+     * base text as well as all possible completions through the input text of the user
+     * @returns Final string that would be put in a text editor
+     */
+    getConstructText(userInput: string): string {
+        // Get the final code snippet as a string
+        return this.getConstruct(userInput).getRenderText();
+    };
 
     //TODO: #526 this might need some updates when that is implemented
     /**
