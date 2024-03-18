@@ -102,7 +102,8 @@ export interface ConstructDefinition {
     /**
      * List of strings that trigger the insertion of the construct in the editor. When this / one of
      * these character(s) is typed, while the construct is valid according to the match, the construct
-     * is inserted in the editor.
+     * is inserted in the editor. As these characters are supposed to be the first character after 
+     * the matchRegex or matchString, there are often also referred to as terminating characters.
      *
      * Optional. When left empty, the construct can only be inserted by selecting it in the toolbox,
      * from the autocomplete menu or by force closing the autocompletion menu.

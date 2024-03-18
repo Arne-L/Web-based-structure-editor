@@ -1,6 +1,6 @@
 import { EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
-import { CSSClasses, TextEnhance } from "../utilities/text-enhance";
+import { CSSClasses, getStyledSpan } from "../utilities/text-enhance";
 import { getUserFriendlyType } from "../utilities/util";
 import { CodeConstruct, Expression, FunctionCallExpr, Modifier } from "./ast";
 import { Callback, CallbackType } from "./callback";
@@ -322,12 +322,10 @@ export enum Tooltip {
 }
 
 //-------------------
-const te = new TextEnhance();
-
 const getTypesString = (types: DataType[]) => {
     let res = "";
     for (const dataType of types) {
-        res += te.getStyledSpan(getUserFriendlyType(dataType), CSSClasses.type);
+        res += getStyledSpan(getUserFriendlyType(dataType), CSSClasses.type);
         res += ", ";
     }
     res = res.substring(0, res.length - 2);
@@ -337,38 +335,38 @@ const getTypesString = (types: DataType[]) => {
 
 export function MISSING_IMPORT_DRAFT_MODE_STR(requiredItem, requiredModule) {
     return (
-        te.getStyledSpan(requiredItem, CSSClasses.identifier) +
+        getStyledSpan(requiredItem, CSSClasses.identifier) +
         " does not exist in this program. It is part of the " +
-        te.getStyledSpan(requiredModule, CSSClasses.emphasize) +
+        getStyledSpan(requiredModule, CSSClasses.emphasize) +
         " module. " +
-        te.getStyledSpan(requiredModule, CSSClasses.emphasize) +
+        getStyledSpan(requiredModule, CSSClasses.emphasize) +
         " has to be imported before " +
-        te.getStyledSpan(requiredItem, CSSClasses.identifier) +
+        getStyledSpan(requiredItem, CSSClasses.identifier) +
         " can be used."
     );
 }
 
 export function TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(construct: string, expectedTypes: DataType[], actualType: DataType) {
-    return `${te.getStyledSpan(construct, CSSClasses.keyword)} expected a ${getTypesString(
+    return `${getStyledSpan(construct, CSSClasses.keyword)} expected a ${getTypesString(
         expectedTypes
-    )}, but you entered a ${te.getStyledSpan(
+    )}, but you entered a ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
     )} instead.\nYou can fix this by:`;
 }
 
 export function TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR(expectedTypes: DataType[], actualType: DataType) {
-    return `Expected a ${getTypesString(expectedTypes)}, but you entered a ${te.getStyledSpan(
+    return `Expected a ${getTypesString(expectedTypes)}, but you entered a ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
     )} instead.\n You can fix this by:`;
 }
 
 export function TYPE_MISMATCH_ANY(expectedTypes: DataType[], actualType: DataType) {
-    return `Expected a ${getTypesString(expectedTypes)}, but you entered an ${te.getStyledSpan(
+    return `Expected a ${getTypesString(expectedTypes)}, but you entered an ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
-    )} instead.\n Type ${te.getStyledSpan(
+    )} instead.\n Type ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
     )} can represent any type, but you need to make sure it is one of the expected types.`;
@@ -379,21 +377,21 @@ export function TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR(
     varType: DataType,
     expectedTypes: DataType[]
 ) {
-    return `${te.getStyledSpan(identifier, CSSClasses.identifier)} is a ${te.getStyledSpan(
+    return `${getStyledSpan(identifier, CSSClasses.identifier)} is a ${getStyledSpan(
         getUserFriendlyType(varType),
         CSSClasses.type
     )}, but expected a ${getTypesString(expectedTypes)}. You can fix this by:`;
 }
 
 export function GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(type: DataType, op: BinaryOperator) {
-    return `${te.getStyledSpan(op, CSSClasses.keyword)} is not possible with ${te.getStyledSpan(
+    return `${getStyledSpan(op, CSSClasses.keyword)} is not possible with ${getStyledSpan(
         getUserFriendlyType(type),
         CSSClasses.type
     )}. Consider removing this code.`;
 }
 
 export function GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(type: DataType, op: BinaryOperator) {
-    return `${te.getStyledSpan(op, CSSClasses.keyword)} is not possible with ${te.getStyledSpan(
+    return `${getStyledSpan(op, CSSClasses.keyword)} is not possible with ${getStyledSpan(
         getUserFriendlyType(type),
         CSSClasses.type
     )}. You can convert it to a type for which it is defined using one of: `;
@@ -404,27 +402,27 @@ export function GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
     type1: DataType,
     type2: DataType
 ) {
-    return `${te.getStyledSpan(op, CSSClasses.keyword)} is not possible between ${te.getStyledSpan(
+    return `${getStyledSpan(op, CSSClasses.keyword)} is not possible between ${getStyledSpan(
         getUserFriendlyType(type1),
         CSSClasses.type
-    )} and ${te.getStyledSpan(getUserFriendlyType(type2), CSSClasses.type)} consider removing this code.`;
+    )} and ${getStyledSpan(getUserFriendlyType(type2), CSSClasses.type)} consider removing this code.`;
 }
 
 export function GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(type: DataType) {
-    return `List indices must by of type ${te.getStyledSpan(
+    return `List indices must by of type ${getStyledSpan(
         getUserFriendlyType(DataType.Number),
         CSSClasses.type
-    )} but you entered a ${te.getStyledSpan(
+    )} but you entered a ${getStyledSpan(
         getUserFriendlyType(type),
         CSSClasses.type
-    )} instead. It can be converted to a ${te.getStyledSpan(
+    )} instead. It can be converted to a ${getStyledSpan(
         getUserFriendlyType(DataType.Number),
         CSSClasses.type
     )} with:`;
 }
 
 export function GET_TYPE_CANNOT_BE_CONVERTED_MSG(type: DataType) {
-    return `${te.getStyledSpan(getUserFriendlyType(type), CSSClasses.type)} cannot be converted to ${te.getStyledSpan(
+    return `${getStyledSpan(getUserFriendlyType(type), CSSClasses.type)} cannot be converted to ${getStyledSpan(
         getUserFriendlyType(DataType.Number),
         CSSClasses.type
     )}. Consider deleting this code.`;
@@ -435,13 +433,13 @@ export function TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
     expectedTypes: DataType[],
     actualType: DataType
 ) {
-    return `Expected a value one of the following types: ${getTypesString(expectedTypes)}, but ${te.getStyledSpan(
+    return `Expected a value one of the following types: ${getTypesString(expectedTypes)}, but ${getStyledSpan(
         functionName,
         CSSClasses.identifier
-    )} returns a value of type ${te.getStyledSpan(
+    )} returns a value of type ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
-    )} instead. A conversion from ${te.getStyledSpan(
+    )} instead. A conversion from ${getStyledSpan(
         getUserFriendlyType(actualType),
         CSSClasses.type
     )} to one of the expected types is possible using one of:`;

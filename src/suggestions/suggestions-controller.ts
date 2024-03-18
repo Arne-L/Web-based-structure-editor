@@ -7,7 +7,7 @@ import { EDITOR_DOM_ID } from "../editor/toolbox";
 import { CodeConstruct, GeneralStatement } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
-import { TextEnhance } from "../utilities/text-enhance";
+import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
 import { createFinalConstruct, getHoleValues } from "../utilities/util";
 
@@ -258,6 +258,68 @@ class Menu {
                 this.htmlElement.style.height = `${this.optionsInViewPort * optionHeight}px`;
             }
         }
+    }
+
+    /**
+     * Add the option as a child to the menu
+     * 
+     * @param option - The option to insert into the menu.
+     */
+    insertOption(option: MenuOption) {
+        option.attachToParentMenu(this);
+        this.options.push(option);
+    }
+
+    /**
+     * Get all EditCodeActions that match the given user input.
+     * 
+     * @param userInput - The user's input.
+     * @returns EditCodeActions matching the given user input
+     */
+    getPossibleEditCodeActions(userInput) {
+        // Get all EditCodeActions that match the user input, either based on the exact string or the regex
+        const actionsToKeep = this.editCodeActionsOptions.filter((editAction) => {
+            if (editAction.matchString) {
+                const actionLowerCase = editAction.matchString.toLowerCase();
+                const optionTextLowerCase = userInput.toLowerCase();
+                return actionLowerCase.includes(optionTextLowerCase) || optionTextLowerCase.includes(actionLowerCase);
+            } else if (editAction.matchRegex) {
+                return editAction.matchRegex.test(userInput);
+            } else {
+                console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
+                return false;
+            }
+        });
+
+        // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
+        function sortActions(a: EditCodeAction, b: EditCodeAction) {
+            // Prefer exact string matches over regex matches
+            if (a.matchString && b.matchRegex) return -1;
+            if (a.matchRegex && b.matchString) return 1;
+
+            // Get the final rendered text, as a string, for both options
+            const aText = a.getConstructText(userInput),
+                bText = b.getConstructText(userInput);
+            // Get the position of the current text in both options, as well as the
+            // difference in length between the current text and both options
+            const aStart = aText.indexOf(userInput),
+                bStart = bText.indexOf(userInput),
+                aDiff = aText.length - userInput.length,
+                bDiff = bText.length - userInput.length;
+
+            // Give preference to the option that has the current text the closest 
+            // to the front
+            if (bStart - bStart !== 0) return aStart - bStart;
+
+            // Give preference to the option that differs the least from the current
+            // text in terms of length
+            return aDiff - bDiff;
+        }
+
+        // Use the above defined function to sort the options in the autocomplete menu
+        actionsToKeep.sort(sortActions);
+
+        return actionsToKeep;
     }
 }
 
@@ -720,7 +782,7 @@ export class MenuController {
     styleMenuOptions() {
         if (this.isMenuOpen()) {
             // Menu is open
-            const textEnhance = new TextEnhance();
+
             // Get current menu ... but there should always be only one menu
             const menu = this.menus[this.focusedMenuIndex];
 
@@ -761,7 +823,7 @@ export class MenuController {
                 );
 
                 // Add option to menu
-                this.insertOptionIntoMenu(option, menu);
+                menu.insertOption(option);
 
                 // Set the current focused index and give the option a special style
                 if (option.text === focusedOptionText) {
@@ -775,7 +837,7 @@ export class MenuController {
             //------UPDATE FOCUSED OPTION------
             if (menu.options.length == 0) {
                 const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
-                this.insertOptionIntoMenu(option, menu);
+                menu.insertOption(option);
                 this.focusedOptionIndex = 0;
             } else if (this.focusedOptionIndex < menu.options.length) {
                 this.focusOption(menu.options[this.focusedOptionIndex]);
@@ -794,54 +856,11 @@ export class MenuController {
         // If menu is not open, return
         if (!this.isMenuOpen()) return;
 
-        // Object for styling each of the options
-        const textEnhance = new TextEnhance();
         // Select the current menu (focusedMenuIndex should always be zero)
         const menu = this.menus[this.focusedMenuIndex];
 
         //------FILTER------
-
-        // Get all EditCodeActions that match the user input, either based on the exact string or the regex
-        const actionsToKeep = menu.editCodeActionsOptions.filter((editAction) => {
-            if (editAction.matchString) {
-                const actionLowerCase = editAction.matchString.toLowerCase();
-                const optionTextLowerCase = optionText.toLowerCase();
-                return actionLowerCase.includes(optionTextLowerCase) || optionTextLowerCase.includes(actionLowerCase);
-            } else if (editAction.matchRegex) {
-                return editAction.matchRegex.test(optionText);
-            } else {
-                console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
-                return false;
-            }
-        });
-
-        // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
-        function sortActions(a: EditCodeAction, b: EditCodeAction) {
-            // Prefer exact string matches over regex matches
-            if (a.matchString && b.matchRegex) return -1;
-            if (a.matchRegex && b.matchString) return 1;
-
-            // Get the final rendered text, as a string, for both options
-            const aText = a.getConstructText(optionText),
-                bText = b.getConstructText(optionText);
-            // Get the position of the current text in both options, as well as the
-            // difference in length between the current text and both options
-            const aStart = aText.indexOf(optionText),
-                bStart = bText.indexOf(optionText),
-                aDiff = aText.length - optionText.length,
-                bDiff = bText.length - optionText.length;
-
-            // Give preference to the option that has the current text the closest 
-            // to the front
-            if (bStart - bStart !== 0) return aStart - bStart;
-
-            // Give preference to the option that differs the least from the current
-            // text in terms of length
-            return aDiff - bDiff;
-        }
-
-        // Use the above defined function to sort the options in the autocomplete menu
-        actionsToKeep.sort(sortActions);
+        const menuOptions = menu.getPossibleEditCodeActions(optionText);
 
         //------RECREATE OPTIONS------
         // Clear old options since some of them might not be valid anymore
@@ -850,16 +869,17 @@ export class MenuController {
         });
         menu.options = [];
 
-        for (const editAction of actionsToKeep) {
+        for (const editAction of menuOptions) {
             let substringMatchRanges = []; // DO WE STILL WANT THIS?
 
-            const currentStmt = this.module.focus.getFocusedStatement();
-            const currentScope = currentStmt.getNearestScope();
-
-            // We do not really match anymore, so maybe this can be removed as well?
+            // Get the user input aware final construct
             const code = editAction.getConstruct(optionText);
 
-            const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
+            // If the current input is a reserved keyword, skip this option if it contains an identifier
+            if (code.containsAssignments() && this.module.language.isReservedWord(optionText)) continue;
+
+            // Create the HTML string for the option name
+            const optionDisplayText = getStyledSpanAtSubstrings(
                 editAction.getDisplayText(optionText), //code.getRenderText(),
                 "matchingText",
                 substringMatchRanges
@@ -867,63 +887,51 @@ export class MenuController {
 
             // Create new option from above info
             let option: MenuOption;
-            // Don't create variables with keywords as identifiers
-            // Either the editaction is an new variable assignment AND not a keyword OR
-            // it is not a new variable assignment
+            let extraInfo = null;
+
+            // If at the end of the matchString or matchRegex, show that the terminating character
+            // can be used to insert the option
             if (
-                // (editAction.insertActionType === InsertActionType.InsertNewVariableStmt &&
-                //     !this.module.language.isReservedWord(optionText)) ||
-                // editAction.insertActionType !== InsertActionType.InsertNewVariableStmt
-                (code instanceof GeneralStatement &&
-                    code.containsAssignments() &&
-                    !this.module.language.isReservedWord(optionText)) ||
-                (code instanceof GeneralStatement && !code.containsAssignments()) ||
-                !(code instanceof GeneralStatement)
+                (editAction.matchRegex || editAction.matchString === optionText) &&
+                editAction.terminatingChars.length > 0
             ) {
-                let extraInfo = null;
-
-                if (
-                    (editAction.matchRegex?.test(optionText) || editAction.matchString == optionText) &&
-                    editAction.terminatingChars.length > 0
-                ) {
-                    extraInfo = `press <span class="highlighted-text">${this.convertTerminatingChar(
-                        editAction.terminatingChars[0]
-                    )}</span> to insert`;
-                } else {
-                    extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
-                }
-
-                option = new MenuOption(
-                    optionDisplayText,
-                    true,
-                    null,
-                    menu,
-                    null,
-                    () => {
-                        editAction.performAction(
-                            this.module.executer,
-                            this.module.eventRouter,
-                            this.module.focus.getContext(),
-                            {
-                                type: "autocomplete-menu",
-                                precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
-                                length: editAction.matchRegex
-                                    ? optionText.length + 1
-                                    : editAction.matchString.length + 1,
-                            },
-                            {
-                                // Capture all the groups for regex (sub)constructs that appear in the construct so that
-                                // they can be used in the autocomplete
-                                values: editAction.matchRegex ? editAction.matchRegex.exec(optionText) : [],
-                            }
-                        );
-                    },
-                    extraInfo,
-                    editAction.insertionResult.insertionType == InsertionType.DraftMode
-                );
-
-                this.insertOptionIntoMenu(option, menu);
+                extraInfo = `press <span class="highlighted-text">${this.convertTerminatingChar(
+                    editAction.terminatingChars[0]
+                )}</span> to insert`;
+            } else {
+                extraInfo = `press <span class="highlighted-text">Enter</span> to insert`;
             }
+
+            option = new MenuOption(
+                optionDisplayText,
+                true,
+                null,
+                menu,
+                null,
+                () => {
+                    editAction.performAction(
+                        this.module.executer,
+                        this.module.eventRouter,
+                        this.module.focus.getContext(),
+                        {
+                            type: "autocomplete-menu",
+                            precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
+                            length: editAction.matchRegex
+                                ? optionText.length + 1
+                                : editAction.matchString.length + 1,
+                        },
+                        {
+                            // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                            // they can be used in the autocomplete
+                            values: editAction.matchRegex ? editAction.matchRegex.exec(optionText) : [],
+                        }
+                    );
+                },
+                extraInfo,
+                editAction.insertionResult.insertionType == InsertionType.DraftMode
+            );
+
+            menu.insertOption(option);
         }
 
         //focus top option if one exists
@@ -932,9 +940,9 @@ export class MenuController {
         this.bottomOptionIndex = menu.getOptionsInViewport() > 0 ? menu.getOptionsInViewport() - 1 : 0;
 
         //------UPDATE FOCUSED OPTION------
-        if (menu.options.length == 0) {
+        if (menu.options.length === 0) {
             const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
-            this.insertOptionIntoMenu(option, menu);
+            menu.insertOption(option);
             this.focusedOptionIndex = 0;
         } else if (this.focusedOptionIndex < menu.options.length) {
             this.focusOption(menu.options[this.focusedOptionIndex]);
@@ -1020,10 +1028,5 @@ export class MenuController {
     private convertTerminatingChar(text: string): string {
         if (text == " ") return "space";
         else return text;
-    }
-
-    private insertOptionIntoMenu(option: MenuOption, menu: Menu) {
-        option.attachToParentMenu(menu);
-        menu.options.push(option);
     }
 }
