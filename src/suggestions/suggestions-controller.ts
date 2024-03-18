@@ -9,7 +9,7 @@ import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { TextEnhance } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
-import { createFinalConstruct } from "../utilities/util";
+import { createFinalConstruct, getHoleValues } from "../utilities/util";
 
 /*
  *A tree menu that can hold options for the user and link through those options to other menus.
@@ -851,64 +851,16 @@ export class MenuController {
         menu.options = [];
 
         for (const editAction of actionsToKeep) {
-            let substringMatchRanges = [];
+            let substringMatchRanges = []; // DO WE STILL WANT THIS?
 
-            //TODO: If there are more constructs that need to have a custom performAction based on user input then consider changing this to be more general
             const currentStmt = this.module.focus.getFocusedStatement();
             const currentScope = currentStmt.getNearestScope();
 
             // We do not really match anymore, so maybe this can be removed as well?
             const code = editAction.getConstruct(optionText);
 
-            // KAN DIT WEL VERWIJDERD WORDEN?!
-            if (
-                code instanceof GeneralStatement &&
-                code.containsAssignments() &&
-                currentScope.getAccessableAssignments(optionText, currentStmt.lineNumber).length === 0
-            ) {
-                substringMatchRanges = [[[0, optionText.length - 1]]]; //It will always exactly match the user input.
-                // editAction.getCode = () => new VarAssignmentStmt("", optionText);
-                const newStmt = editAction.getCode() as GeneralStatement;
-                editAction.getCode = () => {
-                    newStmt.setAssignmentIdentifier(optionText, 0);
-                    return newStmt;
-                };
-                editAction.trimSpacesBeforeTermChar = true;
-            }
-            // CURRENTLY NOT HANDLED
-            // for displaying the correct identifier for the ---[---] = --- option
-            // else if (editAction.insertActionType === InsertActionType.InsertListIndexAssignment) {
-            //     substringMatchRanges = [[[0, optionText.length - 1]]];
-            //     editAction.getCode = () => {
-            //         const code = new ListElementAssignment();
-            //         (code.tokens[0] as TypedEmptyExpr).text = optionText;
-
-            //         return code;
-            //     };
-            // }
-            // Excludes var assignment because it would have been caught by the first case.
-            // If it wasn't then that means that this variable exists and we should offer
-            // only one option for its reassignment which will use a Modifier and turn into
-            // a VarAssignmentStmt in the end anyway.
-
-            // So this is simply for avoiding duplicate options between abc = --- (VarAssignmentStmt)
-            // and abc = --- (VarOperationStmt)
-
-            //The var assignment option cannot be removed any earlier than here because of case 1 of this if block
-            // else if (editAction.insertActionType === InsertActionType.InsertNewVariableStmt) {
-            // else if (editAction.varChanged) {
-            //     // Jump to the next fuseResult as this is not a var assignment but a reassignment, which
-            //     // falls under the VarOperationStmt case
-            //     continue;
-            // } else {
-            //     // for (const match of fuseResult.matches) {
-            //     //     substringMatchRanges.push(match.indices);
-            //     // }
-            // }
-
-            console.log(editAction.optionName)
             const optionDisplayText = textEnhance.getStyledSpanAtSubstrings(
-                editAction.optionName, //code.getRenderText(),
+                editAction.getDisplayText(optionText), //code.getRenderText(),
                 "matchingText",
                 substringMatchRanges
             );

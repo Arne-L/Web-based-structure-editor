@@ -14,7 +14,7 @@ import {
 import { DataType, InsertionType, TypeConversionRecord } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
-import { createFinalConstruct, getUserFriendlyType } from "../utilities/util";
+import { createFinalConstruct, getHoleValues, getUserFriendlyType } from "../utilities/util";
 import { ActionExecutor } from "./action-executor";
 import { Actions, EditActionType, InsertActionType } from "./consts";
 import { EditAction } from "./data-types";
@@ -141,7 +141,7 @@ export class ActionFilter {
 
     /**
      * Get all valid EditCodeActions for a given variable reference
-     * 
+     *
      * TAKE A NEW LOOK AT THIS FUNCTION IN THE FUTURE
      *
      * @param ref - Variable reference to check against
@@ -177,8 +177,9 @@ export class ActionFilter {
 
                 let optionName = code.getRenderText();
 
-                if (code instanceof GeneralStatement && code.containsAssignments()) {//if (code instanceof ForStatement) {
-                    // optionName is in editor text which is empty, so we need to change it 
+                if (code instanceof GeneralStatement && code.containsAssignments()) {
+                    //if (code instanceof ForStatement) {
+                    // optionName is in editor text which is empty, so we need to change it
                     // (back) to the dashed version
                     optionName = optionName.replace(/   /g, " --");
                 } else optionName = optionName.replace(/   /g, " ---");
@@ -480,10 +481,10 @@ export class EditCodeAction extends UserAction {
     }
 
     /**
-     * Get the final text string of the given editCodeAction, augmented with possible 
+     * Get the final text string of the given editCodeAction, augmented with possible
      * user input
-     * 
-     * @param action - The editCodeAction to get the full rendered text of. This includes the 
+     *
+     * @param action - The editCodeAction to get the full rendered text of. This includes the
      * base text as well as all possible completions through the input text of the user
      * @returns Final construct that would be put in the editor
      */
@@ -493,25 +494,67 @@ export class EditCodeAction extends UserAction {
         // be anythin
         const editaction = new EditAction(EditActionType.InsertGeneralStmt, {
             construct: this.getCode(),
-            autocompleteData: { values: this.matchRegex ? this.matchRegex.exec(userInput) : [] },
+            autocompleteData: { values: getHoleValues(userInput, this.matchRegex) },
         });
         // Get the final code construct
         return createFinalConstruct(editaction);
-    };
-
+    }
 
     /**
-     * Get the final text string of the given editCodeAction, augmented with possible 
+     * Get the final text string of the given editCodeAction, augmented with possible
      * user input
-     * 
-     * @param action - The editCodeAction to get the full rendered text of. This includes the 
+     *
+     * @param action - The editCodeAction to get the full rendered text of. This includes the
      * base text as well as all possible completions through the input text of the user
      * @returns Final string that would be put in a text editor
      */
     getConstructText(userInput: string): string {
         // Get the final code snippet as a string
         return this.getConstruct(userInput).getRenderText();
-    };
+    }
+
+    /**
+     * Text to display in user facing locations for the current action
+     * while staying aware of the current user input
+     * 
+     * @param userInput - The current user input
+     * @returns Text to display in context aware locations such as the 
+     * autocomplete menu
+     */
+    getDisplayText(userInput: string): string {
+        // Get the predefined option name
+        let displayText = this.optionName;
+
+        // Get a list of strings to put in order in each of the holes
+        const values = getHoleValues(userInput, this.matchRegex);
+
+        // For each of the substrings extracted from the user input
+        for (const value of values) {
+            // If the value is null or undefined, the user did not yet reach
+            // that part of the regex and we can thus safely break the loop
+            if (value === null || value === undefined) break;
+
+            // Determine the index of a text slot and a hole
+            const textIndex = displayText.indexOf("--"),
+                holeIndex = displayText.indexOf("---");
+
+            // If neither a text slot nor a hole is found, there are no 
+            // more slots to fill and we can break the loop
+            if (textIndex === -1 && holeIndex === -1) break;
+
+            // If the text slot comes before the hole, replace the text slot
+            // Else replace the hole
+            // Additional condition parts are to make sure that if no text or hole
+            // is found, the correct branch is still executed
+            if ((textIndex < holeIndex && textIndex !== -1) || holeIndex === -1) {
+                displayText = displayText.replace("--", value);
+            } else {
+                displayText = displayText.replace("---", value);
+            }
+        }
+
+        return displayText;
+    }
 
     //TODO: #526 this might need some updates when that is implemented
     /**

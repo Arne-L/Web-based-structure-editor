@@ -237,8 +237,22 @@ export function createFinalConstruct(action: EditAction): GeneralStatement {
             autocompleteValues.length > index
         ) {
             token.text = autocompleteValues[index];
+            if (token.text != "  ") token.isEmpty = false;
         }
     }
 
     return construct
+}
+
+/**
+ * Get all the values in order to fill in the holes for a construct matching the given regex.
+ * 
+ * @param userInput - The user input to extract the hole values from
+ * @param regex - The regular expression to use to extract the hole values. Holes are indicated 
+ * by capturing groups in the regular expression.
+ * @returns List of hole values extracted from the user input based on the regex
+ */
+export function getHoleValues(userInput: string, regex: RegExp): string[] {
+    console.log(regex ? regex.exec(userInput).slice(1) : [])
+    return regex ? regex.exec(userInput).slice(1) : []
 }
