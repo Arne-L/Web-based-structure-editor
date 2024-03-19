@@ -672,7 +672,7 @@
             "="
         ],
         "toolbox": {
-            "category": "Tests",
+            "category": "Tests2",
             "title": "Create/Reassign Variable",
             "tooltip": {
                 "title": "Create Variable Assignment",

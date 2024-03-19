@@ -253,6 +253,6 @@ export function createFinalConstruct(action: EditAction): GeneralStatement {
  * @returns List of hole values extracted from the user input based on the regex
  */
 export function getHoleValues(userInput: string, regex: RegExp): string[] {
-    console.log(regex ? regex.exec(userInput).slice(1) : [])
+    // console.log(regex ? regex.exec(userInput).slice(1) : [])
     return regex ? regex.exec(userInput).slice(1) : []
 }

@@ -410,12 +410,19 @@ export class EventRouter {
 
             // Language independent
             case KeyPress.Space: {
+                // If not in text edit mode, open the autocomplete menu / options menu
+                if (e.ctrlKey && e.key.length == 1) {
+                    if (context.tokenToLeft instanceof ast.AutocompleteTkn) {
+                        return new EditAction(EditActionType.OpenValidInsertMenu, {
+                            autoCompleteTkn: context.tokenToLeft
+                        });
+                    } else {
+                        return new EditAction(EditActionType.OpenValidInsertMenu);
+                    }
+                }
+                console.log("We should not be able to get here");
                 // If in text edit mode, insert a space
                 if (inTextEditMode) return new EditAction(EditActionType.InsertChar);
-                // If not in text edit mode, open the autocomplete menu / options menu
-                if (!inTextEditMode && e.ctrlKey && e.key.length == 1) {
-                    return new EditAction(EditActionType.OpenValidInsertMenu);
-                }
 
                 break;
             }

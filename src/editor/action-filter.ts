@@ -1,5 +1,6 @@
 import {
     Expression,
+    GeneralExpression,
     // ForStatement,
     GeneralStatement,
     ListComma,
@@ -575,14 +576,14 @@ export class EditCodeAction extends UserAction {
         // Either valid, draft or invalid
         const astInsertionType = code.validateContext(validator, context);
 
-        if (!(code instanceof Expression)) {
+        if (!(code instanceof GeneralExpression)) {
             // Code is not an expression; however, this method requires it to be an expression
             return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
-        } else if (astInsertionType !== InsertionType.Invalid && code instanceof Expression) {
+        } else if (astInsertionType !== InsertionType.Invalid && code instanceof GeneralExpression) {
             // Either draft or valid AND the code is an expression
             if (context.selected) {
                 // Check if the types of the hole and the inserted expression match
-                return context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
+                return new InsertionResult(InsertionType.Valid, "", []);//context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
             } else if (!context.selected) {
                 // Should always be a hole and thus there is always a selection
                 return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);

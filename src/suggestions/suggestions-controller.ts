@@ -1,6 +1,6 @@
 import { Position } from "monaco-editor";
 import { EditCodeAction } from "../editor/action-filter";
-import { EditActionType } from "../editor/consts";
+import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../editor/toolbox";
@@ -533,7 +533,7 @@ export class MenuController {
             //     menu.options[0].removeFromDOM();
             //     menu.options = [];
             //     const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
-            //     this.insertOptionIntoMenu(option, menu);
+            //     menu.insertOption(option);
             //     this.focusedOptionIndex = 0;
             // }
 

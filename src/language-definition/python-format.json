@@ -23,6 +23,7 @@
             },
             {
                 "type": "token",
+                "waitOnUser": "\n",
                 "value": "\n\t",
                 "min": 1,
                 "max": null

@@ -215,7 +215,7 @@ export enum EditActionType {
     CloseSubMenu,
 
     //TODO: Remove later (for the continuous menu with categories)
-    OpenValidInsertMenuSingleLevel,
+    // OpenValidInsertMenuSingleLevel,
 
     CloseDraftMode,
 

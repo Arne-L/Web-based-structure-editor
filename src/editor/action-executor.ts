@@ -3,11 +3,9 @@ import { ErrorMessage } from "../messages/error-msg-generator";
 import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
     AssignmentModifier,
-    AssignmentToken,
     AutocompleteTkn,
     BinaryOperatorExpr,
     CodeConstruct,
-    EditableTextTkn,
     ElseStatement,
     EmptyOperatorTkn,
     Expression,
@@ -104,7 +102,7 @@ export class ActionExecutor {
                 // This seems currently to be the only thing needed
                 const statement = createFinalConstruct(action);
 
-                // Probably best to use this to get the final construct text to compare against 
+                // Probably best to use this to get the final construct text to compare against
                 // in the suggestion controller
                 // statement.getRenderText()
 
@@ -1542,26 +1540,49 @@ export class ActionExecutor {
             //     break;
             // }
 
-            // When
+            // When using the keyboard combination "Ctrl + Space"
             case EditActionType.OpenValidInsertMenu:
-                this.openAutocompleteMenu(
-                    this.module.actionFilter
-                        .getProcessedInsertionsList()
-                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid)
-                );
-                this.styleAutocompleteMenu(context.position);
+                /**
+                 * Central idea:
+                 * There are two options: either the menu should be opened somewhere were there is 
+                 * not yet any autocomplete token or there is already an autocomplete token present.
+                 * - First possibility: simply open the menu, maybe by creating a new autocomplete token
+                 * - Second possibility: open the autocomplete menu for the existing token
+                 * 
+                 * The second case should be pretty straight forward, however the first might require
+                 * special logic if it should be created without creating an autocomplete token ...
+                 */
+
+                if (action.data?.autoCompleteTkn) {
+                    const tkn: AutocompleteTkn = action.data.autoCompleteTkn;
+                    this.openAutocompleteMenu(tkn.validMatches);
+
+                    this.updateAutocompleteMenu(tkn)
+                }
+                else {
+                    const validActions = this.module.actionFilter
+                    .getProcessedInsertionsList()
+                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid)
+
+                    if (validActions.length === 0) console.error("No valid actions found")
+                    
+                    this.openAutocompleteMenu(validActions);
+                    this.styleAutocompleteMenu(context.position);
+                    this.module.menuController.updateMenuOptions("");
+
+                }
 
                 break;
 
             //TODO: Remove later
-            case EditActionType.OpenValidInsertMenuSingleLevel:
-                if (!this.module.menuController.isMenuOpen()) {
-                    //TODO: Make this work with ActionFilter
-                    //const suggestions = this.module.getAllValidInsertsList(focusedNode);
-                    //this.module.menuController.buildSingleLevelConstructCategoryMenu(suggestions);
-                } else this.module.menuController.removeMenus();
+            // case EditActionType.OpenValidInsertMenuSingleLevel:
+            //     if (!this.module.menuController.isMenuOpen()) {
+            //         //TODO: Make this work with ActionFilter
+            //         //const suggestions = this.module.getAllValidInsertsList(focusedNode);
+            //         //this.module.menuController.buildSingleLevelConstructCategoryMenu(suggestions);
+            //     } else this.module.menuController.removeMenus();
 
-                break;
+            //     break;
 
             case EditActionType.SelectMenuSuggestionAbove:
                 this.module.menuController.focusOptionAbove();
@@ -2608,7 +2629,7 @@ export class ActionExecutor {
                     ErrorMessage.identifierIsBuiltInFunc
                 );
             }
-            console.log("validateIdentifier")
+            console.log("validateIdentifier");
             // Everything above should be replaced with the line below ... but the first
             // if block can for some weird reason not be removed without breaking the code
             // in the strangest possible way!
