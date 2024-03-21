@@ -577,7 +577,6 @@ export class MenuController {
      * @returns the constructed menu. Null if no options was empty.
      */
     private buildMenu(options: EditCodeAction[], pos: any = { left: 0, top: 0 }): Menu {
-        console.log(options);
         if (options.length > 0) {
             const menuOptions = new Map<string, Function>();
 

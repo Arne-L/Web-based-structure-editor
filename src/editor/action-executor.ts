@@ -136,6 +136,9 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.OpenAutocomplete: {
+                this.openSuggestionMenu(context, action.data.firstChar, action.data.autocompleteType);
+                break;
+
                 const autocompleteTkn = new AutocompleteTkn(
                     action.data.firstChar,
                     action.data.autocompleteType,
@@ -1544,32 +1547,35 @@ export class ActionExecutor {
             case EditActionType.OpenValidInsertMenu:
                 /**
                  * Central idea:
-                 * There are two options: either the menu should be opened somewhere were there is 
+                 * There are two options: either the menu should be opened somewhere were there is
                  * not yet any autocomplete token or there is already an autocomplete token present.
                  * - First possibility: simply open the menu, maybe by creating a new autocomplete token
                  * - Second possibility: open the autocomplete menu for the existing token
-                 * 
+                 *
                  * The second case should be pretty straight forward, however the first might require
                  * special logic if it should be created without creating an autocomplete token ...
                  */
+
+                // An autocomplete token is present; use it to open an autocomplete menu
+                this.openSuggestionMenu(context, action.data?.firstChar ?? "", action.data?.autocompleteType ?? AutoCompleteType.StartOfLine);
+                break;
 
                 if (action.data?.autoCompleteTkn) {
                     const tkn: AutocompleteTkn = action.data.autoCompleteTkn;
                     this.openAutocompleteMenu(tkn.validMatches);
 
-                    this.updateAutocompleteMenu(tkn)
-                }
-                else {
+                    this.updateAutocompleteMenu(tkn);
+                } else {
+                    // No autocomplete token is present; create a menu from scratch
                     const validActions = this.module.actionFilter
-                    .getProcessedInsertionsList()
-                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid)
+                        .getProcessedInsertionsList()
+                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
 
-                    if (validActions.length === 0) console.error("No valid actions found")
-                    
+                    if (validActions.length === 0) console.error("No valid actions found");
+
                     this.openAutocompleteMenu(validActions);
                     this.styleAutocompleteMenu(context.position);
                     this.module.menuController.updateMenuOptions("");
-
                 }
 
                 break;
@@ -2158,8 +2164,6 @@ export class ActionExecutor {
     private openAutocompleteMenu(inserts: EditCodeAction[]) {
         // If menu is not open
         if (!this.module.menuController.isMenuOpen()) {
-            // Only keep valid or draft mode insertions
-            inserts = inserts.filter((insert) => insert.insertionResult.insertionType !== InsertionType.Invalid);
             // Build the menu
             this.module.menuController.buildSingleLevelMenu(inserts);
             // Close all open menu's
@@ -2657,5 +2661,124 @@ export class ActionExecutor {
     private styleAutocompleteMenu(pos: Position) {
         this.module.menuController.styleMenuOptions();
         this.module.menuController.updatePosition(this.module.menuController.getNewMenuPositionFromPosition(pos));
+    }
+
+    /**
+     *
+     * @param context
+     */
+    openSuggestionMenu(context: Context, text: string, autocompleteType: AutoCompleteType) {
+        /**
+         * Central idea:
+         * There are two options: either the menu should be opened somewhere were there is
+         * not yet any autocomplete token or there is already an autocomplete token present.
+         * - First possibility: simply open the menu, maybe by creating a new autocomplete token
+         * - Second possibility: open the autocomplete menu for the existing token
+         *
+         * The second case should be pretty straight forward, however the first might require
+         * special logic if it should be created without creating an autocomplete token ...
+         */
+
+        let autocompleteTkn: AutocompleteTkn;
+
+        // Check if there is already an autocomplete token present
+        const existingAutocompleteTkn = context.token ?? context.tokenToLeft ?? context.tokenToRight;
+        if (existingAutocompleteTkn instanceof AutocompleteTkn) {
+            autocompleteTkn = existingAutocompleteTkn;
+
+            this.openAutocompleteMenu(autocompleteTkn.validMatches);
+            this.updateAutocompleteMenu(autocompleteTkn);
+            // do something
+        } else {
+            const validMatches = this.module.actionFilter
+                .getProcessedInsertionsList()
+                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+
+            // Create a new autocompleteTkn
+            autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);
+
+            // MOVE TO AUTOCOMPLETETKN CONSTRUCTION?
+            // Update the menu whenever the text changes
+            autocompleteTkn.subscribe(
+                CallbackType.change,
+                new Callback(
+                    (() => {
+                        if (!this.module.menuController.isMenuOpen()) {
+                            this.openAutocompleteMenu(validMatches);
+                        }
+
+                        this.updateAutocompleteMenu(autocompleteTkn);
+                    }).bind(this)
+                )
+            );
+
+            // Open the autocomplete menu
+            this.openAutocompleteMenu(validMatches);
+
+            // Choose how to replace the existing token / construct
+            // SHOULD BE REMOVED IN THE FUTURE AND REPLACED BY A SINGLE FUNCTION HANDLING 
+            // THE ABSTRACTION
+            switch (autocompleteType) {
+                case AutoCompleteType.StartOfLine:
+                    this.replaceEmptyStatement(context.lineStatement, new TemporaryStmt(autocompleteTkn));
+
+                    break;
+
+                case AutoCompleteType.AtEmptyOperatorHole:
+                case AutoCompleteType.AtExpressionHole:
+                    this.insertToken(context, autocompleteTkn);
+
+                    break;
+
+                case AutoCompleteType.RightOfExpression:
+                    this.insertToken(context, autocompleteTkn, { toRight: true });
+
+                    break;
+                case AutoCompleteType.LeftOfExpression:
+                    this.insertToken(context, autocompleteTkn, { toLeft: true });
+
+                    break;
+            }
+
+            // Reset the selection
+            this.module.editor.cursor.setSelection(null);
+            // Check if there is an exact match
+            const match = autocompleteTkn.isTerminatingMatch();
+
+            // If the match is exact, insert the construct in the editor 
+            if (match) {
+                this.performMatchAction(match, autocompleteTkn);
+            } else {
+                // Else mark background of the token with a light gray / blue color
+                let highlight = new ConstructHighlight(this.module.editor, autocompleteTkn, [230, 235, 255, 0.7]);
+
+                autocompleteTkn.subscribe(
+                    CallbackType.delete,
+                    new Callback(() => {
+                        if (highlight) {
+                            highlight.removeFromDOM();
+                            highlight = null;
+                        }
+                    })
+                );
+            }
+        }
+
+        // if (action.data?.autoCompleteTkn) {
+        //     this.openAutocompleteMenu(tkn.validMatches);
+
+        //     this.updateAutocompleteMenu(tkn);
+        // } else {
+        //     // No autocomplete token is present; create a menu from scratch
+        //     const validActions = this.module.actionFilter
+        //         .getProcessedInsertionsList()
+        //         .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+
+        //     if (validActions.length === 0) console.error("No valid actions found");
+
+        //     this.openAutocompleteMenu(validActions);
+        //     this.styleAutocompleteMenu(context.position);
+        //     this.module.menuController.updateMenuOptions("");
+        // }
     }
 }
