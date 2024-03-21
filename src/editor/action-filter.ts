@@ -50,21 +50,45 @@ export class ActionFilter {
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
         for (const action of Actions.instance().actionsList) {
-            validOptionMap.set(
-                action.optionName,
-                EditCodeAction.createDynamicEditCodeAction(
+            if (action.containsReference) {
+                const nearestStmt = context.lineStatement;
+                const scope = context.lineStatement.getNearestScope()
+                const references = scope.getValidReferences(nearestStmt.getLineNumber());
+                for (const reference of references) {
+                    const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText())
+                    validOptionMap.set(
+                        reference.getAssignment().getRenderText(),
+                        EditCodeAction.createDynamicEditCodeAction(
+                            action.optionName, // Does this need to be changed? When is this used?
+                            action.cssId,
+                            () => action.getCodeFunction({"reference": reference.getAssignment().getRenderText()}),
+                            action.insertActionType,
+                            action.insertData,
+                            action.validateAction(this.module.validator, context),
+                            action.terminatingChars,
+                            action.matchString?.replace("--", reference.getAssignment().getRenderText()),
+                            new RegExp(regexTxt.substring(1, regexTxt.length - 1)),
+                            action.insertableTerminatingCharRegex
+                        )
+                    );
+                }
+            } else {
+                validOptionMap.set(
                     action.optionName,
-                    action.cssId,
-                    action.getCodeFunction,
-                    action.insertActionType,
-                    action.insertData,
-                    action.validateAction(this.module.validator, context),
-                    action.terminatingChars,
-                    action.matchString,
-                    action.matchRegex,
-                    action.insertableTerminatingCharRegex
-                )
-            );
+                    EditCodeAction.createDynamicEditCodeAction(
+                        action.optionName,
+                        action.cssId,
+                        action.getCodeFunction,
+                        action.insertActionType,
+                        action.insertData,
+                        action.validateAction(this.module.validator, context),
+                        action.terminatingChars,
+                        action.matchString,
+                        action.matchRegex,
+                        action.insertableTerminatingCharRegex
+                    )
+                );
+            }
         }
 
         return validOptionMap;
@@ -236,7 +260,7 @@ export class ActionFilter {
         const inserts: EditCodeAction[] = [];
         inserts.push(...this.getProcessedConstructInsertions());
         inserts.push(...this.getProcessedEditInsertions());
-        inserts.push(...this.getProcessedVariableInsertions());
+        // inserts.push(...this.getProcessedVariableInsertions());
         inserts.push(...this.getProcessedVariableOperations());
 
         return inserts;
@@ -318,34 +342,34 @@ export class ActionFilter {
         return actionsList;
     }
 
-    getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
-        const constructMap = this.validateInsertions();
-        const varMap = this.validateVariableInsertions();
-        const editsMap = this.validateEdits();
+    // getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
+    //     const constructMap = this.validateInsertions();
+    //     const varMap = this.validateVariableInsertions();
+    //     const editsMap = this.validateEdits();
 
-        const inserts: EditCodeAction[] = [];
+    //     const inserts: EditCodeAction[] = [];
 
-        for (const option of optionNames) {
-            if (
-                constructMap.get(option) &&
-                constructMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(constructMap.get(option));
-            } else if (
-                varMap.get(option) &&
-                varMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(varMap.get(option));
-            } else if (
-                editsMap.get(option) &&
-                editsMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(editsMap.get(option));
-            }
-        }
+    //     for (const option of optionNames) {
+    //         if (
+    //             constructMap.get(option) &&
+    //             constructMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(constructMap.get(option));
+    //         } else if (
+    //             varMap.get(option) &&
+    //             varMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(varMap.get(option));
+    //         } else if (
+    //             editsMap.get(option) &&
+    //             editsMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(editsMap.get(option));
+    //         }
+    //     }
 
-        return inserts;
-    }
+    //     return inserts;
+    // }
 
     /**
      * Get all values of the map in a list
@@ -384,7 +408,7 @@ export class UserAction {
 export class EditCodeAction extends UserAction {
     insertActionType: InsertActionType;
     insertData: any = {};
-    getCodeFunction: () => Statement | Expression;
+    getCodeFunction: (data?: {"reference": string}) => Statement | Expression;
     terminatingChars: string[];
     insertionResult: InsertionResult;
     matchString: string;
@@ -393,6 +417,7 @@ export class EditCodeAction extends UserAction {
     trimSpacesBeforeTermChar: boolean;
     documentation: any;
     shortDescription?: string;
+    containsReference: boolean = false;
 
     /**
      * Handles the code action from the toolbox / suggestion menu to the eventual insertion in the editor
@@ -416,7 +441,7 @@ export class EditCodeAction extends UserAction {
     constructor(
         optionName: string,
         cssId: string,
-        getCodeFunction: () => Statement | Expression,
+        getCodeFunction: (data?: {"reference": string}) => Statement | Expression,
         insertActionType: InsertActionType,
         insertData: any = {},
         documentation: any,

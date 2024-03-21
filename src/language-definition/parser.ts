@@ -27,7 +27,7 @@ export function getAllCodeActions(): EditCodeAction[] {
 
     // First we make sure that all nested codestructs are flattened, i.e.
     // that all nested implementations are brought to the top level
-    const flattenedConstructs: any[] = []; // TODO: Replace the any type
+    const flattenedConstructs: ConstructDefinition[] = []; // TODO: Replace the any type
 
     // Go through all codestructs
     for (const construct of constructs) {
@@ -64,6 +64,10 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.matchRegex !== undefined ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
             // identify what a valid identifier is
         );
+
+        // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
+         action.containsReference = construct.format.some((struct) => struct.type === "reference");
+
         // Add the action to the list
 
         editCodeActions.push(action);
@@ -121,11 +125,11 @@ export function addEditCodeActionsToCategories(
  * @param construct - An object containing the information to build the GeneralStatement
  * @returns - a function that returns a GeneralStatement
  */
-function getCodeFunction(construct): () => Statement {
+function getCodeFunction(construct): (data?: {"reference": string}) => Statement {
     // Currently handle expression and statement separately
     // Merge them into one in the future
-    if (construct.constructType === "expression") return () => new GeneralExpression(construct);
-    else return () => new GeneralStatement(construct);
+    if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct);
+    else return (data?) => new GeneralStatement(construct);
 }
 
 export function initLanguage() {

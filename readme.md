@@ -67,6 +67,7 @@ binnen de "construct editors"
 * Rewrite deletion logic (and more generally the editor) to not hardcode statements & expressions.
 * Make it so that the delete / backspace keys just delete "the adjacent construct" without making a distinction between statements, expressions and tokens
 * Further code cleanup for autocomplete menu
+* TODO: Toolbox text scheiden van autocomplete text; waarschijnlijk best door autocomplete text de render text te maken tot en met een enter
 
 
 ### Short cuts / key presses

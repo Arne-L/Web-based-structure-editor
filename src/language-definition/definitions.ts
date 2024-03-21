@@ -50,6 +50,10 @@ export interface ConstructDefinition {
      */
     editorName: string;
     /**
+     * TEMPORARY
+     */
+    constructType: "expression" | "statement";
+    /**
      * The sequence of substructures and tokens that make up the construct. This field
      * determines the structure of the construct and the editor's behaviour.
      * Each of the elements are concatenated in orde to form the eventual construct.
@@ -139,24 +143,43 @@ export interface ConstructDefinition {
 /**
  * Abstract interface defining the overlapping fields of all format definitions.
  */
-interface FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
-    type: "token";
-}
+interface FormatDefinition {}
 /**
  * Structure of a token format definition
  */
 interface TokenFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "token";
     /**
      * The text that should be displayed in the editor for the token. The string is
      * literally copied, including any spaces or special characters.
      */
     value: string;
 }
-interface HoleFormatDefinition extends FormatDefinition {}
-interface BodyFormatDefinition extends FormatDefinition {}
+interface HoleFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "hole";
+}
+interface BodyFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "body";
+}
+interface ReferenceFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "reference";
+    /**
+     * The name of the structure to which it refers. WHAT NAME PRECISELY? KEYWORD? EDITNAME? etc
+     */
+    to: string;
+}
 
 /**
  * Structure of a single hole definition
@@ -258,7 +281,7 @@ interface UseCaseTip extends ToolboxTipDefinition {
 /**
  * Type aggregating all possible format definitions.
  */
-type FormatDefType = TokenFormatDefinition | HoleFormatDefinition | BodyFormatDefinition;
+type FormatDefType = TokenFormatDefinition | HoleFormatDefinition | BodyFormatDefinition | ReferenceFormatDefinition;
 /**
  * Type aggregating all possible toolbox tip definitions.
  */

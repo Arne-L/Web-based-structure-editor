@@ -5,6 +5,7 @@ import { EditAction } from "../editor/data-types";
 import { DraftRecord } from "../editor/draft";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
+import { ConstructDefinition } from "../language-definition/definitions";
 import { CodeBackground, HoverMessage, InlineMessage } from "../messages/messages";
 import { Util, createWarningButton, hasMatch } from "../utilities/util";
 import { Callback, CallbackType } from "./callback";
@@ -38,7 +39,6 @@ import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "./settings";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
-import { ConstructDefinition } from "../language-definition/definitions";
 
 export interface CodeConstruct {
     /**
@@ -81,12 +81,12 @@ export interface CodeConstruct {
     simpleInvalidTooltip: Tooltip;
 
     /**
-         * Get the range of the entire construct, including potential body statements
-         *
-         * @param code - The construct to get the boundaries in the Monaco editor of
-         * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
-         * @returns The range of the construct
-         */
+     * Get the range of the entire construct, including potential body statements
+     *
+     * @param code - The construct to get the boundaries in the Monaco editor of
+     * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
+     * @returns The range of the construct
+     */
     getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
 
     /**
@@ -332,7 +332,7 @@ export abstract class Statement implements CodeConstruct {
 
             // Return the range of the construct
             return new Range(lineNumber, this.left, endLineNumber, endColumn);
-        // } else if (this instanceof Statement || this instanceof Token) {
+            // } else if (this instanceof Statement || this instanceof Token) {
         } else {
             // If the indent (one indent) has to be included in the selection range
             if (selectIndent) {
@@ -805,7 +805,7 @@ export class GeneralStatement extends Statement implements Importable {
      */
     static constructs: Map<string, GeneralStatement>;
 
-    constructor(construct: any, root?: Statement | Module, indexInRoot?: number) {
+    constructor(construct: any, root?: Statement | Module, indexInRoot?: number, data?: { reference: string }) {
         super();
 
         this.rootNode = root;
@@ -911,8 +911,10 @@ export class GeneralStatement extends Statement implements Importable {
                     this.tokens.push(new AssignmentToken(undefined, this, this.tokens.length, RegExp(token.regex)));
                     this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
+                case "reference":
+                    this.tokens.push(new NonEditableTkn(data?.reference ?? "", this, this.tokens.length));
+                    break;
                 case "collection":
-                    
                     break;
                 case "editable":
                     this.tokens.push(
@@ -970,8 +972,8 @@ export class GeneralStatement extends Statement implements Importable {
     /**
      * Check if the current construct is depending on / requires the given construct.
      * The given construct is required by the current construct.
-     * 
-     * @param construct - The construct to check if the current construct is depending 
+     *
+     * @param construct - The construct to check if the current construct is depending
      * on / requires it
      * @returns true if the current construct is depending on / requires the given construct,
      */
@@ -982,7 +984,7 @@ export class GeneralStatement extends Statement implements Importable {
 
     /**
      * Check if the current construct has the given construct as a dependent / requiring construct
-     * 
+     *
      * @param construct - The construct to check if it is depending on / requires the current construct
      * @returns true if the current construct has the given construct as a dependent / requiring construct
      */
@@ -1099,7 +1101,7 @@ export class GeneralStatement extends Statement implements Importable {
 
                 // Get the next construct in the editor after this
                 let nextConstruct = validator.getNextSiblingOf(currentConstruct);
-                
+
                 if (nextConstruct) {
                     // Check if it appears in the depending constructs list
                     let nextIndex = depConstructsInfo.findIndex(
@@ -1124,7 +1126,7 @@ export class GeneralStatement extends Statement implements Importable {
                         );
                     }
                 }
-                
+
                 // Keep track of how many times each depending construct has been visited / appeared, starting
                 // from the current construct to the first requiring construct
                 const dependingVisited = new Array(dependingIndex + 1).fill(0);
@@ -1189,7 +1191,7 @@ export class GeneralStatement extends Statement implements Importable {
                 // Now we are at required construct and we have handled all the depending constructs
                 if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
                     // We found the required construct
-                    if (this.getKeyword() == "else") console.log("Check 6")
+                    if (this.getKeyword() == "else") console.log("Check 6");
                     canInsertConstruct = true;
                 }
             }
@@ -1323,8 +1325,8 @@ export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
     rootNode: GeneralExpression | GeneralStatement = null;
 
-    constructor(construct: ConstructDefinition, root?: GeneralStatement | Module, indexInRoot?: number) {
-        super(construct, root, indexInRoot);
+    constructor(construct: ConstructDefinition, root?: GeneralStatement | Module, indexInRoot?: number, data?: {"reference": string}) {
+        super(construct, root, indexInRoot, data);
     }
 
     getLineNumber(): number {
