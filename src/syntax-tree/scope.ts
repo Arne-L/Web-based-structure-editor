@@ -60,7 +60,7 @@ export class Scope {
         let validReferences = this.references.filter((ref) => ref.getLineNumber() < line);
 
         // All references that appear before the current line in the parent scope
-        if (this.parentScope != null) {
+        if (this.parentScope) {
             validReferences = validReferences.concat(this.parentScope.getValidReferences(line));
         }
 
@@ -153,15 +153,19 @@ export class Scope {
      * @returns All references to assignments with the given identifier that can be accessed from the current location
      */
     getAccessableAssignments(identifier: string, lineNumber: number): Reference[] {
-        const assignments = this.references.filter(
-            (ref) => ref.getLineNumber() < lineNumber && ref.getAssignment().getRenderText() === identifier
-        );
+        return this.getValidReferences(lineNumber).filter((ref) => ref.getAssignment().getRenderText() === identifier);
 
-        if (this.parentScope) {
-            return assignments.concat(this.parentScope.getAccessableAssignments(identifier, lineNumber));
-        } else {
-            return assignments;
-        }
+        // !!!EQUIVALENT!!!
+        
+        // const assignments = this.references.filter(
+        //     (ref) => ref.getLineNumber() < lineNumber && ref.getAssignment().getRenderText() === identifier
+        // );
+
+        // if (this.parentScope) {
+        //     return assignments.concat(this.parentScope.getAccessableAssignments(identifier, lineNumber));
+        // } else {
+        //     return assignments;
+        // }
     }
 
     /**
