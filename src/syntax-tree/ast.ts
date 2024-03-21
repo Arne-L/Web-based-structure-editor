@@ -38,6 +38,7 @@ import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "./settings";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
+import { ConstructDefinition } from "../language-definition/definitions";
 
 export interface CodeConstruct {
     /**
@@ -1322,7 +1323,7 @@ export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
     rootNode: GeneralExpression | GeneralStatement = null;
 
-    constructor(construct: any, root?: GeneralStatement | Module, indexInRoot?: number) {
+    constructor(construct: ConstructDefinition, root?: GeneralStatement | Module, indexInRoot?: number) {
         super(construct, root, indexInRoot);
     }
 

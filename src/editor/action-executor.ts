@@ -2664,8 +2664,12 @@ export class ActionExecutor {
     }
 
     /**
-     *
-     * @param context
+     * Opens an autocomplete menu / suggestion menu at the current position. 
+     * 
+     * @param context - The current focus context
+     * @param text - The current user input in case there is not yet an autocomplete token
+     * @param autocompleteType - The type of the autocomplete token; used to determine how
+     * to replace the existing token / construct where the autcomplete token should be
      */
     openSuggestionMenu(context: Context, text: string, autocompleteType: AutoCompleteType) {
         /**
