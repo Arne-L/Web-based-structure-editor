@@ -56,19 +56,19 @@ Prostructor (program constructor) / Codestructor (idem)
 binnen de "construct editors"
 
 ### TODOs
-* How to fuse statements and expressions; more precisely, how to handle something that takes at least one line and something that is nested? What if one 'statement' is spread over multiple lines (without including the body)?
+[ ] How to fuse statements and expressions; more precisely, how to handle something that takes at least one line and something that is nested? What if one 'statement' is spread over multiple lines (without including the body)?
     - To determine whether a construct is a "statement", we can check if its root is on a different line or not. If it is, the current construct can be seen as a statement, otherwise it is not
     - Is this always true?
     - Is this even necessary?
-* Cursor movement: make the cursor jump to the right place after insertion of a construct
-* Make it impossible for the cursor to be placed in the middle of a construct (e.g. between two non editable tokens)
-* Fix variable in the for-loop
-* Debugging
-* Rewrite deletion logic (and more generally the editor) to not hardcode statements & expressions.
-* Make it so that the delete / backspace keys just delete "the adjacent construct" without making a distinction between statements, expressions and tokens
-* Further code cleanup for autocomplete menu
-* TODO: Toolbox text scheiden van autocomplete text; waarschijnlijk best door autocomplete text de render text te maken tot en met een enter
-* Currently the cursor is always placed after the expression when it is inserted, but this should only be the case if there are no empty holes left
+[x] Cursor movement: make the cursor jump to the right place after insertion of a construct
+[ ] Make it impossible for the cursor to be placed in the middle of a construct (e.g. between two non editable tokens)
+[ ] Fix variable in the for-loop
+[ ] Debugging
+[ ] Rewrite deletion logic (and more generally the editor) to not hardcode statements & expressions.
+[ ] Make it so that the delete / backspace keys just delete "the adjacent construct" without making a distinction between statements, expressions and tokens
+[ ] Further code cleanup for autocomplete menu
+[ ] TODO: Toolbox text scheiden van autocomplete text; waarschijnlijk best door autocomplete text de render text te maken tot en met een enter
+[x] Currently the cursor is always placed after the expression when it is inserted, but this should only be the case if there are no empty holes left
 
 
 ### Short cuts / key presses

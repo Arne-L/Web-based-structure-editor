@@ -91,8 +91,11 @@ export interface CodeConstruct {
 
     /**
      * Builds the left and right positions of this node and all of its children nodes recursively.
-     * @param pos the left position to start building the nodes from
-     * @returns the final right position of the whole node (calculated after building all of the children nodes)
+     * 
+     * Implicitly sets the left and right positions and the line number of the construct and all of its tokens.
+     * 
+     * @param pos - The left position to start building the nodes from
+     * @returns The final right position of the whole node (calculated after building all of the children nodes)
      */
     build(pos: Position): Position;
 
@@ -399,33 +402,53 @@ export abstract class Statement implements CodeConstruct {
         }
     }
 
+    /**
+     * Recursively build the construct and all its children / body constructs.
+     * 
+     * As a side effect, this function sets the left and right positions and linenumber
+     * of the construct and all its children.
+     * 
+     * @param pos - Left position to start building the nodes from
+     */
     init(pos: Position) {
+        // Build the current statement
+        // This also sets the left and right positions and the linenumber of the sconstruct
         this.build(pos);
 
-        if (this.hasBody())
-            for (let i = 0; i < this.body.length; i++)
-                this.body[i].build(new Position(pos.lineNumber + i + 1, pos.column + TAB_SPACES));
+        // Guard clause
+        if (!this.hasBody()) return
+        
+        // Do the same for its children
+        for (let i = 0; i < this.body.length; i++)
+            // The left position(s) for the children
+            this.body[i].build(new Position(pos.lineNumber + i + 1, pos.column + TAB_SPACES));
     }
 
     build(pos: Position): Position {
+        // Set the linenumber and left position
         this.lineNumber = pos.lineNumber;
         this.left = pos.column;
 
-        var curPos = pos;
+        let curPos = pos;
 
+        // The left position of the first token is the left position of the expression
         for (const token of this.tokens) curPos = token.build(curPos);
 
+        // After going through all tokens, the right position is the right position of the last token
         this.right = curPos.column;
 
+        // Notify all (child)construct of the change
         this.notify(CallbackType.change);
 
+        // Return the right position of the construct
         return curPos;
     }
 
     /**
      * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
-     * @param pos the left position to start building the nodes from
-     * @param fromIndex the index of the node that was edited.
+     * 
+     * @param pos - The left position to start building the nodes from
+     * @param fromIndex - The index of the node that was edited.
      */
     rebuild(pos: Position, fromIndex: number) {
         let curPos = pos;
@@ -437,8 +460,10 @@ export abstract class Statement implements CodeConstruct {
             else curPos = (this.tokens[i] as Expression).build(curPos);
         }
 
+        // The right position of the last token is the right position of the construct
         this.right = curPos.column;
 
+        // If the construct has a root node, rebuild all construct following this construct in the root node
         if (this.rootNode != undefined && this.indexInRoot != undefined) {
             if (
                 (this.rootNode instanceof Expression || this.rootNode instanceof Statement) &&
@@ -1361,24 +1386,24 @@ export class GeneralExpression extends GeneralStatement {
         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
 
-    getInitialFocus(): UpdatableContext {
-        /**
-         * REWRITE TO:
-         * Focus next empty hole if there is one, else place cursor after expression
-         * Currently cursor always moves behind the structure, not in one of the holes if one is available
-         */
-        let newContext = new Context();
+    // getInitialFocus(): UpdatableContext {
+    //     /**
+    //      * REWRITE TO:
+    //      * Focus next empty hole if there is one, else place cursor after expression
+    //      * Currently cursor always moves behind the structure, not in one of the holes if one is available
+    //      */
+    //     let newContext = new Context();
 
-        return { positionToMove: new Position(this.lineNumber, this.right) };
-        switch (this.tokens.length) {
-            case 3:
-            case 1:
-                return { positionToMove: new Position(this.lineNumber, this.left + 1) };
+    //     return { positionToMove: new Position(this.lineNumber, this.right) };
+    //     switch (this.tokens.length) {
+    //         case 3:
+    //         case 1:
+    //             return { positionToMove: new Position(this.lineNumber, this.left + 1) };
 
-            case 0:
-                return { positionToMove: new Position(this.lineNumber, this.right) };
-        }
-    }
+    //         case 0:
+    //             return { positionToMove: new Position(this.lineNumber, this.right) };
+    //     }
+    // }
 }
 
 /**
@@ -4607,6 +4632,8 @@ export class EditableTextTkn extends Token implements TextEditable {
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.validatorRegex = regex;
+
+        if (text === "") this.isEmpty = true;
     }
 
     getToken(): Token {
@@ -4627,6 +4654,9 @@ export class EditableTextTkn extends Token implements TextEditable {
         if (this.validatorRegex.test(text)) {
             this.text = text;
             (this.rootNode as Expression).rebuild(this.getLeftPosition(), this.indexInRoot);
+
+            if (text === "") this.isEmpty = true;
+            else this.isEmpty = false;
 
             return true;
         } else {

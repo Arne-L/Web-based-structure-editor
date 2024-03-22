@@ -6,9 +6,10 @@ import { Module } from "./module";
  * Updates the linenumber of all statements in the body of the given bodyContainer, starting 
  * from the given index in the body and the given linenumber.
  *
- * @param bodyContainer
- * @param fromIndex
- * @param startLineNumber
+ * @param bodyContainer - The statement or module in whose body the statements will be updated
+ * @param fromIndex - The index in the body of the bodyContainer from which the statements will be updated; 
+ * index 0 being the bodyContainer itself and the first statement in the body
+ * @param startLineNumber - The to start from at the given index
  */
 export function rebuildBody(bodyContainer: Statement | Module, fromIndex: number, startLineNumber: number) {
     let lineNumber = startLineNumber;
@@ -26,6 +27,7 @@ export function rebuildBody(bodyContainer: Statement | Module, fromIndex: number
         }
 
         // Recursively rebuild the body of the childstatement
+        // Because of the if statement above, the lineNumber is set for the container aswell
         if (bodyContainer.body[i].hasBody()) rebuildBody(bodyContainer.body[i], 0, lineNumber);
         // The childelement is a single line statement and therefore has a lineNumber
         else bodyContainer.body[i].setLineNumber(lineNumber);
@@ -36,6 +38,8 @@ export function rebuildBody(bodyContainer: Statement | Module, fromIndex: number
     }
 
     // propagate the rebuild-body process to the root node
+    // All constructs following the current bodycontainer in one of the ancestors of the bodycontainer 
+    // might have had a changed linenumber as well
     if (bodyContainer instanceof Statement) {
         if (bodyContainer.rootNode instanceof Module) {
             // Rebuild all the statements following this statement in the root node
