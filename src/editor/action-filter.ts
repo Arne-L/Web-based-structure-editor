@@ -50,21 +50,46 @@ export class ActionFilter {
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
         for (const action of Actions.instance().actionsList) {
-            validOptionMap.set(
-                action.optionName,
-                EditCodeAction.createDynamicEditCodeAction(
+            if (action.containsReference) {
+                const nearestStmt = context.lineStatement;
+                const scope = context.lineStatement.getNearestScope()
+                const references = scope.getValidReferences(nearestStmt.getLineNumber());
+                for (const reference of references) {
+                    if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
+                    const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText())
+                    validOptionMap.set(
+                        reference.getAssignment().getRenderText(),
+                        EditCodeAction.createDynamicEditCodeAction(
+                            action.optionName, // Does this need to be changed? When is this used?
+                            action.cssId,
+                            () => action.getCodeFunction({"reference": reference.getAssignment().getRenderText()}),
+                            action.insertActionType,
+                            action.insertData,
+                            action.validateAction(this.module.validator, context),
+                            action.terminatingChars,
+                            action.matchString?.replace("--", reference.getAssignment().getRenderText()),
+                            new RegExp(regexTxt.substring(1, regexTxt.length - 1)),
+                            action.insertableTerminatingCharRegex
+                        )
+                    );
+                }
+            } else {
+                validOptionMap.set(
                     action.optionName,
-                    action.cssId,
-                    action.getCodeFunction,
-                    action.insertActionType,
-                    action.insertData,
-                    action.validateAction(this.module.validator, context),
-                    action.terminatingChars,
-                    action.matchString,
-                    action.matchRegex,
-                    action.insertableTerminatingCharRegex
-                )
-            );
+                    EditCodeAction.createDynamicEditCodeAction(
+                        action.optionName,
+                        action.cssId,
+                        action.getCodeFunction,
+                        action.insertActionType,
+                        action.insertData,
+                        action.validateAction(this.module.validator, context),
+                        action.terminatingChars,
+                        action.matchString,
+                        action.matchRegex,
+                        action.insertableTerminatingCharRegex
+                    )
+                );
+            }
         }
 
         return validOptionMap;
@@ -81,64 +106,64 @@ export class ActionFilter {
         return new Map<string, EditCodeAction>();
     }
 
-    /**
-     * Get a map of identifiers to EditCodeActions that are valid for insertion at the current
-     * location.
-     *
-     * @returns Map of valid variable insertions
-     */
-    validateVariableInsertions(): Map<string, EditCodeAction> {
-        // Get the context
-        const context = this.module.focus.getContext();
-        // Map from variable identifier to EditCodeAction
-        const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>(); //<option name, function to call on click>
+    // /**
+    //  * Get a map of identifiers to EditCodeActions that are valid for insertion at the current
+    //  * location.
+    //  *
+    //  * @returns Map of valid variable insertions
+    //  */
+    // validateVariableInsertions(): Map<string, EditCodeAction> {
+    //     // Get the context
+    //     const context = this.module.focus.getContext();
+    //     // Map from variable identifier to EditCodeAction
+    //     const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>(); //<option name, function to call on click>
 
-        // InsertionType is used, among possibly other things, to determine if the option
-        // should be disabled in the toolbox or not
-        // Get all assignments in the current scope, each with their insertion type (valid / draft)
-        const availableVars: [Reference, InsertionType][] = Validator.getValidVariableReferences(
-            context.selected ? context.token : context.lineStatement,
-            this.module.variableController
-        );
+    //     // InsertionType is used, among possibly other things, to determine if the option
+    //     // should be disabled in the toolbox or not
+    //     // Get all assignments in the current scope, each with their insertion type (valid / draft)
+    //     const availableVars: [Reference, InsertionType][] = Validator.getValidVariableReferences(
+    //         context.selected ? context.token : context.lineStatement,
+    //         this.module.variableController
+    //     );
 
-        // For each of the available references
-        for (const varRecord of availableVars) {
-            // Get the assignment to which it refers
-            // const varStmt = varRecord[0].statement as VarAssignmentStmt;
-            const assignmentToken = varRecord[0].getAssignment();
-            // Create a new EditCodeAction
-            const editAction = EditCodeAction.createDynamicEditCodeAction(
-                assignmentToken.getRenderText(),
-                "RANDOM_CSS_ID", // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
-                () => {
-                    return null;
-                },
-                null,
-                {},
-                new InsertionResult(varRecord[1], "MESSAGE BASED ON INSERTION TYPE", []), //TODO: Need to actually check what the insertion type is and populate the insertion result accordingly
-                [""],
-                assignmentToken.getRenderText(),
-                null,
-                [new RegExp("^[\\\\*\\+\\>\\-\\/\\<\\=\\ \\.\\!\\[]$")]
-            );
-            // Change the performAction method to insert the variable reference
-            editAction.performAction = ((
-                executor: ActionExecutor,
-                eventRouter: EventRouter,
-                providedContext: Context,
-                source: {},
-                autocompleteData?: {}
-            ) => {
-                let context = providedContext;
-                if (autocompleteData) context = executor.deleteAutocompleteOnMatch(providedContext);
+    //     // For each of the available references
+    //     for (const varRecord of availableVars) {
+    //         // Get the assignment to which it refers
+    //         // const varStmt = varRecord[0].statement as VarAssignmentStmt;
+    //         const assignmentToken = varRecord[0].getAssignment();
+    //         // Create a new EditCodeAction
+    //         const editAction = EditCodeAction.createDynamicEditCodeAction(
+    //             assignmentToken.getRenderText(),
+    //             "RANDOM_CSS_ID", // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
+    //             () => {
+    //                 return null;
+    //             },
+    //             null,
+    //             {},
+    //             new InsertionResult(varRecord[1], "MESSAGE BASED ON INSERTION TYPE", []), //TODO: Need to actually check what the insertion type is and populate the insertion result accordingly
+    //             [""],
+    //             assignmentToken.getRenderText(),
+    //             null,
+    //             [new RegExp("^[\\\\*\\+\\>\\-\\/\\<\\=\\ \\.\\!\\[]$")]
+    //         );
+    //         // Change the performAction method to insert the variable reference
+    //         editAction.performAction = ((
+    //             executor: ActionExecutor,
+    //             eventRouter: EventRouter,
+    //             providedContext: Context,
+    //             source: {},
+    //             autocompleteData?: {}
+    //         ) => {
+    //             let context = providedContext;
+    //             if (autocompleteData) context = executor.deleteAutocompleteOnMatch(providedContext);
 
-                executor.insertVariableReference(assignmentToken.getRenderText(), source, context, autocompleteData);
-            }).bind(this);
-            validOptionMap.set(assignmentToken.getRenderText(), editAction);
-        }
+    //             executor.insertVariableReference(assignmentToken.getRenderText(), source, context, autocompleteData);
+    //         }).bind(this);
+    //         validOptionMap.set(assignmentToken.getRenderText(), editAction);
+    //     }
 
-        return validOptionMap;
-    }
+    //     return validOptionMap;
+    // }
 
     /**
      * Get all valid EditCodeActions for a given variable reference
@@ -236,23 +261,23 @@ export class ActionFilter {
         const inserts: EditCodeAction[] = [];
         inserts.push(...this.getProcessedConstructInsertions());
         inserts.push(...this.getProcessedEditInsertions());
-        inserts.push(...this.getProcessedVariableInsertions());
+        // inserts.push(...this.getProcessedVariableInsertions());
         inserts.push(...this.getProcessedVariableOperations());
 
         return inserts;
     }
 
-    /**
-     * Get an array of all valid variable references at the current location,
-     * encapsulated in EditCodeActions
-     *
-     * @returns
-     */
-    getProcessedVariableInsertions(): EditCodeAction[] {
-        // Get all valid variable reference insertions at the current location and
-        // return them to a list of EditCodeActions
-        return this.convertInsertionMapToList(this.validateVariableInsertions());
-    }
+    // /**
+    //  * Get an array of all valid variable references at the current location,
+    //  * encapsulated in EditCodeActions
+    //  *
+    //  * @returns
+    //  */
+    // getProcessedVariableInsertions(): EditCodeAction[] {
+    //     // Get all valid variable reference insertions at the current location and
+    //     // return them to a list of EditCodeActions
+    //     return this.convertInsertionMapToList(this.validateVariableInsertions());
+    // }
 
     /**
      * Currently just returns an empty list
@@ -318,34 +343,34 @@ export class ActionFilter {
         return actionsList;
     }
 
-    getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
-        const constructMap = this.validateInsertions();
-        const varMap = this.validateVariableInsertions();
-        const editsMap = this.validateEdits();
+    // getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
+    //     const constructMap = this.validateInsertions();
+    //     const varMap = this.validateVariableInsertions();
+    //     const editsMap = this.validateEdits();
 
-        const inserts: EditCodeAction[] = [];
+    //     const inserts: EditCodeAction[] = [];
 
-        for (const option of optionNames) {
-            if (
-                constructMap.get(option) &&
-                constructMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(constructMap.get(option));
-            } else if (
-                varMap.get(option) &&
-                varMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(varMap.get(option));
-            } else if (
-                editsMap.get(option) &&
-                editsMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-            ) {
-                inserts.push(editsMap.get(option));
-            }
-        }
+    //     for (const option of optionNames) {
+    //         if (
+    //             constructMap.get(option) &&
+    //             constructMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(constructMap.get(option));
+    //         } else if (
+    //             varMap.get(option) &&
+    //             varMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(varMap.get(option));
+    //         } else if (
+    //             editsMap.get(option) &&
+    //             editsMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
+    //         ) {
+    //             inserts.push(editsMap.get(option));
+    //         }
+    //     }
 
-        return inserts;
-    }
+    //     return inserts;
+    // }
 
     /**
      * Get all values of the map in a list
@@ -384,7 +409,7 @@ export class UserAction {
 export class EditCodeAction extends UserAction {
     insertActionType: InsertActionType;
     insertData: any = {};
-    getCodeFunction: () => Statement | Expression;
+    getCodeFunction: (data?: {"reference": string}) => Statement | Expression;
     terminatingChars: string[];
     insertionResult: InsertionResult;
     matchString: string;
@@ -393,6 +418,7 @@ export class EditCodeAction extends UserAction {
     trimSpacesBeforeTermChar: boolean;
     documentation: any;
     shortDescription?: string;
+    containsReference: boolean = false;
 
     /**
      * Handles the code action from the toolbox / suggestion menu to the eventual insertion in the editor
@@ -416,7 +442,7 @@ export class EditCodeAction extends UserAction {
     constructor(
         optionName: string,
         cssId: string,
-        getCodeFunction: () => Statement | Expression,
+        getCodeFunction: (data?: {"reference": string}) => Statement | Expression,
         insertActionType: InsertActionType,
         insertData: any = {},
         documentation: any,
@@ -525,6 +551,10 @@ export class EditCodeAction extends UserAction {
     getDisplayText(userInput: string): string {
         // Get the predefined option name
         let displayText = this.optionName;
+
+        // If the matchString is a string, no holes need to be filled thus we 
+        // can simply return the optionName
+        if (this.matchString) return displayText;
 
         // Get a list of strings to put in order in each of the holes
         const values = getHoleValues(userInput, this.matchRegex);

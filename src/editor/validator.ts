@@ -1239,7 +1239,7 @@ export class Validator {
                         // No types, thus valid
                         mappedRefs.push([ref, InsertionType.Valid]);
                     } else if (code instanceof EmptyLineStmt) {
-                        // STILL NECESSARY? WHY IS THIS NEEDED?
+                        // Originally only possible for a variable refrence
                         mappedRefs.push([ref, InsertionType.DraftMode]);
                     }
                 }

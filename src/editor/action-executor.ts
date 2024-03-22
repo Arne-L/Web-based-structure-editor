@@ -1699,102 +1699,102 @@ export class ActionExecutor {
         return new VariableReferenceExpr(identifier, DataType.Any, "RANDOM_CSS_ID");
     }
 
-    /**
-     * Insert a variable reference into the current context, handling cases on an empty line or
-     * at an expression hole
-     *
-     * @param identifier - The name of the variable to insert
-     * @param source - Contains logging information
-     * @param providedContext - The context to insert the variable reference into
-     * @param autocompleteData - The data to use for autocompletion, if any
-     */
-    insertVariableReference(identifier: string, source: {}, providedContext?: Context, autocompleteData?: {}) {
-        // Get the current context
-        let context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Insert a variable reference into the current context, handling cases on an empty line or
+    //  * at an expression hole
+    //  *
+    //  * @param identifier - The name of the variable to insert
+    //  * @param source - Contains logging information
+    //  * @param providedContext - The context to insert the variable reference into
+    //  * @param autocompleteData - The data to use for autocompletion, if any
+    //  */
+    // insertVariableReference(identifier: string, source: {}, providedContext?: Context, autocompleteData?: {}) {
+    //     // Get the current context
+    //     let context = providedContext ? providedContext : this.module.focus.getContext();
 
-        // Some logging stuff
-        // let { eventType, eventData } = this.getLogEventSource(source);
+    //     // Some logging stuff
+    //     // let { eventType, eventData } = this.getLogEventSource(source);
 
-        if (this.module.validator.onBeginningOfLine(context)) {
-            // If at the start of an line statement
+    //     if (this.module.validator.onBeginningOfLine(context)) {
+    //         // If at the start of an line statement
 
-            // Create a reference to the variable
-            const varRef = this.createVarReference(identifier);
-            // Create a new variable operation statement
-            const stmt = new VarOperationStmt(varRef);
-            // Insert the statement
-            this.replaceEmptyStatement(context.lineStatement, stmt);
+    //         // Create a reference to the variable
+    //         const varRef = this.createVarReference(identifier);
+    //         // Create a new variable operation statement
+    //         const stmt = new VarOperationStmt(varRef);
+    //         // Insert the statement
+    //         this.replaceEmptyStatement(context.lineStatement, stmt);
 
-            // Get all possible EditCodeActions to make it into an assignment statement
-            const availableActions = this.module.actionFilter
-                .getProcessedInsertionsList()
-                .filter(
-                    (action) =>
-                        action.insertionResult.insertionType !== InsertionType.Invalid &&
-                        (action.insertActionType === InsertActionType.InsertAssignmentModifier ||
-                            action.insertActionType === InsertActionType.InsertAugmentedAssignmentModifier)
-                );
+    //         // Get all possible EditCodeActions to make it into an assignment statement
+    //         const availableActions = this.module.actionFilter
+    //             .getProcessedInsertionsList()
+    //             .filter(
+    //                 (action) =>
+    //                     action.insertionResult.insertionType !== InsertionType.Invalid &&
+    //                     (action.insertActionType === InsertActionType.InsertAssignmentModifier ||
+    //                         action.insertActionType === InsertActionType.InsertAugmentedAssignmentModifier)
+    //             );
 
-            // Set the editor in draft mode and provide the user with the possible actions
-            this.module.openDraftMode(
-                stmt,
-                "Variable references should not be used on empty lines. Try converting it to an assignment statement instead!",
-                (() => {
-                    // Each button corresponds to an action
-                    const buttons = [];
+    //         // Set the editor in draft mode and provide the user with the possible actions
+    //         this.module.openDraftMode(
+    //             stmt,
+    //             "Variable references should not be used on empty lines. Try converting it to an assignment statement instead!",
+    //             (() => {
+    //                 // Each button corresponds to an action
+    //                 const buttons = [];
 
-                    for (const action of availableActions) {
-                        const button = document.createElement("div");
-                        addClassToDraftModeResolutionButton(button, stmt);
+    //                 for (const action of availableActions) {
+    //                     const button = document.createElement("div");
+    //                     addClassToDraftModeResolutionButton(button, stmt);
 
-                        const text = `${varRef.identifier}${action.optionName}`.replace(/---/g, "<hole1></hole1>");
-                        button.innerHTML = text;
+    //                     const text = `${varRef.identifier}${action.optionName}`.replace(/---/g, "<hole1></hole1>");
+    //                     button.innerHTML = text;
 
-                        const modifier = action.getCode();
-                        button.addEventListener("click", () => {
-                            this.module.closeConstructDraftRecord(stmt);
-                            this.module.executer.execute(
-                                new EditAction(EditActionType.InsertAssignmentModifier, {
-                                    codeToReplace: stmt,
-                                    replacementConstructCssId: action.cssId,
-                                    modifier: modifier,
-                                    source: { type: "draft-mode" },
-                                }),
-                                this.module.focus.getContext()
-                            );
-                            this.flashGreen(modifier.rootNode as Statement);
-                        });
+    //                     const modifier = action.getCode();
+    //                     button.addEventListener("click", () => {
+    //                         this.module.closeConstructDraftRecord(stmt);
+    //                         this.module.executer.execute(
+    //                             new EditAction(EditActionType.InsertAssignmentModifier, {
+    //                                 codeToReplace: stmt,
+    //                                 replacementConstructCssId: action.cssId,
+    //                                 modifier: modifier,
+    //                                 source: { type: "draft-mode" },
+    //                             }),
+    //                             this.module.focus.getContext()
+    //                         );
+    //                         this.flashGreen(modifier.rootNode as Statement);
+    //                     });
 
-                        buttons.push(button);
-                    }
+    //                     buttons.push(button);
+    //                 }
 
-                    return buttons;
-                })()
-            );
+    //                 return buttons;
+    //             })()
+    //         );
 
-            if (autocompleteData) {
-                this.flashGreen(stmt);
-            }
+    //         if (autocompleteData) {
+    //             this.flashGreen(stmt);
+    //         }
 
-            // eventData.code = varRef.getRenderText();
-        } else if (this.module.validator.atEmptyExpressionHole(context)) {
-            // If variable reference inserted at an empty expression hole, like it should be
+    //         // eventData.code = varRef.getRenderText();
+    //     } else if (this.module.validator.atEmptyExpressionHole(context)) {
+    //         // If variable reference inserted at an empty expression hole, like it should be
 
-            // Create the reference
-            const expr = this.createVarReference(identifier);
-            // Insert the expression
-            this.insertExpression(context, expr);
+    //         // Create the reference
+    //         const expr = this.createVarReference(identifier);
+    //         // Insert the expression
+    //         this.insertExpression(context, expr);
 
-            if (autocompleteData) {
-                this.flashGreen(expr);
-            }
+    //         if (autocompleteData) {
+    //             this.flashGreen(expr);
+    //         }
 
-            // eventData.code = expr.getRenderText();
-        }
+    //         // eventData.code = expr.getRenderText();
+    //     }
 
-        // Add to the logger
-        // if (eventData && eventType) Logger.Instance().queueEvent(new LogEvent(eventType, eventData));
-    }
+    //     // Add to the logger
+    //     // if (eventData && eventType) Logger.Instance().queueEvent(new LogEvent(eventType, eventData));
+    // }
 
     // /**
     //  * Given a source, returns the event type and event data to log
@@ -2664,8 +2664,12 @@ export class ActionExecutor {
     }
 
     /**
-     *
-     * @param context
+     * Opens an autocomplete menu / suggestion menu at the current position. 
+     * 
+     * @param context - The current focus context
+     * @param text - The current user input in case there is not yet an autocomplete token
+     * @param autocompleteType - The type of the autocomplete token; used to determine how
+     * to replace the existing token / construct where the autcomplete token should be
      */
     openSuggestionMenu(context: Context, text: string, autocompleteType: AutoCompleteType) {
         /**
