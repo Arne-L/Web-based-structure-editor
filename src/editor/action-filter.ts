@@ -558,8 +558,6 @@ export class EditCodeAction extends UserAction {
         // Get a list of strings to put in order in each of the holes
         const values = getHoleValues(userInput, this.matchRegex);
 
-        console.log("Values: ", values, "UserInput: ", userInput)
-
         // For each of the substrings extracted from the user input
         for (const value of values) {
             // If the value is null or undefined, the user did not yet reach
