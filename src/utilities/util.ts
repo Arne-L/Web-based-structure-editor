@@ -1,8 +1,7 @@
 import { EditAction } from "../editor/data-types";
-import { ConstructDoc } from "../suggestions/construct-doc";
-import { AssignmentToken, CodeConstruct, EditableTextTkn, GeneralStatement, Importable, Statement } from "../syntax-tree/ast";
+import { AssignmentToken, CodeConstruct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
-import { addClassToDraftModeResolutionButton, DataType, ListTypes } from "./../syntax-tree/consts";
+import { DataType, ListTypes, addClassToDraftModeResolutionButton } from "./../syntax-tree/consts";
 
 /**
  * IMPORTANT!!!
@@ -123,20 +122,20 @@ export function hasMatch(list1: any[], list2: any[]): boolean {
 }
 
 /**
- * Checks if an element of list2 is equal to an element of list1. The index of the last 
+ * Checks if an element of list2 is equal to an element of list1. The index of the last
  * element of list2 that also appears in list1 is returned together with the (first) index of the
  * element in list1.
- * 
+ *
  * @param list1 - The first list to compare
  * @param list2 - The second list to compare
  * @returns A tuple containing the index of the last element of list2 that also appears in list1 and the
  * index of the corresponding element in list1. If the element appears multiple times in list1, only the first
  * element is returned. The tuple [-1, -1] is returned if no match is found.
- * 
+ *
  * @example
  * const list1 = [1, 2, 3, 4, 5];
  * const list2 = [1, 3, 4, 5, 6];
- * 
+ *
  * const matchingIndices = hasMatchWithIndex(list1, list2);
  * // => [4, 3]
  */
@@ -160,7 +159,7 @@ export function hasMatchWithIndex<T>(list1: T[], list2: T[]): [number, number] {
 /**
  * Check if the given object is importable.
  * NEEDS FUTURE UPDATES
- * 
+ *
  * @param object - A code construct
  * @returns true if the object is importable, false otherwise
  */
@@ -217,11 +216,11 @@ export function createWarningButton(buttonTxt: string, warningCode: CodeConstruc
 /**
  * Create the final resulting construct that needs to be inserted from
  * an EditAction. It also integrates context data such as the current
- * text the user has typed in a free text spot. 
- * 
- * @param action - The edit action that needs to be executed. Only 
+ * text the user has typed in a free text spot.
+ *
+ * @param action - The edit action that needs to be executed. Only
  * actions resulting in a construct are valid.
- * @returns - The resulting construct of the action. This construct 
+ * @returns - The resulting construct of the action. This construct
  * can be used directly in the editor.
  */
 export function createFinalConstruct(action: EditAction): GeneralStatement {
@@ -241,18 +240,21 @@ export function createFinalConstruct(action: EditAction): GeneralStatement {
         }
     }
 
-    return construct
+    return construct;
 }
 
 /**
  * Get all the values in order to fill in the holes for a construct matching the given regex.
- * 
+ *
  * @param userInput - The user input to extract the hole values from
- * @param regex - The regular expression to use to extract the hole values. Holes are indicated 
+ * @param regex - The regular expression to use to extract the hole values. Holes are indicated
  * by capturing groups in the regular expression.
  * @returns List of hole values extracted from the user input based on the regex
  */
 export function getHoleValues(userInput: string, regex: RegExp): string[] {
-    // console.log(regex ? regex.exec(userInput).slice(1) : [])
-    return regex ? regex.exec(userInput).slice(1) : []
+    if (!regex) return [];
+
+    regex.lastIndex = 0;
+    const matches = regex.exec(userInput);
+    return matches instanceof Array ? matches.slice(1) : [];
 }

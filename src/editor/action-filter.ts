@@ -551,8 +551,14 @@ export class EditCodeAction extends UserAction {
         // Get the predefined option name
         let displayText = this.optionName;
 
+        // If the matchString is a string, no holes need to be filled thus we 
+        // can simply return the optionName
+        if (this.matchString) return displayText;
+
         // Get a list of strings to put in order in each of the holes
         const values = getHoleValues(userInput, this.matchRegex);
+
+        console.log("Values: ", values, "UserInput: ", userInput)
 
         // For each of the substrings extracted from the user input
         for (const value of values) {

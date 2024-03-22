@@ -276,7 +276,7 @@ class Menu {
      * @param userInput - The user's input.
      * @returns EditCodeActions matching the given user input
      */
-    getPossibleEditCodeActions(userInput) {
+    getPossibleEditCodeActions(userInput: string) {
         // Get all EditCodeActions that match the user input, either based on the exact string or the regex
         const actionsToKeep = this.editCodeActionsOptions.filter((editAction) => {
             if (editAction.matchString) {
