@@ -128,8 +128,8 @@ export function addEditCodeActionsToCategories(
 function getCodeFunction(construct): (data?: {"reference": string}) => Statement {
     // Currently handle expression and statement separately
     // Merge them into one in the future
-    if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct);
-    else return (data?) => new GeneralStatement(construct);
+    if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct, null, null, data);
+    else return (data?) => new GeneralStatement(construct, null, null, data);
 }
 
 export function initLanguage() {

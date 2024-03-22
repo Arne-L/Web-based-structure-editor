@@ -55,6 +55,7 @@ export class ActionFilter {
                 const scope = context.lineStatement.getNearestScope()
                 const references = scope.getValidReferences(nearestStmt.getLineNumber());
                 for (const reference of references) {
+                    if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
                     const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText())
                     validOptionMap.set(
                         reference.getAssignment().getRenderText(),
