@@ -1362,8 +1362,14 @@ export class GeneralExpression extends GeneralStatement {
     }
 
     getInitialFocus(): UpdatableContext {
+        /**
+         * REWRITE TO:
+         * Focus next empty hole if there is one, else place cursor after expression
+         * Currently cursor always moves behind the structure, not in one of the holes if one is available
+         */
         let newContext = new Context();
 
+        return { positionToMove: new Position(this.lineNumber, this.right) };
         switch (this.tokens.length) {
             case 3:
             case 1:

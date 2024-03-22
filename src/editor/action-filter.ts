@@ -106,64 +106,64 @@ export class ActionFilter {
         return new Map<string, EditCodeAction>();
     }
 
-    /**
-     * Get a map of identifiers to EditCodeActions that are valid for insertion at the current
-     * location.
-     *
-     * @returns Map of valid variable insertions
-     */
-    validateVariableInsertions(): Map<string, EditCodeAction> {
-        // Get the context
-        const context = this.module.focus.getContext();
-        // Map from variable identifier to EditCodeAction
-        const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>(); //<option name, function to call on click>
+    // /**
+    //  * Get a map of identifiers to EditCodeActions that are valid for insertion at the current
+    //  * location.
+    //  *
+    //  * @returns Map of valid variable insertions
+    //  */
+    // validateVariableInsertions(): Map<string, EditCodeAction> {
+    //     // Get the context
+    //     const context = this.module.focus.getContext();
+    //     // Map from variable identifier to EditCodeAction
+    //     const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>(); //<option name, function to call on click>
 
-        // InsertionType is used, among possibly other things, to determine if the option
-        // should be disabled in the toolbox or not
-        // Get all assignments in the current scope, each with their insertion type (valid / draft)
-        const availableVars: [Reference, InsertionType][] = Validator.getValidVariableReferences(
-            context.selected ? context.token : context.lineStatement,
-            this.module.variableController
-        );
+    //     // InsertionType is used, among possibly other things, to determine if the option
+    //     // should be disabled in the toolbox or not
+    //     // Get all assignments in the current scope, each with their insertion type (valid / draft)
+    //     const availableVars: [Reference, InsertionType][] = Validator.getValidVariableReferences(
+    //         context.selected ? context.token : context.lineStatement,
+    //         this.module.variableController
+    //     );
 
-        // For each of the available references
-        for (const varRecord of availableVars) {
-            // Get the assignment to which it refers
-            // const varStmt = varRecord[0].statement as VarAssignmentStmt;
-            const assignmentToken = varRecord[0].getAssignment();
-            // Create a new EditCodeAction
-            const editAction = EditCodeAction.createDynamicEditCodeAction(
-                assignmentToken.getRenderText(),
-                "RANDOM_CSS_ID", // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
-                () => {
-                    return null;
-                },
-                null,
-                {},
-                new InsertionResult(varRecord[1], "MESSAGE BASED ON INSERTION TYPE", []), //TODO: Need to actually check what the insertion type is and populate the insertion result accordingly
-                [""],
-                assignmentToken.getRenderText(),
-                null,
-                [new RegExp("^[\\\\*\\+\\>\\-\\/\\<\\=\\ \\.\\!\\[]$")]
-            );
-            // Change the performAction method to insert the variable reference
-            editAction.performAction = ((
-                executor: ActionExecutor,
-                eventRouter: EventRouter,
-                providedContext: Context,
-                source: {},
-                autocompleteData?: {}
-            ) => {
-                let context = providedContext;
-                if (autocompleteData) context = executor.deleteAutocompleteOnMatch(providedContext);
+    //     // For each of the available references
+    //     for (const varRecord of availableVars) {
+    //         // Get the assignment to which it refers
+    //         // const varStmt = varRecord[0].statement as VarAssignmentStmt;
+    //         const assignmentToken = varRecord[0].getAssignment();
+    //         // Create a new EditCodeAction
+    //         const editAction = EditCodeAction.createDynamicEditCodeAction(
+    //             assignmentToken.getRenderText(),
+    //             "RANDOM_CSS_ID", // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
+    //             () => {
+    //                 return null;
+    //             },
+    //             null,
+    //             {},
+    //             new InsertionResult(varRecord[1], "MESSAGE BASED ON INSERTION TYPE", []), //TODO: Need to actually check what the insertion type is and populate the insertion result accordingly
+    //             [""],
+    //             assignmentToken.getRenderText(),
+    //             null,
+    //             [new RegExp("^[\\\\*\\+\\>\\-\\/\\<\\=\\ \\.\\!\\[]$")]
+    //         );
+    //         // Change the performAction method to insert the variable reference
+    //         editAction.performAction = ((
+    //             executor: ActionExecutor,
+    //             eventRouter: EventRouter,
+    //             providedContext: Context,
+    //             source: {},
+    //             autocompleteData?: {}
+    //         ) => {
+    //             let context = providedContext;
+    //             if (autocompleteData) context = executor.deleteAutocompleteOnMatch(providedContext);
 
-                executor.insertVariableReference(assignmentToken.getRenderText(), source, context, autocompleteData);
-            }).bind(this);
-            validOptionMap.set(assignmentToken.getRenderText(), editAction);
-        }
+    //             executor.insertVariableReference(assignmentToken.getRenderText(), source, context, autocompleteData);
+    //         }).bind(this);
+    //         validOptionMap.set(assignmentToken.getRenderText(), editAction);
+    //     }
 
-        return validOptionMap;
-    }
+    //     return validOptionMap;
+    // }
 
     /**
      * Get all valid EditCodeActions for a given variable reference
@@ -267,17 +267,17 @@ export class ActionFilter {
         return inserts;
     }
 
-    /**
-     * Get an array of all valid variable references at the current location,
-     * encapsulated in EditCodeActions
-     *
-     * @returns
-     */
-    getProcessedVariableInsertions(): EditCodeAction[] {
-        // Get all valid variable reference insertions at the current location and
-        // return them to a list of EditCodeActions
-        return this.convertInsertionMapToList(this.validateVariableInsertions());
-    }
+    // /**
+    //  * Get an array of all valid variable references at the current location,
+    //  * encapsulated in EditCodeActions
+    //  *
+    //  * @returns
+    //  */
+    // getProcessedVariableInsertions(): EditCodeAction[] {
+    //     // Get all valid variable reference insertions at the current location and
+    //     // return them to a list of EditCodeActions
+    //     return this.convertInsertionMapToList(this.validateVariableInsertions());
+    // }
 
     /**
      * Currently just returns an empty list

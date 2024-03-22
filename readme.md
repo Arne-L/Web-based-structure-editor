@@ -68,6 +68,7 @@ binnen de "construct editors"
 * Make it so that the delete / backspace keys just delete "the adjacent construct" without making a distinction between statements, expressions and tokens
 * Further code cleanup for autocomplete menu
 * TODO: Toolbox text scheiden van autocomplete text; waarschijnlijk best door autocomplete text de render text te maken tot en met een enter
+* Currently the cursor is always placed after the expression when it is inserted, but this should only be the case if there are no empty holes left
 
 
 ### Short cuts / key presses
