@@ -57,8 +57,9 @@ export class ActionFilter {
                 for (const reference of references) {
                     if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
                     const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText())
+
                     validOptionMap.set(
-                        reference.getAssignment().getRenderText(),
+                        Math.random().toString(36).substring(8), // Key is useless, thus should simply be unique
                         EditCodeAction.createDynamicEditCodeAction(
                             action.optionName, // Does this need to be changed? When is this used?
                             action.cssId,

@@ -353,8 +353,6 @@ export class EventRouter {
                     //     console.log("CASES: hole");
                     //     return new EditAction(EditActionType.DeleteSelectedModifier);
                 }
-                console.log("nothing");
-                console.log(context);
 
                 break;
             }

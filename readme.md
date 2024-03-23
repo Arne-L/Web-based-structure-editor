@@ -69,6 +69,7 @@ binnen de "construct editors"
 [ ] Further code cleanup for autocomplete menu
 [ ] TODO: Toolbox text scheiden van autocomplete text; waarschijnlijk best door autocomplete text de render text te maken tot en met een enter
 [x] Currently the cursor is always placed after the expression when it is inserted, but this should only be the case if there are no empty holes left
+[ ] Finding a solution for assignment modifiers when they are being added from the toolbox. As the reference is non-editable, the inserted construct is always an empty non-editable token followed by the assignment modifier, which is a useless construct. How can we make the toolbox insertion behave in a correct manner? 
 
 
 ### Short cuts / key presses

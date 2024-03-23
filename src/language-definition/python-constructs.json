@@ -37,7 +37,7 @@
                 "editorName": "print(---)",
                 "match": "print",
                 "toolbox": {
-                    "category": "Tests",
+                    "category": "Functions",
                     "title": "print(message: any)",
                     "tooltip": {
                         "title": "Display Text in Console",
@@ -69,6 +69,7 @@
             },
             {
                 "keyword": "input",
+                "constructType": "expression",
                 "method_name": "input",
                 "holes": [
                     [
@@ -81,7 +82,7 @@
                 "editorName": "input(---)",
                 "match": "input",
                 "toolbox": {
-                    "category": "Tests",
+                    "category": "Functions",
                     "title": "input(prompt: text)",
                     "tooltip": {
                         "title": "Ask User for Textual Input",
@@ -103,8 +104,561 @@
                         "ask user"
                     ]
                 }
+            },
+            {
+                "keyword": "len",
+                "constructType": "expression",
+                "method_name": "len",
+                "holes": [
+                    [
+                        {
+                            "name": "collection",
+                            "optional": false
+                        }
+                    ]
+                ],
+                "editorName": "len(---)",
+                "match": "len",
+                "toolbox": {
+                    "category": "Functions",
+                    "title": "len(iterable: list/text)",
+                    "tooltip": {
+                        "title": "Get Length of List or Text",
+                        "body": "Returns the number of items in an object, or the number of characters in a text."
+                    },
+                    "tips": [
+                        {
+                            "type": "executable",
+                            "id": "ex-len-1",
+                            "example": "greeting = \"Hello World!\"\na = len(greeting)\nprint(a)"
+                        },
+                        {
+                            "type": "executable",
+                            "id": "ex-len-2",
+                            "example": "items = [1, 2, 3]\na = len(items)\nprint(a)"
+                        }
+                    ],
+                    "search-queries": [
+                        "length of list",
+                        "length of string",
+                        "length of text"
+                    ]
+                }
+            },
+            {
+                "keyword": "choice",
+                "constructType": "expression",
+                "method_name": "choice",
+                "holes": [
+                    [
+                        {
+                            "name": "collection",
+                            "optional": false
+                        }
+                    ]
+                ],
+                "editorName": "choice(---)",
+                "match": "choice",
+                "toolbox": {
+                    "category": "Random",
+                    "title": "choice(choices: list[any])",
+                    "tooltip": {
+                        "title": "Insert Choice from List",
+                        "body": "Randomly selects and returns an item from the given list. Needs to be imported from the random module."
+                    },
+                    "tips": [
+                        {
+                            "type": "executable",
+                            "id": "ex-choice",
+                            "example": "from random import choice\n\nif choice([1, 2, 3, 4, 5, 6]) == 6:\n\tprint(\"Rolled Six!\")"
+                        }
+                    ],
+                    "search-queries": [
+                        "choice",
+                        "random choice",
+                        "choose randomly from list",
+                        "select randomly from array"
+                    ]
+                }
+            },
+            {
+                "keyword": "randint",
+                "constructType": "expression",
+                "method_name": "randint",
+                "holes": [
+                    [
+                        {
+                            "name": "number1",
+                            "optional": false
+                        },
+                        {
+                            "name": "number1",
+                            "optional": false
+                        }
+                    ]
+                ],
+                "editorName": "randint(---, ---)",
+                "match": "randint",
+                "toolbox": {
+                    "category": "Random",
+                    "title": "randint(min: number, max: number)",
+                    "tooltip": {
+                        "title": "Generate a Random Number",
+                        "body": "Returns a randomly generated number from the given range. Needs to be imported from the random module."
+                    },
+                    "tips": [
+                        {
+                            "type": "executable",
+                            "id": "ex-randint",
+                            "example": "a = randint(0, 10)\nprint(a)"
+                        }
+                    ],
+                    "search-queries": [
+                        "random number",
+                        "random integer",
+                        "randint",
+                        "random between"
+                    ]
+                }
             }
         ]
+    },
+    {
+        "keyword": "varAssign",
+        "editorName": "-- = ---",
+        "format": [
+            {
+                "type": "identifier",
+                "regex": "^[^\\d\\W]\\w*$"
+            },
+            {
+                "type": "token",
+                "value": " = "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": null,
+        "matchRegex": "^([^\\d\\W]\\w*)$",
+        "triggerInsertion": [
+            "=",
+            " "
+        ],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Create/Reassign Variable",
+            "tooltip": {
+                "title": "Create Variable Assignment",
+                "body": "Allows to store a value and give it a name to reference it by later."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-declare-print-var",
+                    "example": "name = \"John\"\nprint(name)"
+                },
+                {
+                    "type": "quick",
+                    "text": "A variable is created the moment you first assign a value to it."
+                },
+                {
+                    "type": "bullet-point",
+                    "title": "variable naming",
+                    "bullets": [
+                        "Variable names can only contain letters, numbers, and underscores",
+                        "Variable names are case-sensitive (\"x\" and \"X\" are different)",
+                        "A variable name must start with a letter or the underscore character",
+                        "A variable name cannot start with a number"
+                    ]
+                }
+            ],
+            "search-queries": [
+                "create new variable",
+                "variable",
+                "var"
+            ]
+        }
+    },
+    {
+        "keyword": "addAssign",
+        "editorName": "x += ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " += "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "+"
+        ],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Add to Variable",
+            "tooltip": {
+                "title": "Add Value to Variable",
+                "body": "Adds the value on the right-hand side of the += sign to the specified variable and stores the result in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-sum-by-val",
+                    "example": "a = 2\na += 2\nprint(a)"
+                }
+            ],
+            "search-queries": [
+                "add to variable"
+            ]
+        }
+    },
+    {
+        "keyword": "subAssign",
+        "editorName": "x -= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " -= "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "-"
+        ],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Subtract from Variable",
+            "tooltip": {
+                "title": "Subtract Value from Variable",
+                "body": "Subtracts the value on the right-hand side of the -= sign from the specified variable and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-sub-by-val",
+                    "example": "a = 5\na -= 2\nprint(a)"
+                }
+            ],
+            "search-queries": [
+                "subtract from variable",
+                "deduct from variable"
+            ]
+        }
+    },
+    {
+        "keyword": "multAssign",
+        "editorName": "x *= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " *= "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "*"
+        ],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Multiply a Variable",
+            "tooltip": {
+                "title": "Multiply Variable by Value",
+                "body": "Multiplies the variable by the value on the right-hand side of the *= sign and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-mul-by-val",
+                    "example": "a = 5\na *= 2\nprint(a)"
+                }
+            ],
+            "search-queries": [
+                "multiply variable"
+            ]
+        }
+    },
+    {
+        "keyword": "divAssign",
+        "editorName": "x /= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " /= "
+            },
+            {
+                "type": "hole"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "/"
+        ],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Divide a Variable",
+            "tooltip": {
+                "title": "Divide Variable by Value",
+                "body": "Divides the variable by the value given on the right-hand side of the /= sign and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-divide-by-value",
+                    "example": "a = 10\na /= 2\nprint(a)"
+                }
+            ],
+            "search-queries": [
+                "divide variable"
+            ]
+        }
+    },
+    {
+        "keyword": "numberLit",
+        "constructType": "expression",
+        "editorName": "0",
+        "format": [
+            {
+                "type": "editable",
+                "value": "0",
+                "regex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$"
+            }
+        ],
+        "holes": [],
+        "match": "",
+        "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Numbers",
+            "title": "123",
+            "tooltip": {
+                "title": "Insert a Number",
+                "body": "Inserts a number and edit its value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-num",
+                    "example": "age = 21\nprint(age)\nprint(21)"
+                }
+            ]
+        }
+    },
+    {
+        "keyword": "stringLit",
+        "constructType": "expression",
+        "editorName": "''",
+        "format": [
+            {
+                "type": "token",
+                "value": "'"
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            },
+            {
+                "type": "token",
+                "value": "'"
+            }
+        ],
+        "holes": [],
+        "match": "",
+        "matchRegex": "^([^\\r\\n\\\"]*)$",
+        "triggerInsertion": [
+            "'"
+        ],
+        "toolbox": {
+            "category": "Text",
+            "title": "text",
+            "tooltip": {
+                "title": "Insert a Text",
+                "body": "Inserts an editable text that is wrapped by double quotes."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-assign-str",
+                    "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
+                }
+            ],
+            "search-queries": [
+                "create text",
+                "create string",
+                "empty string",
+                "empty text"
+            ]
+        }
+    },
+    {
+        "keyword": "fstringLit",
+        "constructType": "expression",
+        "editorName": "f''",
+        "format": [
+            {
+                "type": "token",
+                "value": "f'"
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            },
+            {
+                "type": "token",
+                "value": "'"
+            }
+        ],
+        "holes": [],
+        "match": "f",
+        "matchRegex": "^([^\\r\\n\\\"]*)$",
+        "triggerInsertion": [
+            "'"
+        ],
+        "toolbox": {
+            "category": "Text",
+            "title": "formatted text",
+            "tooltip": {
+                "title": "Insert Formattable Text",
+                "body": "Inserts an editable, formattable text; used along with the {} operator to include non-static values and variables inside the text."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-f-str-1",
+                    "example": "age = 16\nname = \"Alex\"\nprint(f'My name is {name} and I am {age} years old')"
+                }
+            ],
+            "search-queries": [
+                "formatted string",
+                "formatted text"
+            ]
+        }
+    },
+    {
+        "keyword": "list",
+        "constructType": "expression",
+        "editorName": "[---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "["
+        ],
+        "toolbox": {
+            "category": "Lists",
+            "title": "List",
+            "tooltip": {
+                "title": "Insert Editable List",
+                "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-list-1",
+                    "example": "a = []\nprint(a) # a is an empty list\na = [1, 2, 3]\nprint(a) # a is a list with three items"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-list-1",
+                    "example": "a = [\"cat\", \"dog\", \"parrot\"]\nb = [1, \"cat\", true]\nc = [1, [1, \"dog\"], \"cat\", [true]]"
+                }
+            ],
+            "search-queries": [
+                "empty list",
+                "create empty list",
+                "create list",
+                "array",
+                "create empty array"
+            ]
+        }
     },
     {
         "keyword": "break",
@@ -643,147 +1197,6 @@
         }
     },
     {
-        "keyword": "varAssign",
-        "editorName": "-- = ---",
-        "format": [
-            {
-                "type": "identifier",
-                "regex": "^[^\\d\\W]\\w*$"
-            },
-            {
-                "type": "token",
-                "value": " = "
-            },
-            {
-                "type": "hole"
-            }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": null,
-        "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": [
-            "="
-        ],
-        "toolbox": {
-            "category": "Tests2",
-            "title": "Create/Reassign Variable",
-            "tooltip": {
-                "title": "Create Variable Assignment",
-                "body": "Allows to store a value and give it a name to reference it by later."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-declare-print-var",
-                    "example": "name = \"John\"\nprint(name)"
-                },
-                {
-                    "type": "quick",
-                    "text": "A variable is created the moment you first assign a value to it."
-                },
-                {
-                    "type": "bullet-point",
-                    "title": "variable naming",
-                    "bullets": [
-                        "Variable names can only contain letters, numbers, and underscores",
-                        "Variable names are case-sensitive (\"x\" and \"X\" are different)",
-                        "A variable name must start with a letter or the underscore character",
-                        "A variable name cannot start with a number"
-                    ]
-                }
-            ],
-            "search-queries": [
-                "create new variable",
-                "variable",
-                "var"
-            ]
-        }
-    },
-    {
-        "keyword": "stringLit",
-        "constructType": "expression",
-        "editorName": "''",
-        "format": [
-            {
-                "type": "token",
-                "value": "'"
-            },
-            {
-                "type": "editable",
-                "regex": "^([^\\r\\n\\\"]*)$"
-            },
-            {
-                "type": "token",
-                "value": "'"
-            }
-        ],
-        "holes": [],
-        "match": "",
-        "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": [
-            "'"
-        ],
-        "toolbox": {
-            "category": "Tests",
-            "title": "text",
-            "tooltip": {
-                "title": "Insert a Text",
-                "body": "Inserts an editable text that is wrapped by double quotes."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-assign-str",
-                    "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
-                }
-            ],
-            "search-queries": [
-                "create text",
-                "create string",
-                "empty string",
-                "empty text"
-            ]
-        }
-    },
-    {
-        "keyword": "numberLit",
-        "constructType": "expression",
-        "editorName": "0",
-        "format": [
-            {
-                "type": "editable",
-                "value": "0",
-                "regex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$"
-            }
-        ],
-        "holes": [],
-        "match": "",
-        "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "123",
-            "tooltip": {
-                "title": "Insert a Number",
-                "body": "Inserts a number and edit its value."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-num",
-                    "example": "age = 21\nprint(age)\nprint(21)"
-                }
-            ]
-        }
-    },
-    {
         "keyword": "False",
         "constructType": "expression",
         "editorName": "False",
@@ -928,112 +1341,6 @@
         "matchRegex": null,
         "triggerInsertion": [
             "-"
-        ],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
-                }
-            ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
-        }
-    },
-    {
-        "keyword": "list",
-        "constructType": "expression",
-        "editorName": "[---]",
-        "format": [
-            {
-                "type": "token",
-                "value": "["
-            },
-            {
-                "type": "hole"
-            },
-            {
-                "type": "token",
-                "value": "]"
-            }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "",
-        "matchRegex": null,
-        "triggerInsertion": [
-            "["
-        ],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
-                }
-            ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
-        }
-    },
-    {
-        "keyword": "listitem",
-        "constructType": "expression",
-        "editorName": ", ---",
-        "format": [
-            {
-                "type": "token",
-                "value": ", "
-            },
-            {
-                "type": "hole"
-            }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "",
-        "matchRegex": null,
-        "triggerInsertion": [
-            ","
         ],
         "toolbox": {
             "category": "Tests",
