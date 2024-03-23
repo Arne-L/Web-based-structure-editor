@@ -12,7 +12,6 @@ import { Hole } from "../editor/hole";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
 import { MessageController } from "../messages/message-controller";
-import { ConstructHighlight } from "../messages/messages";
 import { NotificationManager } from "../messages/notifications";
 import { MenuController } from "../suggestions/suggestions-controller";
 import { Util } from "../utilities/util";
@@ -23,23 +22,20 @@ import {
     Expression,
     FormattedStringCurlyBracketsExpr,
     GeneralStatement,
+    ImportStatement,
     // ForStatement,
     Importable,
-    ImportStatement,
     ListLiteralExpression,
     Statement,
     Token,
     TypedEmptyExpr,
-    // VarAssignmentStmt,
-    VariableReferenceExpr,
 } from "./ast";
 import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
 import { DataType, MISSING_IMPORT_DRAFT_MODE_STR, TAB_SPACES } from "./consts";
-import { Reference, Scope } from "./scope";
-import { TypeChecker } from "./type-checker";
-import { VariableController } from "./variable-controller";
 import { Language } from "./language";
+import { Scope } from "./scope";
+import { VariableController } from "./variable-controller";
 
 const ERROR_HIGHLIGHT_COLOUR: [number, number, number, number] = [255, 153, 153, 0.5];
 
@@ -54,14 +50,20 @@ export class Module {
     eventRouter: EventRouter;
     eventStack: EventStack;
     editor: Editor;
-    variableButtons: HTMLDivElement[] = [];
+    // variableButtons: HTMLDivElement[] = [];
     messageController: MessageController;
     menuController: MenuController;
-    typeSystem: TypeChecker;
+    // typeSystem: TypeChecker;
     notificationManager: NotificationManager;
     toolboxController: ToolboxController;
-    language: Language
+    /**
+     * Object representing all language specific information
+     */
+    language: Language;
 
+    /**
+     * The scope connected to the module
+     */
     scope: Scope;
     draftExpressions: DraftRecord[];
 
@@ -75,12 +77,12 @@ export class Module {
         this.focus = new Focus(this);
         this.validator = new Validator(this);
         this.executer = new ActionExecutor(this);
-        this.typeSystem = new TypeChecker(this);
+        // this.typeSystem = new TypeChecker(this);
         this.variableController = new VariableController(this);
         this.actionFilter = new ActionFilter(this);
         this.notificationManager = new NotificationManager(this);
         this.toolboxController = new ToolboxController(this);
-        this.language = new Language(this)
+        this.language = new Language(this);
 
         this.globals = {
             hoveringOverCascadedMenu: false,
@@ -92,12 +94,14 @@ export class Module {
 
         Hole.setModule(this);
 
+        // Load the constructs and settings from JSON files
         this.toolboxController.loadToolboxFromJson();
+        // Add the tooltips to each of the toolbox buttons
         this.toolboxController.addTooltips();
 
         this.focus.subscribeOnNavChangeCallback((c: Context) => {
-            const statementAtLine = this.focus.getStatementAtLineNumber(this.editor.monaco.getPosition().lineNumber);
-            const statementScope = statementAtLine.scope ?? (statementAtLine.rootNode as Statement | Module).scope;
+            // const statementAtLine = this.focus.getStatementAtLineNumber(this.editor.monaco.getPosition().lineNumber);
+            // const statementScope = statementAtLine.scope ?? (statementAtLine.rootNode as Statement | Module).scope;
 
             // Variable reference buttons are not currently part of the editor
             // this.variableController.updateToolboxVarsCallback(
@@ -111,15 +115,17 @@ export class Module {
             Hole.highlightValidVarHoles(c);
         });
 
-        this.focus.subscribeOnNavChangeCallback((c: Context) => {
-            Hole.disableEditableHoleOutlines();
-            Hole.disableVarHighlights();
-            Hole.outlineTextEditableHole(c);
-            Hole.highlightValidVarHoles(c);
-        });
+        // this.focus.subscribeOnNavChangeCallback((c: Context) => {
+        //     Hole.disableEditableHoleOutlines();
+        //     Hole.disableVarHighlights();
+        //     Hole.outlineTextEditableHole(c);
+        //     Hole.highlightValidVarHoles(c);
+        // });
 
+        // Update the toolbox buttons whenever the context changes
         this.toolboxController.updateButtonsOnContextChange();
 
+        // Remove autocomplete suggestions when the context changes
         this.focus.subscribeOnNavChangeCallback((c: Context) => {
             const menuController = MenuController.getInstance();
 
@@ -134,19 +140,22 @@ export class Module {
                 menuController.removeMenus();
         });
 
+        // Add the starting empty line to the body
         this.body.push(new EmptyLineStmt(this, 0));
         this.scope = new Scope();
         this.body[0].build(new Position(1, 1));
 
+        // Select the empty line as the current focus
         this.focus.updateContext({ tokenToSelect: this.body[0] });
         this.editor.monaco.focus();
 
+        // Bunch of class instances being created
         this.eventRouter = new EventRouter(this);
         this.eventStack = new EventStack(this);
 
         this.messageController = new MessageController(this.editor, this);
 
-        this.variableButtons = [];
+        // this.variableButtons = [];
 
         this.menuController = MenuController.getInstance();
         this.menuController.setInstance(this, this.editor);
@@ -156,7 +165,7 @@ export class Module {
 
     /**
      * Send a notification with the given type to the given construct and all of its children
-     * 
+     *
      * @param code - The code to be notified
      * @param callbackType - The type of the notification
      */
@@ -182,13 +191,13 @@ export class Module {
                 if (curCode instanceof Statement || curCode instanceof Expression) codeStack.unshift(...curCode.tokens);
                 if (curCode instanceof Statement && curCode.hasBody()) codeStack.unshift(...curCode.body);
             }
-        // If the current CodeConstruct is a Token, send a notification
+            // If the current CodeConstruct is a Token, send a notification
         } else if (code instanceof Token) code.notify(callbackType);
     }
 
     /**
      * Perform the AST rebuilding to reflect the changes after a backwards indent
-     * 
+     *
      * @param stmt - The statement to be indented back / to the left
      */
     indentBackStatement(stmt: Statement) {
@@ -231,7 +240,8 @@ export class Module {
                 // outerRoot.scope.references.push(new Reference(stmt, outerRoot.scope));
 
                 // If the statement contains assignments, push them to their parent scope
-                if (stmt instanceof GeneralStatement && stmt.containsAssignments()) root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
+                if (stmt instanceof GeneralStatement && stmt.containsAssignments())
+                    root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
             } else {
                 // The current statement has a body
 
@@ -292,7 +302,8 @@ export class Module {
                 // aboveMultilineStmt.scope.references.push(new Reference(stmt, aboveMultilineStmt.scope));
 
                 // If the statement contains assignments, push them to their new parent scope
-                if (stmt instanceof GeneralStatement && stmt.containsAssignments()) root.scope.pushToScope(aboveMultilineStmt.scope, stmt.getAssignments());
+                if (stmt instanceof GeneralStatement && stmt.containsAssignments())
+                    root.scope.pushToScope(aboveMultilineStmt.scope, stmt.getAssignments());
             } else {
                 // If the current statement has a body
 
@@ -314,7 +325,7 @@ export class Module {
                 aboveMultilineStmt.body.push(removedItem[0]);
                 rebuildBody(this, 0, 1);
 
-                // Set the parent scope of the current statement to the scope of the original 
+                // Set the parent scope of the current statement to the scope of the original
                 // previous statement
                 stmt.scope.parentScope = aboveMultilineStmt.scope;
             }
@@ -323,7 +334,7 @@ export class Module {
 
     /**
      * Indents all constructs in the body of the current line statement
-     * 
+     *
      * @param providedContext - The context of the current line statement
      * @param backwards - Whether to indent backwards or forwards
      */
@@ -331,7 +342,7 @@ export class Module {
         // The parent statement
         const parent = providedContext.lineStatement;
 
-        if (!parent.hasBody()) return
+        if (!parent.hasBody()) return;
 
         while (parent.body.length > 0) {
             // Indent the last statement in the body
@@ -341,37 +352,30 @@ export class Module {
 
     /**
      * Indent the given statement backwards or forwards
-     * 
+     *
      * @param statement - The statement to be indented
      * @param backwards - Whether to indent backwards or forwards
      */
     indentConstruct(statement: Statement, backwards: boolean) {
         // Performs the indentation of the last statement in the body
-        this.editor.indentRecursively(
-            statement,
-            { backward: backwards }
-        );
+        this.editor.indentRecursively(statement, { backward: backwards });
         // Restructures the AST to following the new indentation
         // This action results in the current last statement being removed from the body
         // of the current line statement
         if (backwards) {
-            this.indentBackStatement(
-                statement
-            );
+            this.indentBackStatement(statement);
         } else {
-            this.indentForwardStatement(
-                statement
-            );
+            this.indentForwardStatement(statement);
         }
     }
 
     /**
      * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
-     * 
-     * @param code 
-     * @param start 
-     * @param count 
-     * @returns 
+     *
+     * @param code
+     * @param start
+     * @param count
+     * @returns
      */
     removeItems(code: CodeConstruct, start: number, count: number): Array<CodeConstruct> {
         if (code instanceof Statement) {
@@ -407,7 +411,7 @@ export class Module {
 
     /**
      * Remove a statement without replacing
-     * 
+     *
      * @param line - The line to be removed without replacing it with an empty line
      */
     deleteLine(line: Statement) {
@@ -422,7 +426,7 @@ export class Module {
 
     /**
      * MAYBE PLACE THIS IN THE AST ASWELL?
-     * 
+     *
      * Remove the given Construct from the editor and update the focus context
      * It also replaces the construct with the correct "placeholder" construct
      *
@@ -431,7 +435,7 @@ export class Module {
      */
     deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
         // Get range of the construct to delete
-        const replacementRange =code.getBoundaries();
+        const replacementRange = code.getBoundaries();
         // The construct to replace the deleted code with
         let replacement: CodeConstruct;
 
@@ -536,12 +540,12 @@ export class Module {
         }
     }
 
-    /**
-     * Add the assignment to the current working scope.
-     *
-     * @param statement - The assignment statement adding the variable
-     * @param workingScope - The direct scope in which the action is performed
-     */
+    // /**
+    //  * Add the assignment to the current working scope.
+    //  *
+    //  * @param statement - The assignment statement adding the variable
+    //  * @param workingScope - The direct scope in which the action is performed
+    //  */
     // processNewVariable(statement: Statement, workingScope: Scope) {
     //     if (statement instanceof VarAssignmentStmt) {
     //         workingScope.references.push(new Reference(statement, workingScope));
@@ -553,8 +557,10 @@ export class Module {
     // }
     // SUPERSEDED BY A METHOD ON THE SCOPE CLASS
 
-    insertEmptyLine(): Statement {
+    insertEmptyLine(): EmptyLineStmt {
+        // Current cursor position
         const curPos = this.editor.monaco.getPosition();
+        // 
         const curStatement = this.focus.getFocusedStatement();
         const curStatementRoot = curStatement.rootNode;
 
@@ -641,20 +647,22 @@ export class Module {
     /**
      * Replace the focussed expression with the given expression
      * 
+     * CURRENTLY ONLY EXPRESSIONS CAN BE REPLACED!!! SHOULD BE GENERALISED!!!
+     *
      * @param expr - The expression to replace the focussed expression with
      */
-    replaceFocusedExpression(expr: Expression) {
+    replaceFocusedExpression(construct: CodeConstruct) {
         // Current context
         const context = this.focus.getContext();
 
         if (context.expression != null) {
             // If we currently focussing an expression, replace it with the given expression
-            const root = context.expression.rootNode as Statement;
-            root.replace(expr, context.expression.indexInRoot);
+            const root = context.expression.rootNode as GeneralStatement;
+            root.replace(construct, context.expression.indexInRoot);
         } else if (context.token != null) {
             // If we currently focussing a token, replace it with the given expression
-            const root = context.token.rootNode as Statement;
-            root.replace(expr, context.token.indexInRoot);
+            const root = context.token.rootNode as GeneralStatement;
+            root.replace(construct, context.token.indexInRoot);
         }
     }
 
@@ -682,10 +690,15 @@ export class Module {
         }
     }
 
-    addHighlightToConstruct(construct: CodeConstruct, rgbColour: [number, number, number, number]) {
-        const hl = new ConstructHighlight(this.editor, construct, rgbColour);
-    }
-
+    /**
+     * Retrieve the current status of the code, i.e. if it is runnable or not,
+     * and highlight constructs violating the status if required.
+     *
+     * WILL NEED SOME REWRITES!!!
+     *
+     * @param highlightConstructs - Whether to highlight constructs violating the status
+     * @returns The status of the code
+     */
     getCodeStatus(highlightConstructs: boolean = false) {
         let status = null;
 
@@ -703,15 +716,15 @@ export class Module {
             if (cur instanceof TypedEmptyExpr && !cur.isListElement()) {
                 status = status ?? CodeStatus.ContainsEmptyHoles;
 
-                if (highlightConstructs && !hasDraftMode) this.addHighlightToConstruct(cur, ERROR_HIGHLIGHT_COLOUR);
+                if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
             } else if (cur instanceof AutocompleteTkn) {
                 status = status ?? CodeStatus.ContainsAutocompleteTokens;
 
-                if (highlightConstructs && !hasDraftMode) this.addHighlightToConstruct(cur, ERROR_HIGHLIGHT_COLOUR);
+                if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
             } else if (cur.draftModeEnabled) {
                 status = status ?? CodeStatus.ContainsDraftMode;
 
-                if (highlightConstructs && !hasDraftMode) this.addHighlightToConstruct(cur, ERROR_HIGHLIGHT_COLOUR);
+                if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
             } else if (cur instanceof Expression && cur.tokens.length > 0) {
                 const addHighlight = cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
                 status = addHighlight ? CodeStatus.ContainsEmptyHoles : status;
@@ -723,7 +736,7 @@ export class Module {
                         i < cur.tokens.length - 2 &&
                         !hasDraftMode
                     ) {
-                        this.addHighlightToConstruct(cur.tokens[i], ERROR_HIGHLIGHT_COLOUR);
+                        cur.tokens[i].addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
                     }
 
                     stack.push(cur.tokens[i]);
@@ -757,18 +770,12 @@ export class Module {
             // Delete the first element of the list
             let curr: CodeConstruct = Q.splice(0, 1)[0];
 
-            if (curr instanceof Expression && curr.tokens.length > 0) {
-                // If the expression has tokens, push them to the list
+            // If the current construct has tokens and possibly a body
+            if (curr instanceof GeneralStatement) {
+                // Push all of its tokens to the list
                 Q.push(...curr.tokens);
-            } else if (curr instanceof Statement) {
-                // If the statement has tokens, push them to the list
-                for (const tkn of curr.tokens) {
-                    Q.push(tkn);
-                }
-                if (curr.body.length > 0) {
-                    // If the statement has a body, push it to the list
-                    Q.push(...curr.body);
-                }
+
+                if (curr.hasBody()) Q.push(...curr.body);
             }
 
             // Perform the given action on the current construct

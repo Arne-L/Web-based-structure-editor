@@ -34,14 +34,13 @@ import {
     BuiltInFunctions,
     PythonKeywords,
     TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR,
-    addClassToDraftModeResolutionButton,
     getOperatorCategory,
 } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { createFinalConstruct, isImportable } from "../utilities/util";
 import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
-import { EditActionType, InsertActionType } from "./consts";
+import { EditActionType } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
 
@@ -1557,7 +1556,11 @@ export class ActionExecutor {
                  */
 
                 // An autocomplete token is present; use it to open an autocomplete menu
-                this.openSuggestionMenu(context, action.data?.firstChar ?? "", action.data?.autocompleteType ?? AutoCompleteType.StartOfLine);
+                this.openSuggestionMenu(
+                    context,
+                    action.data?.firstChar ?? "",
+                    action.data?.autocompleteType ?? AutoCompleteType.StartOfLine
+                );
                 break;
 
                 if (action.data?.autoCompleteTkn) {
@@ -2664,8 +2667,8 @@ export class ActionExecutor {
     }
 
     /**
-     * Opens an autocomplete menu / suggestion menu at the current position. 
-     * 
+     * Opens an autocomplete menu / suggestion menu at the current position.
+     *
      * @param context - The current focus context
      * @param text - The current user input in case there is not yet an autocomplete token
      * @param autocompleteType - The type of the autocomplete token; used to determine how
@@ -2720,7 +2723,7 @@ export class ActionExecutor {
             this.openAutocompleteMenu(validMatches);
 
             // Choose how to replace the existing token / construct
-            // SHOULD BE REMOVED IN THE FUTURE AND REPLACED BY A SINGLE FUNCTION HANDLING 
+            // SHOULD BE REMOVED IN THE FUTURE AND REPLACED BY A SINGLE FUNCTION HANDLING
             // THE ABSTRACTION
             switch (autocompleteType) {
                 case AutoCompleteType.StartOfLine:
@@ -2749,7 +2752,7 @@ export class ActionExecutor {
             // Check if there is an exact match
             const match = autocompleteTkn.isTerminatingMatch();
 
-            // If the match is exact, insert the construct in the editor 
+            // If the match is exact, insert the construct in the editor
             if (match) {
                 this.performMatchAction(match, autocompleteTkn);
             } else {

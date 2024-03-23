@@ -6,7 +6,7 @@ import { DraftRecord } from "../editor/draft";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
 import { ConstructDefinition } from "../language-definition/definitions";
-import { CodeBackground, HoverMessage, InlineMessage } from "../messages/messages";
+import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Util, createWarningButton, hasMatch } from "../utilities/util";
 import { Callback, CallbackType } from "./callback";
 import {
@@ -39,6 +39,7 @@ import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "./settings";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
+import { Editor } from "../editor/editor";
 
 export interface CodeConstruct {
     /**
@@ -204,6 +205,14 @@ export interface CodeConstruct {
     onDelete(): void;
 
     getTypes(): DataType[];
+
+    /**
+     * Highlight the given construct with the given colour
+     * 
+     * @param construct - The construct to highlight
+     * @param rgbColour - The colour to highlight the construct with
+     */
+    addHighlight(rgbColour: [number, number, number, number], editor: Editor) : void;
 }
 
 /**
@@ -690,6 +699,10 @@ export abstract class Statement implements CodeConstruct {
 
     getTypes(): DataType[] {
         return [];
+    }
+
+    addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
+        new ConstructHighlight(editor, this, rgbColour);
     }
 }
 
@@ -1776,6 +1789,10 @@ export abstract class Token implements CodeConstruct {
 
     getTypes(): DataType[] {
         return [];
+    }
+
+    addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
+        new ConstructHighlight(editor, this, rgbColour);
     }
 }
 

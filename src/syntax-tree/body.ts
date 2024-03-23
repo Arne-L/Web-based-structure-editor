@@ -63,6 +63,7 @@ export function rebuildBody(bodyContainer: Statement | Module, fromIndex: number
  */
 export function replaceInBody(bodyContainer: Statement | Module, atIndex: number, newStatement: Statement) {
     const leftPos = bodyContainer.body[atIndex].getLeftPosition();
+    // Build the new statement recursively from the current left position
     newStatement.init(leftPos);
 
     // Set the same root node and indexInRoot as the statement that is being replaced
