@@ -472,7 +472,7 @@ export abstract class Statement implements CodeConstruct {
         // The right position of the last token is the right position of the construct
         this.right = curPos.column;
 
-        // If the construct has a root node, rebuild all construct following this construct in the root node
+        // If the construct has a root node, rebuild all constructs following this construct in the root node
         if (this.rootNode != undefined && this.indexInRoot != undefined) {
             if (
                 (this.rootNode instanceof Expression || this.rootNode instanceof Statement) &&
@@ -685,6 +685,7 @@ export abstract class Statement implements CodeConstruct {
         return;
     }
 
+    // FFD
     onDeleteFrom(args: Object): void {
         return;
     }

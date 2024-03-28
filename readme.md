@@ -167,3 +167,73 @@ Dit in de plaats van de huidige body format elements in de python-constructs.jso
     "min": 1,
     "max": 1
 }
+
+Problemen die hier bij voor kunnen komen?
+* Het concept 'body' verdwijnt en alles wordt een element van de token list -- GEEN PROBLEEM
+* Hoe indentation afhandelen?
+  - Standaard wordt dit aangegeven door tokens, namelijk "\t", "\n" en " ". Binnen een gegeven construct is de structuur dus steeds vast bepaald
+  - Echter een probleem als 
+    * De parent wordt verwijderd
+      - bij Python moeten dan alle "body" constructen toegevoegd worden aan de parents "body", maar het body concept verdwijnt volledig. 
+      - <span style="color: green">OPLOSSING?</span> 
+        <i>Telkens bij het verwijderen van de parent door alle tokens gaan en kijken welke tokens hetzelfde constructtype hebben als de parent (of in de plaats van de parent kunnen worden geplaatst)</i>
+        <span style="color: red">Een body kan echter meerdere constructs bevatten die gescheiden zijn door een non-editable token.</span> Hoe kunnen we dit oplossen?
+        * <span style="color: green">OPLOSSINGen?</span> 
+          - <i>De user laten bepalen wanneer composite structuren kunnen door te kijken wat de recursieve structuren zijn die zijn gedefinieerd (o.a. op naam ofzo). Bijvoorbeeld de if statement zal in de configuratiefile als volgt gedefinieerd zijn:</i>
+          ```JSON
+          "format": [
+            {
+                "type": "token",
+                "value": "if "
+            },
+            {
+                "type": "hole"
+            },
+            {
+                "type": "token",
+                "value": " :\n"
+            },
+            {
+                "type": "recursive",
+                "name": "body"
+            }
+          ]
+          ```
+          <i>waarbij dan wordt gekeken of het recursief element "body" ook aanwezig is in de parent en dan kan het daar worden ingestoken, anders wordt gewoon het eerste enkele element genomen dat voldoet</i>
+          <span style="color: red">Aantal problemen: dit moet expliciet bijgehouden worden bij runtime constructen + als recursive op naam niet matcht, maar wel op structuur geeft dit invalid terug + suboproepen in de recursive leiden ook weer tot mismatches terwijl ze wel valid zijn</span>
+          - <i>Matchen op de structuur: kijken afhankelijk van de cursorpositie (en verwijderrichting) of de overblijvende constructs kunnen worden ingevoegd in de parent op de positie waar het verwijderde construct stond, eventueel met \t, \n en spatie tokens verwaardloosd om het flexibeler te houden?</i><br>
+      ==> Simpelste voor nu is om gewoon de hele structuur te verwijderen, maar eerst een duidelijke pop-up of warning te geven dat ze moeten bevestigen
+      Later kan er gekeken worden naar manieren om structuren als een geheel te definiëren en te verwijderen, indentaties aan te geven, tokens op de geven als optioneel zodat er een onderscheid kan gemaakt worden tussen de structuur die geinsert moet worden en de structuur die nog steeds valid is ... <br>
+      Eventueel kan je voor indentatie een soort prefix / encapsulating element toevoegen dat een bepaalde token overal voor insert en ook als geheel kunt verwijderen => een soort veralgemeende body
+    * Een bestaand construct naar achter of voor wordt geïndenteerd
+      - <span style="color:green">Naar voor indenteren gaat enkel als er na geen tokens / constructs meer komen met een zelfde oorspronkelijke indent</span>
+      - <span style="color:green">Naar achter indenteren gaat enkel als het verschil tussen het te indenteren construct en het construct ervoor één indentatie is</span><br>
+      ==> Indentatie naar volgende niveau werkt wel makkelijk, maar indentatie als deletion <br>
+      ==> Interessant om dit in de paper ook uit te schrijven waarom hier een onderscheid in is
+* Hoe deletion afhandelen? 
+  - Alles is nu een token, een hole of empty line, dus hoe weten wat we moeten verwijderen bij een backspace of delete? Bv. een delete achter de "if --- :" moet de eerste lijn van de "body" verwijderen, wat nu een \n, \t en een statement is bij Python om een correcte structuur te behouden
+    * Ofwel verwijder je één recursief deel ofwel een vast deel
+      - In het recursief deel wil je één stap ongedaan maken
+      - In het vaste deel wil je alles verwijderen, behalve wat in het voorgaande puntje werd besproken
+* Hoe insertions afhandelen
+  - Grotendeels gelijkaardig aan hoe we het nu doen, maar nu moet het insertion algorithm ook rekening houden met de structuur van de parent
+    * Als je momenteel aan een token zit met een "waitOnKeyPress" attribute, dan moet er ook naar die key geluisterd worden en als die getypt wordt, moet een recursie cycle worden uitgevoerd
+    Er zijn dus twee eisen om de recursieve call te mogen uitvoeren:
+      - We zitten momenteel aan de juiste token / construct 
+      - De correcte "waitOn" key wordt gepressed
+    * Anders kan gewoon het huidige algorithme worden gebruikt
+* Waar mag je je cursor kunnen plaatsen?
+  - Voor of na een construct (code construct, en dus niet een token)
+  - In een hole of empty line
+  - Voor of na een construct in een hole / empty line (dit maakt de eerste regel dus recursief)
+* Hoe scoping afhandelen?
+  - De "body" kan nu overal staan (achter, onder, beiden ...) en moet correct worden aangegeven; hoe kunnen we de scope visueel aangeven?
+
+
+
+Eens de syntax correct is, kan er eenvoudig een linter worden gerund op syntactisch correcte programma's
+
+Moet de variable ervoor gedefinieerd zijn of niet? Best als een boolean setting maken
+==> scoping ligt op syntactisch vlak, niet op semantisch 
+==> Scoping laten vallen, en gewoon kijken welke references er in heel het programma gedefinieerd zijn 
+Eventueel wel scoping gebruiken om voorrang te geven aan bepaalde assignments

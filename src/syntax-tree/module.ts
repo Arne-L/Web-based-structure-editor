@@ -393,14 +393,26 @@ export class Module {
         return [];
     }
 
-    private removeStatement(line: Statement): CodeConstruct {
+    /**
+     * Remove the statement and replace it with an empty line
+     * 
+     * @param line - The statement to be removed
+     * @returns - The empty line that replaces the removed statement
+     */
+    private removeStatement(line: GeneralStatement): CodeConstruct {
+        // Get the root of the construct
         const root = line.rootNode;
 
-        if (root instanceof Module || root instanceof Statement) {
+        if (root instanceof Module || root instanceof GeneralStatement) {
+            // Create empty line replacement
             const replacement = new EmptyLineStmt(root, line.indexInRoot);
+            // Notify the construct that has been deleted
             this.recursiveNotify(line, CallbackType.delete);
+            // Replace in the root the removed construct with the empty line
             root.body.splice(line.indexInRoot, 1, replacement);
+            // Build the left and right positions and linenumber of the new construct
             replacement.build(line.getLeftPosition());
+            // Rebuilds all linenumbers for the entire editor
             rebuildBody(this, 0, 1);
 
             return replacement;
@@ -411,13 +423,14 @@ export class Module {
 
     /**
      * Remove a statement without replacing
+     * Same as removeStatement but without replacing the construct with an empty line
      *
      * @param line - The line to be removed without replacing it with an empty line
      */
     deleteLine(line: Statement) {
         const root = line.rootNode;
 
-        if (root instanceof Module || root instanceof Statement) {
+        if (root instanceof Module || root instanceof GeneralStatement) {
             this.recursiveNotify(line, CallbackType.delete);
             root.body.splice(line.indexInRoot, 1);
             rebuildBody(this, 0, 1);
@@ -440,7 +453,7 @@ export class Module {
         let replacement: CodeConstruct;
 
         // If the construct to delete is a statement
-        if (statement) replacement = this.removeStatement(code as Statement);
+        if (statement) replacement = this.removeStatement(code as GeneralStatement);
         // If the construct to delete is a expression
         else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
 
@@ -450,21 +463,32 @@ export class Module {
         this.focus.updateContext({ tokenToSelect: replacement });
     }
 
-    private rebuildOnConstructDeletion(item: CodeConstruct, root: Statement) {
+    /**
+     * Rebuild the root and all of its children after a child construct has 
+     * been deleted. Includes updating the left and right positions and the 
+     * linenumbers
+     * 
+     * @param item - The construct that has been deleted
+     * @param root - The root of the construct
+     */
+    private rebuildOnConstructDeletion(item: CodeConstruct, root: GeneralStatement) {
+        // Notify the construct that has been deleted 
         this.recursiveNotify(item, CallbackType.delete);
 
+        // Update indices and root nodes of all tokens of the root
         for (let i = 0; i < root.tokens.length; i++) {
             root.tokens[i].indexInRoot = i;
             root.tokens[i].rootNode = root;
         }
 
+        // Update left and right positions of the root
         root.rebuild(root.getLeftPosition(), 0);
     }
 
     replaceItemWTypedEmptyExpr(item: CodeConstruct, replaceType: DataType): CodeConstruct {
         const root = item.rootNode;
 
-        if (root instanceof Statement) {
+        if (root instanceof GeneralStatement) {
             if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
                 replaceType = DataType.Any;
 
@@ -487,14 +511,14 @@ export class Module {
         return null;
     }
 
-    removeItem(item: CodeConstruct): void {
-        const root = item.rootNode;
-        if (root instanceof Statement) {
-            root.onDeleteFrom({ indexInRoot: item.indexInRoot });
-            root.tokens.splice(item.indexInRoot, 1);
-            this.rebuildOnConstructDeletion(item, root);
-        }
-    }
+    // removeItem(item: CodeConstruct): void {
+    //     const root = item.rootNode;
+    //     if (root instanceof GeneralStatement) {
+    //         root.onDeleteFrom({ indexInRoot: item.indexInRoot }); // Remove
+    //         root.tokens.splice(item.indexInRoot, 1);
+    //         this.rebuildOnConstructDeletion(item, root);
+    //     }
+    // }
 
     // DEAD CODE?
     // reset() {
@@ -524,18 +548,24 @@ export class Module {
 
     /**
      * Adds `code` to the body at the given index
+     * 
      * @param code the statement to be added
      * @param index the index to add the `code` statement
      * @param line the line number that will be given to the newly added statement
      */
-    addStatementToBody(bodyContainer: Statement | Module, code: Statement, index: number, line: number) {
+    addStatementToBody(bodyContainer: GeneralStatement | Module, code: Statement, index: number, line: number) {
+        // Add code to the body of the container
         bodyContainer.body.splice(index, 0, code);
+        // Increase the index of all statements in the container after the newly added statement
         for (let i = index + 1; i < bodyContainer.body.length; i++) bodyContainer.body[i].indexInRoot++;
 
+        // Rebuild all statements following the newly added statement in the container
         rebuildBody(bodyContainer, index + 1, line + code.getHeight());
+        // Set the parentscope to be the scope of the container
         if (code.hasScope()) code.scope.parentScope = bodyContainer.scope;
 
-        if (bodyContainer instanceof Statement) {
+        // Container has been changed, so call the notify method
+        if (bodyContainer instanceof GeneralStatement) {
             bodyContainer.notify(CallbackType.change);
         }
     }
@@ -557,88 +587,107 @@ export class Module {
     // }
     // SUPERSEDED BY A METHOD ON THE SCOPE CLASS
 
+    /**
+     *
+     *
+     * @returns
+     */
     insertEmptyLine(): EmptyLineStmt {
         // Current cursor position
         const curPos = this.editor.monaco.getPosition();
-        // 
-        const curStatement = this.focus.getFocusedStatement();
-        const curStatementRoot = curStatement.rootNode;
+        // The statement in / at which the cursor is currently located
+        const curStmt = this.focus.getFocusedStatement();
+        // Parent of the curernt statement
+        const curRoot = curStmt.rootNode;
 
+        // Column positions in the editor start at one
         let leftPosToCheck = 1;
+        // Does the root statement have a body?
         let parentStmtHasBody = false;
-        let textToAdd = "\n";
+        // String to add by default to start on the next line in the
+        // monaco editor
+        const textToAdd = "\n";
+        // Keeps track of the number of spaces to add
         let spaces = "";
         let atCompoundStmt = false;
 
-        if (curStatementRoot instanceof Statement && curStatementRoot.hasBody()) {
-            // is inside the body of another statement
-            leftPosToCheck = curStatementRoot.left + TAB_SPACES;
+        // If the current statement is inside the body of its root
+        if (curRoot instanceof GeneralStatement && curRoot.hasBody()) {
+            // The left editor position of the current statement
+            leftPosToCheck = curRoot.left + TAB_SPACES;
+            // The parent statement has a body
             parentStmtHasBody = true;
 
-            if (leftPosToCheck != 1) {
-                for (let i = 0; i < curStatementRoot.left + TAB_SPACES - 1; i++) spaces += " ";
-            }
+            // Add the required number of spaces to give a statement
+            // the required indentation
+            spaces += " ".repeat(leftPosToCheck - 1);
+
+            console.log("First: ", spaces.length, leftPosToCheck)
         }
 
-        if (curStatement instanceof Statement && curStatement.hasBody() && curPos.column != curStatement.left) {
-            // is at the header statement of a statement with body
-            leftPosToCheck = curStatement.left + TAB_SPACES;
+        // If the current statement has a body and the cursor is not at the start of the statement
+        // PROBABLY: if the cursor is not at the start of the statement, it is at the end
+        // meaning that the empty line should be inserted after the current statement in
+        // its body
+        if (curStmt instanceof GeneralStatement && curStmt.hasBody() && curPos.column != curStmt.left) {
+            // is at the header / first body statement of a statement with body
+            // The left editor position of a body statement
+            leftPosToCheck = curStmt.left + TAB_SPACES;
+            // The current statement has a body
             parentStmtHasBody = true;
             atCompoundStmt = true;
 
-            if (leftPosToCheck != 1) {
-                for (let i = 0; i < curStatement.left + TAB_SPACES - 1; i++) spaces += " ";
-            }
+            // Add the required number of spaces to give a statement
+            // the required indentation
+            spaces += " ".repeat(leftPosToCheck - 1);
+
+            console.log("Second: ", spaces.length, leftPosToCheck)
         }
+
+        console.log("Cursor: ", curPos.column, "Left: ", leftPosToCheck, "Spaces: ", spaces.length)
+
+        // VERDER KIJKEN HOE DIT WERKT!
+        // VOORAL: hoe dat de eerste if + tweede if spaces samen nog steeds valid zijn
 
         if (curPos.column == leftPosToCheck) {
             // insert emptyStatement at this line, move other statements down
-            const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curStatementRoot : this, curStatement.indexInRoot);
+            const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot);
 
-            emptyLine.build(curStatement.getLeftPosition());
+            emptyLine.build(curStmt.getLeftPosition());
 
             if (parentStmtHasBody) {
-                this.addStatementToBody(
-                    curStatementRoot as Statement,
-                    emptyLine,
-                    curStatement.indexInRoot,
-                    curStatement.lineNumber
-                );
-            } else this.addStatementToBody(this, emptyLine, curStatement.indexInRoot, curStatement.lineNumber);
+                this.addStatementToBody(curRoot as GeneralStatement, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
+            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
 
-            const range = new Range(curStatement.lineNumber - 1, 1, curStatement.lineNumber - 1, 1);
+            const range = new Range(curStmt.lineNumber - 1, 1, curStmt.lineNumber - 1, 1);
             this.editor.executeEdits(range, null, spaces + textToAdd);
 
+            for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
             return emptyLine;
         } else {
             // insert emptyStatement on next line, move other statements down
-            const emptyLine = new EmptyLineStmt(
-                parentStmtHasBody ? curStatementRoot : this,
-                curStatement.indexInRoot + 1
-            );
-            emptyLine.build(new Position(curStatement.lineNumber + 1, leftPosToCheck));
+            const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
+            emptyLine.build(new Position(curStmt.lineNumber + 1, leftPosToCheck));
 
             if (parentStmtHasBody && atCompoundStmt) {
                 emptyLine.indexInRoot = 0;
-                emptyLine.rootNode = curStatement;
-                this.addStatementToBody(curStatement as Statement, emptyLine, 0, curStatement.lineNumber + 1);
+                emptyLine.rootNode = curStmt;
+                this.addStatementToBody(curStmt as GeneralStatement, emptyLine, 0, curStmt.lineNumber + 1);
             } else if (parentStmtHasBody) {
                 this.addStatementToBody(
-                    curStatementRoot as Statement,
+                    curRoot as GeneralStatement,
                     emptyLine,
-                    curStatement.indexInRoot + 1,
-                    curStatement.lineNumber + 1
+                    curStmt.indexInRoot + 1,
+                    curStmt.lineNumber + 1
                 );
-            } else this.addStatementToBody(this, emptyLine, curStatement.indexInRoot + 1, curStatement.lineNumber + 1);
+            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.lineNumber + 1);
 
-            const range = new Range(
-                curStatement.lineNumber,
-                curStatement.right,
-                curStatement.lineNumber,
-                curStatement.right
-            );
+            const range = new Range(curStmt.lineNumber, curStmt.right, curStmt.lineNumber, curStmt.right);
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
+
+            console.log("Monaco: ", this.editor.monaco.getModel().getValue())
+            for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
 
             return emptyLine;
         }
@@ -646,7 +695,7 @@ export class Module {
 
     /**
      * Replace the focussed expression with the given expression
-     * 
+     *
      * CURRENTLY ONLY EXPRESSIONS CAN BE REPLACED!!! SHOULD BE GENERALISED!!!
      *
      * @param expr - The expression to replace the focussed expression with
