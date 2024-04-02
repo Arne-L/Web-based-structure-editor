@@ -258,3 +258,45 @@ export function getHoleValues(userInput: string, regex: RegExp): string[] {
     const matches = regex.exec(userInput);
     return matches instanceof Array ? matches.slice(1) : [];
 }
+
+/**
+ * Namespace containing supporting functions to create, edit and manipulate HTML elements.
+ */
+export namespace DOMManupulation {
+    /**
+     * Create an HTML element with the given tag, classes, style, attributes and children.
+    *
+    * @param tag - The tag of the HTML element, e.g. "div"
+    * @param classes - The class(es) to add to the HTML element
+    * @param style - The style properties to add to the HTML element as key value pairs
+    * @param attributes - The attributes to add to the HTML element as key value pairs
+    * @param children - The children to add to the HTML element, in order of appearance
+    * @returns - An HTML element with the given properties
+    */
+    export function createElement(tag: "div", classes?: string[] | string, style?: { [key: string]: string }, innerHTML?: string, attributes?: { [key: string]: string }, children?: HTMLElement[]): HTMLDivElement;
+    export function createElement(tag: string, classes?: string[] | string, style?: { [key: string]: string }, innerHTML?: string, attributes?: { [key: string]: string }, children?: HTMLElement[]): HTMLElement;
+    export function createElement(
+        tag: string,
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLElement {
+        // Create the HTML element
+        const element = document.createElement(tag);
+        // Add the given classes
+        element.classList.add(...(classes instanceof Array ? classes : [classes]));
+        // Add the given style properties
+        if (style) Object.entries(style).forEach(([key, value]) => element.style.setProperty(key, value));
+        // Add the given attributes
+        if (attributes) Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        // Add the children to the element
+        if (children) for (const child of children) element.appendChild(child);
+
+        // Add the inner HTML if given
+        if (innerHTML) element.innerHTML = innerHTML;
+
+        return element;
+    }
+}

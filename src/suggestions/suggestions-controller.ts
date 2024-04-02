@@ -3,7 +3,7 @@ import { EditCodeAction } from "../editor/action-filter";
 import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
-import { EDITOR_DOM_ID } from "../editor/toolbox";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { CodeConstruct, GeneralStatement } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
@@ -262,7 +262,7 @@ class Menu {
 
     /**
      * Add the option as a child to the menu
-     * 
+     *
      * @param option - The option to insert into the menu.
      */
     insertOption(option: MenuOption) {
@@ -272,7 +272,7 @@ class Menu {
 
     /**
      * Get all EditCodeActions that match the given user input.
-     * 
+     *
      * @param userInput - The user's input.
      * @returns EditCodeActions matching the given user input
      */
@@ -307,7 +307,7 @@ class Menu {
                 aDiff = aText.length - userInput.length,
                 bDiff = bText.length - userInput.length;
 
-            // Give preference to the option that has the current text the closest 
+            // Give preference to the option that has the current text the closest
             // to the front
             if (bStart - bStart !== 0) return aStart - bStart;
 
@@ -915,9 +915,7 @@ export class MenuController {
                         {
                             type: "autocomplete-menu",
                             precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
-                            length: editAction.matchRegex
-                                ? optionText.length + 1
-                                : editAction.matchString.length + 1,
+                            length: editAction.matchRegex ? optionText.length + 1 : editAction.matchString.length + 1,
                         },
                         {
                             // Capture all the groups for regex (sub)constructs that appear in the construct so that

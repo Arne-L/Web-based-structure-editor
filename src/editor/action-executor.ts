@@ -137,263 +137,7 @@ export class ActionExecutor {
             case EditActionType.OpenAutocomplete: {
                 this.openSuggestionMenu(context, action.data.firstChar, action.data.autocompleteType);
                 break;
-
-                const autocompleteTkn = new AutocompleteTkn(
-                    action.data.firstChar,
-                    action.data.autocompleteType,
-                    action.data.validMatches
-                );
-
-                autocompleteTkn.subscribe(
-                    CallbackType.change,
-                    new Callback(
-                        (() => {
-                            if (!this.module.menuController.isMenuOpen()) {
-                                this.openAutocompleteMenu(action.data.validMatches);
-                            }
-
-                            this.updateAutocompleteMenu(autocompleteTkn);
-
-                            if (
-                                this.module.menuController.hasNoSuggestions() &&
-                                autocompleteTkn.left != autocompleteTkn.getParentStatement().left &&
-                                !autocompleteTkn.message
-                            ) {
-                                const message = this.module.messageController.addHoverMessage(
-                                    autocompleteTkn,
-                                    {},
-                                    `Did you want to create a text message? use double quotes before and after the text, like this: <span class="code">"</span>your desired text<span class="code">"</span>`
-                                );
-
-                                const button = message.createButton("convert to text");
-                                button.addEventListener("click", () => {
-                                    this.module.executer.execute(
-                                        new EditAction(EditActionType.ConvertAutocompleteToString, {
-                                            token: autocompleteTkn,
-                                            source: { type: "draft-mode" },
-                                        }),
-                                        this.module.focus.getContext()
-                                    );
-                                });
-                            }
-                        }).bind(this)
-                    )
-                );
-
-                this.openAutocompleteMenu(action.data.validMatches);
-
-                switch (action.data.autocompleteType) {
-                    case AutoCompleteType.StartOfLine:
-                        this.replaceEmptyStatement(context.lineStatement, new TemporaryStmt(autocompleteTkn));
-
-                        break;
-
-                    case AutoCompleteType.AtEmptyOperatorHole:
-                    case AutoCompleteType.AtExpressionHole:
-                        this.insertToken(context, autocompleteTkn);
-
-                        break;
-
-                    case AutoCompleteType.RightOfExpression:
-                        this.insertToken(context, autocompleteTkn, { toRight: true });
-
-                        break;
-                    case AutoCompleteType.LeftOfExpression:
-                        this.insertToken(context, autocompleteTkn, { toLeft: true });
-
-                        break;
-                }
-
-                this.module.editor.cursor.setSelection(null);
-                const match = autocompleteTkn.isTerminatingMatch();
-
-                if (match) {
-                    this.performMatchAction(match, autocompleteTkn);
-                } else {
-                    let highlight = new ConstructHighlight(this.module.editor, autocompleteTkn, [230, 235, 255, 0.7]);
-
-                    autocompleteTkn.subscribe(
-                        CallbackType.delete,
-                        new Callback(() => {
-                            if (highlight) {
-                                highlight.removeFromDOM();
-                                highlight = null;
-                            }
-                        })
-                    );
-                }
-
-                break;
             }
-
-            // case EditActionType.InsertElseStatement: {
-            //     const newStatement = new ElseStatement(action.data.hasCondition);
-
-            //     if (action.data.outside) {
-            //         // when the else is being inserted outside: The else is at the same level as the if
-            //         const elseRoot = context.lineStatement.rootNode as Module | Statement;
-            //         // Fit the new else(/elif) statement in the root of the current statement
-            //         newStatement.rootNode = elseRoot;
-            //         newStatement.indexInRoot = context.lineStatement.indexInRoot;
-            //         newStatement.body.push(new EmptyLineStmt(newStatement, 0)); // Add a body to the else/elif
-
-            //         replaceInBody(elseRoot, newStatement.indexInRoot, newStatement);
-            //         rebuildBody(elseRoot, newStatement.indexInRoot, context.lineStatement.lineNumber);
-            //         this.module.editor.executeEdits(this.getBoundaries(context.lineStatement), newStatement);
-            //     } else {
-            //         // when being inserted inside: The else is in the body of the if
-            //         const curStmtRoot = context.lineStatement.rootNode as Statement; // Probably an if statement
-            //         const elseRoot = curStmtRoot.rootNode as Module | Statement; // Probably root of if statement
-            //         newStatement.rootNode = elseRoot; // Make the else a child of the if's root (so a sibling of the if)
-            //         newStatement.indexInRoot = curStmtRoot.indexInRoot + 1; // You need to insert after the if
-            //         // In the "outside" case, you take the "indexInRoot" of the current context, while here you take
-            //         // the indexInRoot of the if statement (the parent of the context) and thus need to add one to it
-
-            //         // indent back and place all of the code below it as its child
-            //         const toMoveStatements = curStmtRoot.body.splice(
-            //             // curStmtRoot is the if statement
-            //             context.lineStatement.indexInRoot,
-            //             curStmtRoot.body.length - context.lineStatement.indexInRoot
-            //         ); // Place all items from the current (else) line to the end in the body of the else statement
-
-            //         // remove the empty line statement: the current line contains an empty line statement because it was
-            //         // initially a space to insert a new statement
-            //         toMoveStatements.splice(0, 1)[0];
-
-            //         if (toMoveStatements.length == 0) newStatement.body.push(new EmptyLineStmt(newStatement, 0));
-            //         const providedLeftPos = new Position(
-            //             context.lineStatement.lineNumber,
-            //             context.lineStatement.left - TAB_SPACES
-            //         );
-            //         newStatement.build(providedLeftPos);
-
-            //         this.module.editor.executeEdits(
-            //             this.getBoundaries(context.lineStatement, { selectIndent: true }),
-            //             newStatement
-            //         );
-
-            //         // Split the current references in the references for the if statement and
-            //         // the references for the else statement
-            //         const topReferences = new Array<Reference>();
-            //         const bottomReferences = new Array<Reference>();
-
-            //         for (const ref of curStmtRoot.scope.references) {
-            //             if (ref.getAssignment().getParentStatement().indexInRoot > context.lineStatement.indexInRoot) {
-            //                 bottomReferences.push(ref);
-            //             } else topReferences.push(ref);
-            //         }
-
-            //         if (bottomReferences.length > 0) {
-            //             curStmtRoot.scope.references = topReferences;
-            //             newStatement.scope.references = bottomReferences;
-            //         }
-
-            //         // Add each of the moved statements to the body of the else statement
-            //         for (const [i, stmt] of toMoveStatements.entries()) {
-            //             stmt.rootNode = newStatement;
-            //             stmt.indexInRoot = i;
-            //             newStatement.body.push(stmt);
-            //         }
-
-            //         // Add the else statement itself to the body of its rootNode
-            //         newStatement.init(providedLeftPos);
-            //         newStatement.rootNode = elseRoot;
-            //         newStatement.indexInRoot = newStatement.indexInRoot; // Heu ... Why?
-            //         this.module.addStatementToBody(
-            //             elseRoot,
-            //             newStatement,
-            //             newStatement.indexInRoot,
-            //             providedLeftPos.lineNumber
-            //         );
-            //     }
-
-            //     if (flashGreen) this.flashGreen(newStatement);
-
-            //     let scopeHighlight = new ScopeHighlight(this.module.editor, newStatement);
-            //     // eventData.code = "else-statement";
-
-            //     break;
-            // }
-
-            // case EditActionType.InsertExpression: {
-            //     this.insertExpression(context, action.data?.expression);
-
-            //     if (flashGreen) this.flashGreen(action.data?.expression);
-
-            //     // eventData.code = action.data?.expression?.getRenderText();
-
-            //     break;
-            // }
-
-            // case EditActionType.InsertStatement: {
-            //     const statement = action.data?.statement as Statement;
-
-            //     this.replaceEmptyStatement(context.lineStatement, statement);
-
-            //     if (flashGreen) this.flashGreen(action.data?.statement);
-
-            //     if (statement.hasBody()) {
-            //         let scopeHighlight = new ScopeHighlight(this.module.editor, statement);
-            //     }
-
-            //     // eventData.code = action.data?.statement?.getRenderText();
-
-            //     break;
-            // }
-
-            // case EditActionType.InsertVarAssignStatement: {
-            //     //TODO: Might want to change back to use the case above if no new logic is added
-            //     const stmt = action.data?.statement;
-
-            //     const id = action.data?.autocompleteData?.identifier?.trim();
-
-            //     if (stmt instanceof GeneralStatement && stmt.containsAssignments() && id) stmt.setAssignmentIdentifier(id, 0);
-
-            //     this.replaceEmptyStatement(context.lineStatement, action.data?.statement as Statement);
-
-            //     if (flashGreen) this.flashGreen(action.data?.statement);
-
-            //     // eventData.code = "var-assignment";
-            //     // eventData.id = id;
-
-            //     break;
-            // }
-
-            // TODO: Disabled as this should be handled generally => IMPORTANT STILL TO DO
-            // case EditActionType.InsertUnaryOperator: {
-            //     if (action.data?.replace) {
-            //         this.insertExpression(
-            //             context,
-            //             new UnaryOperatorExpr(action.data.operator, (context.token as TypedEmptyExpr).type[0])
-            //         );
-            //     } else if (action.data?.wrap) {
-            //         const expr = context.expressionToRight as Expression;
-
-            //         const initialBoundary = this.getBoundaries(expr);
-            //         const root = expr.rootNode as Statement;
-
-            //         const newCode = new UnaryOperatorExpr(
-            //             action.data.operator,
-            //             expr.returns,
-            //             expr.returns,
-            //             expr.rootNode,
-            //             expr.indexInRoot
-            //         );
-
-            //         newCode.setOperand(expr);
-            //         root.tokens[newCode.indexInRoot] = newCode;
-            //         root.rebuild(root.getLeftPosition(), 0);
-
-            //         this.module.editor.executeEdits(initialBoundary, newCode);
-            //         this.module.focus.updateContext({
-            //             positionToMove: newCode.tokens[1].getLeftPosition(),
-            //         });
-            //     }
-
-            //     // eventData.code = action.data.operator;
-
-            //     break;
-            // }
 
             // NOT language independent
             case EditActionType.DeleteNextToken: {
@@ -565,25 +309,6 @@ export class ActionExecutor {
                 break;
             }
 
-            // case EditActionType.IndentBackwardsIfStmt: {
-            //     const root = context.lineStatement.rootNode as Statement | Module;
-
-            //     const toIndentStatements = new Array<Statement>();
-
-            //     for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
-            //         toIndentStatements.push(root.body[i]);
-            //     }
-
-            //     for (const stmt of toIndentStatements.reverse()) {
-            //         this.module.editor.indentRecursively(stmt, { backward: true });
-            //         this.module.indentBackStatement(stmt);
-            //     }
-
-            //     this.module.focus.fireOnNavChangeCallbacks();
-
-            //     break;
-            // }
-
             // Mostly language independent: except for "indentBackStatement"
             case EditActionType.DeleteBackMultiLines: {
                 for (
@@ -608,27 +333,6 @@ export class ActionExecutor {
 
                 break;
             }
-
-            // case EditActionType.IndentForwardsIfStmt: {
-            //     const root = context.lineStatement.rootNode as Statement | Module;
-
-            //     const toIndentStatements = new Array<Statement>();
-
-            //     for (let i = context.lineStatement.indexInRoot; i < root.body.length; i++) {
-            //         toIndentStatements.push(root.body[i]);
-
-            //         if (i + 1 < root.body.length && !(root.body[i + 1] instanceof ElseStatement)) break;
-            //     }
-
-            //     for (const stmt of toIndentStatements) {
-            //         this.module.editor.indentRecursively(stmt, { backward: false });
-            //         this.module.indentForwardStatement(stmt);
-            //     }
-
-            //     this.module.focus.fireOnNavChangeCallbacks();
-
-            //     break;
-            // }
 
             // Mostly language independent: except for "indentForwardStatement"
             case EditActionType.IndentForwards: {
@@ -662,105 +366,6 @@ export class ActionExecutor {
                 break;
             }
 
-            // case EditActionType.InsertFormattedStringItem: {
-            //     const cursorPos = this.module.editor.monaco.getPosition();
-            //     const selectedText = this.module.editor.monaco.getSelection();
-            //     const editableToken = this.module.focus.getTextEditableItem(context);
-            //     const token = editableToken.getToken();
-            //     const formattedStringExpr = token.rootNode as FormattedStringExpr;
-
-            //     const leftText = token.text.substring(0, cursorPos.column - token.left);
-            //     const rightText = token.text.substring(cursorPos.column - token.left, token.right);
-
-            //     const leftToken = token;
-            //     leftToken.text = leftText;
-            //     const rightToken = new EditableTextTkn("", StringRegex, formattedStringExpr, token.indexInRoot + 1);
-            //     rightToken.text = rightText;
-
-            //     formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[rightToken]);
-
-            //     formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
-
-            //     let rightTokenRange = new Range(
-            //         rightToken.getLineNumber(),
-            //         rightToken.left,
-            //         rightToken.getLineNumber(),
-            //         rightToken.right
-            //     );
-
-            //     this.module.editor.executeEdits(rightTokenRange, rightToken);
-
-            //     const fStringToken = new FormattedStringCurlyBracketsExpr(formattedStringExpr, token.indexInRoot + 1);
-
-            //     formattedStringExpr.tokens.splice(token.indexInRoot + 1, 0, ...[fStringToken]);
-
-            //     formattedStringExpr.rebuild(formattedStringExpr.getLeftPosition(), 0);
-
-            //     let editRange: Range;
-
-            //     if (selectedText.startColumn != selectedText.endColumn) {
-            //         editRange = new Range(
-            //             cursorPos.lineNumber,
-            //             selectedText.startColumn,
-            //             cursorPos.lineNumber,
-            //             selectedText.endColumn
-            //         );
-            //     } else {
-            //         editRange = new Range(
-            //             cursorPos.lineNumber,
-            //             cursorPos.column,
-            //             cursorPos.lineNumber,
-            //             cursorPos.column
-            //         );
-            //     }
-
-            //     this.module.editor.executeEdits(editRange, fStringToken);
-            //     this.module.focus.updateContext({ tokenToSelect: fStringToken.tokens[1] });
-            //     // eventData.code = "f-string-item";
-
-            //     break;
-            // }
-
-            // case EditActionType.DeleteFStringCurlyBrackets: {
-            //     const fStringToRemove = action.data.item as FormattedStringCurlyBracketsExpr;
-
-            //     const root = fStringToRemove.rootNode;
-
-            //     const tokenBefore = root.tokens[fStringToRemove.indexInRoot - 1] as EditableTextTkn;
-            //     const tokenAfter = root.tokens[fStringToRemove.indexInRoot + 1] as EditableTextTkn;
-
-            //     const indexToReplace = tokenBefore.indexInRoot;
-
-            //     const newToken = new EditableTextTkn(
-            //         tokenBefore.text + tokenAfter.text,
-            //         StringRegex,
-            //         root,
-            //         fStringToRemove.indexInRoot - 1
-            //     );
-
-            //     const focusPos = new Position(tokenBefore.getLineNumber(), tokenBefore.right);
-
-            //     const replaceRange = new Range(
-            //         tokenAfter.getLineNumber(),
-            //         tokenAfter.right,
-            //         tokenBefore.getLineNumber(),
-            //         tokenBefore.left
-            //     );
-
-            //     this.module.removeItem(fStringToRemove);
-            //     this.module.removeItem(tokenAfter);
-            //     this.module.removeItem(tokenBefore);
-
-            //     root.tokens.splice(indexToReplace, 0, newToken);
-
-            //     root.rebuild(root.getLeftPosition(), 0);
-
-            //     this.module.editor.executeEdits(replaceRange, newToken);
-            //     this.module.focus.updateContext({ positionToMove: focusPos });
-
-            //     break;
-            // }
-
             //
             case EditActionType.InsertChar: {
                 // Current caret position and current seelection
@@ -773,15 +378,6 @@ export class ActionExecutor {
                 // Get the corresponding editable token
                 const token = editableToken.getToken();
                 let newText = "";
-
-                // Should be generalised
-                // if ((pressedKey == "{" || pressedKey == "}") && token.rootNode instanceof FormattedStringExpr) {
-                //     this.execute(
-                //         new EditAction(EditActionType.InsertFormattedStringItem, { source: { type: "autocomplete" } })
-                //     );
-
-                //     break;
-                // }
 
                 // Handle the editing of an existing identifier
                 if (token instanceof IdentifierTkn && token.isEmptyIdentifier()) {
@@ -863,13 +459,6 @@ export class ActionExecutor {
 
                 break;
             }
-
-            // NOT language independent
-            // case EditActionType.DeleteStringLiteral: {
-            //     this.module.deleteCode(context.tokenToLeft.rootNode);
-
-            //     break;
-            // }
 
             case EditActionType.DeletePrevChar:
             case EditActionType.DeleteNextChar: {
@@ -1407,84 +996,6 @@ export class ActionExecutor {
                 break;
             }
 
-            // Temporary disabled functionality
-            // case EditActionType.InsertImportFromDraftMode: {
-            //     let currContext = context;
-            //     this.module.editor.monaco.setPosition(new Position(1, 1));
-            //     this.module.editor.cursor.setSelection(null);
-            //     this.module.insertEmptyLine();
-            //     this.module.editor.monaco.setPosition(new Position(1, 1));
-            //     this.module.editor.cursor.setSelection(null);
-            //     currContext = this.module.focus.getContext();
-
-            //     const stmt = new ImportStatement(action.data?.moduleName, action.data?.itemName);
-            //     const insertAction = new EditCodeAction(
-            //         "from --- import --- :",
-            //         "add-import-btn",
-            //         () => stmt,
-            //         InsertActionType.InsertStatement,
-            //         {},
-            //         null,
-            //         [" "],
-            //         "import",
-            //         null
-            //     );
-
-            //     insertAction.performAction(this, this.module.eventRouter, currContext, { type: "draft-mode" });
-            //     // eventData.code = stmt.getRenderText();
-
-            //     break;
-            // }
-
-            // case EditActionType.InsertMemberCallConversion:
-            // case EditActionType.InsertMemberAccessConversion: {
-            //     const root = action.data.codeToReplace;
-            //     this.module.focus.updateContext(
-            //         new UpdatableContext(null, action.data.codeToReplace.getRightPosition())
-            //     );
-            //     this.execute(
-            //         new EditAction(EditActionType.InsertModifier, {
-            //             source: action?.data?.source,
-            //             modifier: Actions.instance()
-            //                 .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
-            //                 .getCodeFunction() as Modifier,
-            //         }),
-            //         this.module.focus.getContext()
-            //     );
-
-            //     this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
-
-            //     if (root instanceof Expression) root.validateTypes(this.module);
-
-            //     // eventData.code = action.data.codeToReplace.getRenderText();
-
-            //     break;
-            // }
-
-            // case EditActionType.InsertFunctionConversion:
-            // case EditActionType.InsertTypeCast:
-            // case EditActionType.InsertComparisonConversion: {
-            //     const root = action.data.codeToReplace;
-            //     this.deleteCode(action.data.codeToReplace, {
-            //         statement: null,
-            //         replaceType: action.data.typeToConvertTo,
-            //     });
-            //     this.insertExpression(
-            //         this.module.focus.getContext(),
-            //         Actions.instance()
-            //             .actionsList.find((element) => element.cssId == action.data.conversionConstructId)
-            //             .getCodeFunction() as Expression
-            //     );
-            //     action.data.codeToReplace.draftModeEnabled = false;
-            //     this.insertExpression(this.module.focus.getContext(), action.data.codeToReplace as Expression);
-            //     this.flashGreen(action.data.codeToReplace.rootNode as CodeConstruct);
-
-            //     if (root instanceof Expression) root.validateTypes(this.module);
-            //     // eventData.code = action.data.codeToReplace.getRenderText();
-
-            //     break;
-            // }
-
             case EditActionType.SelectClosestTokenAbove: {
                 this.module.focus.navigateUp();
 
@@ -1562,36 +1073,6 @@ export class ActionExecutor {
                     action.data?.autocompleteType ?? AutoCompleteType.StartOfLine
                 );
                 break;
-
-                if (action.data?.autoCompleteTkn) {
-                    const tkn: AutocompleteTkn = action.data.autoCompleteTkn;
-                    this.openAutocompleteMenu(tkn.validMatches);
-
-                    this.updateAutocompleteMenu(tkn);
-                } else {
-                    // No autocomplete token is present; create a menu from scratch
-                    const validActions = this.module.actionFilter
-                        .getProcessedInsertionsList()
-                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-
-                    if (validActions.length === 0) console.error("No valid actions found");
-
-                    this.openAutocompleteMenu(validActions);
-                    this.styleAutocompleteMenu(context.position);
-                    this.module.menuController.updateMenuOptions("");
-                }
-
-                break;
-
-            //TODO: Remove later
-            // case EditActionType.OpenValidInsertMenuSingleLevel:
-            //     if (!this.module.menuController.isMenuOpen()) {
-            //         //TODO: Make this work with ActionFilter
-            //         //const suggestions = this.module.getAllValidInsertsList(focusedNode);
-            //         //this.module.menuController.buildSingleLevelConstructCategoryMenu(suggestions);
-            //     } else this.module.menuController.removeMenus();
-
-            //     break;
 
             case EditActionType.SelectMenuSuggestionAbove:
                 this.module.menuController.focusOptionAbove();
@@ -1681,178 +1162,6 @@ export class ActionExecutor {
     }
 
     /**
-     * Create a new VariabeReferenceExpr to the given identifier
-     *
-     * @param identifier - The identifier of the variable reference
-     * @returns A new VariableReferenceExpr with the given identifier
-     */
-    createVarReference(identifier: string): VariableReferenceExpr {
-        // const identifier = document.getElementById(buttonId).innerText;
-        // No typing support
-        // const dataType = this.module.variableController.getVariableTypeNearLine(
-        //     this.module.focus.getFocusedStatement().scope ??
-        //         (
-        //             this.module.focus.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
-        //                 .rootNode as Statement | Module
-        //         ).scope,
-        //     this.module.editor.monaco.getPosition().lineNumber,
-        //     identifier
-        // );
-
-        return new VariableReferenceExpr(identifier, DataType.Any, "RANDOM_CSS_ID");
-    }
-
-    // /**
-    //  * Insert a variable reference into the current context, handling cases on an empty line or
-    //  * at an expression hole
-    //  *
-    //  * @param identifier - The name of the variable to insert
-    //  * @param source - Contains logging information
-    //  * @param providedContext - The context to insert the variable reference into
-    //  * @param autocompleteData - The data to use for autocompletion, if any
-    //  */
-    // insertVariableReference(identifier: string, source: {}, providedContext?: Context, autocompleteData?: {}) {
-    //     // Get the current context
-    //     let context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     // Some logging stuff
-    //     // let { eventType, eventData } = this.getLogEventSource(source);
-
-    //     if (this.module.validator.onBeginningOfLine(context)) {
-    //         // If at the start of an line statement
-
-    //         // Create a reference to the variable
-    //         const varRef = this.createVarReference(identifier);
-    //         // Create a new variable operation statement
-    //         const stmt = new VarOperationStmt(varRef);
-    //         // Insert the statement
-    //         this.replaceEmptyStatement(context.lineStatement, stmt);
-
-    //         // Get all possible EditCodeActions to make it into an assignment statement
-    //         const availableActions = this.module.actionFilter
-    //             .getProcessedInsertionsList()
-    //             .filter(
-    //                 (action) =>
-    //                     action.insertionResult.insertionType !== InsertionType.Invalid &&
-    //                     (action.insertActionType === InsertActionType.InsertAssignmentModifier ||
-    //                         action.insertActionType === InsertActionType.InsertAugmentedAssignmentModifier)
-    //             );
-
-    //         // Set the editor in draft mode and provide the user with the possible actions
-    //         this.module.openDraftMode(
-    //             stmt,
-    //             "Variable references should not be used on empty lines. Try converting it to an assignment statement instead!",
-    //             (() => {
-    //                 // Each button corresponds to an action
-    //                 const buttons = [];
-
-    //                 for (const action of availableActions) {
-    //                     const button = document.createElement("div");
-    //                     addClassToDraftModeResolutionButton(button, stmt);
-
-    //                     const text = `${varRef.identifier}${action.optionName}`.replace(/---/g, "<hole1></hole1>");
-    //                     button.innerHTML = text;
-
-    //                     const modifier = action.getCode();
-    //                     button.addEventListener("click", () => {
-    //                         this.module.closeConstructDraftRecord(stmt);
-    //                         this.module.executer.execute(
-    //                             new EditAction(EditActionType.InsertAssignmentModifier, {
-    //                                 codeToReplace: stmt,
-    //                                 replacementConstructCssId: action.cssId,
-    //                                 modifier: modifier,
-    //                                 source: { type: "draft-mode" },
-    //                             }),
-    //                             this.module.focus.getContext()
-    //                         );
-    //                         this.flashGreen(modifier.rootNode as Statement);
-    //                     });
-
-    //                     buttons.push(button);
-    //                 }
-
-    //                 return buttons;
-    //             })()
-    //         );
-
-    //         if (autocompleteData) {
-    //             this.flashGreen(stmt);
-    //         }
-
-    //         // eventData.code = varRef.getRenderText();
-    //     } else if (this.module.validator.atEmptyExpressionHole(context)) {
-    //         // If variable reference inserted at an empty expression hole, like it should be
-
-    //         // Create the reference
-    //         const expr = this.createVarReference(identifier);
-    //         // Insert the expression
-    //         this.insertExpression(context, expr);
-
-    //         if (autocompleteData) {
-    //             this.flashGreen(expr);
-    //         }
-
-    //         // eventData.code = expr.getRenderText();
-    //     }
-
-    //     // Add to the logger
-    //     // if (eventData && eventType) Logger.Instance().queueEvent(new LogEvent(eventType, eventData));
-    // }
-
-    // /**
-    //  * Given a source, returns the event type and event data to log
-    //  *
-    //  * @param source - Logging information
-    //  * @returns - The event type (always LogType.InsertCode) and event data to log
-    //  */
-    // getLogEventSource(source: any): { eventType: LogType; eventData: any } {
-    //     let eventType: LogType;
-    //     let eventData: any = null;
-
-    //     if (source) {
-    //         eventData = {};
-
-    //         switch (source.type) {
-    //             case "toolbox":
-    //                 eventType = LogType.InsertCode;
-    //                 eventData.source = "toolbox";
-
-    //                 break;
-
-    //             case "autocomplete":
-    //                 eventType = LogType.InsertCode;
-    //                 eventData.source = "autocomplete";
-
-    //                 break;
-
-    //             case "autocomplete-menu":
-    //                 eventType = LogType.InsertCode;
-    //                 eventData = {
-    //                     source: "autocomplete-menu",
-    //                     precision: source.precision,
-    //                     length: source.length,
-    //                 };
-
-    //                 break;
-
-    //             case "defined-variables":
-    //                 eventType = LogType.InsertCode;
-    //                 eventData.source = "defined-vars-toolbox";
-
-    //                 break;
-
-    //             case "draft-mode":
-    //                 eventType = LogType.InsertCode;
-    //                 eventData.source = "draft-mode";
-
-    //                 break;
-    //         }
-    //     }
-
-    //     return { eventType, eventData };
-    // }
-
-    /**
      * Delete the currently focused autocomplete token from the editor
      * TODO: Why variants depending on the type of token? ==> Delete later?
      *
@@ -1929,37 +1238,6 @@ export class ActionExecutor {
                     }, 500);
                 }
             }, 1);
-        }
-    }
-
-    /**
-     * Insert the given list of constructs into the parent of the focused code construct
-     * at the given index
-     *
-     * @param focusedCode - The focused code construct
-     * @param index - The index to insert the constructs at in the parent of the focused code
-     * @param items - The list of constructs to insert
-     */
-    private insertEmptyListItem(focusedCode: CodeConstruct, index: number, items: Array<CodeConstruct>) {
-        // If the focused code is a token or an expression
-        if (focusedCode instanceof Token || focusedCode instanceof Expression) {
-            // Get the parent of the focused code
-            const root = focusedCode.rootNode;
-
-            // If parent is a statement which has tokens
-            if (root instanceof Statement && root.tokens.length > 0) {
-                // Add all the given constructs at the given index
-                root.tokens.splice(index, 0, ...items);
-
-                // Update all the indices of the child tokens in the root
-                for (let i = 0; i < root.tokens.length; i++) {
-                    root.tokens[i].indexInRoot = i;
-                    root.tokens[i].rootNode = root;
-                }
-
-                // Rebuild the root
-                root.rebuild(root.getLeftPosition(), 0);
-            }
         }
     }
 
@@ -2414,14 +1692,15 @@ export class ActionExecutor {
                 if (replacementResult.insertionType == InsertionType.DraftMode) {
                     const ref = rootOfExprToLeft.getVarRef();
                     if (ref instanceof VariableReferenceExpr) {
-                        const line = this.module.focus.getContext().lineStatement;
+                        // const line = this.module.focus.getContext().lineStatement;
 
-                        const varType = this.module.variableController.getVariableTypeNearLine(
-                            line.rootNode instanceof Module ? this.module.scope : line.scope,
-                            line.lineNumber,
-                            ref.identifier,
-                            false
-                        );
+                        // const varType = this.module.variableController.getVariableTypeNearLine(
+                        //     line.rootNode instanceof Module ? this.module.scope : line.scope,
+                        //     line.lineNumber,
+                        //     ref.identifier,
+                        //     false
+                        // );
+                        const varType = DataType.Any;
 
                         let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
                         const currentAllowedTypes = rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(

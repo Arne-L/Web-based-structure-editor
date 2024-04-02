@@ -25,7 +25,6 @@ import {
     NumberRegex,
     OperatorCategory,
     StringRegex,
-    TAB_SPACES,
     TYPE_MISMATCH_ANY,
     TYPE_MISMATCH_EXPR_DRAFT_MODE_STR,
     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR,
@@ -34,9 +33,10 @@ import {
     getOperatorCategory,
     typeToConversionRecord,
 } from "./consts";
+import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { EMPTYIDENTIFIER } from "./settings";
+import { EMPTYIDENTIFIER } from "../language-definition/settings";
 import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
 import { Editor } from "../editor/editor";
@@ -92,9 +92,9 @@ export interface CodeConstruct {
 
     /**
      * Builds the left and right positions of this node and all of its children nodes recursively.
-     * 
+     *
      * Implicitly sets the left and right positions and the line number of the construct and all of its tokens.
-     * 
+     *
      * @param pos - The left position to start building the nodes from
      * @returns The final right position of the whole node (calculated after building all of the children nodes)
      */
@@ -208,11 +208,11 @@ export interface CodeConstruct {
 
     /**
      * Highlight the given construct with the given colour
-     * 
+     *
      * @param construct - The construct to highlight
      * @param rgbColour - The colour to highlight the construct with
      */
-    addHighlight(rgbColour: [number, number, number, number], editor: Editor) : void;
+    addHighlight(rgbColour: [number, number, number, number], editor: Editor): void;
 }
 
 /**
@@ -413,10 +413,10 @@ export abstract class Statement implements CodeConstruct {
 
     /**
      * Recursively build the construct and all its children / body constructs.
-     * 
+     *
      * As a side effect, this function sets the left and right positions and linenumber
      * of the construct and all its children.
-     * 
+     *
      * @param pos - Left position to start building the nodes from
      */
     init(pos: Position) {
@@ -425,8 +425,8 @@ export abstract class Statement implements CodeConstruct {
         this.build(pos);
 
         // Guard clause
-        if (!this.hasBody()) return
-        
+        if (!this.hasBody()) return;
+
         // Do the same for its children
         for (let i = 0; i < this.body.length; i++)
             // The left position(s) for the children
@@ -455,7 +455,7 @@ export abstract class Statement implements CodeConstruct {
 
     /**
      * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
-     * 
+     *
      * @param pos - The left position to start building the nodes from
      * @param fromIndex - The index of the node that was edited.
      */
@@ -1364,7 +1364,12 @@ export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
     rootNode: GeneralExpression | GeneralStatement = null;
 
-    constructor(construct: ConstructDefinition, root?: GeneralStatement | Module, indexInRoot?: number, data?: {"reference": string}) {
+    constructor(
+        construct: ConstructDefinition,
+        root?: GeneralStatement | Module,
+        indexInRoot?: number,
+        data?: { reference: string }
+    ) {
         super(construct, root, indexInRoot, data);
     }
 

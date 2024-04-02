@@ -1,4 +1,4 @@
-import { EDITOR_DOM_ID } from "../editor/toolbox";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { constructKeys, Util } from "../utilities/util";
 
 /**
@@ -17,7 +17,7 @@ export class ConstructDoc {
     parentElement: HTMLDivElement;
 
     /**
-     * Needs to be commented because we commented out the this.constructDocs in the 
+     * Needs to be commented because we commented out the this.constructDocs in the
      * Util class (util.ts file) which is the class behind "Util.getPopulatedInstance()".
      */
     // static updateDocsLeftOffset(offset: number) {

@@ -1251,31 +1251,31 @@ export class Validator {
         }
     }
 
-    /**
-     * Gets the EditCodeActions for the given search string
-     *
-     * @param searchString - The string to search for
-     * @param possibilities - The list of possibilities to search through (EditCodeAction[])
-     * @param searchKeys - The keys to search through (strings)
-     * @returns - A list of results that match the search string
-     */
-    static matchEditCodeAction(
-        searchString: string,
-        possibilities: EditCodeAction[],
-        searchKeys: string[]
-    ): Fuse.FuseResult<EditCodeAction>[] {
-        const options = {
-            includeScore: true,
-            includeMatches: true,
-            shouldSort: true,
-            findAllMatches: true,
-            threshold: 0.5,
-            keys: searchKeys,
-        };
-        const fuse = new Fuse(possibilities, options);
+    // /**
+    //  * Gets the EditCodeActions for the given search string
+    //  *
+    //  * @param searchString - The string to search for
+    //  * @param possibilities - The list of possibilities to search through (EditCodeAction[])
+    //  * @param searchKeys - The keys to search through (strings)
+    //  * @returns - A list of results that match the search string
+    //  */
+    // static matchEditCodeAction(
+    //     searchString: string,
+    //     possibilities: EditCodeAction[],
+    //     searchKeys: string[]
+    // ): Fuse.FuseResult<EditCodeAction>[] {
+    //     const options = {
+    //         includeScore: true,
+    //         includeMatches: true,
+    //         shouldSort: true,
+    //         findAllMatches: true,
+    //         threshold: 0.5,
+    //         keys: searchKeys,
+    //     };
+    //     const fuse = new Fuse(possibilities, options);
 
-        return fuse.search(searchString);
-    }
+    //     return fuse.search(searchString);
+    // }
 
     /**
      * Mark a codestruct requiring an import as draft mode, or unmark if import is okay

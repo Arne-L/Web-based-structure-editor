@@ -1,6 +1,6 @@
 import { Selection } from "monaco-editor";
 import { Editor } from "../editor/editor";
-import { EDITOR_DOM_ID } from "../editor/toolbox";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { nova } from "../index";
 import { CodeConstruct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";

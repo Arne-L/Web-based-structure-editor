@@ -32,12 +32,11 @@ import {
 } from "./ast";
 import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
-import { DataType, MISSING_IMPORT_DRAFT_MODE_STR, TAB_SPACES } from "./consts";
+import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";
+import { TAB_SPACES, ERROR_HIGHLIGHT_COLOUR } from "../language-definition/settings";
 import { Language } from "./language";
 import { Scope } from "./scope";
 import { VariableController } from "./variable-controller";
-
-const ERROR_HIGHLIGHT_COLOUR: [number, number, number, number] = [255, 153, 153, 0.5];
 
 /**
  * The main body of the code which includes an array of statements.
@@ -395,7 +394,7 @@ export class Module {
 
     /**
      * Remove the statement and replace it with an empty line
-     * 
+     *
      * @param line - The statement to be removed
      * @returns - The empty line that replaces the removed statement
      */
@@ -464,15 +463,15 @@ export class Module {
     }
 
     /**
-     * Rebuild the root and all of its children after a child construct has 
-     * been deleted. Includes updating the left and right positions and the 
+     * Rebuild the root and all of its children after a child construct has
+     * been deleted. Includes updating the left and right positions and the
      * linenumbers
-     * 
+     *
      * @param item - The construct that has been deleted
      * @param root - The root of the construct
      */
     private rebuildOnConstructDeletion(item: CodeConstruct, root: GeneralStatement) {
-        // Notify the construct that has been deleted 
+        // Notify the construct that has been deleted
         this.recursiveNotify(item, CallbackType.delete);
 
         // Update indices and root nodes of all tokens of the root
@@ -548,7 +547,7 @@ export class Module {
 
     /**
      * Adds `code` to the body at the given index
-     * 
+     *
      * @param code the statement to be added
      * @param index the index to add the `code` statement
      * @param line the line number that will be given to the newly added statement
@@ -622,7 +621,7 @@ export class Module {
             // the required indentation
             spaces += " ".repeat(leftPosToCheck - 1);
 
-            console.log("First: ", spaces.length, leftPosToCheck)
+            console.log("First: ", spaces.length, leftPosToCheck);
         }
 
         // If the current statement has a body and the cursor is not at the start of the statement
@@ -641,10 +640,10 @@ export class Module {
             // the required indentation
             spaces += " ".repeat(leftPosToCheck - 1);
 
-            console.log("Second: ", spaces.length, leftPosToCheck)
+            console.log("Second: ", spaces.length, leftPosToCheck);
         }
 
-        console.log("Cursor: ", curPos.column, "Left: ", leftPosToCheck, "Spaces: ", spaces.length)
+        console.log("Cursor: ", curPos.column, "Left: ", leftPosToCheck, "Spaces: ", spaces.length);
 
         // VERDER KIJKEN HOE DIT WERKT!
         // VOORAL: hoe dat de eerste if + tweede if spaces samen nog steeds valid zijn
@@ -656,7 +655,12 @@ export class Module {
             emptyLine.build(curStmt.getLeftPosition());
 
             if (parentStmtHasBody) {
-                this.addStatementToBody(curRoot as GeneralStatement, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
+                this.addStatementToBody(
+                    curRoot as GeneralStatement,
+                    emptyLine,
+                    curStmt.indexInRoot,
+                    curStmt.lineNumber
+                );
             } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
 
             const range = new Range(curStmt.lineNumber - 1, 1, curStmt.lineNumber - 1, 1);
@@ -686,7 +690,7 @@ export class Module {
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
 
-            console.log("Monaco: ", this.editor.monaco.getModel().getValue())
+            console.log("Monaco: ", this.editor.monaco.getModel().getValue());
             for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
 
             return emptyLine;

@@ -6,8 +6,6 @@ import { CodeConstruct, Expression, FunctionCallExpr, Modifier } from "./ast";
 import { Callback, CallbackType } from "./callback";
 import { Module } from "./module";
 
-export const TAB_SPACES = 4;
-
 /**
  * The type of insertion that is possible:
  * * Valid: insertion can be made
@@ -415,10 +413,7 @@ export function GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(type: DataType) {
     )} but you entered a ${getStyledSpan(
         getUserFriendlyType(type),
         CSSClasses.type
-    )} instead. It can be converted to a ${getStyledSpan(
-        getUserFriendlyType(DataType.Number),
-        CSSClasses.type
-    )} with:`;
+    )} instead. It can be converted to a ${getStyledSpan(getUserFriendlyType(DataType.Number), CSSClasses.type)} with:`;
 }
 
 export function GET_TYPE_CANNOT_BE_CONVERTED_MSG(type: DataType) {

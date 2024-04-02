@@ -7,12 +7,11 @@ import {
     Statement,
     TypedEmptyExpr,
 } from "../syntax-tree/ast";
-import { TAB_SPACES } from "../syntax-tree/consts";
+import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "../syntax-tree/module";
 import { Cursor } from "./cursor";
 import { Hole } from "./hole";
-
-const FONT_SIZE = 20;
+import { FONT_SIZE } from "../language-definition/settings";
 
 export class Editor {
     module: Module;
@@ -339,7 +338,7 @@ export class Editor {
 
     /**
      * Add the text to the monaco editor at the given range and add a hole to the editor
-     * 
+     *
      * @param range - The range in which to insert in the monaco editor
      * @param code - The code to insert
      * @param overwrite - The text to overwrite the range with. If null, the code's render text is used.
@@ -362,9 +361,9 @@ export class Editor {
     }
 
     /**
-     * Recursively indent the given statement and its body to the left or right, 
+     * Recursively indent the given statement and its body to the left or right,
      * depending on the value of backward
-     * 
+     *
      * @param statement - The statement to indent
      * @param param1 - { backward: boolean } - Whether to indent to the left or right
      */
