@@ -1,5 +1,4 @@
 import { DOMManupulation } from "../utilities/util";
-import { LogEvent, Logger, LogType } from "./../logger/analytics";
 
 // SVG icons for the tooltips
 const playIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
@@ -7,16 +6,6 @@ const lightBulbIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" hei
 const zapIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
 const chevronUpIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`;
 const chevronDownIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-const chevronRightIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
-
-// /**
-//  * Describes the three variants of tooltips
-//  */
-// export enum TooltipType {
-//     StepByStepExample = "step-by-step-example",
-//     UsageHint = "usage-hint",
-//     RunnableExample = "runnable-example",
-// }
 
 /**
  * Describes the three variants of tooltips
