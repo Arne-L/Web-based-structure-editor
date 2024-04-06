@@ -252,29 +252,40 @@ export abstract class Statement implements CodeConstruct {
         );
     }
 
+    // FFD: Only used for types
     //TODO: See if this needs any changes for #526
     checkInsertionAtHole(index: number, givenType: DataType): InsertionResult {
+        // Check that there is atleast one hole
         if (Object.keys(this.typeOfHoles).length > 0) {
+            // Get the type of the hole at the given index
             let holeType = this.typeOfHoles[index];
-            let allowedTypes = this.getCurrentAllowedTypesOfHole(index);
+            // Also gets the holetype, but with a special case for booleans(?)
+            let allowedTypes = DataType.Any;//this.getCurrentAllowedTypesOfHole(index);
 
             if (allowedTypes.length > 0) {
                 holeType = allowedTypes;
             }
 
+            // Check if the datatypes to which the giventype can be converted matches one 
+            // of the hole's types
             let canConvertToParentType = hasMatch(Util.getInstance().typeConversionMap.get(givenType), holeType);
 
+            // If there is no exact match
             if (canConvertToParentType && !hasMatch(holeType, [givenType])) {
+                // Get all datatypes to which the given type can be converted
                 const conversionRecords = typeToConversionRecord.has(givenType)
                     ? typeToConversionRecord.get(givenType).filter((record) => holeType.indexOf(record.convertTo) > -1)
                     : [];
 
+                // Return draft mode
                 return new InsertionResult(InsertionType.DraftMode, "", conversionRecords); //NOTE: message is populated by calling code as it has enough context info
+                // If every type is accepted OR the given type is an exact match
             } else if (holeType.some((t) => t == DataType.Any) || hasMatch(holeType, [givenType])) {
                 return new InsertionResult(InsertionType.Valid, "", []);
             }
         }
 
+        // Otherwise it is invalid
         return new InsertionResult(InsertionType.Invalid, "", []);
     }
 
@@ -694,9 +705,9 @@ export abstract class Statement implements CodeConstruct {
         return;
     }
 
-    getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
-        return [];
-    }
+    // getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
+    //     return [];
+    // }
 
     getTypes(): DataType[] {
         return [];
@@ -4219,9 +4230,9 @@ export class BinaryOperatorExpr extends Expression {
         // this.updateVariableType(this.returns);
     }
 
-    getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
-        return this.getCurrentAllowedTypesOfOperand(index, beingDeleted);
-    }
+    // getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
+    //     return this.getCurrentAllowedTypesOfOperand(index, beingDeleted);
+    // }
 
     // validateTypes(module: Module) {
     //     let curr = this.rootNode;
@@ -4516,12 +4527,12 @@ export class BinaryOperatorExpr extends Expression {
     //     module.executer.execute(action);
     // }
 
-    private getCurrentAllowedTypesOfOperand(index: number, beingDeleted: boolean = false): DataType[] {
-        if (this.isBoolean()) {
-            return [DataType.Boolean];
-        }
-        return this.typeOfHoles[index];
-    }
+    // private getCurrentAllowedTypesOfOperand(index: number, beingDeleted: boolean = false): DataType[] {
+    //     if (this.isBoolean()) {
+    //         return [DataType.Boolean];
+    //     }
+    //     return this.typeOfHoles[index];
+    // }
 
     private isOperandEmpty(index: number): boolean {
         return this.tokens[index] instanceof TypedEmptyExpr;

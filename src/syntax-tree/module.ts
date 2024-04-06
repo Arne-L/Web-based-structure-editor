@@ -499,7 +499,7 @@ export class Module {
                 replaceType = DataType.Any;
 
             let replacedItem = null;
-            const allowedTypes = root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
+            const allowedTypes = DataType.Any;//root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
             replacedItem = new TypedEmptyExpr(
                 replaceType !== null ? [replaceType] : root.typeOfHoles[item.indexInRoot]

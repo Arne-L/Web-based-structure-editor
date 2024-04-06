@@ -1686,10 +1686,11 @@ export class ActionExecutor {
                         const varType = DataType.Any;
 
                         let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
-                        const currentAllowedTypes = rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
-                            rootOfExprToLeft.indexInRoot,
-                            false
-                        );
+                        const currentAllowedTypes = DataType.Any;
+                        //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
+                        //     rootOfExprToLeft.indexInRoot,
+                        //     false
+                        // );
 
                         if (currentAllowedTypes.length > 0) {
                             expectedTypes = currentAllowedTypes;
@@ -1711,10 +1712,11 @@ export class ActionExecutor {
                     } else {
                         let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
 
-                        const currentAllowedTypes = rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
-                            rootOfExprToLeft.indexInRoot,
-                            false
-                        );
+                        const currentAllowedTypes = DataType.Any;
+                        //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
+                        //     rootOfExprToLeft.indexInRoot,
+                        //     false
+                        // );
 
                         if (currentAllowedTypes.length > 0) {
                             expectedTypes = currentAllowedTypes;
