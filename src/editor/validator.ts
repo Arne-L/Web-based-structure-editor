@@ -112,6 +112,16 @@ export class Validator {
         );
     }
 
+    // canAddLeftToAutocomplete(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+
+    //     return (
+    //         context.expressionToLeft &&
+    //         !(context.tokenToRight instanceof AutocompleteTkn) &&
+    //         !NumberRegex.test(context.expressionToLeft.getValue() + pressedKey)
+    //     );
+    // }
+
     /**
      * Determines if the right operand can open an autocomplete menu / switch to autocomplete
      *

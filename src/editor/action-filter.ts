@@ -52,18 +52,18 @@ export class ActionFilter {
         for (const action of Actions.instance().actionsList) {
             if (action.containsReference) {
                 const nearestStmt = context.lineStatement;
-                const scope = context.lineStatement.getNearestScope()
+                const scope = context.lineStatement.getNearestScope();
                 const references = scope.getValidReferences(nearestStmt.getLineNumber());
                 for (const reference of references) {
                     if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
-                    const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText())
+                    const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText());
 
                     validOptionMap.set(
                         Math.random().toString(36).substring(8), // Key is useless, thus should simply be unique
                         EditCodeAction.createDynamicEditCodeAction(
                             action.optionName, // Does this need to be changed? When is this used?
                             action.cssId,
-                            () => action.getCodeFunction({"reference": reference.getAssignment().getRenderText()}),
+                            () => action.getCodeFunction({ reference: reference.getAssignment().getRenderText() }),
                             action.insertActionType,
                             action.insertData,
                             action.validateAction(this.module.validator, context),
@@ -351,7 +351,7 @@ export class UserAction {
 export class EditCodeAction extends UserAction {
     insertActionType: InsertActionType;
     insertData: any = {};
-    getCodeFunction: (data?: {"reference": string}) => Statement | Expression;
+    getCodeFunction: (data?: { reference: string }) => Statement | Expression;
     terminatingChars: string[];
     insertionResult: InsertionResult;
     matchString: string;
@@ -384,7 +384,7 @@ export class EditCodeAction extends UserAction {
     constructor(
         optionName: string,
         cssId: string,
-        getCodeFunction: (data?: {"reference": string}) => Statement | Expression,
+        getCodeFunction: (data?: { reference: string }) => Statement | Expression,
         insertActionType: InsertActionType,
         insertData: any = {},
         documentation: any,
@@ -485,16 +485,16 @@ export class EditCodeAction extends UserAction {
     /**
      * Text to display in user facing locations for the current action
      * while staying aware of the current user input
-     * 
+     *
      * @param userInput - The current user input
-     * @returns Text to display in context aware locations such as the 
+     * @returns Text to display in context aware locations such as the
      * autocomplete menu
      */
     getDisplayText(userInput: string): string {
         // Get the predefined option name
         let displayText = this.optionName;
 
-        // If the matchString is a string, no holes need to be filled thus we 
+        // If the matchString is a string, no holes need to be filled thus we
         // can simply return the optionName
         if (this.matchString) return displayText;
 
@@ -511,7 +511,7 @@ export class EditCodeAction extends UserAction {
             const textIndex = displayText.indexOf("--"),
                 holeIndex = displayText.indexOf("---");
 
-            // If neither a text slot nor a hole is found, there are no 
+            // If neither a text slot nor a hole is found, there are no
             // more slots to fill and we can break the loop
             if (textIndex === -1 && holeIndex === -1) break;
 
@@ -555,7 +555,7 @@ export class EditCodeAction extends UserAction {
             // Either draft or valid AND the code is an expression
             if (context.selected) {
                 // Check if the types of the hole and the inserted expression match
-                return new InsertionResult(InsertionType.Valid, "", []);//context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
+                return new InsertionResult(InsertionType.Valid, "", []); //context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
             } else if (!context.selected) {
                 // Should always be a hole and thus there is always a selection
                 return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);

@@ -1610,12 +1610,12 @@ export abstract class Expression extends Statement implements CodeConstruct {
 
     //TODO: Probably needs to be filled. At least in every construct, but there should be general logic that applies to all expressions as well,
     //Currently only implemented for BinOps due to time constraints
-    validateTypes(module: Module) {
-        return;
-        /**
-         * Might be obselete if we don't use types
-         */
-    }
+    // validateTypes(module: Module) {
+    //     return;
+    //     /**
+    //      * Might be obselete if we don't use types
+    //      */
+    // }
 }
 
 export abstract class Modifier extends Expression {
@@ -2986,60 +2986,60 @@ export class ListAccessModifier extends Modifier {
         return "[---]";
     }
 
-    validateTypes(module: Module): void {
-        const indxTkn = this.tokens[this.indexOfIndexTkn];
-        if (indxTkn instanceof Expression && indxTkn.returns !== DataType.Number) {
-            if (indxTkn.returns === DataType.Any) {
-                module.openDraftMode(
-                    indxTkn,
-                    TYPE_MISMATCH_ANY(this.typeOfHoles[this.indexOfIndexTkn], indxTkn.returns),
-                    [
-                        new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-                            indxTkn.getKeyword(),
-                            module,
-                            indxTkn
-                        ),
-                    ]
-                );
-            } else {
-                const conversionRecords = TypeChecker.getTypeConversionRecords(indxTkn.returns, DataType.Number);
-                const actions = [
-                    ...conversionRecords.map((rec) => rec.getConversionButton(indxTkn.getKeyword(), module, indxTkn)),
-                ];
+    // validateTypes(module: Module): void {
+    //     const indxTkn = this.tokens[this.indexOfIndexTkn];
+    //     if (indxTkn instanceof Expression && indxTkn.returns !== DataType.Number) {
+    //         if (indxTkn.returns === DataType.Any) {
+    //             module.openDraftMode(
+    //                 indxTkn,
+    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.indexOfIndexTkn], indxTkn.returns),
+    //                 [
+    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+    //                         indxTkn.getKeyword(),
+    //                         module,
+    //                         indxTkn
+    //                     ),
+    //                 ]
+    //             );
+    //         } else {
+    //             const conversionRecords = TypeChecker.getTypeConversionRecords(indxTkn.returns, DataType.Number);
+    //             const actions = [
+    //                 ...conversionRecords.map((rec) => rec.getConversionButton(indxTkn.getKeyword(), module, indxTkn)),
+    //             ];
 
-                if (conversionRecords.length === 0) {
-                    module.openDraftMode(indxTkn, GET_TYPE_CANNOT_BE_CONVERTED_MSG(indxTkn.returns), [
-                        createWarningButton(
-                            Tooltip.Delete,
-                            indxTkn,
-                            (() => {
-                                this.deleteUnconvertibleTypeWarning(this, indxTkn, module);
-                            }).bind(this)
-                        ),
-                    ]);
-                } else {
-                    module.openDraftMode(
-                        indxTkn,
-                        GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(indxTkn.returns),
-                        actions
-                    );
-                }
-            }
-        }
-    }
+    //             if (conversionRecords.length === 0) {
+    //                 module.openDraftMode(indxTkn, GET_TYPE_CANNOT_BE_CONVERTED_MSG(indxTkn.returns), [
+    //                     createWarningButton(
+    //                         Tooltip.Delete,
+    //                         indxTkn,
+    //                         (() => {
+    //                             this.deleteUnconvertibleTypeWarning(this, indxTkn, module);
+    //                         }).bind(this)
+    //                     ),
+    //                 ]);
+    //             } else {
+    //                 module.openDraftMode(
+    //                     indxTkn,
+    //                     GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(indxTkn.returns),
+    //                     actions
+    //                 );
+    //             }
+    //         }
+    //     }
+    // }
 
-    private deleteUnconvertibleTypeWarning(
-        rootExpression: Modifier,
-        codeToDelete: CodeConstruct,
-        module: Module
-    ): void {
-        const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
-            rootExpression: rootExpression,
-            codeToDelete: codeToDelete,
-        });
+    // private deleteUnconvertibleTypeWarning(
+    //     rootExpression: Modifier,
+    //     codeToDelete: CodeConstruct,
+    //     module: Module
+    // ): void {
+    //     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
+    //         rootExpression: rootExpression,
+    //         codeToDelete: codeToDelete,
+    //     });
 
-        module.executer.execute(action);
-    }
+    //     module.executer.execute(action);
+    // }
 }
 
 /**
@@ -4223,13 +4223,13 @@ export class BinaryOperatorExpr extends Expression {
         return this.getCurrentAllowedTypesOfOperand(index, beingDeleted);
     }
 
-    validateTypes(module: Module) {
-        let curr = this.rootNode;
-        while (curr && curr.rootNode instanceof BinaryOperatorExpr) {
-            curr = curr.rootNode;
-        }
-        this.validateBinExprTypes(curr instanceof BinaryOperatorExpr ? curr : this, module);
-    }
+    // validateTypes(module: Module) {
+    //     let curr = this.rootNode;
+    //     while (curr && curr.rootNode instanceof BinaryOperatorExpr) {
+    //         curr = curr.rootNode;
+    //     }
+    //     this.validateBinExprTypes(curr instanceof BinaryOperatorExpr ? curr : this, module);
+    // }
 
     getKeyword(): string {
         return `${this.getLeftOperand().getKeyword()} ${this.operator} ${this.getRightOperand().getKeyword()}`;
@@ -4265,256 +4265,256 @@ export class BinaryOperatorExpr extends Expression {
 
     //TODO: Passing module recursively is bad for memory
     //TODO: Function is way too large. Can definitely be split into smaller ones.
-    /**
-     * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
-     * recursively for all nested binary expressions.
-     *
-     * @param expr - Binary expression
-     * @param module - Current module
-     * @returns Whether the binary expression is valid
-     */
-    private validateBinExprTypes(expr: BinaryOperatorExpr, module: Module): boolean {
-        const leftOperand = expr.getLeftOperand();
-        const rightOperand = expr.getRightOperand();
-        let leftOpened = false,
-            rightOpened = false;
+    // /**
+    //  * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
+    //  * recursively for all nested binary expressions.
+    //  *
+    //  * @param expr - Binary expression
+    //  * @param module - Current module
+    //  * @returns Whether the binary expression is valid
+    //  */
+    // private validateBinExprTypes(expr: BinaryOperatorExpr, module: Module): boolean {
+    //     const leftOperand = expr.getLeftOperand();
+    //     const rightOperand = expr.getRightOperand();
+    //     let leftOpened = false,
+    //         rightOpened = false;
 
-        if (leftOperand instanceof BinaryOperatorExpr) {
-            leftOpened = this.validateBinExprTypes(leftOperand, module);
-        }
+    //     if (leftOperand instanceof BinaryOperatorExpr) {
+    //         leftOpened = this.validateBinExprTypes(leftOperand, module);
+    //     }
 
-        if (rightOperand instanceof BinaryOperatorExpr) {
-            rightOpened = this.validateBinExprTypes(rightOperand, module);
-        }
+    //     if (rightOperand instanceof BinaryOperatorExpr) {
+    //         rightOpened = this.validateBinExprTypes(rightOperand, module);
+    //     }
 
-        if (leftOpened || rightOpened) return true;
+    //     if (leftOpened || rightOpened) return true;
 
-        //get all conversions
-        const leftExprTypes = leftOperand.getTypes();
-        const rightExprTypes = rightOperand.getTypes();
+    //     //get all conversions
+    //     const leftExprTypes = leftOperand.getTypes();
+    //     const rightExprTypes = rightOperand.getTypes();
 
-        const conversionActionsForLeft = [];
-        const conversionActionsForRight = [];
+    //     const conversionActionsForLeft = [];
+    //     const conversionActionsForRight = [];
 
-        //if types can be added, there is no need to get conversion records
-        let operationDefinedBetweenTypes = false;
-        if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
-            operationDefinedBetweenTypes = TypeChecker.isBinOpAllowed(
-                this.operator,
-                leftOperand.returns,
-                rightOperand.returns
-            );
-        }
+    //     //if types can be added, there is no need to get conversion records
+    //     let operationDefinedBetweenTypes = false;
+    //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
+    //         operationDefinedBetweenTypes = TypeChecker.isBinOpAllowed(
+    //             this.operator,
+    //             leftOperand.returns,
+    //             rightOperand.returns
+    //         );
+    //     }
 
-        if (!operationDefinedBetweenTypes) {
-            //get all possible ways of converting all types of left to types of right and vice versa
-            for (const leftType of leftExprTypes) {
-                for (const rightType of rightExprTypes) {
-                    const conversionRecordsLeftToRight = TypeChecker.getTypeConversionRecords(leftType, rightType);
-                    const conversionRecordsRightToLeft = TypeChecker.getTypeConversionRecords(rightType, leftType);
+    //     if (!operationDefinedBetweenTypes) {
+    //         //get all possible ways of converting all types of left to types of right and vice versa
+    //         for (const leftType of leftExprTypes) {
+    //             for (const rightType of rightExprTypes) {
+    //                 const conversionRecordsLeftToRight = TypeChecker.getTypeConversionRecords(leftType, rightType);
+    //                 const conversionRecordsRightToLeft = TypeChecker.getTypeConversionRecords(rightType, leftType);
 
-                    for (const leftRecord of conversionRecordsLeftToRight) {
-                        if (
-                            TypeChecker.getAllowedBinaryOperatorsForType(leftRecord.convertTo).indexOf(expr.operator) >
-                            -1
-                        ) {
-                            conversionActionsForLeft.push(
-                                leftRecord.getConversionButton(leftOperand.getKeyword(), module, leftOperand)
-                            );
-                        }
-                    }
+    //                 for (const leftRecord of conversionRecordsLeftToRight) {
+    //                     if (
+    //                         TypeChecker.getAllowedBinaryOperatorsForType(leftRecord.convertTo).indexOf(expr.operator) >
+    //                         -1
+    //                     ) {
+    //                         conversionActionsForLeft.push(
+    //                             leftRecord.getConversionButton(leftOperand.getKeyword(), module, leftOperand)
+    //                         );
+    //                     }
+    //                 }
 
-                    for (const rightRecord of conversionRecordsRightToLeft) {
-                        if (
-                            TypeChecker.getAllowedBinaryOperatorsForType(rightRecord.convertTo).indexOf(expr.operator) >
-                            -1
-                        ) {
-                            conversionActionsForRight.push(
-                                rightRecord.getConversionButton(rightOperand.getKeyword(), module, rightOperand)
-                            );
-                        }
-                    }
-                }
-            }
-        }
+    //                 for (const rightRecord of conversionRecordsRightToLeft) {
+    //                     if (
+    //                         TypeChecker.getAllowedBinaryOperatorsForType(rightRecord.convertTo).indexOf(expr.operator) >
+    //                         -1
+    //                     ) {
+    //                         conversionActionsForRight.push(
+    //                             rightRecord.getConversionButton(rightOperand.getKeyword(), module, rightOperand)
+    //                         );
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        //note that if one of them or both are a TypedEmptyExpr, then any insertions are validated elsewhere
-        //so at this point if something is inserted into the left or right operand then that insertion at the very least
-        //was NOT invalid
-        if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
-            if (leftOperand.returns === rightOperand.returns && operationDefinedBetweenTypes) {
-                if (leftOperand.draftModeEnabled) module.closeConstructDraftRecord(leftOperand);
-                if (rightOperand.draftModeEnabled) module.closeConstructDraftRecord(rightOperand);
-                return false;
-            }
+    //     //note that if one of them or both are a TypedEmptyExpr, then any insertions are validated elsewhere
+    //     //so at this point if something is inserted into the left or right operand then that insertion at the very least
+    //     //was NOT invalid
+    //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
+    //         if (leftOperand.returns === rightOperand.returns && operationDefinedBetweenTypes) {
+    //             if (leftOperand.draftModeEnabled) module.closeConstructDraftRecord(leftOperand);
+    //             if (rightOperand.draftModeEnabled) module.closeConstructDraftRecord(rightOperand);
+    //             return false;
+    //         }
 
-            //TODO: These if blocks are identical. Should be a function
-            if (leftOperand.returns === DataType.Any) {
-                module.openDraftMode(
-                    leftOperand,
-                    TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], leftOperand.returns),
-                    [
-                        new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-                            "",
-                            module,
-                            leftOperand
-                        ),
-                    ]
-                );
-            } else if (!operationDefinedBetweenTypes) {
-                if (conversionActionsForLeft.length > 0) {
-                    module.openDraftMode(
-                        leftOperand,
-                        TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([rightOperand.returns], leftOperand.returns),
-                        conversionActionsForLeft
-                    );
-                } else if (
-                    conversionActionsForLeft.length === 0 &&
-                    !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
-                ) {
-                    module.openDraftMode(
-                        leftOperand,
-                        GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
-                            expr.operator,
-                            leftOperand.returns,
-                            rightOperand.returns
-                        ),
-                        [
-                            createWarningButton(
-                                Tooltip.Delete,
-                                leftOperand,
-                                (() => {
-                                    this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
-                                }).bind(this)
-                            ),
-                        ]
-                    );
-                }
-            } else if (leftOperand.draftModeEnabled) {
-                module.closeConstructDraftRecord(leftOperand);
-            }
+    //         //TODO: These if blocks are identical. Should be a function
+    //         if (leftOperand.returns === DataType.Any) {
+    //             module.openDraftMode(
+    //                 leftOperand,
+    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], leftOperand.returns),
+    //                 [
+    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+    //                         "",
+    //                         module,
+    //                         leftOperand
+    //                     ),
+    //                 ]
+    //             );
+    //         } else if (!operationDefinedBetweenTypes) {
+    //             if (conversionActionsForLeft.length > 0) {
+    //                 module.openDraftMode(
+    //                     leftOperand,
+    //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([rightOperand.returns], leftOperand.returns),
+    //                     conversionActionsForLeft
+    //                 );
+    //             } else if (
+    //                 conversionActionsForLeft.length === 0 &&
+    //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
+    //             ) {
+    //                 module.openDraftMode(
+    //                     leftOperand,
+    //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
+    //                         expr.operator,
+    //                         leftOperand.returns,
+    //                         rightOperand.returns
+    //                     ),
+    //                     [
+    //                         createWarningButton(
+    //                             Tooltip.Delete,
+    //                             leftOperand,
+    //                             (() => {
+    //                                 this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
+    //                             }).bind(this)
+    //                         ),
+    //                     ]
+    //                 );
+    //             }
+    //         } else if (leftOperand.draftModeEnabled) {
+    //             module.closeConstructDraftRecord(leftOperand);
+    //         }
 
-            if (rightOperand.returns === DataType.Any) {
-                module.openDraftMode(
-                    rightOperand,
-                    TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], rightOperand.returns),
-                    [
-                        new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-                            "",
-                            module,
-                            rightOperand
-                        ),
-                    ]
-                );
-            } else if (!operationDefinedBetweenTypes) {
-                if (conversionActionsForRight.length > 0) {
-                    module.openDraftMode(
-                        rightOperand,
-                        TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([leftOperand.returns], rightOperand.returns),
-                        conversionActionsForRight
-                    );
-                } else if (
-                    conversionActionsForRight.length === 0 &&
-                    !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
-                ) {
-                    module.openDraftMode(
-                        rightOperand,
-                        GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
-                            expr.operator,
-                            leftOperand.returns,
-                            rightOperand.returns
-                        ),
-                        [
-                            createWarningButton(
-                                Tooltip.Delete,
-                                rightOperand,
-                                (() => {
-                                    this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
-                                }).bind(this)
-                            ),
-                        ]
-                    );
-                }
-            } else if (rightOperand.draftModeEnabled) {
-                module.closeConstructDraftRecord(rightOperand);
-            }
+    //         if (rightOperand.returns === DataType.Any) {
+    //             module.openDraftMode(
+    //                 rightOperand,
+    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], rightOperand.returns),
+    //                 [
+    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+    //                         "",
+    //                         module,
+    //                         rightOperand
+    //                     ),
+    //                 ]
+    //             );
+    //         } else if (!operationDefinedBetweenTypes) {
+    //             if (conversionActionsForRight.length > 0) {
+    //                 module.openDraftMode(
+    //                     rightOperand,
+    //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([leftOperand.returns], rightOperand.returns),
+    //                     conversionActionsForRight
+    //                 );
+    //             } else if (
+    //                 conversionActionsForRight.length === 0 &&
+    //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
+    //             ) {
+    //                 module.openDraftMode(
+    //                     rightOperand,
+    //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
+    //                         expr.operator,
+    //                         leftOperand.returns,
+    //                         rightOperand.returns
+    //                     ),
+    //                     [
+    //                         createWarningButton(
+    //                             Tooltip.Delete,
+    //                             rightOperand,
+    //                             (() => {
+    //                                 this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
+    //                             }).bind(this)
+    //                         ),
+    //                     ]
+    //                 );
+    //             }
+    //         } else if (rightOperand.draftModeEnabled) {
+    //             module.closeConstructDraftRecord(rightOperand);
+    //         }
 
-            rightOpened = true;
-            leftOpened = true;
-        } else if (
-            leftOperand instanceof Expression &&
-            rightOperand instanceof TypedEmptyExpr &&
-            TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(expr.operator) === -1
-        ) {
-            if (conversionActionsForLeft.length > 0) {
-                module.openDraftMode(
-                    leftOperand,
-                    GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(leftOperand.returns, expr.operator),
-                    conversionActionsForLeft
-                );
-            } else {
-                module.openDraftMode(
-                    leftOperand,
-                    GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(leftOperand.returns, expr.operator),
-                    [
-                        createWarningButton(
-                            Tooltip.Delete,
-                            leftOperand,
-                            (() => {
-                                this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
-                            }).bind(this)
-                        ),
-                    ]
-                );
-            }
+    //         rightOpened = true;
+    //         leftOpened = true;
+    //     } else if (
+    //         leftOperand instanceof Expression &&
+    //         rightOperand instanceof TypedEmptyExpr &&
+    //         TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(expr.operator) === -1
+    //     ) {
+    //         if (conversionActionsForLeft.length > 0) {
+    //             module.openDraftMode(
+    //                 leftOperand,
+    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(leftOperand.returns, expr.operator),
+    //                 conversionActionsForLeft
+    //             );
+    //         } else {
+    //             module.openDraftMode(
+    //                 leftOperand,
+    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(leftOperand.returns, expr.operator),
+    //                 [
+    //                     createWarningButton(
+    //                         Tooltip.Delete,
+    //                         leftOperand,
+    //                         (() => {
+    //                             this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
+    //                         }).bind(this)
+    //                     ),
+    //                 ]
+    //             );
+    //         }
 
-            leftOpened = true;
-        } else if (
-            leftOperand instanceof TypedEmptyExpr &&
-            rightOperand instanceof Expression &&
-            TypeChecker.getAllowedBinaryOperatorsForType(rightOperand.returns).indexOf(expr.operator) === -1
-        ) {
-            if (conversionActionsForLeft.length > 0) {
-                module.openDraftMode(
-                    rightOperand,
-                    GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(rightOperand.returns, expr.operator),
-                    conversionActionsForRight
-                );
-            } else {
-                module.openDraftMode(
-                    rightOperand,
-                    GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(rightOperand.returns, expr.operator),
-                    [
-                        createWarningButton(
-                            Tooltip.Delete,
-                            rightOperand,
-                            (() => {
-                                this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
-                            }).bind(this)
-                        ),
-                    ]
-                );
-            }
+    //         leftOpened = true;
+    //     } else if (
+    //         leftOperand instanceof TypedEmptyExpr &&
+    //         rightOperand instanceof Expression &&
+    //         TypeChecker.getAllowedBinaryOperatorsForType(rightOperand.returns).indexOf(expr.operator) === -1
+    //     ) {
+    //         if (conversionActionsForLeft.length > 0) {
+    //             module.openDraftMode(
+    //                 rightOperand,
+    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(rightOperand.returns, expr.operator),
+    //                 conversionActionsForRight
+    //             );
+    //         } else {
+    //             module.openDraftMode(
+    //                 rightOperand,
+    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(rightOperand.returns, expr.operator),
+    //                 [
+    //                     createWarningButton(
+    //                         Tooltip.Delete,
+    //                         rightOperand,
+    //                         (() => {
+    //                             this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
+    //                         }).bind(this)
+    //                     ),
+    //                 ]
+    //             );
+    //         }
 
-            rightOpened = true;
-        }
+    //         rightOpened = true;
+    //     }
 
-        return leftOpened || rightOpened;
-    }
+    //     return leftOpened || rightOpened;
+    // }
 
     //TODO: Duplicated in ListElementAccessModifier
-    private deleteUnconvertibleOperandWarning(
-        rootExpression: BinaryOperatorExpr,
-        codeToDelete: CodeConstruct,
-        module: Module
-    ): void {
-        const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
-            rootExpression: rootExpression,
-            codeToDelete: codeToDelete,
-        });
+    // private deleteUnconvertibleOperandWarning(
+    //     rootExpression: BinaryOperatorExpr,
+    //     codeToDelete: CodeConstruct,
+    //     module: Module
+    // ): void {
+    //     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
+    //         rootExpression: rootExpression,
+    //         codeToDelete: codeToDelete,
+    //     });
 
-        module.executer.execute(action);
-    }
+    //     module.executer.execute(action);
+    // }
 
     private getCurrentAllowedTypesOfOperand(index: number, beingDeleted: boolean = false): DataType[] {
         if (this.isBoolean()) {
@@ -4567,13 +4567,13 @@ export class BinaryOperatorExpr extends Expression {
         return existingLiteralType;
     }
 
-    private getIndexOfEmptyOperand(): number {
-        if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
-        else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
-            return this.leftOperandIndex;
-        else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
-            return this.rightOperandIndex;
-    }
+    // private getIndexOfEmptyOperand(): number {
+    //     if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
+    //     else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
+    //         return this.leftOperandIndex;
+    //     else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
+    //         return this.rightOperandIndex;
+    // }
 
     private getIndexOfFilledOperand(): number {
         if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
@@ -4930,7 +4930,7 @@ export class ListLiteralExpression extends Expression {
         this.returns = dataType;
         // this.updateVariableType(dataType);
 
-        if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
     }
 
     //return whether all elements of this list are of type TypedEmptyExpr
@@ -4963,7 +4963,7 @@ export class ListLiteralExpression extends Expression {
             // this.updateVariableType(this.returns);
         }
 
-        if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
     }
 
     onReplaceToken(args: { indexInRoot: number; replaceWithEmptyExpr: boolean }): void {
@@ -4979,7 +4979,7 @@ export class ListLiteralExpression extends Expression {
             // this.updateVariableType(this.returns);
         }
 
-        if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
     }
 
     private getEmptyHolesWIndex(): [TypedEmptyExpr, number][] {

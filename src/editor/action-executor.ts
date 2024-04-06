@@ -43,6 +43,8 @@ import { EditCodeAction } from "./action-filter";
 import { EditActionType } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
+import { LIGHT_GRAY } from "../language-definition/settings";
+import { ASTManupilation } from "../syntax-tree/utils";
 
 /**
  * General logic class responsible for executing the given action.
@@ -78,10 +80,6 @@ export class ActionExecutor {
 
         // If the action contains autocomplete data, flash green
         if (action?.data?.autocompleteData) flashGreen = true;
-
-        // let { eventType, eventData } = this.getLogEventSource(action?.data?.source);
-
-        let index;
 
         // Handle each of the different action types
         switch (action.type) {
@@ -1038,21 +1036,6 @@ export class ActionExecutor {
                 preventDefaultEvent = false;
                 break;
 
-            // case EditActionType.InsertLiteral: {
-            //     const newLiteral = new LiteralValExpr(action.data?.literalType, action.data?.initialValue);
-            //     this.insertExpression(context, newLiteral);
-
-            //     if (flashGreen) this.flashGreen(newLiteral);
-
-            //     if (action.data?.source?.type === "keyboard") {
-            //         // eventType = LogType.InsertCode;
-            //         // eventData.source = "keyboard";
-            //         // eventData.code = `literal-${getUserFriendlyType(newLiteral.returns)}`;
-            //     }
-
-            //     break;
-            // }
-
             // When using the keyboard combination "Ctrl + Space"
             case EditActionType.OpenValidInsertMenu:
                 /**
@@ -1133,25 +1116,24 @@ export class ActionExecutor {
                 }
 
                 if (flashGreen) this.flashGreen(action.data.operator);
-                // eventData.code = action.data.operator.getRenderText();
 
                 break;
             }
 
-            case EditActionType.DeleteUnconvertibleOperandWarning: {
-                if (action.data.codeToDelete.draftModeEnabled)
-                    this.module.closeConstructDraftRecord(action.data.codeToDelete);
-                this.module.deleteCode(action.data.codeToDelete);
+            // case EditActionType.DeleteUnconvertibleOperandWarning: {
+            //     if (action.data.codeToDelete.draftModeEnabled)
+            //         this.module.closeConstructDraftRecord(action.data.codeToDelete);
+            //     this.module.deleteCode(action.data.codeToDelete);
 
-                //TODO: Eventually this if statement should go as all constructs will have this method
-                if (
-                    action.data.rootExpression instanceof Expression ||
-                    action.data.rootExpression instanceof ListAccessModifier
-                )
-                    action.data.rootExpression.validateTypes(this.module);
+            //     //TODO: Eventually this if statement should go as all constructs will have this method
+            //     if (
+            //         action.data.rootExpression instanceof Expression ||
+            //         action.data.rootExpression instanceof ListAccessModifier
+            //     )
+            //         action.data.rootExpression.validateTypes(this.module);
 
-                break;
-            }
+            //     break;
+            // }
         }
 
         // if (eventData && eventType) Logger.Instance().queueEvent(new LogEvent(eventType, eventData));
@@ -1397,7 +1379,7 @@ export class ActionExecutor {
 
             if (root instanceof BinaryOperatorExpr) {
                 // Type check binary expression
-                root.validateTypes(this.module);
+                // root.validateTypes(this.module);
             } else if (insertionResult.insertionType == InsertionType.DraftMode) {
                 this.module.openDraftMode(code, insertionResult.message, [
                     ...insertionResult.conversionRecords.map((conversionRecord) => {
@@ -1467,8 +1449,9 @@ export class ActionExecutor {
         // Notify the root that a replacement has taken place
         if (root instanceof Statement) root.notify(CallbackType.replace);
 
-        // Get the range of the empty line
-        var range = new Range(emptyLine.lineNumber, statement.left, emptyLine.lineNumber, statement.right);
+        // Get the range of the statement line
+        // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
+        const range = new Range(statement.lineNumber, statement.left, statement.lineNumber, statement.right);
 
         // Remove messages from the empty line statement
         if (emptyLine.message) this.module.messageController.removeMessageFromConstruct(emptyLine);
@@ -1483,128 +1466,128 @@ export class ActionExecutor {
         this.module.focus.updateContext(statement.getInitialFocus());
     }
 
-    /**
-     * Replace the given expression with a binary operator expression with the given
-     * expressions as one of its operands
-     *
-     * @param op - The binary operator to create an expression with
-     * @param expr - The expression to replace with the binary operator expression and be placed as
-     * an operand
-     * @param param2 - { toLeft: boolean, toRight: boolean }: Whether to place the given expression
-     * to the left or right of the binary operator expression
-     * @returns The new binary operator expression
-     */
-    private replaceWithBinaryOp(
-        op: BinaryOperator,
-        expr: Expression,
-        { toLeft = false, toRight = false }
-    ): BinaryOperatorExpr {
-        if (expr instanceof Modifier) expr = expr.rootNode as Expression;
+    // /**
+    //  * Replace the given expression with a binary operator expression with the given
+    //  * expressions as one of its operands
+    //  *
+    //  * @param op - The binary operator to create an expression with
+    //  * @param expr - The expression to replace with the binary operator expression and be placed as
+    //  * an operand
+    //  * @param param2 - { toLeft: boolean, toRight: boolean }: Whether to place the given expression
+    //  * to the left or right of the binary operator expression
+    //  * @returns The new binary operator expression
+    //  */
+    // private replaceWithBinaryOp(
+    //     op: BinaryOperator,
+    //     expr: Expression,
+    //     { toLeft = false, toRight = false }
+    // ): BinaryOperatorExpr {
+    //     if (expr instanceof Modifier) expr = expr.rootNode as Expression;
 
-        // Get the range of the current expression
-        const initialBoundary = expr.getBoundaries();
-        // Parent node of the current expression
-        const root = expr.rootNode as Statement;
-        // Index of the current expression in the parent node
-        const index = expr.indexInRoot;
+    //     // Get the range of the current expression
+    //     const initialBoundary = expr.getBoundaries();
+    //     // Parent node of the current expression
+    //     const root = expr.rootNode as Statement;
+    //     // Index of the current expression in the parent node
+    //     const index = expr.indexInRoot;
 
-        // Create the binary expression in which we need to insert the given expression
-        const newCode = new BinaryOperatorExpr(
-            op,
-            expr.returns, // is not that important, will be replaced in the constructor based on the operator.
-            root,
-            expr.indexInRoot
-        );
+    //     // Create the binary expression in which we need to insert the given expression
+    //     const newCode = new BinaryOperatorExpr(
+    //         op,
+    //         expr.returns, // is not that important, will be replaced in the constructor based on the operator.
+    //         root,
+    //         expr.indexInRoot
+    //     );
 
-        // If toLeft is true, set curOperand to the left operand of the new binary expression, otherwise to the right operand
-        const curOperand = toLeft ? newCode.getLeftOperand() : newCode.getRightOperand();
-        // Determine the other operand: this is the operand that is not the current operand
-        const otherOperand = toLeft ? newCode.getRightOperand() : newCode.getLeftOperand();
-        // Get whether the given expression can be inserted inserted into the current operand (position)
-        const insertionResult = newCode.typeValidateInsertionIntoHole(expr, curOperand as TypedEmptyExpr);
+    //     // If toLeft is true, set curOperand to the left operand of the new binary expression, otherwise to the right operand
+    //     const curOperand = toLeft ? newCode.getLeftOperand() : newCode.getRightOperand();
+    //     // Determine the other operand: this is the operand that is not the current operand
+    //     const otherOperand = toLeft ? newCode.getRightOperand() : newCode.getLeftOperand();
+    //     // Get whether the given expression can be inserted inserted into the current operand (position)
+    //     const insertionResult = newCode.typeValidateInsertionIntoHole(expr, curOperand as TypedEmptyExpr);
 
-        /**
-         * Special cases
-         *
-         * if (--- + (--- + ---)|): --> attempting to insert a comparator or binary boolean operation should fail
-         */
-        if (insertionResult.insertionType === InsertionType.Valid) {
-            // Check whether the given expression can be replaced by the new binary expression
-            const replacementResult = expr.canReplaceWithConstruct(newCode);
+    //     /**
+    //      * Special cases
+    //      *
+    //      * if (--- + (--- + ---)|): --> attempting to insert a comparator or binary boolean operation should fail
+    //      */
+    //     if (insertionResult.insertionType === InsertionType.Valid) {
+    //         // Check whether the given expression can be replaced by the new binary expression
+    //         const replacementResult = expr.canReplaceWithConstruct(newCode);
 
-            // this can never go into draft mode
-            // If the expression can be replaced with the binary expression
-            if (replacementResult.insertionType !== InsertionType.Invalid) {
-                // Close the draft mode if it is enabled
-                if (root.tokens[index].draftModeEnabled) this.module.closeConstructDraftRecord(root.tokens[index]);
+    //         // this can never go into draft mode
+    //         // If the expression can be replaced with the binary expression
+    //         if (replacementResult.insertionType !== InsertionType.Invalid) {
+    //             // Close the draft mode if it is enabled
+    //             if (root.tokens[index].draftModeEnabled) this.module.closeConstructDraftRecord(root.tokens[index]);
 
-                // Set the left operand of the new binary expression to the given expression
-                if (toLeft) newCode.replaceLeftOperand(expr);
-                // Set the right operand of the new binary expression to the given expression
-                else newCode.replaceRightOperand(expr);
+    //             // Set the left operand of the new binary expression to the given expression
+    //             if (toLeft) newCode.replaceLeftOperand(expr);
+    //             // Set the right operand of the new binary expression to the given expression
+    //             else newCode.replaceRightOperand(expr);
 
-                // Set the index of the given expression in the new binary expression
-                // based on its operaond position
-                expr.indexInRoot = curOperand.indexInRoot;
-                // Set the rootnode of the given expression to the new binary expression
-                expr.rootNode = newCode;
+    //             // Set the index of the given expression in the new binary expression
+    //             // based on its operaond position
+    //             expr.indexInRoot = curOperand.indexInRoot;
+    //             // Set the rootnode of the given expression to the new binary expression
+    //             expr.rootNode = newCode;
 
-                // Set the token in the given expression's parent to the new binary expression
-                root.tokens[index] = newCode;
+    //             // Set the token in the given expression's parent to the new binary expression
+    //             root.tokens[index] = newCode;
 
-                //TODO: Call onInsertInto() on this line
-                root.rebuild(root.getLeftPosition(), 0);
+    //             //TODO: Call onInsertInto() on this line
+    //             root.rebuild(root.getLeftPosition(), 0);
 
-                // Update the Monaco editor with the new binary expression
-                this.module.editor.executeEdits(initialBoundary, newCode);
-                this.module.focus.updateContext({
-                    tokenToSelect: newCode.tokens[otherOperand.indexInRoot],
-                });
+    //             // Update the Monaco editor with the new binary expression
+    //             this.module.editor.executeEdits(initialBoundary, newCode);
+    //             this.module.focus.updateContext({
+    //                 tokenToSelect: newCode.tokens[otherOperand.indexInRoot],
+    //             });
 
-                // If the insertion of the given expression is valid and the given expression is in draft mode
-                if (replacementResult.insertionType !== InsertionType.DraftMode && expr.draftModeEnabled) {
-                    // Close the draft mode
-                    this.module.closeConstructDraftRecord(expr);
-                } else if (root instanceof BinaryOperatorExpr) {
-                    // Validate the types starting from the binary root expression
-                    root.validateTypes(this.module);
-                } else if (replacementResult.insertionType === InsertionType.DraftMode) {
-                    // Given expression is in draft mode, open the draft mode
-                    this.module.openDraftMode(newCode, replacementResult.message, [
-                        ...replacementResult.conversionRecords.map((conversionRecord) => {
-                            return conversionRecord.getConversionButton(newCode.getRenderText(), this.module, newCode);
-                        }),
-                    ]);
-                }
+    //             // If the insertion of the given expression is valid and the given expression is in draft mode
+    //             if (replacementResult.insertionType !== InsertionType.DraftMode && expr.draftModeEnabled) {
+    //                 // Close the draft mode
+    //                 this.module.closeConstructDraftRecord(expr);
+    //             } else if (root instanceof BinaryOperatorExpr) {
+    //                 // Validate the types starting from the binary root expression
+    //                 // root.validateTypes(this.module);
+    //             } else if (replacementResult.insertionType === InsertionType.DraftMode) {
+    //                 // Given expression is in draft mode, open the draft mode
+    //                 this.module.openDraftMode(newCode, replacementResult.message, [
+    //                     ...replacementResult.conversionRecords.map((conversionRecord) => {
+    //                         return conversionRecord.getConversionButton(newCode.getRenderText(), this.module, newCode);
+    //                     }),
+    //                 ]);
+    //             }
 
-                // Insert newcode into the root
-                if (newCode.rootNode instanceof Statement) newCode.rootNode.onInsertInto(newCode);
+    //             // Insert newcode into the root
+    //             if (newCode.rootNode instanceof Statement) newCode.rootNode.onInsertInto(newCode);
 
-                return newCode;
-            }
-        }
-    }
+    //             return newCode;
+    //         }
+    //     }
+    // }
 
-    /**
-     * Get the range starting from the first construct and ending at the last construct
-     * NOTE: In between elements are not (explicitly) checked and and all the constructs
-     * are assumed to be on the same line
-     *
-     * @param codes
-     * @returns
-     */
-    private getCascadedBoundary(codes: Array<CodeConstruct>): Range {
-        // Get the range of all the constructs, assuming they are ordered according to their appearance
-        // in the text editor
-        if (codes.length > 1) {
-            // Starting line number (and ending line number, because only used for list elements)
-            const lineNumber = codes[0].getLineNumber();
+    // /**
+    //  * Get the range starting from the first construct and ending at the last construct
+    //  * NOTE: In between elements are not (explicitly) checked and and all the constructs
+    //  * are assumed to be on the same line
+    //  *
+    //  * @param codes
+    //  * @returns
+    //  */
+    // private getCascadedBoundary(codes: Array<CodeConstruct>): Range {
+    //     // Get the range of all the constructs, assuming they are ordered according to their appearance
+    //     // in the text editor
+    //     if (codes.length > 1) {
+    //         // Starting line number (and ending line number, because only used for list elements)
+    //         const lineNumber = codes[0].getLineNumber();
 
-            // Return the range from the first to the last construct
-            return new Range(lineNumber, codes[0].left, lineNumber, codes[codes.length - 1].right);
-            // Simply return the range of the one construct
-        } else return codes[0].getBoundaries();
-    }
+    //         // Return the range from the first to the last construct
+    //         return new Range(lineNumber, codes[0].left, lineNumber, codes[codes.length - 1].right);
+    //         // Simply return the range of the one construct
+    //     } else return codes[0].getBoundaries();
+    // }
 
     // /**
     //  * Get the range of the entire construct, including potential body statements
@@ -1808,7 +1791,7 @@ export class ActionExecutor {
      * @param code - The construct to replace
      * @param replace - The construct to replace the given code with
      */
-    /*private */ replaceCode(code: CodeConstruct, replace: CodeConstruct) {
+    private replaceCode(code: CodeConstruct, replace: CodeConstruct) {
         // Get the range of the construct to replace
         const replacementRange = code.getBoundaries();
         // Get the parent construct
@@ -1935,15 +1918,15 @@ export class ActionExecutor {
         );
     }
 
-    /**
-     * Give styling to the autocomplete menu and update its position
-     *
-     * @param pos - The position to place the autocomplete menu
-     */
-    private styleAutocompleteMenu(pos: Position) {
-        this.module.menuController.styleMenuOptions();
-        this.module.menuController.updatePosition(this.module.menuController.getNewMenuPositionFromPosition(pos));
-    }
+    // /**
+    //  * Give styling to the autocomplete menu and update its position
+    //  *
+    //  * @param pos - The position to place the autocomplete menu
+    //  */
+    // private styleAutocompleteMenu(pos: Position) {
+    //     this.module.menuController.styleMenuOptions();
+    //     this.module.menuController.updatePosition(this.module.menuController.getNewMenuPositionFromPosition(pos));
+    // }
 
     /**
      * Opens an autocomplete menu / suggestion menu at the current position.
@@ -2004,27 +1987,32 @@ export class ActionExecutor {
             // Choose how to replace the existing token / construct
             // SHOULD BE REMOVED IN THE FUTURE AND REPLACED BY A SINGLE FUNCTION HANDLING
             // THE ABSTRACTION
-            switch (autocompleteType) {
-                case AutoCompleteType.StartOfLine:
-                    this.replaceEmptyStatement(context.lineStatement, new TemporaryStmt(autocompleteTkn));
+            // switch (autocompleteType) {
+            //     case AutoCompleteType.StartOfLine:
+            //         this.replaceEmptyStatement(context.lineStatement, new TemporaryStmt(autocompleteTkn));
 
-                    break;
+            //         break;
 
-                case AutoCompleteType.AtEmptyOperatorHole:
-                case AutoCompleteType.AtExpressionHole:
-                    this.insertToken(context, autocompleteTkn);
+            //     case AutoCompleteType.AtEmptyOperatorHole:
+            //     case AutoCompleteType.AtExpressionHole:
+            //         this.insertToken(context, autocompleteTkn);
 
-                    break;
+            //         break;
 
-                case AutoCompleteType.RightOfExpression:
-                    this.insertToken(context, autocompleteTkn, { toRight: true });
+            //     case AutoCompleteType.RightOfExpression:
+            //         this.insertToken(context, autocompleteTkn, { toLeft: true });
 
-                    break;
-                case AutoCompleteType.LeftOfExpression:
-                    this.insertToken(context, autocompleteTkn, { toLeft: true });
+            //         break;
+            //     case AutoCompleteType.LeftOfExpression:
+            //         this.insertToken(context, autocompleteTkn, { toRight: true });
 
-                    break;
-            }
+            //         break;
+            // }
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // CAN THIS REPLACE THE ABOVE SWITCH CASES?
+            // ARE RightOfExpreession and LeftOfExpression correctly handled?
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ASTManupilation.insertConstruct(context, autocompleteTkn);
 
             // Reset the selection
             this.module.editor.cursor.setSelection(null);
@@ -2036,7 +2024,7 @@ export class ActionExecutor {
                 this.performMatchAction(match, autocompleteTkn);
             } else {
                 // Else mark background of the token with a light gray / blue color
-                let highlight = new ConstructHighlight(this.module.editor, autocompleteTkn, [230, 235, 255, 0.7]);
+                let highlight = new ConstructHighlight(this.module.editor, autocompleteTkn, LIGHT_GRAY);
 
                 autocompleteTkn.subscribe(
                     CallbackType.delete,

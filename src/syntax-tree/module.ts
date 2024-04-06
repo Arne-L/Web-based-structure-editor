@@ -61,6 +61,11 @@ export class Module {
     language: Language;
 
     /**
+     * 
+     */
+    static instance: Module;
+
+    /**
      * The scope connected to the module
      */
     scope: Scope;
@@ -160,6 +165,8 @@ export class Module {
         this.menuController.setInstance(this, this.editor);
 
         Util.getInstance(this);
+
+        Module.instance = this;
     }
 
     /**
