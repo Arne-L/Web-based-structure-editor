@@ -61,7 +61,7 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.triggerInsertion, // EXTRACT: character which triggers the insertion in the editor
             // Automating? Maybe take last character before a hole or end of statement?
             construct.match ?? null, // Match when typing
-            construct.matchRegex !== undefined ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
+            construct.matchRegex !== undefined && construct.matchRegex !== null ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
             // identify what a valid identifier is
         );
 

@@ -276,13 +276,14 @@ class Menu {
      * @param userInput - The user's input.
      * @returns EditCodeActions matching the given user input
      */
-    getPossibleEditCodeActions(userInput: string) {
+    getPossibleEditCodeActions(userInput: string): EditCodeAction[] {
+        const lowUserInput = userInput.toLowerCase();
+
         // Get all EditCodeActions that match the user input, either based on the exact string or the regex
         const actionsToKeep = this.editCodeActionsOptions.filter((editAction) => {
             if (editAction.matchString) {
                 const actionLowerCase = editAction.matchString.toLowerCase();
-                const optionTextLowerCase = userInput.toLowerCase();
-                return actionLowerCase.includes(optionTextLowerCase) || optionTextLowerCase.includes(actionLowerCase);
+                return actionLowerCase.includes(lowUserInput) || lowUserInput.includes(actionLowerCase);
             } else if (editAction.matchRegex) {
                 return editAction.matchRegex.test(userInput);
             } else {
@@ -293,23 +294,25 @@ class Menu {
 
         // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
+            console.log(a, b)
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
             if (a.matchRegex && b.matchString) return 1;
 
             // Get the final rendered text, as a string, for both options
-            const aText = a.getConstructText(userInput),
-                bText = b.getConstructText(userInput);
+            const aText = a.getConstructText(userInput).toLowerCase(),
+                bText = b.getConstructText(userInput).toLowerCase();
             // Get the position of the current text in both options, as well as the
             // difference in length between the current text and both options
-            const aStart = aText.indexOf(userInput),
-                bStart = bText.indexOf(userInput),
+            const aStart = aText.indexOf(lowUserInput),
+                bStart = bText.indexOf(lowUserInput),
                 aDiff = aText.length - userInput.length,
                 bDiff = bText.length - userInput.length;
+            console.log("Hello", aText, bText)
 
             // Give preference to the option that has the current text the closest
             // to the front
-            if (bStart - bStart !== 0) return aStart - bStart;
+            if (aStart - bStart !== 0) return aStart - bStart;
 
             // Give preference to the option that differs the least from the current
             // text in terms of length
