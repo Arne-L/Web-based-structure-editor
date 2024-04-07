@@ -39,7 +39,7 @@ import {
 import { Module } from "../syntax-tree/module";
 import { createFinalConstruct, isImportable } from "../utilities/util";
 import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
-import { EditCodeAction } from "./action-filter";
+import { EditCodeAction, InsertionResult } from "./action-filter";
 import { EditActionType } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
@@ -1340,7 +1340,7 @@ export class ActionExecutor {
             // The root of the hole (either an expression or a statement)
             const root = context.token.rootNode;
             // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = root.typeValidateInsertionIntoHole(code, context.token);
+            let insertionResult = new InsertionResult(InsertionType.Valid, "", []);//root.typeValidateInsertionIntoHole(code, context.token);
 
             if (insertionResult.insertionType != InsertionType.Invalid) {
                 // For all valid or draft mode insertions
@@ -1667,10 +1667,11 @@ export class ActionExecutor {
             if (rootOfExprToLeft instanceof ValueOperationExpr) {
                 rootOfExprToLeft.updateReturnType();
 
-                let replacementResult = rootOfExprToLeft.rootNode.checkInsertionAtHole(
-                    rootOfExprToLeft.indexInRoot,
-                    rootOfExprToLeft.returns
-                );
+                let replacementResult = new InsertionResult(InsertionType.Valid, "", []);
+                //     rootOfExprToLeft.rootNode.checkInsertionAtHole(
+                //     rootOfExprToLeft.indexInRoot,
+                //     rootOfExprToLeft.returns
+                // );
 
                 if (replacementResult.insertionType == InsertionType.DraftMode) {
                     const ref = rootOfExprToLeft.getVarRef();

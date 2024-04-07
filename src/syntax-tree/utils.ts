@@ -6,6 +6,7 @@ import { CallbackType } from "./callback";
 import { Module } from "./module";
 import { InsertionType } from "./consts";
 import { isImportable } from "../utilities/util";
+import { InsertionResult } from "../editor/action-filter";
 
 export namespace ASTManupilation {
     export function insertConstruct(context: Context, construct: CodeConstruct) {
@@ -154,7 +155,7 @@ export namespace ASTManupilation {
             // The root of the hole (either an expression or a statement)
             const root = context.token.rootNode;
             // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = root.typeValidateInsertionIntoHole(code, context.token); // REMOVE
+            let insertionResult = new InsertionResult(InsertionType.Valid, "", []);// root.typeValidateInsertionIntoHole(code, context.token); // REMOVE
 
             if (insertionResult.insertionType != InsertionType.Invalid) { // IF VALID OR DRAFT MODE
                 // For all valid or draft mode insertions

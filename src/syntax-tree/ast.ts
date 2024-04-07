@@ -134,7 +134,7 @@ export interface CodeConstruct {
     /**
      * Returns the parent statement of this code-construct (an element of the Module.body array).
      */
-    getParentStatement(): Statement;
+    getParentConstruct(): Statement;
 
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
@@ -157,20 +157,20 @@ export interface CodeConstruct {
     getKeyword(): string;
 
     //TODO: #526 already returns an insertion result so could also immediately populate it with a context-based message (which it probably does, needs to be checked InsertionResult does have a message field)
-    /**
-     * Determine whether insertCode can be inserted into a hole belonging to the expression/statement this call was made from.
-     *
-     * NOTE: The reason why you have to call it on the future parent of insertCode instead of insertCode itself is because before insertCode is inserted into the AST
-     * we cannot access the parent's holes through insertCode.rootNode and get their types that way.
-     *
-     * NOTE: The reason why insertInto is a parameter is because some constructs have multiple holes and we need to know the one we are inserting into.
-     *
-     * @param insertCode     code being inserted
-     * @param insertInto     hole being inserted into
-     *
-     * @returns Valid if insertCode's type is accepted by insertInto according to what the parent of insertInto is. Draft if insertCode's type an be converted to a type that is accepted by insertInto. Invalid otherwise.
-     */
-    typeValidateInsertionIntoHole(insertCode: Expression, insertInto?: TypedEmptyExpr): InsertionResult;
+    // /**
+    //  * Determine whether insertCode can be inserted into a hole belonging to the expression/statement this call was made from.
+    //  *
+    //  * NOTE: The reason why you have to call it on the future parent of insertCode instead of insertCode itself is because before insertCode is inserted into the AST
+    //  * we cannot access the parent's holes through insertCode.rootNode and get their types that way.
+    //  *
+    //  * NOTE: The reason why insertInto is a parameter is because some constructs have multiple holes and we need to know the one we are inserting into.
+    //  *
+    //  * @param insertCode     code being inserted
+    //  * @param insertInto     hole being inserted into
+    //  *
+    //  * @returns Valid if insertCode's type is accepted by insertInto according to what the parent of insertInto is. Draft if insertCode's type an be converted to a type that is accepted by insertInto. Invalid otherwise.
+    //  */
+    // typeValidateInsertionIntoHole(insertCode: Expression, insertInto?: TypedEmptyExpr): InsertionResult;
 
     // FFD together with all its children (it is never called)
     /**
@@ -254,40 +254,40 @@ export abstract class Statement implements CodeConstruct {
 
     // FFD: Only used for types
     //TODO: See if this needs any changes for #526
-    checkInsertionAtHole(index: number, givenType: DataType): InsertionResult {
-        // Check that there is atleast one hole
-        if (Object.keys(this.typeOfHoles).length > 0) {
-            // Get the type of the hole at the given index
-            let holeType = this.typeOfHoles[index];
-            // Also gets the holetype, but with a special case for booleans(?)
-            let allowedTypes = DataType.Any;//this.getCurrentAllowedTypesOfHole(index);
+    // checkInsertionAtHole(index: number, givenType: DataType): InsertionResult {
+    //     // Check that there is atleast one hole
+    //     if (Object.keys(this.typeOfHoles).length > 0) {
+    //         // Get the type of the hole at the given index
+    //         let holeType = this.typeOfHoles[index];
+    //         // Also gets the holetype, but with a special case for booleans(?)
+    //         let allowedTypes = DataType.Any;//this.getCurrentAllowedTypesOfHole(index);
 
-            if (allowedTypes.length > 0) {
-                holeType = allowedTypes;
-            }
+    //         if (allowedTypes.length > 0) {
+    //             holeType = allowedTypes;
+    //         }
 
-            // Check if the datatypes to which the giventype can be converted matches one 
-            // of the hole's types
-            let canConvertToParentType = hasMatch(Util.getInstance().typeConversionMap.get(givenType), holeType);
+    //         // Check if the datatypes to which the giventype can be converted matches one
+    //         // of the hole's types
+    //         let canConvertToParentType = hasMatch(Util.getInstance().typeConversionMap.get(givenType), holeType);
 
-            // If there is no exact match
-            if (canConvertToParentType && !hasMatch(holeType, [givenType])) {
-                // Get all datatypes to which the given type can be converted
-                const conversionRecords = typeToConversionRecord.has(givenType)
-                    ? typeToConversionRecord.get(givenType).filter((record) => holeType.indexOf(record.convertTo) > -1)
-                    : [];
+    //         // If there is no exact match
+    //         if (canConvertToParentType && !hasMatch(holeType, [givenType])) {
+    //             // Get all datatypes to which the given type can be converted
+    //             const conversionRecords = typeToConversionRecord.has(givenType)
+    //                 ? typeToConversionRecord.get(givenType).filter((record) => holeType.indexOf(record.convertTo) > -1)
+    //                 : [];
 
-                // Return draft mode
-                return new InsertionResult(InsertionType.DraftMode, "", conversionRecords); //NOTE: message is populated by calling code as it has enough context info
-                // If every type is accepted OR the given type is an exact match
-            } else if (holeType.some((t) => t == DataType.Any) || hasMatch(holeType, [givenType])) {
-                return new InsertionResult(InsertionType.Valid, "", []);
-            }
-        }
+    //             // Return draft mode
+    //             return new InsertionResult(InsertionType.DraftMode, "", conversionRecords); //NOTE: message is populated by calling code as it has enough context info
+    //             // If every type is accepted OR the given type is an exact match
+    //         } else if (holeType.some((t) => t == DataType.Any) || hasMatch(holeType, [givenType])) {
+    //             return new InsertionResult(InsertionType.Valid, "", []);
+    //         }
+    //     }
 
-        // Otherwise it is invalid
-        return new InsertionResult(InsertionType.Invalid, "", []);
-    }
+    //     // Otherwise it is invalid
+    //     return new InsertionResult(InsertionType.Invalid, "", []);
+    // }
 
     /**
      * The lineNumbers from the beginning to the end of this statement.
@@ -608,7 +608,7 @@ export abstract class Statement implements CodeConstruct {
         return new Selection(this.lineNumber, this.right, this.lineNumber, this.left);
     }
 
-    getParentStatement(): Statement {
+    getParentConstruct(): Statement {
         return this;
     }
 
@@ -641,22 +641,24 @@ export abstract class Statement implements CodeConstruct {
         return "";
     }
 
-    typeValidateInsertionIntoHole(insertCode: Expression, insertInto?: TypedEmptyExpr): InsertionResult {
-        if (
-            (insertInto?.type?.indexOf(insertCode.returns) > -1 ||
-                insertInto?.type?.indexOf(DataType.Any) > -1 ||
-                (hasMatch(insertInto.type, ListTypes) && insertCode.returns === DataType.AnyList)) &&
-            insertCode.returns !== DataType.Void
-        ) {
-            return new InsertionResult(InsertionType.Valid, "", []);
-        } //types match or one of them is Any
+    // typeValidateInsertionIntoHole(insertCode: Expression, insertInto?: TypedEmptyExpr): InsertionResult {
+    //     if (
+    //         (insertInto?.type?.indexOf(insertCode.returns) > -1 ||
+    //             insertInto?.type?.indexOf(DataType.Any) > -1 ||
+    //             (hasMatch(insertInto.type, ListTypes) && insertCode.returns === DataType.AnyList)) &&
+    //         insertCode.returns !== DataType.Void
+    //     ) {
+    //         return new InsertionResult(InsertionType.Valid, "", []);
+    //     } //types match or one of them is Any
 
-        //need to check if the type being inserted can be converted into any of the types that the hole accepts
-        return insertInto?.canReplaceWithConstruct(insertCode);
-    }
+    //     //need to check if the type being inserted can be converted into any of the types that the hole accepts
+    //     return insertInto?.canReplaceWithConstruct(insertCode);
+    // }
 
+    // FFD
     performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
+    // FFD
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
     /**
@@ -1399,11 +1401,11 @@ export class GeneralExpression extends GeneralStatement {
      *
      * @returns The parent statement of the current expression
      */
-    getParentStatement(): Statement {
+    getParentConstruct(): Statement {
         // Change to GeneralStatement in the future
         if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
         else {
-            return this.rootNode.getParentStatement();
+            return this.rootNode.getParentConstruct();
         }
     }
 
@@ -1473,8 +1475,8 @@ export abstract class Expression extends Statement implements CodeConstruct {
          */
     }
 
-    getParentStatement(): Statement {
-        return this.rootNode.getParentStatement();
+    getParentConstruct(): Statement {
+        return this.rootNode.getParentConstruct();
         /**
          * Generalisatie:
          * if (this.returns) return this.rootNode.getParentStatement(); // If expression
@@ -1768,8 +1770,8 @@ export abstract class Token implements CodeConstruct {
         return new Selection(line, this.right, line, this.left);
     }
 
-    getParentStatement(): Statement {
-        return this.rootNode.getParentStatement();
+    getParentConstruct(): Statement {
+        return this.rootNode.getParentConstruct();
     }
 
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
@@ -1780,9 +1782,9 @@ export abstract class Token implements CodeConstruct {
 
     performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
-    typeValidateInsertionIntoHole(insertCode: Expression, insertInto: TypedEmptyExpr): InsertionResult {
-        return new InsertionResult(InsertionType.Valid, "", []);
-    }
+    // typeValidateInsertionIntoHole(insertCode: Expression, insertInto: TypedEmptyExpr): InsertionResult {
+    //     return new InsertionResult(InsertionType.Valid, "", []);
+    // }
 
     markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void {
         this.callbacksToBeDeleted.set(callbackType, callbackId);
@@ -3903,15 +3905,15 @@ export class BinaryOperatorExpr extends Expression {
             : InsertionType.Invalid;
     }
 
-    replaceLeftOperand(code: Expression) {
-        this.onInsertInto(code);
-        this.replace(code, this.leftOperandIndex);
-    }
+    // replaceLeftOperand(code: Expression) {
+    //     this.onInsertInto(code);
+    //     this.replace(code, this.leftOperandIndex);
+    // }
 
-    replaceRightOperand(code: Expression) {
-        this.onInsertInto(code);
-        this.replace(code, this.rightOperandIndex);
-    }
+    // replaceRightOperand(code: Expression) {
+    //     this.onInsertInto(code);
+    //     this.replace(code, this.rightOperandIndex);
+    // }
 
     getLeftOperand(): CodeConstruct {
         return this.tokens[this.leftOperandIndex];
@@ -4084,23 +4086,30 @@ export class BinaryOperatorExpr extends Expression {
     performTypeUpdatesOnInsertInto(insertCode: Expression) {
         //return type update
         if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
+            // Get the first non empty operand in the binary add expression
             const nonEmptyOperand = !this.isOperandEmpty(this.leftOperandIndex)
                 ? this.getLeftOperand()
                 : !this.isOperandEmpty(this.rightOperandIndex)
                 ? this.getRightOperand()
                 : null;
 
+            // If there is an operand in the binary add expression, update the return type of the binary add expression
             if (nonEmptyOperand) {
+                // If the inserted is of the same type as the non empty operand
                 if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns === insertCode.returns) {
+                    // If a binary operator is allowed for the type of the non empty operand, return the same type
                     if (TypeChecker.isBinOpAllowed(this.operator, nonEmptyOperand.returns, nonEmptyOperand.returns)) {
                         this.returns = nonEmptyOperand.returns;
                     } else {
+                        // If not allowed, this type is set to any
                         this.returns = DataType.Any;
                     }
+                    // If different types, set the return type to any
                 } else if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns !== insertCode.returns) {
                     this.returns = DataType.Any;
                 }
             } else {
+                // If there is no non empty operand, set the return type to the insertCode return type
                 this.returns = insertCode.returns;
             }
         }
@@ -5148,7 +5157,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
         // Get the parent statement
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getParentConstruct();
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
@@ -5193,7 +5202,7 @@ export class AssignmentToken extends IdentifierTkn {
         // List of variable reference expressions refering to the current token
         const varRefs: VariableReferenceExpr[] = [];
         // Get the statement containing the token
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getParentConstruct();
         // Current identifier
         const currentIdentifier = identifierName ?? this.getRenderText();
 
@@ -5237,7 +5246,7 @@ export class AssignmentToken extends IdentifierTkn {
      * assignments to the variable and update the variable references
      */
     onDelete(): void {
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getParentConstruct();
         const currentScope = parentStmt.getNearestScope();
 
         // Remove the assignment from the nearest scope

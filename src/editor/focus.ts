@@ -155,7 +155,7 @@ export class Focus {
      */
     updateContext(newContext: UpdatableContext) {
         // Update monaco selection and cursor position
-        const focusedLineStatement = this.getFocusedStatement()
+        const focusedLineStatement = this.getFocusedStatement();
 
         if (newContext.tokenToSelect != undefined) {
             const selection = new Selection(
@@ -171,10 +171,7 @@ export class Focus {
             this.module.editor.cursor.setSelection(null);
         }
 
-        this.fireOnNavOffCallbacks(
-            focusedLineStatement,
-            this.getFocusedStatement()
-        );
+        this.fireOnNavOffCallbacks(focusedLineStatement, this.getFocusedStatement());
         this.fireOnNavChangeCallbacks();
     }
 
@@ -730,7 +727,7 @@ export class Focus {
                         );
                     }
 
-                    context.lineStatement = context.tokenToRight.getParentStatement();
+                    context.lineStatement = context.tokenToRight.getParentConstruct();
 
                     break;
                 } else if (column == curToken.right) {
@@ -753,13 +750,13 @@ export class Focus {
                             context.tokenToLeft.rootNode.right == column
                         );
                     }
-                    context.lineStatement = context.tokenToLeft.getParentStatement();
+                    context.lineStatement = context.tokenToLeft.getParentConstruct();
 
                     break;
                 } else if (column > curToken.left && column < curToken.right) {
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
-                    context.lineStatement = context.token.getParentStatement();
+                    context.lineStatement = context.token.getParentConstruct();
 
                     break;
                 }

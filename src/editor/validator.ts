@@ -415,7 +415,7 @@ export class Validator {
 
     /**
      * Check if the previous line is an empty line construct that can be remvoed
-     * 
+     *
      * logic: checks if the above line is an empty line.
      * AND should be at the beginning of the line.
      */
@@ -1191,14 +1191,14 @@ export class Validator {
             if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
                 // Get nearest scope
                 let scope =
-                    code instanceof TypedEmptyExpr ? code.getParentStatement()?.scope : (code.rootNode as Module).scope; //line that contains "code"
+                    code instanceof TypedEmptyExpr ? code.getParentConstruct()?.scope : (code.rootNode as Module).scope; //line that contains "code"
                 let currRootNode = code.rootNode;
 
                 // Keep going up the tree until we find a non-null scope
                 while (!scope) {
                     if (!(currRootNode instanceof Module)) {
-                        if (currRootNode.getParentStatement()?.hasScope()) {
-                            scope = currRootNode.getParentStatement().scope;
+                        if (currRootNode.getParentConstruct()?.hasScope()) {
+                            scope = currRootNode.getParentConstruct().scope;
                         } else if (currRootNode.rootNode instanceof Statement) {
                             currRootNode = currRootNode.rootNode;
                         } else if (currRootNode.rootNode instanceof Module) {
