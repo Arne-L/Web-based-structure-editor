@@ -1345,9 +1345,9 @@ export class ActionExecutor {
             if (insertionResult.insertionType != InsertionType.Invalid) {
                 // For all valid or draft mode insertions
                 // This seems to only update the types?
-                if (root instanceof Statement) {
-                    root.onInsertInto(code);
-                }
+                // if (root instanceof Statement) {
+                //     root.onInsertInto(code);
+                // }
 
                 // Remove message if there is one
                 if (context.token.message && context.selected) {

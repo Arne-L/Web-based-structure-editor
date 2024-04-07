@@ -204,7 +204,7 @@ export interface CodeConstruct {
 
     onDelete(): void;
 
-    getTypes(): DataType[];
+    // getTypes(): DataType[];
 
     /**
      * Highlight the given construct with the given colour
@@ -661,12 +661,12 @@ export abstract class Statement implements CodeConstruct {
     // FFD
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
-    /**
-     * Actions performed when a code construct is inserted within a hole of this code construct.
-     *
-     * @param insertCode code being inserted
-     */
-    onInsertInto(insertCode: CodeConstruct, args?: {}) {}
+    // /**
+    //  * Actions performed when a code construct is inserted within a hole of this code construct.
+    //  *
+    //  * @param insertCode code being inserted
+    //  */
+    // onInsertInto(insertCode: CodeConstruct, args?: {}) {}
 
     //TODO: #526 should be changed to return InsertionResult and populate that result with an appropriate message/code
     /**
@@ -711,9 +711,9 @@ export abstract class Statement implements CodeConstruct {
     //     return [];
     // }
 
-    getTypes(): DataType[] {
-        return [];
-    }
+    // getTypes(): DataType[] {
+    //     return [];
+    // }
 
     addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
         new ConstructHighlight(editor, this, rgbColour);
@@ -1484,13 +1484,13 @@ export abstract class Expression extends Statement implements CodeConstruct {
          */
     }
 
-    /**
-     * Update types of holes within the expression as well as the expression's return
-     * type when insertCode is inserted into it.
-     *
-     * @param insertCode code being inserted.
-     */
-    performTypeUpdatesOnInsertInto(insertCode: Expression) {}
+    // /**
+    //  * Update types of holes within the expression as well as the expression's return
+    //  * type when insertCode is inserted into it.
+    //  *
+    //  * @param insertCode code being inserted.
+    //  */
+    // performTypeUpdatesOnInsertInto(insertCode: Expression) {}
     /**
      * Type specific function, might be obselete if we don't use types
      */
@@ -1613,13 +1613,13 @@ export abstract class Expression extends Statement implements CodeConstruct {
     //     return [this.returns];
     // }
 
-    getTypes(): DataType[] {
-        return [this.returns];
-        /**
-         * Change to:
-         * return this.returns ? [this.returns] : [];
-         */
-    }
+    // getTypes(): DataType[] {
+    //     return [this.returns];
+    //     /**
+    //      * Change to:
+    //      * return this.returns ? [this.returns] : [];
+    //      */
+    // }
 
     //TODO: Probably needs to be filled. At least in every construct, but there should be general logic that applies to all expressions as well,
     //Currently only implemented for BinOps due to time constraints
@@ -1806,9 +1806,9 @@ export abstract class Token implements CodeConstruct {
         return;
     }
 
-    getTypes(): DataType[] {
-        return [];
-    }
+    // getTypes(): DataType[] {
+    //     return [];
+    // }
 
     addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
         new ConstructHighlight(editor, this, rgbColour);
@@ -4078,90 +4078,90 @@ export class BinaryOperatorExpr extends Expression {
         }
     }
 
-    /**
-     * Update the return type of an expression and its operands when inserting into the expression.
-     *
-     * @param insertCode - The code to insert
-     */
-    performTypeUpdatesOnInsertInto(insertCode: Expression) {
-        //return type update
-        if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
-            // Get the first non empty operand in the binary add expression
-            const nonEmptyOperand = !this.isOperandEmpty(this.leftOperandIndex)
-                ? this.getLeftOperand()
-                : !this.isOperandEmpty(this.rightOperandIndex)
-                ? this.getRightOperand()
-                : null;
+    // /**
+    //  * Update the return type of an expression and its operands when inserting into the expression.
+    //  *
+    //  * @param insertCode - The code to insert
+    //  */
+    // performTypeUpdatesOnInsertInto(insertCode: Expression) {
+    //     //return type update
+    //     if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
+    //         // Get the first non empty operand in the binary add expression
+    //         const nonEmptyOperand = !this.isOperandEmpty(this.leftOperandIndex)
+    //             ? this.getLeftOperand()
+    //             : !this.isOperandEmpty(this.rightOperandIndex)
+    //             ? this.getRightOperand()
+    //             : null;
 
-            // If there is an operand in the binary add expression, update the return type of the binary add expression
-            if (nonEmptyOperand) {
-                // If the inserted is of the same type as the non empty operand
-                if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns === insertCode.returns) {
-                    // If a binary operator is allowed for the type of the non empty operand, return the same type
-                    if (TypeChecker.isBinOpAllowed(this.operator, nonEmptyOperand.returns, nonEmptyOperand.returns)) {
-                        this.returns = nonEmptyOperand.returns;
-                    } else {
-                        // If not allowed, this type is set to any
-                        this.returns = DataType.Any;
-                    }
-                    // If different types, set the return type to any
-                } else if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns !== insertCode.returns) {
-                    this.returns = DataType.Any;
-                }
-            } else {
-                // If there is no non empty operand, set the return type to the insertCode return type
-                this.returns = insertCode.returns;
-            }
-        }
+    //         // If there is an operand in the binary add expression, update the return type of the binary add expression
+    //         if (nonEmptyOperand) {
+    //             // If the inserted is of the same type as the non empty operand
+    //             if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns === insertCode.returns) {
+    //                 // If a binary operator is allowed for the type of the non empty operand, return the same type
+    //                 if (TypeChecker.isBinOpAllowed(this.operator, nonEmptyOperand.returns, nonEmptyOperand.returns)) {
+    //                     this.returns = nonEmptyOperand.returns;
+    //                 } else {
+    //                     // If not allowed, this type is set to any
+    //                     this.returns = DataType.Any;
+    //                 }
+    //                 // If different types, set the return type to any
+    //             } else if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns !== insertCode.returns) {
+    //                 this.returns = DataType.Any;
+    //             }
+    //         } else {
+    //             // If there is no non empty operand, set the return type to the insertCode return type
+    //             this.returns = insertCode.returns;
+    //         }
+    //     }
 
-        //operand type updates
-        if (!this.isBoolean()) {
-            //Check if one of the holes is not empty and get its type
-            let existingLiteralType = this.getFilledHoleType();
+    //     //operand type updates
+    //     if (!this.isBoolean()) {
+    //         //Check if one of the holes is not empty and get its type
+    //         let existingLiteralType = this.getFilledHoleType();
 
-            //if existingLiteralType is null then both operands are still empty holes and since we are inserting
-            //into one of them, the types need to be updated
-            if (!existingLiteralType && (this.returns === DataType.Any || this.isComparison())) {
-                if (
-                    this.isOperandEmpty(this.leftOperandIndex) &&
-                    TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
-                ) {
-                    if (ListTypes.indexOf(insertCode.returns) > -1) {
-                        (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
-                    } else {
-                        (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
-                    }
-                }
-                if (
-                    this.isOperandEmpty(this.rightOperandIndex) &&
-                    TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
-                ) {
-                    if (ListTypes.indexOf(insertCode.returns) > -1) {
-                        (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
-                    } else {
-                        (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
-                    }
-                }
-            }
+    //         //if existingLiteralType is null then both operands are still empty holes and since we are inserting
+    //         //into one of them, the types need to be updated
+    //         if (!existingLiteralType && (this.returns === DataType.Any || this.isComparison())) {
+    //             if (
+    //                 this.isOperandEmpty(this.leftOperandIndex) &&
+    //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
+    //             ) {
+    //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
+    //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
+    //                 } else {
+    //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
+    //                 }
+    //             }
+    //             if (
+    //                 this.isOperandEmpty(this.rightOperandIndex) &&
+    //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
+    //             ) {
+    //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
+    //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
+    //                 } else {
+    //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
+    //                 }
+    //             }
+    //         }
 
-            if (
-                insertCode.returns === this.getFilledHoleType() &&
-                TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1 &&
-                this.tokens[this.getIndexOfFilledOperand()].draftModeEnabled
-            ) {
-                this.getModule().closeConstructDraftRecord(this.tokens[this.getIndexOfFilledOperand()]);
-            }
-        }
+    //         if (
+    //             insertCode.returns === this.getFilledHoleType() &&
+    //             TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1 &&
+    //             this.tokens[this.getIndexOfFilledOperand()].draftModeEnabled
+    //         ) {
+    //             this.getModule().closeConstructDraftRecord(this.tokens[this.getIndexOfFilledOperand()]);
+    //         }
+    //     }
 
-        //find root
-        let curr = this as BinaryOperatorExpr;
-        while (curr.rootNode !== null && curr.rootNode instanceof BinaryOperatorExpr) {
-            curr = curr.rootNode;
-        }
+    //     //find root
+    //     let curr = this as BinaryOperatorExpr;
+    //     while (curr.rootNode !== null && curr.rootNode instanceof BinaryOperatorExpr) {
+    //         curr = curr.rootNode;
+    //     }
 
-        //update return types in root
-        if (curr && this.isArithmetic()) this.performReturnTypeUpdatesForAdditionOnInsertInto(curr);
-    }
+    //     //update return types in root
+    //     if (curr && this.isArithmetic()) this.performReturnTypeUpdatesForAdditionOnInsertInto(curr);
+    // }
 
     //should only be used on nested binary ops
     checkAllHolesAreEmpty() {
@@ -4218,9 +4218,9 @@ export class BinaryOperatorExpr extends Expression {
         );
     }
 
-    onInsertInto(insertCode: Expression) {
-        this.performTypeUpdatesOnInsertInto(insertCode);
-    }
+    // onInsertInto(insertCode: Expression) {
+    //     this.performTypeUpdatesOnInsertInto(insertCode);
+    // }
 
     onReplaceToken(args: { indexInRoot: number }): void {
         this.updateReturnTypeOnDeletion(args.indexInRoot);
@@ -4938,20 +4938,20 @@ export class ListLiteralExpression extends Expression {
             : InsertionType.Invalid;
     }
 
-    performTypeUpdatesOnInsertInto(insertCode: Expression) {
-        let dataType = this.returns;
+    // performTypeUpdatesOnInsertInto(insertCode: Expression) {
+    //     let dataType = this.returns;
 
-        if (this.areAllHolesEmpty()) {
-            dataType = TypeChecker.getListTypeFromElementType(insertCode.returns);
-        } else if (this.getFilledHolesType() !== insertCode.returns) {
-            dataType = DataType.AnyList;
-        }
+    //     if (this.areAllHolesEmpty()) {
+    //         dataType = TypeChecker.getListTypeFromElementType(insertCode.returns);
+    //     } else if (this.getFilledHolesType() !== insertCode.returns) {
+    //         dataType = DataType.AnyList;
+    //     }
 
-        this.returns = dataType;
-        // this.updateVariableType(dataType);
+    //     this.returns = dataType;
+    //     // this.updateVariableType(dataType);
 
-        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
-    }
+    //     // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+    // }
 
     //return whether all elements of this list are of type TypedEmptyExpr
     areAllHolesEmpty() {
@@ -4962,9 +4962,9 @@ export class ListLiteralExpression extends Expression {
         return numberOfEmptyHoles === numberOfElements;
     }
 
-    onInsertInto(insertCode: Expression) {
-        this.performTypeUpdatesOnInsertInto(insertCode);
-    }
+    // onInsertInto(insertCode: Expression) {
+    //     this.performTypeUpdatesOnInsertInto(insertCode);
+    // }
 
     isHolePlacementValid(): boolean {
         const emptyHolePlacements = this.getEmptyHolesWIndex();
@@ -5437,9 +5437,9 @@ export class TypedEmptyExpr extends Token {
         return this.rootNode && this.rootNode instanceof ListLiteralExpression;
     }
 
-    getTypes(): DataType[] {
-        return this.type;
-    }
+    // getTypes(): DataType[] {
+    //     return this.type;
+    // }
 
     getKeyword(): string {
         return "---";

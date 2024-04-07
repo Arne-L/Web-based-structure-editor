@@ -91,6 +91,8 @@ export namespace ASTManupilation {
     }
 
     function insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
+        const module = Module.instance;
+
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
         if (context.token instanceof TypedEmptyExpr || context.token instanceof EmptyOperatorTkn) {
             // If there is a focused expression
@@ -116,7 +118,7 @@ export namespace ASTManupilation {
             );
 
             // Update the Monaco editor with the given token
-            this.module.editor.executeEdits(range, code);
+            module.editor.executeEdits(range, code);
             // Insert the given token to the right of an expression on the left
         } else if (toRight && context.expressionToLeft != null) {
             // Get the parent of the expression to the left
@@ -129,7 +131,7 @@ export namespace ASTManupilation {
             // Rebuild
             root.rebuild(root.getLeftPosition(), 0);
             // Add code construct to Monaco editor
-            this.module.editor.insertAtCurPos([code]);
+            module.editor.insertAtCurPos([code]);
             // Insert the given token to the left of an expression on the right
         } else if (toLeft && context.expressionToRight != null) {
             // Get the parent of the expression to the right
@@ -141,7 +143,7 @@ export namespace ASTManupilation {
             // Rebuild
             root.rebuild(root.getLeftPosition(), 0);
             // Add code construct to Monaco editor
-            this.module.editor.insertAtCurPos([code]);
+            module.editor.insertAtCurPos([code]);
         }
     }
 
@@ -160,9 +162,9 @@ export namespace ASTManupilation {
             if (insertionResult.insertionType != InsertionType.Invalid) { // IF VALID OR DRAFT MODE
                 // For all valid or draft mode insertions
                 // This seems to only update the types?
-                if (root instanceof Statement) {
-                    root.onInsertInto(code);
-                }
+                // if (root instanceof Statement) {
+                //     root.onInsertInto(code);
+                // }
 
                 // Remove message if there is one
                 if (context.token.message && context.selected) {
