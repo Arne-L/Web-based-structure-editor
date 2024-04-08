@@ -48,7 +48,7 @@ export interface CodeConstruct {
     rootNode: CodeConstruct | Module;
 
     /**
-     * The index this item has inside its root's body (if root is the Module), or its tokens array.
+     * The index this item has inside its root's body, or its tokens array.
      */
     indexInRoot: number;
 
@@ -4781,78 +4781,78 @@ export class OperatorTkn extends Modifier {
     }
 }
 
-/**
- * Express values: string, number and boolean
- * E.g. 5, "Hello", True
- */
-export class LiteralValExpr extends Expression {
-    valueTokenIndex: number = 0;
+// /**
+//  * Express values: string, number and boolean
+//  * E.g. 5, "Hello", True
+//  */
+// export class LiteralValExpr extends Expression {
+//     valueTokenIndex: number = 0;
 
-    constructor(returns: DataType, value?: string, root?: Statement | Expression, indexInRoot?: number) {
-        super(returns);
+//     constructor(returns: DataType, value?: string, root?: Statement | Expression, indexInRoot?: number) {
+//         super(returns);
 
-        switch (returns) {
-            case DataType.String: {
-                this.tokens.push(new NonEditableTkn('"', this, this.tokens.length));
-                this.tokens.push(
-                    new EditableTextTkn(value == undefined ? "" : value, StringRegex, this, this.tokens.length)
-                );
-                this.tokens.push(new NonEditableTkn('"', this, this.tokens.length));
+//         switch (returns) {
+//             case DataType.String: {
+//                 this.tokens.push(new NonEditableTkn('"', this, this.tokens.length));
+//                 this.tokens.push(
+//                     new EditableTextTkn(value == undefined ? "" : value, StringRegex, this, this.tokens.length)
+//                 );
+//                 this.tokens.push(new NonEditableTkn('"', this, this.tokens.length));
 
-                this.valueTokenIndex = 1;
+//                 this.valueTokenIndex = 1;
 
-                break;
-            }
+//                 break;
+//             }
 
-            case DataType.Number: {
-                this.tokens.push(
-                    new EditableTextTkn(value == undefined ? "" : value, NumberRegex, this, this.tokens.length)
-                );
-                this.valueTokenIndex = 0;
+//             case DataType.Number: {
+//                 this.tokens.push(
+//                     new EditableTextTkn(value == undefined ? "" : value, NumberRegex, this, this.tokens.length)
+//                 );
+//                 this.valueTokenIndex = 0;
 
-                break;
-            }
+//                 break;
+//             }
 
-            case DataType.Boolean: {
-                this.tokens.push(new NonEditableTkn(value, this, this.tokens.length));
-                this.valueTokenIndex = 0;
+//             case DataType.Boolean: {
+//                 this.tokens.push(new NonEditableTkn(value, this, this.tokens.length));
+//                 this.valueTokenIndex = 0;
 
-                break;
-            }
-        }
+//                 break;
+//             }
+//         }
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-    }
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//     }
 
-    getValue(): string {
-        return (this.tokens[this.valueTokenIndex] as Token).text;
-    }
+//     getValue(): string {
+//         return (this.tokens[this.valueTokenIndex] as Token).text;
+//     }
 
-    getKeyword(): string {
-        return this.returns == DataType.String ? '"' + this.getValue() + '"' : this.getValue();
-    }
+//     getKeyword(): string {
+//         return this.returns == DataType.String ? '"' + this.getValue() + '"' : this.getValue();
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atEmptyExpressionHole(providedContext) ||
-            (this.returns == DataType.String && validator.canConvertAutocompleteToString(providedContext))
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.atEmptyExpressionHole(providedContext) ||
+//             (this.returns == DataType.String && validator.canConvertAutocompleteToString(providedContext))
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    getInitialFocus(): UpdatableContext {
-        let newContext = new Context();
+//     getInitialFocus(): UpdatableContext {
+//         let newContext = new Context();
 
-        switch (this.returns) {
-            case DataType.String:
-            case DataType.Number:
-                return { positionToMove: new Position(this.lineNumber, this.left + 1) };
+//         switch (this.returns) {
+//             case DataType.String:
+//             case DataType.Number:
+//                 return { positionToMove: new Position(this.lineNumber, this.left + 1) };
 
-            case DataType.Boolean:
-                return { positionToMove: new Position(this.lineNumber, this.right) };
-        }
-    }
-}
+//             case DataType.Boolean:
+//                 return { positionToMove: new Position(this.lineNumber, this.right) };
+//         }
+//     }
+// }
 
 // /**
 //  * Expression for f-string: f'...'
@@ -5125,11 +5125,11 @@ export class IdentifierTkn extends Token implements TextEditable {
     setIdentifierText(text: string) {
         this.text = text;
 
-        if (this.text != "  ") this.isEmpty = false;
+        if (this.text != EMPTYIDENTIFIER) this.isEmpty = false;
     }
 
     isEmptyIdentifier(): boolean {
-        return this.text == "  ";
+        return this.text == EMPTYIDENTIFIER;
     }
 }
 

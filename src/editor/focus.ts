@@ -7,7 +7,7 @@ import {
     Expression,
     GeneralExpression,
     IdentifierTkn,
-    LiteralValExpr,
+    // LiteralValExpr,
     NonEditableTkn,
     OperatorTkn,
     Statement,
@@ -669,12 +669,13 @@ export class Focus {
                 column == curToken.left &&
                 column == curToken.right &&
                 (curToken instanceof EditableTextTkn ||
-                    curToken instanceof LiteralValExpr ||
+                    // curToken instanceof LiteralValExpr ||
                     curToken instanceof IdentifierTkn)
             ) {
-                if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
-                    return curToken.tokens[0] as Token;
-                else if (curToken instanceof EditableTextTkn) return curToken;
+                // if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
+                //     return curToken.tokens[0] as Token;
+                // else
+                if (curToken instanceof EditableTextTkn) return curToken;
                 else if (curToken instanceof IdentifierTkn) return curToken;
             }
 

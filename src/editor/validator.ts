@@ -17,7 +17,7 @@ import {
     // IfStatement,
     ImportStatement,
     // ListLiteralExpression,
-    LiteralValExpr,
+    // LiteralValExpr,
     Modifier,
     NonEditableTkn,
     OperatorTkn,
@@ -93,24 +93,24 @@ export class Validator {
         return true;
     }
 
-    /**
-     * Determines if the left literal has ended and if the new character will thus open a new autocomplete
-     * Works specifically for the number literal: checks if the last pressed key is still part of the number
-     * or if a new autocomplete should be opened
-     *
-     * @param pressedKey - The key that was pressed as an additional character to the left operand
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if left can be switched to autocomplete, false otherwise
-     */
-    canSwitchLeftNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Determines if the left literal has ended and if the new character will thus open a new autocomplete
+    //  * Works specifically for the number literal: checks if the last pressed key is still part of the number
+    //  * or if a new autocomplete should be opened
+    //  *
+    //  * @param pressedKey - The key that was pressed as an additional character to the left operand
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if left can be switched to autocomplete, false otherwise
+    //  */
+    // canSwitchLeftNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            context.expressionToLeft instanceof LiteralValExpr &&
-            !(context.tokenToRight instanceof AutocompleteTkn) &&
-            !NumberRegex.test(context.expressionToLeft.getValue() + pressedKey)
-        );
-    }
+    //     return (
+    //         context.expressionToLeft instanceof LiteralValExpr &&
+    //         !(context.tokenToRight instanceof AutocompleteTkn) &&
+    //         !NumberRegex.test(context.expressionToLeft.getValue() + pressedKey)
+    //     );
+    // }
 
     // canAddLeftToAutocomplete(providedContext?: Context): boolean {
     //     const context = providedContext ? providedContext : this.module.focus.getContext();
@@ -122,22 +122,22 @@ export class Validator {
     //     );
     // }
 
-    /**
-     * Determines if the right operand can open an autocomplete menu / switch to autocomplete
-     *
-     * @param pressedKey - The key that was pressed as an additional character to the right operand
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if right can be switched to autocomplete, false otherwise
-     */
-    canSwitchRightNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Determines if the right operand can open an autocomplete menu / switch to autocomplete
+    //  *
+    //  * @param pressedKey - The key that was pressed as an additional character to the right operand
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if right can be switched to autocomplete, false otherwise
+    //  */
+    // canSwitchRightNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            context.expressionToRight instanceof LiteralValExpr &&
-            !(context.tokenToLeft instanceof AutocompleteTkn) &&
-            !NumberRegex.test(context.expressionToRight.getValue() + pressedKey)
-        );
-    }
+    //     return (
+    //         context.expressionToRight instanceof LiteralValExpr &&
+    //         !(context.tokenToLeft instanceof AutocompleteTkn) &&
+    //         !NumberRegex.test(context.expressionToRight.getValue() + pressedKey)
+    //     );
+    // }
 
     /**
      * Determines if the cursor is at the beginning of a value operation (e.g. "var = |", "| + |", "var += |")
@@ -149,8 +149,8 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         const isCorrectExprType =
-            context.expressionToRight instanceof VariableReferenceExpr ||
-            context.expressionToRight instanceof LiteralValExpr;
+            context.expressionToRight instanceof VariableReferenceExpr
+            // || context.expressionToRight instanceof LiteralValExpr;
 
         const hasCorrectRootType =
             context.expressionToRight.rootNode instanceof Modifier ||

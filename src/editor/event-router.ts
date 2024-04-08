@@ -466,25 +466,28 @@ export class EventRouter {
                         // If a key is being pressed right after a number literal, check if
                         // the new literal is not part of the literal (e.g. 12+) and if so
                         // open the autocomplete menu
-                        if (this.module.validator.canSwitchLeftNumToAutocomplete(e.key)) {
-                            return new EditAction(EditActionType.OpenAutocomplete, {
-                                autocompleteType: AutoCompleteType.RightOfExpression,
-                                firstChar: e.key,
-                                validMatches: this.module.actionFilter
-                                    .getProcessedInsertionsList()
-                                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                            });
-                            // Idem but now for (+12)
-                        } else if (this.module.validator.canSwitchRightNumToAutocomplete(e.key)) {
-                            return new EditAction(EditActionType.OpenAutocomplete, {
-                                autocompleteType: AutoCompleteType.LeftOfExpression,
-                                firstChar: e.key,
-                                validMatches: this.module.actionFilter
-                                    .getProcessedInsertionsList()
-                                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                            });
-                            // Else just simply insert the character
-                        } else return new EditAction(EditActionType.InsertChar);
+                        // if (this.module.validator.canSwitchLeftNumToAutocomplete(e.key)) {
+                        //     return new EditAction(EditActionType.OpenAutocomplete, {
+                        //         autocompleteType: AutoCompleteType.RightOfExpression,
+                        //         firstChar: e.key,
+                        //         validMatches: this.module.actionFilter
+                        //             .getProcessedInsertionsList()
+                        //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        //     });
+                        //     // Idem but now for (+12)
+                        // } else if (this.module.validator.canSwitchRightNumToAutocomplete(e.key)) {
+                        //     return new EditAction(EditActionType.OpenAutocomplete, {
+                        //         autocompleteType: AutoCompleteType.LeftOfExpression,
+                        //         firstChar: e.key,
+                        //         validMatches: this.module.actionFilter
+                        //             .getProcessedInsertionsList()
+                        //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        //     });
+                        //     // Else just simply insert the character
+                        // } else 
+                        // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
+                        // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
+                        return new EditAction(EditActionType.InsertChar);
                         // If at a slot where an operator token is expected, e.g. 1 ... 15
                     } else if (this.module.validator.atEmptyOperatorTkn(context)) {
                         // Return the autocomplete menu for the operator token
