@@ -2,19 +2,19 @@ import { Position, Range } from "monaco-editor";
 import { ErrorMessage } from "../messages/error-msg-generator";
 import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
-    AssignmentModifier,
+    // AssignmentModifier,
     AutocompleteTkn,
     BinaryOperatorExpr,
     CodeConstruct,
-    ElseStatement,
+    // ElseStatement,
     EmptyOperatorTkn,
     Expression,
     GeneralExpression,
     GeneralStatement,
     IdentifierTkn,
-    IfStatement,
+    // IfStatement,
     Importable,
-    ListAccessModifier,
+    // ListAccessModifier,
     Modifier,
     NonEditableTkn,
     OperatorTkn,
@@ -22,8 +22,8 @@ import {
     TemporaryStmt,
     Token,
     TypedEmptyExpr,
-    ValueOperationExpr,
-    VarOperationStmt,
+    // ValueOperationExpr,
+    // VarOperationStmt,
     // VarAssignmentStmt,
     VariableReferenceExpr,
 } from "../syntax-tree/ast";
@@ -146,8 +146,8 @@ export class ActionExecutor {
                     );
                 } else if (this.module.validator.atBeginningOfValOperation(context)) {
                     this.module.deleteCode(context.expressionToRight.rootNode);
-                } else if (context.expressionToRight instanceof Modifier) {
-                    this.deleteModifier(context.expressionToRight, { deleting: true });
+                // } else if (context.expressionToRight instanceof Modifier) {
+                //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 } else this.module.deleteCode(context.expressionToRight);
 
                 break;
@@ -160,12 +160,13 @@ export class ActionExecutor {
                         context.expressionToLeft,
                         new EmptyOperatorTkn(" ", context.expressionToLeft, context.expressionToLeft.indexInRoot)
                     );
-                } else if (
-                    context.expressionToLeft instanceof VariableReferenceExpr &&
-                    context.expressionToLeft.rootNode instanceof VarOperationStmt
-                ) {
-                    this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
-                } else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
+                // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
+                //     context.expressionToLeft instanceof VariableReferenceExpr &&
+                //     context.expressionToLeft.rootNode instanceof VarOperationStmt
+                // ) {
+                //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
+                }
+                // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
                 else this.module.deleteCode(context.expressionToLeft);
 
                 break;
@@ -206,46 +207,47 @@ export class ActionExecutor {
             // NOT language independent => Try to remove as statements should not be hardcoded
             // Also: try to merge all deletes into one single delete and write logic to determine
             // what to delete based on the context
-            case EditActionType.DeleteMultiLineStatement: {
-                // Maybe delete everything inside this if, as this is just to show a message?
-                if (
-                    context.lineStatement instanceof IfStatement ||
-                    (context.lineStatement instanceof ElseStatement && context.lineStatement.hasCondition)
-                ) {
-                    const elseStatementsAfterIf = [];
+            // case EditActionType.DeleteMultiLineStatement: {
+            //     // Maybe delete everything inside this if, as this is just to show a message?
+            //     if (
+            //         context.lineStatement instanceof IfStatement ||
+            //         (context.lineStatement instanceof ElseStatement && context.lineStatement.hasCondition)
+            //     ) {
+            //         const elseStatementsAfterIf = [];
 
-                    for (
-                        let i = context.lineStatement.indexInRoot + 1;
-                        i < context.lineStatement.rootNode.body.length;
-                        i++
-                    ) {
-                        const line = context.lineStatement.rootNode.body[i];
+            //         for (
+            //             let i = context.lineStatement.indexInRoot + 1;
+            //             i < context.lineStatement.rootNode.body.length;
+            //             i++
+            //         ) {
+            //             const line = context.lineStatement.rootNode.body[i];
 
-                        if (line instanceof ElseStatement) elseStatementsAfterIf.push(line);
-                        else break;
-                    }
+            //             if (line instanceof ElseStatement) elseStatementsAfterIf.push(line);
+            //             else break;
+            //         }
 
-                    for (const elseStmt of elseStatementsAfterIf) {
-                        this.module.messageController.addHoverMessage(
-                            elseStmt,
-                            null,
-                            "add if before the first else, or delete this."
-                        );
-                    }
-                }
+            //         for (const elseStmt of elseStatementsAfterIf) {
+            //             this.module.messageController.addHoverMessage(
+            //                 elseStmt,
+            //                 null,
+            //                 "add if before the first else, or delete this."
+            //             );
+            //         }
+            //     }
 
-                while (context.lineStatement.body.length > 0) {
-                    this.module.editor.indentRecursively(
-                        context.lineStatement.body[context.lineStatement.body.length - 1],
-                        { backward: true }
-                    );
-                    this.module.indentBackStatement(context.lineStatement.body[context.lineStatement.body.length - 1]);
-                }
+            //     while (context.lineStatement.body.length > 0) {
+            //         this.module.editor.indentRecursively(
+            //             context.lineStatement.body[context.lineStatement.body.length - 1],
+            //             { backward: true }
+            //         );
+            //         this.module.indentBackStatement(context.lineStatement.body[context.lineStatement.body.length - 1]);
+            //     }
 
-                this.module.deleteCode(context.lineStatement, { statement: true });
+            //     this.module.deleteCode(context.lineStatement, { statement: true });
 
-                break;
-            }
+            //     break;
+            // }
+            // REPLACED BY DeleteStmt
 
             // NOT language independent
             // See before
@@ -280,11 +282,11 @@ export class ActionExecutor {
 
             // NOT language independent
             // Idem
-            case EditActionType.DeleteSelectedModifier: {
-                this.deleteModifier(context.token.rootNode as Modifier, { deleting: true });
+            // case EditActionType.DeleteSelectedModifier: {
+            //     this.deleteModifier(context.token.rootNode as Modifier, { deleting: true });
 
-                break;
-            }
+            //     break;
+            // }
 
             // Partly language independent
             case EditActionType.DeletePrevLine: {
@@ -601,71 +603,71 @@ export class ActionExecutor {
                 break;
             }
 
-            // NOT NOT language independent
-            case EditActionType.InsertAssignmentModifier: {
-                // If the expression to the left is a variable reference on its own
-                if (context.expressionToLeft.rootNode instanceof VarOperationStmt) {
-                    // Get the parent of the variable reference
-                    const varOpStmt = context.expressionToLeft.rootNode;
+            // NOT language independent
+            // case EditActionType.InsertAssignmentModifier: {
+            //     // If the expression to the left is a variable reference on its own
+            //     if (context.expressionToLeft.rootNode instanceof VarOperationStmt) {
+            //         // Get the parent of the variable reference
+            //         const varOpStmt = context.expressionToLeft.rootNode;
 
-                    // If the current insertion is an assignment modifier
-                    // and the expression to the left is a variable reference
-                    if (
-                        action.data.modifier instanceof AssignmentModifier &&
-                        context.expressionToLeft instanceof VariableReferenceExpr
-                    ) {
-                        // Close draft mode of the variable reference; it is now correctly contained
-                        // in an assignment statement
-                        if (context.expressionToLeft.rootNode.draftModeEnabled) {
-                            this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
-                        }
-                        // Get the boundaries of the variable reference expression
-                        const initialBoundary = context.expressionToLeft.getBoundaries();
+            //         // If the current insertion is an assignment modifier
+            //         // and the expression to the left is a variable reference
+            //         if (
+            //             action.data.modifier instanceof AssignmentModifier &&
+            //             context.expressionToLeft instanceof VariableReferenceExpr
+            //         ) {
+            //             // Close draft mode of the variable reference; it is now correctly contained
+            //             // in an assignment statement
+            //             if (context.expressionToLeft.rootNode.draftModeEnabled) {
+            //                 this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
+            //             }
+            //             // Get the boundaries of the variable reference expression
+            //             const initialBoundary = context.expressionToLeft.getBoundaries();
 
-                        // const varAssignStmt = new VarAssignmentStmt(
-                        //     "",
-                        //     context.expressionToLeft.identifier,
-                        //     varOpStmt.rootNode,
-                        //     varOpStmt.indexInRoot
-                        // );
-                        // Construct a new variable assignment statement, set the identifier,
-                        // the root node and the index in the root
-                        const varAssignStmt = structuredClone(GeneralStatement.constructs.get("varAss"));
-                        varAssignStmt.setAssignmentIdentifier(context.expressionToLeft.identifier, 0);
-                        varAssignStmt.rootNode = varOpStmt.rootNode;
-                        varAssignStmt.indexInRoot = varOpStmt.indexInRoot;
+            //             // const varAssignStmt = new VarAssignmentStmt(
+            //             //     "",
+            //             //     context.expressionToLeft.identifier,
+            //             //     varOpStmt.rootNode,
+            //             //     varOpStmt.indexInRoot
+            //             // );
+            //             // Construct a new variable assignment statement, set the identifier,
+            //             // the root node and the index in the root
+            //             const varAssignStmt = structuredClone(GeneralStatement.constructs.get("varAss"));
+            //             varAssignStmt.setAssignmentIdentifier(context.expressionToLeft.identifier, 0);
+            //             varAssignStmt.rootNode = varOpStmt.rootNode;
+            //             varAssignStmt.indexInRoot = varOpStmt.indexInRoot;
 
-                        // Generalise to a simple "replace" call
-                        replaceInBody(varOpStmt.rootNode, varOpStmt.indexInRoot, varAssignStmt);
+            //             // Generalise to a simple "replace" call
+            //             replaceInBody(varOpStmt.rootNode, varOpStmt.indexInRoot, varAssignStmt);
 
-                        // Perform the edits in the Monaco editor and update the focus
-                        this.module.editor.executeEdits(initialBoundary, varAssignStmt);
-                        this.module.focus.updateContext(varAssignStmt.getInitialFocus());
+            //             // Perform the edits in the Monaco editor and update the focus
+            //             this.module.editor.executeEdits(initialBoundary, varAssignStmt);
+            //             this.module.focus.updateContext(varAssignStmt.getInitialFocus());
 
-                        if (flashGreen) this.flashGreen(varAssignStmt);
-                        // Else: WHEN IS THIS CASE VALID?
-                    } else {
-                        if (
-                            context.expressionToLeft instanceof VariableReferenceExpr &&
-                            context.expressionToLeft.rootNode.draftModeEnabled
-                        ) {
-                            this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
-                        }
+            //             if (flashGreen) this.flashGreen(varAssignStmt);
+            //             // Else: WHEN IS THIS CASE VALID?
+            //         } else {
+            //             if (
+            //                 context.expressionToLeft instanceof VariableReferenceExpr &&
+            //                 context.expressionToLeft.rootNode.draftModeEnabled
+            //             ) {
+            //                 this.module.closeConstructDraftRecord(context.expressionToLeft.rootNode);
+            //             }
 
-                        varOpStmt.appendModifier(action.data.modifier);
-                        varOpStmt.rebuild(varOpStmt.getLeftPosition(), 0);
+            //             varOpStmt.appendModifier(action.data.modifier);
+            //             varOpStmt.rebuild(varOpStmt.getLeftPosition(), 0);
 
-                        this.module.editor.insertAtCurPos([action.data.modifier]);
-                        this.module.focus.updateContext(action.data.modifier.getInitialFocus());
+            //             this.module.editor.insertAtCurPos([action.data.modifier]);
+            //             this.module.focus.updateContext(action.data.modifier.getInitialFocus());
 
-                        if (flashGreen) this.flashGreen(action.data.modifier);
-                    }
-                }
+            //             if (flashGreen) this.flashGreen(action.data.modifier);
+            //         }
+            //     }
 
-                // eventData.code = action.data.modifier.getRenderText();
+            //     // eventData.code = action.data.modifier.getRenderText();
 
-                break;
-            }
+            //     break;
+            // }
 
             // TODO: Disabled as this should be handled generally => STILL TO DO
             // case EditActionType.InsertModifier: {
@@ -1340,7 +1342,7 @@ export class ActionExecutor {
             // The root of the hole (either an expression or a statement)
             const root = context.token.rootNode;
             // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = new InsertionResult(InsertionType.Valid, "", []);//root.typeValidateInsertionIntoHole(code, context.token);
+            let insertionResult = new InsertionResult(InsertionType.Valid, "", []); //root.typeValidateInsertionIntoHole(code, context.token);
 
             if (insertionResult.insertionType != InsertionType.Invalid) {
                 // For all valid or draft mode insertions
@@ -1633,138 +1635,138 @@ export class ActionExecutor {
     //     }
     // }
 
-    /**
-     * Delete the given modifier from the editor
-     *
-     * @param mod - The modifier to delete
-     * @param param1
-     */
-    private deleteModifier(mod: Modifier, { deleting = false } = {}) {
-        // TODO: this will be a prototype version of the code. needs to be cleaned and iterated on ->
-        // e.g. merge the operations for VarOperationStmt and ValueOperationExpr
+    // /**
+    //  * Delete the given modifier from the editor
+    //  *
+    //  * @param mod - The modifier to delete
+    //  * @param param1
+    //  */
+    // private deleteModifier(mod: Modifier, { deleting = false } = {}) {
+    //     // TODO: this will be a prototype version of the code. needs to be cleaned and iterated on ->
+    //     // e.g. merge the operations for VarOperationStmt and ValueOperationExpr
 
-        // TODO: if deleting, should not move cursor
-        // Get the range of the modifier to delete
-        const removeRange = mod.getBoundaries();
-        // The parent construct of the modifier
-        const rootOfExprToLeft = mod.rootNode;
+    //     // TODO: if deleting, should not move cursor
+    //     // Get the range of the modifier to delete
+    //     const removeRange = mod.getBoundaries();
+    //     // The parent construct of the modifier
+    //     const rootOfExprToLeft = mod.rootNode;
 
-        // Remove the modifier from the parent's tokens
-        rootOfExprToLeft.tokens.splice(mod.indexInRoot, 1);
-        // Notify the code construct, and all its children, that it has been deleted
-        this.module.recursiveNotify(mod, CallbackType.delete);
+    //     // Remove the modifier from the parent's tokens
+    //     rootOfExprToLeft.tokens.splice(mod.indexInRoot, 1);
+    //     // Notify the code construct, and all its children, that it has been deleted
+    //     this.module.recursiveNotify(mod, CallbackType.delete);
 
-        // Close the draft mode if it is enabled
-        this.module.closeConstructDraftRecord(rootOfExprToLeft);
+    //     // Close the draft mode if it is enabled
+    //     this.module.closeConstructDraftRecord(rootOfExprToLeft);
 
-        let built = false;
-        let positionToMove: Position;
+    //     let built = false;
+    //     let positionToMove: Position;
 
-        // If only one child token is remaining (the right-hand side value or left-hand
-        // side variable reference)
-        if (rootOfExprToLeft.tokens.length == 1) {
-            // only a val or var-ref is remaining:
-            if (rootOfExprToLeft instanceof ValueOperationExpr) {
-                rootOfExprToLeft.updateReturnType();
+    //     // If only one child token is remaining (the right-hand side value or left-hand
+    //     // side variable reference)
+    //     if (rootOfExprToLeft.tokens.length == 1) {
+    //         // only a val or var-ref is remaining:
+    //         if (rootOfExprToLeft instanceof ValueOperationExpr) {
+    //             rootOfExprToLeft.updateReturnType();
 
-                let replacementResult = new InsertionResult(InsertionType.Valid, "", []);
-                //     rootOfExprToLeft.rootNode.checkInsertionAtHole(
-                //     rootOfExprToLeft.indexInRoot,
-                //     rootOfExprToLeft.returns
-                // );
+    //             let replacementResult = new InsertionResult(InsertionType.Valid, "", []);
+    //             //     rootOfExprToLeft.rootNode.checkInsertionAtHole(
+    //             //     rootOfExprToLeft.indexInRoot,
+    //             //     rootOfExprToLeft.returns
+    //             // );
 
-                if (replacementResult.insertionType == InsertionType.DraftMode) {
-                    const ref = rootOfExprToLeft.getVarRef();
-                    if (ref instanceof VariableReferenceExpr) {
-                        // const line = this.module.focus.getContext().lineStatement;
+    //             if (replacementResult.insertionType == InsertionType.DraftMode) {
+    //                 const ref = rootOfExprToLeft.getVarRef();
+    //                 if (ref instanceof VariableReferenceExpr) {
+    //                     // const line = this.module.focus.getContext().lineStatement;
 
-                        // const varType = this.module.variableController.getVariableTypeNearLine(
-                        //     line.rootNode instanceof Module ? this.module.scope : line.scope,
-                        //     line.lineNumber,
-                        //     ref.identifier,
-                        //     false
-                        // );
-                        const varType = DataType.Any;
+    //                     // const varType = this.module.variableController.getVariableTypeNearLine(
+    //                     //     line.rootNode instanceof Module ? this.module.scope : line.scope,
+    //                     //     line.lineNumber,
+    //                     //     ref.identifier,
+    //                     //     false
+    //                     // );
+    //                     const varType = DataType.Any;
 
-                        let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
-                        const currentAllowedTypes = DataType.Any;
-                        //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
-                        //     rootOfExprToLeft.indexInRoot,
-                        //     false
-                        // );
+    //                     let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
+    //                     const currentAllowedTypes = DataType.Any;
+    //                     //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
+    //                     //     rootOfExprToLeft.indexInRoot,
+    //                     //     false
+    //                     // );
 
-                        if (currentAllowedTypes.length > 0) {
-                            expectedTypes = currentAllowedTypes;
-                        }
+    //                     if (currentAllowedTypes.length > 0) {
+    //                         expectedTypes = currentAllowedTypes;
+    //                     }
 
-                        this.module.openDraftMode(
-                            rootOfExprToLeft,
-                            TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR(ref.identifier, varType, expectedTypes),
-                            [
-                                ...replacementResult.conversionRecords.map((conversionRecord) => {
-                                    return conversionRecord.getConversionButton(
-                                        ref.identifier,
-                                        this.module,
-                                        rootOfExprToLeft
-                                    );
-                                }),
-                            ]
-                        );
-                    } else {
-                        let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
+    //                     this.module.openDraftMode(
+    //                         rootOfExprToLeft,
+    //                         TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR(ref.identifier, varType, expectedTypes),
+    //                         [
+    //                             ...replacementResult.conversionRecords.map((conversionRecord) => {
+    //                                 return conversionRecord.getConversionButton(
+    //                                     ref.identifier,
+    //                                     this.module,
+    //                                     rootOfExprToLeft
+    //                                 );
+    //                             }),
+    //                         ]
+    //                     );
+    //                 } else {
+    //                     let expectedTypes = rootOfExprToLeft.rootNode.typeOfHoles[rootOfExprToLeft.indexInRoot];
 
-                        const currentAllowedTypes = DataType.Any;
-                        //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
-                        //     rootOfExprToLeft.indexInRoot,
-                        //     false
-                        // );
+    //                     const currentAllowedTypes = DataType.Any;
+    //                     //     rootOfExprToLeft.rootNode.getCurrentAllowedTypesOfHole(
+    //                     //     rootOfExprToLeft.indexInRoot,
+    //                     //     false
+    //                     // );
 
-                        if (currentAllowedTypes.length > 0) {
-                            expectedTypes = currentAllowedTypes;
-                        }
+    //                     if (currentAllowedTypes.length > 0) {
+    //                         expectedTypes = currentAllowedTypes;
+    //                     }
 
-                        this.module.openDraftMode(
-                            ref,
-                            TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR(
-                                ref.getKeyword(),
-                                ref.returns,
-                                expectedTypes
-                            ),
-                            [
-                                ...replacementResult.conversionRecords.map((conversionRecord) => {
-                                    return conversionRecord.getConversionButton(
-                                        ref.getKeyword(),
-                                        this.module,
-                                        rootOfExprToLeft
-                                    );
-                                }),
-                            ]
-                        );
-                    }
-                }
-                const value = rootOfExprToLeft.tokens[0];
-                rootOfExprToLeft.rootNode.tokens[rootOfExprToLeft.indexInRoot] = value;
-                value.rootNode = rootOfExprToLeft.rootNode;
-                value.indexInRoot = rootOfExprToLeft.indexInRoot;
+    //                     this.module.openDraftMode(
+    //                         ref,
+    //                         TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR(
+    //                             ref.getKeyword(),
+    //                             ref.returns,
+    //                             expectedTypes
+    //                         ),
+    //                         [
+    //                             ...replacementResult.conversionRecords.map((conversionRecord) => {
+    //                                 return conversionRecord.getConversionButton(
+    //                                     ref.getKeyword(),
+    //                                     this.module,
+    //                                     rootOfExprToLeft
+    //                                 );
+    //                             }),
+    //                         ]
+    //                     );
+    //                 }
+    //             }
+    //             const value = rootOfExprToLeft.tokens[0];
+    //             rootOfExprToLeft.rootNode.tokens[rootOfExprToLeft.indexInRoot] = value;
+    //             value.rootNode = rootOfExprToLeft.rootNode;
+    //             value.indexInRoot = rootOfExprToLeft.indexInRoot;
 
-                rootOfExprToLeft.rootNode.rebuild(rootOfExprToLeft.rootNode.getLeftPosition(), 0);
-                positionToMove = new Position(value.getLineNumber(), value.right);
-                built = true;
-            }
-        }
+    //             rootOfExprToLeft.rootNode.rebuild(rootOfExprToLeft.rootNode.getLeftPosition(), 0);
+    //             positionToMove = new Position(value.getLineNumber(), value.right);
+    //             built = true;
+    //         }
+    //     }
 
-        if (!built) {
-            rootOfExprToLeft.rebuild(rootOfExprToLeft.getLeftPosition(), 0);
-            positionToMove = new Position(rootOfExprToLeft.getLineNumber(), rootOfExprToLeft.right);
-        }
+    //     if (!built) {
+    //         rootOfExprToLeft.rebuild(rootOfExprToLeft.getLeftPosition(), 0);
+    //         positionToMove = new Position(rootOfExprToLeft.getLineNumber(), rootOfExprToLeft.right);
+    //     }
 
-        this.module.editor.executeEdits(removeRange, null, "");
-        if (!deleting) {
-            this.module.focus.updateContext({
-                positionToMove,
-            });
-        }
-    }
+    //     this.module.editor.executeEdits(removeRange, null, "");
+    //     if (!deleting) {
+    //         this.module.focus.updateContext({
+    //             positionToMove,
+    //         });
+    //     }
+    // }
 
     /**
      * Remove the given token from the editor and update the focus context

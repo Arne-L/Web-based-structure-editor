@@ -910,7 +910,7 @@ export class TooltipComponent {
             }
         }
 
-        const returnType = code.getUserFriendlyReturnType();
+        const returnType = null;//code.getUserFriendlyReturnType();
 
         const tooltipContainer = document.createElement("div");
         tooltipContainer.classList.add("tooltip-container");

@@ -1871,106 +1871,106 @@ export class Argument {
 }
 
 // REPLACED
-/**
- * While construct
- */
-export class WhileStatement extends Statement {
-    declare scope: Scope;
-    private conditionIndex: number;
+// /**
+//  * While construct
+//  */
+// export class WhileStatement extends Statement {
+//     declare scope: Scope;
+//     private conditionIndex: number;
 
-    constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
-        super();
+//     constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
+//         super();
 
-        this.tokens.push(new NonEditableTkn("while ", this, this.tokens.length));
-        this.conditionIndex = this.tokens.length;
-        this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
-        this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("while ", this, this.tokens.length));
+//         this.conditionIndex = this.tokens.length;
+//         this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
+//         this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
 
-        this.body.push(new EmptyLineStmt(this, 0));
-        this.scope = new Scope();
+//         this.body.push(new EmptyLineStmt(this, 0));
+//         this.scope = new Scope();
 
-        this.hasEmptyToken = true;
-    }
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
-
-// REPLACED
-/**
- * If statement with a body
- */
-export class IfStatement extends Statement {
-    private conditionIndex: number;
-
-    constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
-        super();
-
-        this.tokens.push(new NonEditableTkn("if ", this, this.tokens.length));
-        this.conditionIndex = this.tokens.length;
-        this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
-        this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
-
-        this.body.push(new EmptyLineStmt(this, 0));
-        this.scope = new Scope();
-
-        this.hasEmptyToken = true;
-    }
-
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 // REPLACED
-/**
- * Else and elif statement (depending on whether or not they have a condition). They are part of the body of an if statement (and
- * can only be in the body of an if statement).
- */
-export class ElseStatement extends Statement {
-    private conditionIndex: number;
-    hasCondition: boolean = false;
+// /**
+//  * If statement with a body
+//  */
+// export class IfStatement extends Statement {
+//     private conditionIndex: number;
 
-    constructor(hasCondition: boolean, root?: IfStatement, indexInRoot?: number) {
-        super();
-        this.hasCondition = hasCondition;
+//     constructor(root?: CodeConstruct | Module, indexInRoot?: number) {
+//         super();
 
-        if (hasCondition) {
-            this.tokens.push(new NonEditableTkn("elif ", this, this.tokens.length));
-            this.conditionIndex = this.tokens.length;
-            this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
-            this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
-            this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
-        } else this.tokens.push(new NonEditableTkn("else:", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("if ", this, this.tokens.length));
+//         this.conditionIndex = this.tokens.length;
+//         this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
+//         this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
 
-        this.scope = new Scope();
+//         this.body.push(new EmptyLineStmt(this, 0));
+//         this.scope = new Scope();
 
-        if (this.hasCondition) {
-            this.hasEmptyToken = true;
-            this.simpleInvalidTooltip = Tooltip.InvalidInsertElif;
-        } else {
-            this.simpleInvalidTooltip = Tooltip.InvalidInsertElse;
-        }
-    }
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) &&
-            (this.hasCondition
-                ? validator.canInsertElifStmtAtCurIndent(providedContext) ||
-                  validator.canInsertElifStmtAtPrevIndent(providedContext)
-                : validator.canInsertElseStmtAtCurIndent(providedContext) ||
-                  validator.canInsertElseStmtAtPrevIndent(providedContext))
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
+
+// REPLACED
+// /**
+//  * Else and elif statement (depending on whether or not they have a condition). They are part of the body of an if statement (and
+//  * can only be in the body of an if statement).
+//  */
+// export class ElseStatement extends Statement {
+//     private conditionIndex: number;
+//     hasCondition: boolean = false;
+
+//     constructor(hasCondition: boolean, root?: IfStatement, indexInRoot?: number) {
+//         super();
+//         this.hasCondition = hasCondition;
+
+//         if (hasCondition) {
+//             this.tokens.push(new NonEditableTkn("elif ", this, this.tokens.length));
+//             this.conditionIndex = this.tokens.length;
+//             this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
+//             this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
+//             this.tokens.push(new NonEditableTkn(" :", this, this.tokens.length));
+//         } else this.tokens.push(new NonEditableTkn("else:", this, this.tokens.length));
+
+//         this.scope = new Scope();
+
+//         if (this.hasCondition) {
+//             this.hasEmptyToken = true;
+//             this.simpleInvalidTooltip = Tooltip.InvalidInsertElif;
+//         } else {
+//             this.simpleInvalidTooltip = Tooltip.InvalidInsertElse;
+//         }
+//     }
+
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) &&
+//             (this.hasCondition
+//                 ? validator.canInsertElifStmtAtCurIndent(providedContext) ||
+//                   validator.canInsertElifStmtAtPrevIndent(providedContext)
+//                 : validator.canInsertElseStmtAtCurIndent(providedContext) ||
+//                   validator.canInsertElseStmtAtPrevIndent(providedContext))
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 // REPLACED
 /**
@@ -1998,9 +1998,10 @@ export class ImportStatement extends Statement {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
+        return InsertionType.Valid; // Temporary fix
+        // return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+        //     ? InsertionType.Valid
+        //     : InsertionType.Invalid;
     }
 
     getImportModuleName(): string {
@@ -2814,190 +2815,188 @@ export class VariableReferenceExpr extends Expression {
     }
 }
 
-/**
- * Expression encapsulating an entire value expression, be it a variable or a value that is wrapped.
- * Modifications here are "+", "and" ...
- * => Correct? Might be only for values, not variables ... but there is a isVarSet field...?
- * ===> IS THIS EVEN USED?
- */
-export class ValueOperationExpr extends Expression {
-    isVarSet = false;
+// /**
+//  * Expression encapsulating an entire value expression, be it a variable or a value that is wrapped.
+//  * Modifications here are "+", "and", .method-name, x[...], etc.
+//  */
+// export class ValueOperationExpr extends Expression {
+//     isVarSet = false;
 
-    constructor(value: Expression, modifiers?: Array<Modifier>, root?: Statement, indexInRoot?: number) {
-        super(value != null ? value.returns : DataType.Void);
+//     constructor(value: Expression, modifiers?: Array<Modifier>, root?: Statement, indexInRoot?: number) {
+//         super(value != null ? value.returns : DataType.Void);
 
-        if (value != null) {
-            value.indexInRoot = this.tokens.length;
-            value.rootNode = this;
+//         if (value != null) {
+//             value.indexInRoot = this.tokens.length;
+//             value.rootNode = this;
 
-            this.isVarSet = true;
-        }
+//             this.isVarSet = true;
+//         }
 
-        this.tokens.push(value);
+//         this.tokens.push(value);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        if (modifiers) for (const mod of modifiers) this.appendModifier(mod);
-    }
+//         if (modifiers) for (const mod of modifiers) this.appendModifier(mod);
+//     }
 
-    setVariable(ref: VariableReferenceExpr) {
-        ref.indexInRoot = this.tokens.length;
-        ref.rootNode = this;
-        this.tokens[0] = ref;
-        this.isVarSet = true;
-    }
+//     setVariable(ref: VariableReferenceExpr) {
+//         ref.indexInRoot = this.tokens.length;
+//         ref.rootNode = this;
+//         this.tokens[0] = ref;
+//         this.isVarSet = true;
+//     }
 
-    updateReturnType() {
-        for (const mod of this.tokens) {
-            if (mod instanceof ListAccessModifier) this.returns = TypeChecker.getElementTypeFromListType(this.returns);
-            else if (mod instanceof Expression) this.returns = mod.returns;
-        }
-    }
+//     updateReturnType() {
+//         for (const mod of this.tokens) {
+//             if (mod instanceof ListAccessModifier) this.returns = TypeChecker.getElementTypeFromListType(this.returns);
+//             else if (mod instanceof Expression) this.returns = mod.returns;
+//         }
+//     }
 
-    appendModifier(mod: Modifier) {
-        mod.indexInRoot = this.tokens.length;
-        mod.rootNode = this;
+//     appendModifier(mod: Modifier) {
+//         mod.indexInRoot = this.tokens.length;
+//         mod.rootNode = this;
 
-        this.tokens.push(mod);
+//         this.tokens.push(mod);
 
-        // always take the last modifier's return value for the whole expression:
-        this.returns = mod.returns;
-    }
+//         // always take the last modifier's return value for the whole expression:
+//         this.returns = mod.returns;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
 
-    getKeyword(): string {
-        return (this.tokens[this.tokens.length - 1] as Modifier).getModifierText();
-    }
+//     getKeyword(): string {
+//         return (this.tokens[this.tokens.length - 1] as Modifier).getModifierText();
+//     }
 
-    getVarRef(): Expression {
-        return this.tokens[0] as Expression;
-    }
-}
+//     getVarRef(): Expression {
+//         return this.tokens[0] as Expression;
+//     }
+// }
 
-/**
- * ONLY USED TO INSERT A VARIABLE REFERENCE ON AN EMPTY LINE ==> DELETE?
- *
- * Statement encapsulating a variable assignment operation.
- * Can be a variable reference but also operations on the reference or
- * modifiers on the reference.
- *
- * Seems to be null in most cases (at least when created) and only becomes equal to
- * a reference when an existing variable is referenced, when it is inserted and of all those
- * calls, the last one is non-null.
- * => Correct?
- */
-export class VarOperationStmt extends Statement {
-    isVarSet = false;
+// /**
+//  * ONLY USED TO INSERT A VARIABLE REFERENCE ON AN EMPTY LINE ==> DELETE?
+//  *
+//  * Statement encapsulating a variable assignment operation or other operations on expressions.
+//  * Can be a variable reference but also operations on the reference or
+//  * modifiers on the reference (e.g. .methode-name(), x[...] etc).
+//  *
+//  * Seems to be null in most cases (at least when created) and only becomes equal to
+//  * a reference when an existing variable is referenced, when it is inserted and of all those
+//  * calls, the last one is non-null.
+//  * => Correct?
+//  */
+// export class VarOperationStmt extends Statement {
+//     isVarSet = false;
 
-    constructor(ref: VariableReferenceExpr, modifiers?: Array<Modifier>, root?: Statement, indexInRoot?: number) {
-        super();
+//     constructor(ref: VariableReferenceExpr, modifiers?: Array<Modifier>, root?: Statement, indexInRoot?: number) {
+//         super();
 
-        if (ref != null) {
-            ref.indexInRoot = this.tokens.length;
-            ref.rootNode = this;
-            this.isVarSet = true;
-        }
+//         if (ref != null) {
+//             ref.indexInRoot = this.tokens.length;
+//             ref.rootNode = this;
+//             this.isVarSet = true;
+//         }
 
-        this.tokens.push(ref);
+//         this.tokens.push(ref);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        if (modifiers)
-            for (const mod of modifiers) {
-                mod.indexInRoot = this.tokens.length;
-                mod.rootNode = this;
+//         if (modifiers)
+//             for (const mod of modifiers) {
+//                 mod.indexInRoot = this.tokens.length;
+//                 mod.rootNode = this;
 
-                this.tokens.push(mod);
-            }
-        // console.log("Variable reference expression" + ref + ";" + new Date().getSeconds());
-    }
+//                 this.tokens.push(mod);
+//             }
+//         // console.log("Variable reference expression" + ref + ";" + new Date().getSeconds());
+//     }
 
-    setVariable(ref: VariableReferenceExpr) {
-        ref.indexInRoot = this.tokens.length;
-        ref.rootNode = this;
-        this.tokens[0] = ref;
-        this.isVarSet = true;
-    }
+//     setVariable(ref: VariableReferenceExpr) {
+//         ref.indexInRoot = this.tokens.length;
+//         ref.rootNode = this;
+//         this.tokens[0] = ref;
+//         this.isVarSet = true;
+//     }
 
-    updateModifierTypes() {
-        for (let i = 1; i < this.tokens.length; i++) {
-            const mod = this.tokens[i];
+//     updateModifierTypes() {
+//         for (let i = 1; i < this.tokens.length; i++) {
+//             const mod = this.tokens[i];
 
-            if (mod instanceof AugmentedAssignmentModifier) {
-                const rightMostReturnsType = (this.tokens[i - 1] as Expression).returns;
-                (mod.tokens[1] as TypedEmptyExpr).type = [rightMostReturnsType];
-                mod.typeOfHoles[1] = [rightMostReturnsType];
-            }
-        }
-    }
+//             if (mod instanceof AugmentedAssignmentModifier) {
+//                 const rightMostReturnsType = (this.tokens[i - 1] as Expression).returns;
+//                 (mod.tokens[1] as TypedEmptyExpr).type = [rightMostReturnsType];
+//                 mod.typeOfHoles[1] = [rightMostReturnsType];
+//             }
+//         }
+//     }
 
-    /**
-     * Expand a variable reference with a modifier like "+="
-     * Seems to be only called when it is an augmented assignment modifier
-     *
-     * @param mod - Augmented(?) assignment(?) modifier
-     */
-    appendModifier(mod: Modifier) {
-        if (mod instanceof AugmentedAssignmentModifier) {
-            const rightMostReturnsType = (this.tokens[this.tokens.length - 1] as Expression).returns;
-            (mod.tokens[1] as TypedEmptyExpr).type = [rightMostReturnsType];
-            mod.typeOfHoles[1] = [rightMostReturnsType];
-        }
+//     /**
+//      * Expand a variable reference with a modifier like "+="
+//      * Seems to be only called when it is an augmented assignment modifier
+//      *
+//      * @param mod - Augmented(?) assignment(?) modifier
+//      */
+//     appendModifier(mod: Modifier) {
+//         if (mod instanceof AugmentedAssignmentModifier) {
+//             const rightMostReturnsType = (this.tokens[this.tokens.length - 1] as Expression).returns;
+//             (mod.tokens[1] as TypedEmptyExpr).type = [rightMostReturnsType];
+//             mod.typeOfHoles[1] = [rightMostReturnsType];
+//         }
 
-        mod.indexInRoot = this.tokens.length;
-        mod.rootNode = this;
+//         mod.indexInRoot = this.tokens.length;
+//         mod.rootNode = this;
 
-        this.tokens.push(mod);
-        // console.log("Append modifier" + mod + ";" + new Date().getSeconds());
-    }
+//         this.tokens.push(mod);
+//         // console.log("Append modifier" + mod + ";" + new Date().getSeconds());
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    getVarRef(): VariableReferenceExpr {
-        return this.tokens[0] as VariableReferenceExpr;
-    }
-}
+//     getVarRef(): VariableReferenceExpr {
+//         return this.tokens[0] as VariableReferenceExpr;
+//     }
+// }
 
-/**
- * Modifier to access a given list index.
- * E.g. [1,2,3]*[0]* => 1
- */
-export class ListAccessModifier extends Modifier {
-    leftExprTypes = [DataType.AnyList];
-    private indexOfIndexTkn: number;
+// /**
+//  * Modifier to access a given list index.
+//  * E.g. [1,2,3]*[0]* => 1
+//  */
+// export class ListAccessModifier extends Modifier {
+//     leftExprTypes = [DataType.AnyList];
+//     private indexOfIndexTkn: number;
 
-    constructor(root?: ValueOperationExpr | VarOperationStmt, indexInRoot?: number) {
-        super();
+//     constructor(root?: ValueOperationExpr | VarOperationStmt, indexInRoot?: number) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(new NonEditableTkn(`[`, this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
-        this.indexOfIndexTkn = this.tokens.length - 1;
-        this.tokens.push(new NonEditableTkn(`]`, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn(`[`, this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
+//         this.indexOfIndexTkn = this.tokens.length - 1;
+//         this.tokens.push(new NonEditableTkn(`]`, this, this.tokens.length));
 
-        this.simpleInvalidTooltip = Tooltip.InvalidInsertListElementAccess;
-    }
+//         this.simpleInvalidTooltip = Tooltip.InvalidInsertListElementAccess;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        // return IndexableTypes.indexOf(providedContext?.expressionToLeft?.returns) > -1 &&
-        return !validator.insideFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         // return IndexableTypes.indexOf(providedContext?.expressionToLeft?.returns) > -1 &&
+//         return !validator.insideFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
 
-    getModifierText(): string {
-        return "[---]";
-    }
+//     getModifierText(): string {
+//         return "[---]";
+//     }
 
     // validateTypes(module: Module): void {
     //     const indxTkn = this.tokens[this.indexOfIndexTkn];
@@ -3053,224 +3052,224 @@ export class ListAccessModifier extends Modifier {
 
     //     module.executer.execute(action);
     // }
-}
+// }
 
-/**
- * Probably to access the property of an object.(?)
- * ===> NOT USED?
- */
-export class PropertyAccessorModifier extends Modifier {
-    private propertyName: string;
+// /**
+//  * Probably to access the property of an object.(?)
+//  * ===> NOT USED?
+//  */
+// export class PropertyAccessorModifier extends Modifier {
+//     private propertyName: string;
 
-    constructor(
-        propertyName: string,
-        exprType: DataType,
-        root?: ValueOperationExpr | VarOperationStmt,
-        indexInRoot?: number
-    ) {
-        super();
+//     constructor(
+//         propertyName: string,
+//         exprType: DataType,
+//         root?: ValueOperationExpr | VarOperationStmt,
+//         indexInRoot?: number
+//     ) {
+//         super();
 
-        this.leftExprTypes = [exprType];
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.leftExprTypes = [exprType];
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(new NonEditableTkn(`.${propertyName}`, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn(`.${propertyName}`, this, this.tokens.length));
 
-        this.propertyName = propertyName;
-        // console.log("Property constructed", this.propertyName);
-    }
+//         this.propertyName = propertyName;
+//         // console.log("Property constructed", this.propertyName);
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return InsertionType.Valid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return InsertionType.Valid;
+//     }
 
-    getModifierText(): string {
-        return `.${this.propertyName}`;
-    }
-}
+//     getModifierText(): string {
+//         return `.${this.propertyName}`;
+//     }
+// }
 
-/**
- * Method's call on a variable or value with a return value. E.g. "hello".split("e")
- */
-export class MethodCallModifier extends Modifier {
-    functionName: string = "";
-    args: Array<Argument>;
-    declare returns: DataType;
+// /**
+//  * Method's call on a variable or value with a return value. E.g. "hello".split("e")
+//  */
+// export class MethodCallModifier extends Modifier {
+//     functionName: string = "";
+//     args: Array<Argument>;
+//     declare returns: DataType;
 
-    constructor(
-        functionName: string,
-        args: Array<Argument>,
-        returns: DataType,
-        exprType: DataType,
-        root?: ValueOperationExpr | VarOperationStmt,
-        indexInRoot?: number
-    ) {
-        super();
+//     constructor(
+//         functionName: string,
+//         args: Array<Argument>,
+//         returns: DataType,
+//         exprType: DataType,
+//         root?: ValueOperationExpr | VarOperationStmt,
+//         indexInRoot?: number
+//     ) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.functionName = functionName;
-        this.args = args;
-        this.returns = returns;
-        this.leftExprTypes = [exprType];
+//         this.functionName = functionName;
+//         this.args = args;
+//         this.returns = returns;
+//         this.leftExprTypes = [exprType];
 
-        if (args.length > 0) {
-            this.tokens.push(new NonEditableTkn("." + functionName + "(", this, this.tokens.length));
+//         if (args.length > 0) {
+//             this.tokens.push(new NonEditableTkn("." + functionName + "(", this, this.tokens.length));
 
-            for (let i = 0; i < args.length; i++) {
-                let arg = args[i];
+//             for (let i = 0; i < args.length; i++) {
+//                 let arg = args[i];
 
-                this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
+//                 this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
 
-                if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
-            }
+//                 if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
+//             }
 
-            this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+//             this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
-            this.hasEmptyToken = true;
-        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
-        // When would we enter the else fase? There is a point missing at the start?
-    }
+//             this.hasEmptyToken = true;
+//         } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
+//         // When would we enter the else fase? There is a point missing at the start?
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        // let doTypesMatch = this.leftExprTypes.some((type) =>
-        //     areEqualTypes(providedContext?.expressionToLeft?.returns, type)
-        // );
-        let doTypesMatch = true;
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         // let doTypesMatch = this.leftExprTypes.some((type) =>
+//         //     areEqualTypes(providedContext?.expressionToLeft?.returns, type)
+//         // );
+//         let doTypesMatch = true;
 
-        //#514
-        if (
-            providedContext?.expressionToLeft?.rootNode.rootNode instanceof VarOperationStmt &&
-            this.returns === DataType.Void
-        ) {
-            return InsertionType.Invalid;
-        }
+//         //#514
+//         if (
+//             providedContext?.expressionToLeft?.rootNode.rootNode instanceof VarOperationStmt &&
+//             this.returns === DataType.Void
+//         ) {
+//             return InsertionType.Invalid;
+//         }
 
-        //#260/#341
-        if (
-            this.returns === DataType.Void &&
-            providedContext?.lineStatement instanceof VarOperationStmt &&
-            ListTypes.indexOf(providedContext?.lineStatement.getVarRef().returns) > -1
-        ) {
-            doTypesMatch = true;
-        } else if (this.returns === DataType.Void) {
-            doTypesMatch = false;
-        }
+//         //#260/#341
+//         if (
+//             this.returns === DataType.Void &&
+//             providedContext?.lineStatement instanceof VarOperationStmt &&
+//             ListTypes.indexOf(providedContext?.lineStatement.getVarRef().returns) > -1
+//         ) {
+//             doTypesMatch = true;
+//         } else if (this.returns === DataType.Void) {
+//             doTypesMatch = false;
+//         }
 
-        return validator.atRightOfExpression(providedContext) && doTypesMatch
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//         return validator.atRightOfExpression(providedContext) && doTypesMatch
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    getModifierText(): string {
-        let str = `.${this.functionName}(`;
+//     getModifierText(): string {
+//         let str = `.${this.functionName}(`;
 
-        for (let i = 0; i < this.args.length; i++) {
-            str += "---";
+//         for (let i = 0; i < this.args.length; i++) {
+//             str += "---";
 
-            if (i !== this.args.length - 1) {
-                str += ", ";
-            }
-        }
+//             if (i !== this.args.length - 1) {
+//                 str += ", ";
+//             }
+//         }
 
-        str += ")";
+//         str += ")";
 
-        return str;
-    }
-}
+//         return str;
+//     }
+// }
 
-/**
- * Assign a value to a variable. E.g. "x = 5"
- * The assignmentModifier itself is "= ---" without the variable and with a hole
- *
- * Requirements:
- * * Left expression needs to be an assignable (like a variable reference, list access ...)
- * * RootNode needs to be a VarOperationStmt
- */
-export class AssignmentModifier extends Modifier {
-    declare rootNode: VarOperationStmt;
-    simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
+// /**
+//  * Assign a value to a variable. E.g. "x = 5"
+//  * The assignmentModifier itself is "= ---" without the variable and with a hole
+//  *
+//  * Requirements:
+//  * * Left expression needs to be an assignable (like a variable reference, list access ...)
+//  * * RootNode needs to be a VarOperationStmt
+//  */
+// export class AssignmentModifier extends Modifier {
+//     declare rootNode: VarOperationStmt;
+//     simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
 
-    constructor(root?: VarOperationStmt, indexInRoot?: number) {
-        super();
+//     constructor(root?: VarOperationStmt, indexInRoot?: number) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(new NonEditableTkn(" = ", this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-    }
+//         this.tokens.push(new NonEditableTkn(" = ", this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        // must be after a variable reference that is not been assigned
-        // in a statement (not an expression)
-        return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
-            providedContext.expressionToLeft instanceof ListAccessModifier ||
-            providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
-            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         // must be after a variable reference that is not been assigned
+//         // in a statement (not an expression)
+//         return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
+//             providedContext.expressionToLeft instanceof ListAccessModifier ||
+//             providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
+//             providedContext.expressionToLeft.rootNode instanceof VarOperationStmt
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    getModifierText(): string {
-        return " = ---";
-    }
-}
+//     getModifierText(): string {
+//         return " = ---";
+//     }
+// }
 
-/**
- * Modify a value to a variable. E.g. "x += 5"
- * The assignmentModifier itself is "+= ---" without the variable and with a hole
- * Other options include -=, *=, /=, %=, **=
- *
- * Requirements:
- * * Left expression needs to be an assignable (like a variable reference, list access ...)
- * * RootNode needs to be a VarOperationStmt
- *
- * Similar to {@link AssignmentModifier}
- */
-export class AugmentedAssignmentModifier extends Modifier {
-    declare rootNode: VarOperationStmt;
-    private operation: AugmentedAssignmentOperator;
-    simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
+// /**
+//  * Modify a value to a variable. E.g. "x += 5"
+//  * The assignmentModifier itself is "+= ---" without the variable and with a hole
+//  * Other options include -=, *=, /=, %=, **=
+//  *
+//  * Requirements:
+//  * * Left expression needs to be an assignable (like a variable reference, list access ...)
+//  * * RootNode needs to be a VarOperationStmt
+//  *
+//  * Similar to {@link AssignmentModifier}
+//  */
+// export class AugmentedAssignmentModifier extends Modifier {
+//     declare rootNode: VarOperationStmt;
+//     private operation: AugmentedAssignmentOperator;
+//     simpleInvalidTooltip = Tooltip.InvalidAugmentedAssignment;
 
-    constructor(operation: AugmentedAssignmentOperator, root?: VarOperationStmt, indexInRoot?: number) {
-        super();
+//     constructor(operation: AugmentedAssignmentOperator, root?: VarOperationStmt, indexInRoot?: number) {
+//         super();
 
-        this.operation = operation;
+//         this.operation = operation;
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(new NonEditableTkn(` ${operation} `, this, this.tokens.length));
-        this.leftExprTypes = [DataType.Number];
+//         this.tokens.push(new NonEditableTkn(` ${operation} `, this, this.tokens.length));
+//         this.leftExprTypes = [DataType.Number];
 
-        if (operation == AugmentedAssignmentOperator.Add) this.leftExprTypes.push(DataType.String);
+//         if (operation == AugmentedAssignmentOperator.Add) this.leftExprTypes.push(DataType.String);
 
-        this.tokens.push(new TypedEmptyExpr(this.leftExprTypes, this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [...this.leftExprTypes];
+//         this.tokens.push(new TypedEmptyExpr(this.leftExprTypes, this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [...this.leftExprTypes];
 
-        this.operation = operation;
-        this.hasEmptyToken = true;
-    }
+//         this.operation = operation;
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
-            providedContext.expressionToLeft instanceof ListAccessModifier ||
-            providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
-            providedContext.expressionToLeft.rootNode instanceof VarOperationStmt
-            ? // &&
-              // this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
-              InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return (providedContext.expressionToLeft instanceof VariableReferenceExpr ||
+//             providedContext.expressionToLeft instanceof ListAccessModifier ||
+//             providedContext.expressionToLeft instanceof PropertyAccessorModifier) &&
+//             providedContext.expressionToLeft.rootNode instanceof VarOperationStmt
+//             ? // &&
+//               // this.leftExprTypes.some((type) => type == providedContext.expressionToLeft.returns)
+//               InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    getModifierText(): string {
-        return ` ${this.operation} ---`;
-    }
-}
+//     getModifierText(): string {
+//         return ` ${this.operation} ---`;
+//     }
+// }
 
 /**
  * Call functions or methods with a return value. E.g. len("hello")
@@ -3468,126 +3467,126 @@ export interface Importable {
 }
 
 // REPLACEABLE
-/**
- * Call functions or methods without a return value. E.g. print("hello")
- * Currently these are all standard functions
- *
- * Similar to {@link FunctionCallExpr} but for statements (and thus without return values)
- */
-export class FunctionCallStmt extends Statement implements Importable {
-    /**
-     * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
-     */
-    private argumentsIndices = new Array<number>();
-    functionName: string = "";
-    requiredModule: string;
+// /**
+//  * Call functions or methods without a return value. E.g. print("hello")
+//  * Currently these are all standard functions
+//  *
+//  * Similar to {@link FunctionCallExpr} but for statements (and thus without return values)
+//  */
+// export class FunctionCallStmt extends Statement implements Importable {
+//     /**
+//      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
+//      */
+//     private argumentsIndices = new Array<number>();
+//     functionName: string = "";
+//     requiredModule: string;
 
-    constructor(
-        functionName: string,
-        args: Array<Argument>,
-        root?: Statement | Module,
-        indexInRoot?: number,
-        requiredModule: string = ""
-    ) {
-        super();
+//     constructor(
+//         functionName: string,
+//         args: Array<Argument>,
+//         root?: Statement | Module,
+//         indexInRoot?: number,
+//         requiredModule: string = ""
+//     ) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-        this.functionName = functionName;
-        this.requiredModule = requiredModule;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//         this.functionName = functionName;
+//         this.requiredModule = requiredModule;
 
-        if (args.length > 0) {
-            this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
+//         if (args.length > 0) {
+//             this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
 
-            // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
+//             // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
 
-            for (let i = 0; i < args.length; i++) {
-                let arg = args[i];
+//             for (let i = 0; i < args.length; i++) {
+//                 let arg = args[i];
 
-                this.argumentsIndices.push(this.tokens.length);
-                this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
+//                 this.argumentsIndices.push(this.tokens.length);
+//                 this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
 
-                if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
-            }
+//                 if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
+//             }
 
-            this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+//             this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
-            this.hasEmptyToken = true;
-        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
-    }
+//             this.hasEmptyToken = true;
+//         } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    // DEAD CODE
-    // replaceArgument(index: number, to: CodeConstruct) {
-    //     this.replace(to, this.argumentsIndices[index]);
-    // }
+//     // DEAD CODE
+//     // replaceArgument(index: number, to: CodeConstruct) {
+//     //     this.replace(to, this.argumentsIndices[index]);
+//     // }
 
-    getFunctionName(): string {
-        return this.functionName;
-    }
+//     getFunctionName(): string {
+//         return this.functionName;
+//     }
 
-    getKeyword(): string {
-        return this.functionName;
-    }
+//     getKeyword(): string {
+//         return this.functionName;
+//     }
 
-    // DEAD CODE
-    // validateImport(importedModule: string, importedItem: string): boolean {
-    //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
-    // }
+//     // DEAD CODE
+//     // validateImport(importedModule: string, importedItem: string): boolean {
+//     //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
+//     // }
 
-    validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
-        let insertionType = currentInsertionType;
-        let importsOfThisConstruct: ImportStatement[] = [];
-        const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
-            if (
-                construct instanceof ImportStatement &&
-                this.getLineNumber() > construct.getLineNumber() &&
-                this.requiredModule === construct.getImportModuleName()
-            ) {
-                stmts.push(construct);
-            }
-        };
+//     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
+//         let insertionType = currentInsertionType;
+//         let importsOfThisConstruct: ImportStatement[] = [];
+//         const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
+//             if (
+//                 construct instanceof ImportStatement &&
+//                 this.getLineNumber() > construct.getLineNumber() &&
+//                 this.requiredModule === construct.getImportModuleName()
+//             ) {
+//                 stmts.push(construct);
+//             }
+//         };
 
-        module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
+//         module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
 
-        if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
-            //imports of required module don't exist and this item requires an import
-            insertionType = InsertionType.DraftMode;
-        } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
-            //imports of required module exist and this item requires an import
-            insertionType =
-                importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
-                    ? currentInsertionType
-                    : InsertionType.DraftMode;
-        }
+//         if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
+//             //imports of required module don't exist and this item requires an import
+//             insertionType = InsertionType.DraftMode;
+//         } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
+//             //imports of required module exist and this item requires an import
+//             insertionType =
+//                 importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
+//                     ? currentInsertionType
+//                     : InsertionType.DraftMode;
+//         }
 
-        return insertionType;
-    }
+//         return insertionType;
+//     }
 
-    validateImportFromImportList(imports: ImportStatement[]): boolean {
-        const relevantImports = imports.filter(
-            (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
-        );
+//     validateImportFromImportList(imports: ImportStatement[]): boolean {
+//         const relevantImports = imports.filter(
+//             (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
+//         );
 
-        if (relevantImports.length === 0) {
-            return false;
-        }
+//         if (relevantImports.length === 0) {
+//             return false;
+//         }
 
-        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
-            ? true
-            : false;
-    }
+//         return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
+//             ? true
+//             : false;
+//     }
 
-    requiresImport(): boolean {
-        return this.requiredModule !== "";
-    }
-}
+//     requiresImport(): boolean {
+//         return this.requiredModule !== "";
+//     }
+// }
 
 // DEAD CODE?!? FFD
 /**
@@ -3598,42 +3597,42 @@ export class FunctionCallStmt extends Statement implements Importable {
  * However, it does seem like this value is never assigned, resulting in this probably being
  * dead code.
  */
-export class ListElementAssignment extends Statement {
-    constructor(root?: Expression, indexInRoot?: number) {
-        super();
+// export class ListElementAssignment extends Statement {
+//     constructor(root?: Expression, indexInRoot?: number) {
+//         super();
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(
-            new TypedEmptyExpr(
-                [DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList],
-                this,
-                this.tokens.length
-            )
-        );
-        this.typeOfHoles[this.tokens.length - 1] = [
-            DataType.AnyList,
-            DataType.NumberList,
-            DataType.StringList,
-            DataType.BooleanList,
-        ];
-        this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
-        this.tokens.push(new NonEditableTkn("] = ", this, this.tokens.length));
-        //TODO: Python lists allow elements of different types to be added to the same list. Should we keep that functionality?
-        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-        // console.log("List element assignment constructed");
-    }
+//         this.tokens.push(
+//             new TypedEmptyExpr(
+//                 [DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList],
+//                 this,
+//                 this.tokens.length
+//             )
+//         );
+//         this.typeOfHoles[this.tokens.length - 1] = [
+//             DataType.AnyList,
+//             DataType.NumberList,
+//             DataType.StringList,
+//             DataType.BooleanList,
+//         ];
+//         this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
+//         this.tokens.push(new NonEditableTkn("] = ", this, this.tokens.length));
+//         //TODO: Python lists allow elements of different types to be added to the same list. Should we keep that functionality?
+//         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//         // console.log("List element assignment constructed");
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 // REPLACED
 /**
@@ -3890,19 +3889,20 @@ export class BinaryOperatorExpr extends Expression {
          * * Or we are at the right of an expression and the current expression to the right has a type compatible
          * with the current binary operator (for example + with numbers and strings, - with numbers etc)
          */
-        return validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
-            (validator.atLeftOfExpression(providedContext) &&
-                !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt)) /*&&
-                TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
-                    (x) => x === this.operator
-                )*/ ||
-            (validator.atRightOfExpression(providedContext) &&
-                !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt)) /*&&
-                TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
-                    (x) => x === this.operator
-                )*/
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
+        return InsertionType.Valid;
+        // validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
+        //     (validator.atLeftOfExpression(providedContext) &&
+        //         !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt)) /*&&
+        //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
+        //             (x) => x === this.operator
+        //         )*/ ||
+        //     (validator.atRightOfExpression(providedContext) &&
+        //         !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt)) /*&&
+        //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
+        //             (x) => x === this.operator
+        //         )*/
+        //     ? InsertionType.Valid
+        //     : InsertionType.Invalid;
     }
 
     // replaceLeftOperand(code: Expression) {
@@ -4604,63 +4604,63 @@ export class BinaryOperatorExpr extends Expression {
     }
 }
 
-/**
- * Expression for operators with only one operand
- */
-export class UnaryOperatorExpr extends Expression {
-    operator: UnaryOperator;
-    private operandIndex: number;
+// /**
+//  * Expression for operators with only one operand
+//  */
+// export class UnaryOperatorExpr extends Expression {
+//     operator: UnaryOperator;
+//     private operandIndex: number;
 
-    constructor(
-        operator: UnaryOperator,
-        returns: DataType,
-        operatesOn: DataType = DataType.Any,
-        root?: Statement | Expression,
-        indexInRoot?: number
-    ) {
-        super(returns);
+//     constructor(
+//         operator: UnaryOperator,
+//         returns: DataType,
+//         operatesOn: DataType = DataType.Any,
+//         root?: Statement | Expression,
+//         indexInRoot?: number
+//     ) {
+//         super(returns);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-        this.operator = operator;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//         this.operator = operator;
 
-        if (operator === UnaryOperator.Not) operatesOn = DataType.Boolean;
+//         if (operator === UnaryOperator.Not) operatesOn = DataType.Boolean;
 
-        this.tokens.push(new NonEditableTkn("(" + operator + " ", this, this.tokens.length));
-        this.operandIndex = this.tokens.length;
-        this.tokens.push(new TypedEmptyExpr([operatesOn], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [operatesOn];
-        this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("(" + operator + " ", this, this.tokens.length));
+//         this.operandIndex = this.tokens.length;
+//         this.tokens.push(new TypedEmptyExpr([operatesOn], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [operatesOn];
+//         this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
-        this.hasEmptyToken = true;
-    }
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        /**
-         * Three cases:
-         * * We are at an empty expression hole
-         * * We are at the left of an expression and the current expression to the right is a boolean
-         * (e.g. True when you want to insert "and")
-         * * We are at the left of an expression and the current expression to the right is any
-         */
-        return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
-            ? // &&
-              //     providedContext?.expressionToRight?.returns == DataType.Boolean) ||
-              // providedContext?.expressionToRight?.returns == DataType.Any
-              InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         /**
+//          * Three cases:
+//          * * We are at an empty expression hole
+//          * * We are at the left of an expression and the current expression to the right is a boolean
+//          * (e.g. True when you want to insert "and")
+//          * * We are at the left of an expression and the current expression to the right is any
+//          */
+//         return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
+//             ? // &&
+//               //     providedContext?.expressionToRight?.returns == DataType.Boolean) ||
+//               // providedContext?.expressionToRight?.returns == DataType.Any
+//               InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    setOperand(code: CodeConstruct) {
-        this.tokens[this.operandIndex] = code;
-        code.indexInRoot = this.operandIndex;
-        code.rootNode = this;
-    }
+//     setOperand(code: CodeConstruct) {
+//         this.tokens[this.operandIndex] = code;
+//         code.indexInRoot = this.operandIndex;
+//         code.rootNode = this;
+//     }
 
-    getKeyword(): string {
-        return this.operator;
-    }
-}
+//     getKeyword(): string {
+//         return this.operator;
+//     }
+// }
 
 /**
  * Text token that can be edited by the user
@@ -4841,215 +4841,215 @@ export class LiteralValExpr extends Expression {
     }
 }
 
-/**
- * Expression for f-string: f'...'
- */
-export class FormattedStringExpr extends Expression {
-    valueTokenIndex: number = 0;
+// /**
+//  * Expression for f-string: f'...'
+//  */
+// export class FormattedStringExpr extends Expression {
+//     valueTokenIndex: number = 0;
 
-    constructor(value?: string, root?: Statement | Expression, indexInRoot?: number) {
-        super(DataType.String);
+//     constructor(value?: string, root?: Statement | Expression, indexInRoot?: number) {
+//         super(DataType.String);
 
-        this.tokens.push(new NonEditableTkn("f", this, this.tokens.length));
-        this.tokens.push(new NonEditableTkn("'", this, this.tokens.length));
-        this.tokens.push(new EditableTextTkn(value == undefined ? "" : value, StringRegex, this, this.tokens.length));
-        this.tokens.push(new NonEditableTkn("'", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("f", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("'", this, this.tokens.length));
+//         this.tokens.push(new EditableTextTkn(value == undefined ? "" : value, StringRegex, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("'", this, this.tokens.length));
 
-        this.valueTokenIndex = 1;
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-    }
+//         this.valueTokenIndex = 1;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//     }
 
-    getValue(): string {
-        return (this.tokens[this.valueTokenIndex] as Token).text;
-    }
+//     getValue(): string {
+//         return (this.tokens[this.valueTokenIndex] as Token).text;
+//     }
 
-    getKeyword(): string {
-        return this.returns == DataType.String ? '"' + this.getValue() + '"' : this.getValue();
-    }
+//     getKeyword(): string {
+//         return this.returns == DataType.String ? '"' + this.getValue() + '"' : this.getValue();
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.canInsertFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.canInsertFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
 
-    getInitialFocus(): UpdatableContext {
-        return { positionToMove: new Position(this.lineNumber, this.left + 2) };
-    }
-}
+//     getInitialFocus(): UpdatableContext {
+//         return { positionToMove: new Position(this.lineNumber, this.left + 2) };
+//     }
+// }
 
-/**
- * Currly brackets inside an f-string expression in which an expression can be placed
- * E.g. f'...{...}...'
- *
- * Requirements:
- * * Should be contained in an {@link FormattedStringExpr}
- */
-export class FormattedStringCurlyBracketsExpr extends Expression {
-    valueTokenIndex: number = 0;
+// /**
+//  * Currly brackets inside an f-string expression in which an expression can be placed
+//  * E.g. f'...{...}...'
+//  *
+//  * Requirements:
+//  * * Should be contained in an {@link FormattedStringExpr}
+//  */
+// export class FormattedStringCurlyBracketsExpr extends Expression {
+//     valueTokenIndex: number = 0;
 
-    constructor(root?: Statement | Expression, indexInRoot?: number) {
-        super(DataType.String);
+//     constructor(root?: Statement | Expression, indexInRoot?: number) {
+//         super(DataType.String);
 
-        this.tokens.push(new NonEditableTkn("{", this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-        this.tokens.push(new NonEditableTkn("}", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("{", this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("}", this, this.tokens.length));
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.simpleInvalidTooltip = Tooltip.InvalidInsertCurlyBraceWithinFString;
-    }
+//         this.simpleInvalidTooltip = Tooltip.InvalidInsertCurlyBraceWithinFString;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.insideFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.insideFormattedString(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
 
-    getInitialFocus(): UpdatableContext {
-        return { positionToMove: new Position(this.lineNumber, this.left + 1) };
-    }
-}
+//     getInitialFocus(): UpdatableContext {
+//         return { positionToMove: new Position(this.lineNumber, this.left + 1) };
+//     }
+// }
 
 /**
  * Expression to construct an empty list, or if to the left of an expression, to insert an element into a list
  */
-export class ListLiteralExpression extends Expression {
-    constructor(root?: Statement | Expression, indexInRoot?: number) {
-        super(DataType.AnyList);
+// export class ListLiteralExpression extends Expression {
+//     constructor(root?: Statement | Expression, indexInRoot?: number) {
+//         super(DataType.AnyList);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
 
-        this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
-        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-        this.tokens.push(new NonEditableTkn("]", this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn("[", this, this.tokens.length));
+//         this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//         this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//         this.tokens.push(new NonEditableTkn("]", this, this.tokens.length));
 
-        this.hasEmptyToken = true;
-    }
+//         this.hasEmptyToken = true;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        /**
-         * Two cases:
-         * * We are at an empty expression hole
-         * * We are at the left of an expression and we will place the element inside the list on insertion
-         */
-        return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         /**
+//          * Two cases:
+//          * * We are at an empty expression hole
+//          * * We are at the left of an expression and we will place the element inside the list on insertion
+//          */
+//         return validator.atEmptyExpressionHole(providedContext) || validator.atLeftOfExpression(providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
 
-    // performTypeUpdatesOnInsertInto(insertCode: Expression) {
-    //     let dataType = this.returns;
+//     // performTypeUpdatesOnInsertInto(insertCode: Expression) {
+//     //     let dataType = this.returns;
 
-    //     if (this.areAllHolesEmpty()) {
-    //         dataType = TypeChecker.getListTypeFromElementType(insertCode.returns);
-    //     } else if (this.getFilledHolesType() !== insertCode.returns) {
-    //         dataType = DataType.AnyList;
-    //     }
+//     //     if (this.areAllHolesEmpty()) {
+//     //         dataType = TypeChecker.getListTypeFromElementType(insertCode.returns);
+//     //     } else if (this.getFilledHolesType() !== insertCode.returns) {
+//     //         dataType = DataType.AnyList;
+//     //     }
 
-    //     this.returns = dataType;
-    //     // this.updateVariableType(dataType);
+//     //     this.returns = dataType;
+//     //     // this.updateVariableType(dataType);
 
-    //     // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
-    // }
+//     //     // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+//     // }
 
-    //return whether all elements of this list are of type TypedEmptyExpr
-    areAllHolesEmpty() {
-        const elements = this.tokens.filter((tkn) => !(tkn instanceof NonEditableTkn));
-        const numberOfElements = elements.length;
-        const numberOfEmptyHoles = elements.filter((element) => element instanceof TypedEmptyExpr).length;
+//     //return whether all elements of this list are of type TypedEmptyExpr
+//     areAllHolesEmpty() {
+//         const elements = this.tokens.filter((tkn) => !(tkn instanceof NonEditableTkn));
+//         const numberOfElements = elements.length;
+//         const numberOfEmptyHoles = elements.filter((element) => element instanceof TypedEmptyExpr).length;
 
-        return numberOfEmptyHoles === numberOfElements;
-    }
+//         return numberOfEmptyHoles === numberOfElements;
+//     }
 
-    // onInsertInto(insertCode: Expression) {
-    //     this.performTypeUpdatesOnInsertInto(insertCode);
-    // }
+//     // onInsertInto(insertCode: Expression) {
+//     //     this.performTypeUpdatesOnInsertInto(insertCode);
+//     // }
 
-    isHolePlacementValid(): boolean {
-        const emptyHolePlacements = this.getEmptyHolesWIndex();
-        return emptyHolePlacements.length === 0
-            ? true
-            : emptyHolePlacements.length === 1 && emptyHolePlacements[0][1] === this.tokens.length - 2;
-    }
+//     isHolePlacementValid(): boolean {
+//         const emptyHolePlacements = this.getEmptyHolesWIndex();
+//         return emptyHolePlacements.length === 0
+//             ? true
+//             : emptyHolePlacements.length === 1 && emptyHolePlacements[0][1] === this.tokens.length - 2;
+//     }
 
-    onDeleteFrom(args: Object): void {
-        const holes = this.tokens.filter((tkn) => !(tkn instanceof NonEditableTkn));
-        if (
-            (holes.length === 1 && holes[0] instanceof TypedEmptyExpr) ||
-            holes.every((hole) => hole instanceof TypedEmptyExpr)
-        ) {
-            this.returns = DataType.AnyList;
-            // this.updateVariableType(this.returns);
-        }
+//     onDeleteFrom(args: Object): void {
+//         const holes = this.tokens.filter((tkn) => !(tkn instanceof NonEditableTkn));
+//         if (
+//             (holes.length === 1 && holes[0] instanceof TypedEmptyExpr) ||
+//             holes.every((hole) => hole instanceof TypedEmptyExpr)
+//         ) {
+//             this.returns = DataType.AnyList;
+//             // this.updateVariableType(this.returns);
+//         }
 
-        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
-    }
+//         // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+//     }
 
-    onReplaceToken(args: { indexInRoot: number; replaceWithEmptyExpr: boolean }): void {
-        const elements = this.tokens.filter(
-            (tkn) => tkn instanceof Expression && this.tokens.indexOf(tkn) !== args.indexInRoot
-        );
+//     onReplaceToken(args: { indexInRoot: number; replaceWithEmptyExpr: boolean }): void {
+//         const elements = this.tokens.filter(
+//             (tkn) => tkn instanceof Expression && this.tokens.indexOf(tkn) !== args.indexInRoot
+//         );
 
-        if (elements.length > 0 && elements.every((tkn) => (tkn as Expression).returns)) {
-            this.returns = TypeChecker.getListTypeFromElementType((elements[0] as Expression).returns);
-            // this.updateVariableType(this.returns);
-        } else {
-            this.returns = DataType.AnyList;
-            // this.updateVariableType(this.returns);
-        }
+//         if (elements.length > 0 && elements.every((tkn) => (tkn as Expression).returns)) {
+//             this.returns = TypeChecker.getListTypeFromElementType((elements[0] as Expression).returns);
+//             // this.updateVariableType(this.returns);
+//         } else {
+//             this.returns = DataType.AnyList;
+//             // this.updateVariableType(this.returns);
+//         }
 
-        // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
-    }
+//         // if (this.rootNode instanceof Expression) this.rootNode.validateTypes(this.getModule());
+//     }
 
-    private getEmptyHolesWIndex(): [TypedEmptyExpr, number][] {
-        const holes = [];
+//     private getEmptyHolesWIndex(): [TypedEmptyExpr, number][] {
+//         const holes = [];
 
-        for (let i = 0; i < this.tokens.length; i++) {
-            if (this.tokens[i] instanceof TypedEmptyExpr) {
-                holes.push([this.tokens[i], this.tokens[i].indexInRoot]);
-            }
-        }
+//         for (let i = 0; i < this.tokens.length; i++) {
+//             if (this.tokens[i] instanceof TypedEmptyExpr) {
+//                 holes.push([this.tokens[i], this.tokens[i].indexInRoot]);
+//             }
+//         }
 
-        return holes;
-    }
+//         return holes;
+//     }
 
-    private getFilledHolesType(): DataType {
-        const elements = this.tokens.filter(
-            (tkn) => !(tkn instanceof TypedEmptyExpr) && !(tkn instanceof NonEditableTkn)
-        );
-        const types: DataType[] = [];
+//     private getFilledHolesType(): DataType {
+//         const elements = this.tokens.filter(
+//             (tkn) => !(tkn instanceof TypedEmptyExpr) && !(tkn instanceof NonEditableTkn)
+//         );
+//         const types: DataType[] = [];
 
-        for (const expr of elements) if (expr instanceof Expression) types.push(expr.returns);
+//         for (const expr of elements) if (expr instanceof Expression) types.push(expr.returns);
 
-        if (types.length > 0) {
-            const initialType = types[0];
+//         if (types.length > 0) {
+//             const initialType = types[0];
 
-            if (types.every((type) => type === initialType)) return initialType;
-        }
+//             if (types.every((type) => type === initialType)) return initialType;
+//         }
 
-        return DataType.Any;
-    }
-}
+//         return DataType.Any;
+//     }
+// }
 
-/**
- * Represents an item in the list: , ---
- * ==> Why does this not consist of any tokens?
- */
-export class ListComma extends Expression {
-    constructor() {
-        super(DataType.Void);
+// /**
+//  * Represents an item in the list: , ---
+//  * ==> Why does this not consist of any tokens?
+//  */
+// export class ListComma extends Expression {
+//     constructor() {
+//         super(DataType.Void);
 
-        this.simpleInvalidTooltip = Tooltip.InvalidInsertListComma;
-    }
+//         this.simpleInvalidTooltip = Tooltip.InvalidInsertListComma;
+//     }
 
-    // this is the only reason why we have this ListCommaDummy expression :)
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.canAddListItemToLeft() || validator.canAddListItemToRight()
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     // this is the only reason why we have this ListCommaDummy expression :)
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.canAddListItemToLeft() || validator.canAddListItemToRight()
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 /**
  * Editable token used to represent an identifier
@@ -5433,9 +5433,9 @@ export class TypedEmptyExpr extends Token {
         return new InsertionResult(InsertionType.Invalid, "", []);
     }
 
-    isListElement(): boolean {
-        return this.rootNode && this.rootNode instanceof ListLiteralExpression;
-    }
+    // isListElement(): boolean {
+    //     return this.rootNode && this.rootNode instanceof ListLiteralExpression;
+    // }
 
     // getTypes(): DataType[] {
     //     return this.type;

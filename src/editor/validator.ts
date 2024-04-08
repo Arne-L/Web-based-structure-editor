@@ -1,29 +1,29 @@
 import Fuse from "fuse.js";
 import {
-    AssignmentModifier,
-    AugmentedAssignmentModifier,
+    // AssignmentModifier,
+    // AugmentedAssignmentModifier,
     AutocompleteTkn,
     BinaryOperatorExpr,
     CodeConstruct,
     EditableTextTkn,
-    ElseStatement,
+    // ElseStatement,
     EmptyLineStmt,
     EmptyOperatorTkn,
     Expression,
-    FormattedStringCurlyBracketsExpr,
-    FormattedStringExpr,
+    // FormattedStringCurlyBracketsExpr,
+    // FormattedStringExpr,
     GeneralStatement,
     IdentifierTkn,
-    IfStatement,
+    // IfStatement,
     ImportStatement,
-    ListLiteralExpression,
+    // ListLiteralExpression,
     LiteralValExpr,
     Modifier,
     NonEditableTkn,
     OperatorTkn,
     Statement,
     TypedEmptyExpr,
-    ValueOperationExpr,
+    // ValueOperationExpr,
     // VarAssignmentStmt,
     VariableReferenceExpr,
 } from "../syntax-tree/ast";
@@ -156,23 +156,23 @@ export class Validator {
             context.expressionToRight.rootNode instanceof Modifier ||
             // Updated to work with the new general assignment statement
             (context.expressionToRight.rootNode instanceof GeneralStatement &&
-                context.expressionToRight.rootNode.containsAssignments()) ||
-            context.expressionToRight.rootNode instanceof ValueOperationExpr;
+                context.expressionToRight.rootNode.containsAssignments())
+            // || context.expressionToRight.rootNode instanceof ValueOperationExpr;
 
         return isCorrectExprType && hasCorrectRootType;
     }
 
-    /**
-     * Checks if the current position is above an else statement
-     *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if the current position is above an else statement, false otherwise
-     */
-    isAboveElseStatement(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Checks if the current position is above an else statement
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if the current position is above an else statement, false otherwise
+    //  */
+    // isAboveElseStatement(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.getNextSibling(context) instanceof ElseStatement;
-    }
+    //     return this.getNextSibling(context) instanceof ElseStatement;
+    // }
 
     /**
      * Checks if the current position is at the start of a linestatement
@@ -186,124 +186,124 @@ export class Validator {
         return context.position.column == context.lineStatement.left;
     }
 
-    /**
-     * logic: if next statement is either else or elif => false
-     * if prev is either if or elif => return true
-     */
-    /**
-     * Determines if an else statement can be inserted at the current indent by checking if the previous statement is either and if or elif and checking that the next statement is not an else/elif statement
-     *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if an else statement can be inserted at the current indent, false otherwise
-     */
-    canInsertElseStmtAtCurIndent(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * logic: if next statement is either else or elif => false
+    //  * if prev is either if or elif => return true
+    //  */
+    // /**
+    //  * Determines if an else statement can be inserted at the current indent by checking if the previous statement is either and if or elif and checking that the next statement is not an else/elif statement
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if an else statement can be inserted at the current indent, false otherwise
+    //  */
+    // canInsertElseStmtAtCurIndent(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        const prevStmt = this.getPrevSibling(context);
-        const nextStmt = this.getNextSibling(context);
+    //     const prevStmt = this.getPrevSibling(context);
+    //     const nextStmt = this.getNextSibling(context);
 
-        if (nextStmt instanceof ElseStatement) return false; // either else or elif
+    //     if (nextStmt instanceof ElseStatement) return false; // either else or elif
 
-        if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
-            return true;
+    //     if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
+    //         return true;
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    /**
-     * logic: if next statement is either else => false
-     * if prev is either if or elif => return true
-     */
-    /**
-     * Determines if an elif statement can be inserted at the current indent by checking if the previous statement is either and if or elif
-     *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if an elif statement can be inserted at the current indent, false otherwise
-     */
-    canInsertElifStmtAtCurIndent(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-        const prevStmt = this.getPrevSibling(context);
+    // /**
+    //  * logic: if next statement is either else => false
+    //  * if prev is either if or elif => return true
+    //  */
+    // /**
+    //  * Determines if an elif statement can be inserted at the current indent by checking if the previous statement is either and if or elif
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if an elif statement can be inserted at the current indent, false otherwise
+    //  */
+    // canInsertElifStmtAtCurIndent(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+    //     const prevStmt = this.getPrevSibling(context);
 
-        // Previous statement can not be a normal else statement => DOES FOLLOW AUTOMATICALLY FROM NEXT STATEMENT
-        if (prevStmt instanceof ElseStatement && !prevStmt.hasCondition) return false;
+    //     // Previous statement can not be a normal else statement => DOES FOLLOW AUTOMATICALLY FROM NEXT STATEMENT
+    //     if (prevStmt instanceof ElseStatement && !prevStmt.hasCondition) return false;
 
-        // Previous statement needs to be an if or elif statement
-        if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
-            return true;
+    //     // Previous statement needs to be an if or elif statement
+    //     if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
+    //         return true;
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    /**
-     * This function expects that we've tried inserting the else at the current indent
-     * before calling this function.
-     *
-     * logic: returns false if inside else, or the item's root has a sibling before it which was an else,
-     * or the item's root has a sibling after it which is either an if or an elif.
-     * returns true => within if AND the current body does not have a else/elif sibling afterwards
-     * returns true => within elif AND the current body does not have an else sibling afterwards
-     */
-    canInsertElseStmtAtPrevIndent(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * This function expects that we've tried inserting the else at the current indent
+    //  * before calling this function.
+    //  *
+    //  * logic: returns false if inside else, or the item's root has a sibling before it which was an else,
+    //  * or the item's root has a sibling after it which is either an if or an elif.
+    //  * returns true => within if AND the current body does not have a else/elif sibling afterwards
+    //  * returns true => within elif AND the current body does not have an else sibling afterwards
+    //  */
+    // canInsertElseStmtAtPrevIndent(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
-        const nextStmtOfRoot = this.getNextSiblingOfRoot(context);
-        const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
+    //     const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
+    //     const nextStmtOfRoot = this.getNextSiblingOfRoot(context);
+    //     const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
 
-        if (
-            (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
-            nextStmtOfRoot instanceof ElseStatement ||
-            (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
-            context.lineStatement.indexInRoot == 0
-        ) {
-            // if inside else statement
-            // if this item's root has a sibling afterward which is either an else or an elif
-            // if this item's root has a sibling before it which was a normal else
-            return false;
-        }
+    //     if (
+    //         (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
+    //         nextStmtOfRoot instanceof ElseStatement ||
+    //         (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
+    //         context.lineStatement.indexInRoot == 0
+    //     ) {
+    //         // if inside else statement
+    //         // if this item's root has a sibling afterward which is either an else or an elif
+    //         // if this item's root has a sibling before it which was a normal else
+    //         return false;
+    //     }
 
-        // If current item's root is an if and the next item of the root is not an else/elif
-        if (curStmtRoot instanceof IfStatement && !(nextStmtOfRoot instanceof ElseStatement)) return true;
-        if (
-            curStmtRoot instanceof ElseStatement &&
-            curStmtRoot.hasCondition &&
-            !(nextStmtOfRoot instanceof ElseStatement && !nextStmtOfRoot.hasCondition)
-        )
-            // If current item's root is an elif and the next item of the root is not a normal else
-            return true;
+    //     // If current item's root is an if and the next item of the root is not an else/elif
+    //     if (curStmtRoot instanceof IfStatement && !(nextStmtOfRoot instanceof ElseStatement)) return true;
+    //     if (
+    //         curStmtRoot instanceof ElseStatement &&
+    //         curStmtRoot.hasCondition &&
+    //         !(nextStmtOfRoot instanceof ElseStatement && !nextStmtOfRoot.hasCondition)
+    //     )
+    //         // If current item's root is an elif and the next item of the root is not a normal else
+    //         return true;
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    /**
-     * This function expects that we've tried inserting the elif at the current indent
-     * before calling this function.
-     *
-     * logic: returns false if inside else, or the item's root has a sibling before it which was an else.
-     * returns true if current item's root is either an if or an elif.
-     */
-    canInsertElifStmtAtPrevIndent(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * This function expects that we've tried inserting the elif at the current indent
+    //  * before calling this function.
+    //  *
+    //  * logic: returns false if inside else, or the item's root has a sibling before it which was an else.
+    //  * returns true if current item's root is either an if or an elif.
+    //  */
+    // canInsertElifStmtAtPrevIndent(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
-        const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
+    //     const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
+    //     const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
 
-        if (
-            (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
-            (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
-            context.lineStatement.indexInRoot == 0
-        ) {
-            // if inside else statement
-            // if this item's root has a sibling before it which was an else
-            return false;
-        }
+    //     if (
+    //         (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
+    //         (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
+    //         context.lineStatement.indexInRoot == 0
+    //     ) {
+    //         // if inside else statement
+    //         // if this item's root has a sibling before it which was an else
+    //         return false;
+    //     }
 
-        if (curStmtRoot instanceof IfStatement || (curStmtRoot instanceof ElseStatement && curStmtRoot.hasCondition)) {
-            return true;
-        }
+    //     if (curStmtRoot instanceof IfStatement || (curStmtRoot instanceof ElseStatement && curStmtRoot.hasCondition)) {
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     /**
      * Checks if context.lineStatement is an empty line
@@ -499,19 +499,19 @@ export class Validator {
         return true;
     }
 
-    /**
-     * logic: checks if rootNode is instanceof AugmentedAssignmentModifier
-     */
-    isAugmentedAssignmentModifierStatement(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-        const rootNode = context.token.rootNode;
+    // /**
+    //  * logic: checks if rootNode is instanceof AugmentedAssignmentModifier
+    //  */
+    // isAugmentedAssignmentModifierStatement(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
+    //     const rootNode = context.token.rootNode;
 
-        if (rootNode instanceof AugmentedAssignmentModifier) {
-            return true;
-        }
+    //     if (rootNode instanceof AugmentedAssignmentModifier) {
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     /**
      * logic: checks if Statement body is empty and if all tokens of Statement are empty
@@ -792,17 +792,17 @@ export class Validator {
         return false;
     }
 
-    shouldDeleteHole(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // shouldDeleteHole(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (context.token instanceof TypedEmptyExpr && context.selected) {
-            const root = context.token.rootNode;
+    //     if (context.token instanceof TypedEmptyExpr && context.selected) {
+    //         const root = context.token.rootNode;
 
-            if (root instanceof AugmentedAssignmentModifier || root instanceof AssignmentModifier) return true;
-        }
+    //         if (root instanceof AugmentedAssignmentModifier || root instanceof AssignmentModifier) return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     // canIndentBackIfStatement(providedContext?: Context): boolean {
     //     const context = providedContext ? providedContext : this.module.focus.getContext();
@@ -933,8 +933,8 @@ export class Validator {
 
         return (
             this.module.focus.onBeginningOfLine() &&
-            !(context.lineStatement instanceof ElseStatement) &&
-            !(context.lineStatement instanceof IfStatement) &&
+            // !(context.lineStatement instanceof ElseStatement) &&
+            // !(context.lineStatement instanceof IfStatement) &&
             this.isAboveLineIndentedForward()
         );
     }
@@ -949,65 +949,66 @@ export class Validator {
     //     );
     // }
 
-    canDeleteListItemToLeft(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canDeleteListItemToLeft(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (context.selected && context.token != null && context.token.rootNode instanceof ListLiteralExpression) {
-            const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
+    //     if (context.selected && context.token != null && context.token.rootNode instanceof ListLiteralExpression) {
+    //         const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
 
-            // [---, |---|] [---, "123", |---|] [---, |---|, 123]
-            if (itemBefore instanceof NonEditableTkn && itemBefore.text == ", ") return true;
-        }
+    //         // [---, |---|] [---, "123", |---|] [---, |---|, 123]
+    //         if (itemBefore instanceof NonEditableTkn && itemBefore.text == ", ") return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    canDeleteListItemToRight(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canDeleteListItemToRight(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (
-            context.selected &&
-            context.token != null &&
-            context.token.rootNode instanceof ListLiteralExpression &&
-            context.token.rootNode.tokens.length != 3
-        ) {
-            const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
+    //     if (
+    //         context.selected &&
+    //         context.token != null &&
+    //         context.token.rootNode instanceof ListLiteralExpression &&
+    //         context.token.rootNode.tokens.length != 3
+    //     ) {
+    //         const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
 
-            // [|---|, ---] [|---|, "123"] [|---|, ---, 123]
-            if (itemBefore instanceof NonEditableTkn && itemBefore.text == "[") return true;
-        }
+    //         // [|---|, ---] [|---|, "123"] [|---|, ---, 123]
+    //         if (itemBefore instanceof NonEditableTkn && itemBefore.text == "[") return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    canAddListItemToRight(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canAddListItemToRight(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        // [asd|] [asd, fgh|] [asd|, fgh] => , ---
-        return (
-            context?.tokenToRight instanceof NonEditableTkn &&
-            context?.tokenToRight?.rootNode instanceof ListLiteralExpression &&
-            (context?.tokenToRight?.text == "]" || context?.tokenToRight?.text == ", ")
-        );
-    }
+    //     // [asd|] [asd, fgh|] [asd|, fgh] => , ---
+    //     return (
+    //         context?.tokenToRight instanceof NonEditableTkn &&
+    //         context?.tokenToRight?.rootNode instanceof ListLiteralExpression &&
+    //         (context?.tokenToRight?.text == "]" || context?.tokenToRight?.text == ", ")
+    //     );
+    // }
 
-    canAddListItemToLeft(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canAddListItemToLeft(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        // [|asd] [|asd, fgh] [asd, |fgh] => ---,
+    //     // [|asd] [|asd, fgh] [asd, |fgh] => ---,
 
-        return (
-            context?.tokenToLeft instanceof NonEditableTkn &&
-            context?.tokenToLeft?.rootNode instanceof ListLiteralExpression &&
-            (context?.tokenToLeft?.text == "[" || context?.tokenToLeft?.text == ", ")
-        );
-    }
+    //     return (
+    //         context?.tokenToLeft instanceof NonEditableTkn &&
+    //         context?.tokenToLeft?.rootNode instanceof ListLiteralExpression &&
+    //         (context?.tokenToLeft?.text == "[" || context?.tokenToLeft?.text == ", ")
+    //     );
+    // }
 
     atRightOfExpression(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
-            !this.insideFormattedString(context) && context?.expressionToLeft != null
+            // !this.insideFormattedString(context) &&
+            context?.expressionToLeft != null
             // &&
             // context?.expressionToLeft?.returns != null &&
             // context?.expressionToLeft?.returns != DataType.Void
@@ -1018,7 +1019,8 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
-            !this.insideFormattedString(context) && context?.expressionToRight != null
+            // !this.insideFormattedString(context) &&
+            context?.expressionToRight != null
             // &&
             // context?.expressionToRight?.returns != null &&
             // context?.expressionToRight?.returns != DataType.Void
@@ -1037,26 +1039,26 @@ export class Validator {
         return context.selected && context?.token?.isEmpty && context.token instanceof EmptyOperatorTkn;
     }
 
-    insideFormattedString(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // insideFormattedString(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            context.token?.rootNode instanceof FormattedStringExpr ||
-            context.tokenToLeft?.rootNode instanceof FormattedStringExpr ||
-            context.tokenToRight?.rootNode instanceof FormattedStringExpr
-        );
-    }
+    //     return (
+    //         context.token?.rootNode instanceof FormattedStringExpr ||
+    //         context.tokenToLeft?.rootNode instanceof FormattedStringExpr ||
+    //         context.tokenToRight?.rootNode instanceof FormattedStringExpr
+    //     );
+    // }
 
-    canInsertFormattedString(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // canInsertFormattedString(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return (
-            context.selected &&
-            context?.token?.isEmpty &&
-            context.token instanceof TypedEmptyExpr &&
-            !(context.token.rootNode instanceof FormattedStringCurlyBracketsExpr)
-        );
-    }
+    //     return (
+    //         context.selected &&
+    //         context?.token?.isEmpty &&
+    //         context.token instanceof TypedEmptyExpr &&
+    //         !(context.token.rootNode instanceof FormattedStringCurlyBracketsExpr)
+    //     );
+    // }
 
     canConvertAutocompleteToString(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();

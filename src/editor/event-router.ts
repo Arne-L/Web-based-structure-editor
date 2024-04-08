@@ -218,64 +218,64 @@ export class EventRouter {
                 }
 
                 break;
-                if (
-                    false
-                    // inTextEditMode &&
-                    // !(context.tokenToRight instanceof ast.NonEditableTkn) &&
-                    // !context.tokenToRight?.isEmpty
-                ) {
-                    console.log("In text edit mode", context.tokenToRight, context.tokenToRight?.isEmpty);
-                    // Currently left as this is sort of a shortcut and thus general
-                    if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
-                    else return new EditAction(EditActionType.DeleteNextChar);
-                    // } else if (this.module.validator.canDeleteNextFStringCurlyBrackets(context)) {
-                    //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                    //         item: context.expressionToRight,
-                    //     });
-                    // } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
-                    //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
-                    //         item: context.token.rootNode,
-                    //     });
-                    // See first if case
-                    // } else if (this.module.validator.canDeleteStringLiteral(context)) {
-                    //     console.log("CASES: string literal");
-                    //     return new EditAction(EditActionType.DeleteStringLiteral);
-                } else if (this.module.validator.canDeleteNextStatement(context)) {
-                    return new EditAction(EditActionType.DeleteStatement);
-                } else if (this.module.validator.canDeleteNextMultilineStatement(context)) {
-                    return new EditAction(EditActionType.DeleteMultiLineStatement);
-                } else if (this.module.validator.canDeleteCurLine(context)) {
-                    console.log("Is it me?");
-                    return new EditAction(EditActionType.DeleteEmptyLine);
-                    // Temporary disabled; check later!
-                } else if (this.module.validator.canDeleteNextToken(context)) {
-                    return new EditAction(EditActionType.DeleteNextToken);
-                } else if (this.module.validator.canDeleteListItemToLeft(context)) {
-                    console.log("It can not possibly be me?");
-                    return new EditAction(EditActionType.DeleteListItem, {
-                        toLeft: true,
-                    });
-                    // } else if (this.module.validator.canDeleteListItemToRight(context)) {
-                    //     return new EditAction(EditActionType.DeleteListItem, {
-                    //         toRight: true,
-                    //     });
-                } else if (this.module.validator.isTknEmpty(context)) {
-                    if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
-                        return new EditAction(EditActionType.DeleteStatement);
-                    }
-                    if (context.token.rootNode instanceof ast.Expression) {
-                        if (this.module.validator.canDeleteExpression(context)) {
-                            return new EditAction(EditActionType.DeleteRootNode);
-                        }
-                        return new EditAction(EditActionType.ReplaceExpressionWithItem);
-                    }
-                    if (context.token.rootNode instanceof ast.Statement) {
-                        if (this.module.validator.canDeleteStatement(context)) {
-                            console.log("It certainly is this one");
-                            return new EditAction(EditActionType.DeleteStatement);
-                        }
-                    }
-                }
+                // if (
+                //     false
+                //     // inTextEditMode &&
+                //     // !(context.tokenToRight instanceof ast.NonEditableTkn) &&
+                //     // !context.tokenToRight?.isEmpty
+                // ) {
+                //     console.log("In text edit mode", context.tokenToRight, context.tokenToRight?.isEmpty);
+                //     // Currently left as this is sort of a shortcut and thus general
+                //     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToEnd); // Not implemented?
+                //     else return new EditAction(EditActionType.DeleteNextChar);
+                //     // } else if (this.module.validator.canDeleteNextFStringCurlyBrackets(context)) {
+                //     //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //     //         item: context.expressionToRight,
+                //     //     });
+                //     // } else if (this.module.validator.canDeleteSelectedFStringCurlyBrackets(context)) {
+                //     //     return new EditAction(EditActionType.DeleteFStringCurlyBrackets, {
+                //     //         item: context.token.rootNode,
+                //     //     });
+                //     // See first if case
+                //     // } else if (this.module.validator.canDeleteStringLiteral(context)) {
+                //     //     console.log("CASES: string literal");
+                //     //     return new EditAction(EditActionType.DeleteStringLiteral);
+                // } else if (this.module.validator.canDeleteNextStatement(context)) {
+                //     return new EditAction(EditActionType.DeleteStatement);
+                // } else if (this.module.validator.canDeleteNextMultilineStatement(context)) {
+                //     return new EditAction(EditActionType.DeleteMultiLineStatement);
+                // } else if (this.module.validator.canDeleteCurLine(context)) {
+                //     console.log("Is it me?");
+                //     return new EditAction(EditActionType.DeleteEmptyLine);
+                //     // Temporary disabled; check later!
+                // } else if (this.module.validator.canDeleteNextToken(context)) {
+                //     return new EditAction(EditActionType.DeleteNextToken);
+                // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
+                //     console.log("It can not possibly be me?");
+                //     return new EditAction(EditActionType.DeleteListItem, {
+                //         toLeft: true,
+                //     });
+                //     // } else if (this.module.validator.canDeleteListItemToRight(context)) {
+                //     //     return new EditAction(EditActionType.DeleteListItem, {
+                //     //         toRight: true,
+                //     //     });
+                // } else if (this.module.validator.isTknEmpty(context)) {
+                //     if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
+                //         return new EditAction(EditActionType.DeleteStatement);
+                //     }
+                //     if (context.token.rootNode instanceof ast.Expression) {
+                //         if (this.module.validator.canDeleteExpression(context)) {
+                //             return new EditAction(EditActionType.DeleteRootNode);
+                //         }
+                //         return new EditAction(EditActionType.ReplaceExpressionWithItem);
+                //     }
+                //     if (context.token.rootNode instanceof ast.Statement) {
+                //         if (this.module.validator.canDeleteStatement(context)) {
+                //             console.log("It certainly is this one");
+                //             return new EditAction(EditActionType.DeleteStatement);
+                //         }
+                //     }
+                // }
 
                 break;
             }
@@ -776,18 +776,18 @@ export class EventRouter {
                 break;
             }
 
-            case InsertActionType.InsertListLiteral: {
-                if (this.module.validator.atLeftOfExpression(context)) {
-                    return new EditAction(EditActionType.WrapExpressionWithItem, {
-                        expression: new ast.ListLiteralExpression(),
-                        source,
-                    });
-                } else if (this.module.validator.atEmptyExpressionHole(context)) {
-                    return new EditAction(EditActionType.InsertEmptyList, { source });
-                }
+            // case InsertActionType.InsertListLiteral: {
+            //     if (this.module.validator.atLeftOfExpression(context)) {
+            //         return new EditAction(EditActionType.WrapExpressionWithItem, {
+            //             expression: new ast.ListLiteralExpression(),
+            //             source,
+            //         });
+            //     } else if (this.module.validator.atEmptyExpressionHole(context)) {
+            //         return new EditAction(EditActionType.InsertEmptyList, { source });
+            //     }
 
-                break;
-            }
+            //     break;
+            // }
 
             case InsertActionType.InsertCastStrExpr: {
                 if (this.module.validator.atLeftOfExpression(context)) {
@@ -802,23 +802,23 @@ export class EventRouter {
                 break;
             }
 
-            case InsertActionType.InsertListItem: {
-                if (this.module.validator.canAddListItemToRight(context)) {
-                    return new EditAction(EditActionType.InsertEmptyListItem, {
-                        toRight: true,
-                        source,
-                    });
-                } else if (this.module.validator.canAddListItemToLeft(context)) {
-                    return new EditAction(EditActionType.InsertEmptyListItem, {
-                        toLeft: true,
-                        source,
-                    });
-                }
+            // case InsertActionType.InsertListItem: {
+            //     if (this.module.validator.canAddListItemToRight(context)) {
+            //         return new EditAction(EditActionType.InsertEmptyListItem, {
+            //             toRight: true,
+            //             source,
+            //         });
+            //     } else if (this.module.validator.canAddListItemToLeft(context)) {
+            //         return new EditAction(EditActionType.InsertEmptyListItem, {
+            //             toLeft: true,
+            //             source,
+            //         });
+            //     }
 
-                this.module.editor.monaco.focus();
+            //     this.module.editor.monaco.focus();
 
-                break;
-            }
+            //     break;
+            // }
 
             case InsertActionType.InsertVarOperationStmt: {
                 return new EditAction(EditActionType.InsertStatement, {

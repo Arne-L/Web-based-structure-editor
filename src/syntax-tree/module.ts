@@ -20,12 +20,12 @@ import {
     CodeConstruct,
     EmptyLineStmt,
     Expression,
-    FormattedStringCurlyBracketsExpr,
+    // FormattedStringCurlyBracketsExpr,
     GeneralStatement,
     ImportStatement,
     // ForStatement,
     Importable,
-    ListLiteralExpression,
+    // ListLiteralExpression,
     Statement,
     Token,
     TypedEmptyExpr,
@@ -494,27 +494,25 @@ export class Module {
     replaceItemWTypedEmptyExpr(item: CodeConstruct, replaceType: DataType): CodeConstruct {
         const root = item.rootNode;
 
-        if (root instanceof GeneralStatement) {
-            if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
-                replaceType = DataType.Any;
+        if (!(root instanceof GeneralStatement)) return null;
 
-            let replacedItem = null;
-            const allowedTypes = DataType.Any;//root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
+        // if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
+        //     replaceType = DataType.Any;
 
-            replacedItem = new TypedEmptyExpr(
-                replaceType !== null ? [replaceType] : root.typeOfHoles[item.indexInRoot]
-            );
+        let replacedItem = null;
+        const allowedTypes = DataType.Any;//root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
-            if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
+        replacedItem = new TypedEmptyExpr(
+            replaceType !== null ? [replaceType] : root.typeOfHoles[item.indexInRoot]
+        );
 
-            root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
-            root.tokens.splice(item.indexInRoot, 1, replacedItem);
-            this.rebuildOnConstructDeletion(item, root);
+        if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
 
-            return replacedItem;
-        }
+        root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
+        root.tokens.splice(item.indexInRoot, 1, replacedItem);
+        this.rebuildOnConstructDeletion(item, root);
 
-        return null;
+        return replacedItem;
     }
 
     // removeItem(item: CodeConstruct): void {
@@ -773,7 +771,7 @@ export class Module {
             let cur: CodeConstruct = stack.pop();
             const hasDraftMode = cur.draftModeEnabled;
 
-            if (cur instanceof TypedEmptyExpr && !cur.isListElement()) {
+            if (cur instanceof TypedEmptyExpr /*&& !cur.isListElement()*/) {
                 status = status ?? CodeStatus.ContainsEmptyHoles;
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
@@ -786,7 +784,7 @@ export class Module {
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
             } else if (cur instanceof Expression && cur.tokens.length > 0) {
-                const addHighlight = cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
+                const addHighlight = false;//cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
                 status = addHighlight ? CodeStatus.ContainsEmptyHoles : status;
 
                 for (let i = 0; i < cur.tokens.length; i++) {
