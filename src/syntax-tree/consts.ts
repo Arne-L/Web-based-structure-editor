@@ -2,7 +2,7 @@ import { EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { CSSClasses, getStyledSpan } from "../utilities/text-enhance";
 import { getUserFriendlyType } from "../utilities/util";
-import { CodeConstruct, Expression, FunctionCallExpr, Modifier } from "./ast";
+import { Construct, Expression, FunctionCallExpr, Modifier } from "./ast";
 import { Callback, CallbackType } from "./callback";
 import { Module } from "./module";
 
@@ -440,7 +440,7 @@ export function TYPE_MISMATCH_ON_FUNC_ARG_DRAFT_MODE_STR(
     )} to one of the expected types is possible using one of:`;
 }
 
-export function addClassToDraftModeResolutionButton(button: HTMLDivElement, codeToReplace: CodeConstruct) {
+export function addClassToDraftModeResolutionButton(button: HTMLDivElement, codeToReplace: Construct) {
     if (!(codeToReplace instanceof Expression) && !(codeToReplace instanceof Modifier)) {
         button.classList.add("statement-button");
     } else if (codeToReplace instanceof Modifier) {
@@ -476,7 +476,7 @@ export abstract class TypeConversionRecord {
 
     protected abstract getConversionCode(itemToConvert: string): string;
 
-    getConversionButton(itemToConvert: string, module: Module, codeToReplace: CodeConstruct): HTMLDivElement {
+    getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
         let conversionText = itemToConvert;
         if (codeToReplace instanceof FunctionCallExpr) {
             conversionText = codeToReplace.getFullConstructText();
@@ -541,7 +541,7 @@ export class IgnoreConversionRecord extends TypeConversionRecord {
         return "";
     }
 
-    getConversionButton(itemToConvert: string, module: Module, codeToReplace: CodeConstruct): HTMLDivElement {
+    getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
         const text = this.warningText;
         const button = document.createElement("div");
         button.innerHTML = text.replace(/---/g, "<hole1></hole1>");

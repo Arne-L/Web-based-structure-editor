@@ -1,5 +1,5 @@
 import { EditAction } from "../editor/data-types";
-import { AssignmentToken, CodeConstruct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
+import { AssignmentToken, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { DataType, ListTypes, addClassToDraftModeResolutionButton } from "./../syntax-tree/consts";
 
@@ -201,7 +201,7 @@ export function getUserFriendlyType(type: DataType): string {
     }
 }
 
-export function createWarningButton(buttonTxt: string, warningCode: CodeConstruct, action: Function): HTMLDivElement {
+export function createWarningButton(buttonTxt: string, warningCode: Construct, action: Function): HTMLDivElement {
     const button = document.createElement("div");
     button.innerHTML = buttonTxt;
     button.classList.add("button");
@@ -265,16 +265,30 @@ export function getHoleValues(userInput: string, regex: RegExp): string[] {
 export namespace DOMManupulation {
     /**
      * Create an HTML element with the given tag, classes, style, attributes and children.
-    *
-    * @param tag - The tag of the HTML element, e.g. "div"
-    * @param classes - The class(es) to add to the HTML element
-    * @param style - The style properties to add to the HTML element as key value pairs
-    * @param attributes - The attributes to add to the HTML element as key value pairs
-    * @param children - The children to add to the HTML element, in order of appearance
-    * @returns - An HTML element with the given properties
-    */
-    export function createElement(tag: "div", classes?: string[] | string, style?: { [key: string]: string }, innerHTML?: string, attributes?: { [key: string]: string }, children?: HTMLElement[]): HTMLDivElement;
-    export function createElement(tag: string, classes?: string[] | string, style?: { [key: string]: string }, innerHTML?: string, attributes?: { [key: string]: string }, children?: HTMLElement[]): HTMLElement;
+     *
+     * @param tag - The tag of the HTML element, e.g. "div"
+     * @param classes - The class(es) to add to the HTML element
+     * @param style - The style properties to add to the HTML element as key value pairs
+     * @param attributes - The attributes to add to the HTML element as key value pairs
+     * @param children - The children to add to the HTML element, in order of appearance
+     * @returns - An HTML element with the given properties
+     */
+    export function createElement(
+        tag: "div",
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLDivElement;
+    export function createElement(
+        tag: string,
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLElement;
     export function createElement(
         tag: string,
         classes?: string[] | string,

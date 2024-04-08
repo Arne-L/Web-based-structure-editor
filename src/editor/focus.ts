@@ -1,7 +1,7 @@
 import { Position, Selection } from "monaco-editor";
 import {
     AutocompleteTkn,
-    CodeConstruct,
+    Construct,
     EditableTextTkn,
     EmptyLineStmt,
     Expression,
@@ -68,7 +68,7 @@ export class Focus {
      * @param providedContext - The context to search in. If not provided, the current context will be used.
      * @returns - The containing draft node, or null if not found.
      */
-    getContainingDraftNode(providedContext?: Context): CodeConstruct {
+    getContainingDraftNode(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.getContext();
         const focusedNode = context.token && context.selected ? context.token : context.lineStatement;
 
@@ -518,8 +518,8 @@ export class Focus {
      * @param column the given column to search with (usually from current position)
      * @returns the found Token at the given column in which the following condition holds true: token.left <= column < token.right
      */
-    private getTokenAtStatementColumn(statement: Statement, column: number): CodeConstruct {
-        const tokensStack = new Array<CodeConstruct>();
+    private getTokenAtStatementColumn(statement: Statement, column: number): Construct {
+        const tokensStack = new Array<Construct>();
 
         tokensStack.unshift(...statement.tokens);
 
@@ -561,7 +561,8 @@ export class Focus {
             //if you want to run a callback only on oldStatement, use CallbackType.onFocusOff
             //Think of this array as the global list of functions that gets called when we navigate off of a certain statement type
             //and of CallbackType.onFocusOff as the callback called on a specific instance of  a code construct
-            const callbackArr = this.onNavOffCallbacks.get(oldStatement.codeConstructName) ?? [];
+            const callbackArr =
+                this.onNavOffCallbacks.get(ConstructName.Default /*oldStatement.codeConstructName*/) ?? [];
             for (const callback of callbackArr) {
                 callback(context);
             }
@@ -594,7 +595,7 @@ export class Focus {
      * Selects the given code construct.
      * @param code the editor will set its selection to the left and right of this given code.
      */
-    private selectCode(code: CodeConstruct) {
+    private selectCode(code: Construct) {
         if (code != null) {
             const selection = new Selection(code.getLineNumber(), code.right, code.getLineNumber(), code.left);
 
@@ -614,7 +615,7 @@ export class Focus {
     private getContextFromSelection(statement: Statement, left: number, right: number): Context {
         const context = new Context();
         context.lineStatement = statement;
-        const tokensStack = new Array<CodeConstruct>();
+        const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
         tokensStack.unshift(...statement.tokens);
@@ -658,7 +659,7 @@ export class Focus {
      * @returns - The non-textual hole at the given column, or null if not found.
      */
     private findNonTextualHole(statement: Statement, column: number): Token {
-        const tokensStack = new Array<CodeConstruct>();
+        const tokensStack = new Array<Construct>();
 
         for (const token of statement.tokens) tokensStack.unshift(token); // One liner: tokensStack.unshift(...statement.tokens);?
 
@@ -696,7 +697,7 @@ export class Focus {
     private getContextFromPosition(statement: Statement, column: number): Context {
         const context = new Context();
         context.lineStatement = statement;
-        const tokensStack = new Array<CodeConstruct>();
+        const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
         for (const token of statement?.tokens) tokensStack.unshift(token);
@@ -787,7 +788,7 @@ export class Focus {
      * Searches the tokens tree for a token that matches the passed check() condition.
      */
     private searchNonEmptyTokenWithCheck(statement: Statement, check: (token: Token) => boolean): Token {
-        const tokensStack = new Array<CodeConstruct>();
+        const tokensStack = new Array<Construct>();
 
         tokensStack.unshift(...statement.tokens);
 
@@ -834,7 +835,7 @@ export class Context {
 }
 
 export class UpdatableContext {
-    tokenToSelect?: CodeConstruct;
+    tokenToSelect?: Construct;
     positionToMove?: Position;
 
     constructor(tokenToSelect?: Token, positionToMove?: Position) {

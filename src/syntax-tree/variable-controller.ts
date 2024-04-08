@@ -2,14 +2,14 @@
 // import { addVariableReferenceButton, removeVariableReferenceButton } from "../editor/toolbox";
 import { getUserFriendlyType, hasMatch, Util } from "../utilities/util";
 import {
-    CodeConstruct,
+    Construct,
     // ElseStatement,
     Expression,
     // ForStatement,
     // IfStatement,
     Statement,
     // VarAssignmentStmt,
-    VariableReferenceExpr,
+    // VariableReferenceExpr,
 } from "./ast";
 import { DataType, typeToConversionRecord, TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR } from "./consts";
 import { Module } from "./module";
@@ -468,115 +468,114 @@ export class VariableController {
     //     excludeCurrentLine: boolean = true
     // ): DataType {
     //     return DataType.Any; // Replacement for all following lines because we do not use typing!
-        // const focus = this.module.focus;
-        // // Get all assignment statements to the given identifier
-        // // const assignmentsToVar = scope.getAllAssignmentsToVarAboveLine(
-        // //     identifier,
-        // //     this.module,
-        // //     lineNumber,
-        // //     excludeCurrentLine
-        // // );
-        // // Correct?
-        // const assignmentsToVar = scope.getAllAccessableAssignments(identifier, lineNumber);
+    // const focus = this.module.focus;
+    // // Get all assignment statements to the given identifier
+    // // const assignmentsToVar = scope.getAllAssignmentsToVarAboveLine(
+    // //     identifier,
+    // //     this.module,
+    // //     lineNumber,
+    // //     excludeCurrentLine
+    // // );
+    // // Correct?
+    // const assignmentsToVar = scope.getAllAccessableAssignments(identifier, lineNumber);
 
-        // // Possible fix for ERROR[1]
-        // if (assignmentsToVar.length === 0) {
-        //     // No assignments to the variable, so we are unable to determine the type
-        //     return DataType.Any;
-        // }
+    // // Possible fix for ERROR[1]
+    // if (assignmentsToVar.length === 0) {
+    //     // No assignments to the variable, so we are unable to determine the type
+    //     return DataType.Any;
+    // }
 
-        // // Find the assignment statement closest to the given line number, indicated
-        // // by the index 'i' in the assignmentsToVar list
-        // let smallestDiffIndex = 0;
-        // for (let i = 0; i < assignmentsToVar.length; i++) {
-        //     if (
-        //         lineNumber - assignmentsToVar[i].lineNumber <
-        //         lineNumber - assignmentsToVar[smallestDiffIndex].lineNumber
-        //     ) {
-        //         smallestDiffIndex = i;
-        //     }
-        // }
+    // // Find the assignment statement closest to the given line number, indicated
+    // // by the index 'i' in the assignmentsToVar list
+    // let smallestDiffIndex = 0;
+    // for (let i = 0; i < assignmentsToVar.length; i++) {
+    //     if (
+    //         lineNumber - assignmentsToVar[i].lineNumber <
+    //         lineNumber - assignmentsToVar[smallestDiffIndex].lineNumber
+    //     ) {
+    //         smallestDiffIndex = i;
+    //     }
+    // }
 
-        // // Get the closest assignment statement
-        // const closestStatement = assignmentsToVar[smallestDiffIndex];
+    // // Get the closest assignment statement
+    // const closestStatement = assignmentsToVar[smallestDiffIndex];
 
-        // /**
-        //  * WARNING[1]
-        //  * This is a newly added line making all following code obsolete (together with "scope.getAllAccessableAssignments" 
-        //  * method above). However, it seems that because of the way the references in a scope are added in the update cycle,
-        //  * it does not detect the newly added assignment right after insertion but only after the next update cycle. A possible
-        //  * reason is that the variables on the next line are defined before the references in the scope are updated. So currently
-        //  * the any type will show up right after insertion. 
-        //  * 
-        //  * The solution used by the original code is to search the entire program for all assignments and then filtering, requiring
-        //  * a lot of unnecessary work and being difficult to generalise. This solution should be more robust, but requires a deeper
-        //  * look at the update cycle.
-        //  */
-        // return closestStatement.dataType;
+    // /**
+    //  * WARNING[1]
+    //  * This is a newly added line making all following code obsolete (together with "scope.getAllAccessableAssignments"
+    //  * method above). However, it seems that because of the way the references in a scope are added in the update cycle,
+    //  * it does not detect the newly added assignment right after insertion but only after the next update cycle. A possible
+    //  * reason is that the variables on the next line are defined before the references in the scope are updated. So currently
+    //  * the any type will show up right after insertion.
+    //  *
+    //  * The solution used by the original code is to search the entire program for all assignments and then filtering, requiring
+    //  * a lot of unnecessary work and being difficult to generalise. This solution should be more robust, but requires a deeper
+    //  * look at the update cycle.
+    //  */
+    // return closestStatement.dataType;
 
+    // // Get the statement at the currently focused line
+    // // Types will be determined based on the statement at the currently focused line
+    // const statementAtLine = focus.getStatementAtLineNumber(lineNumber);
 
-        // // Get the statement at the currently focused line
-        // // Types will be determined based on the statement at the currently focused line
-        // const statementAtLine = focus.getStatementAtLineNumber(lineNumber);
+    // // ERROR[1]: "closestStatement" is sometimes undefined (possibly fixed)
+    // if (closestStatement.rootNode === statementAtLine.rootNode) {
+    //     // They have the same parent, meaning they are in the same scope: we can
+    //     // simply use the type of the closest statement
+    //     return closestStatement.dataType;
+    // } else {
+    //     // The closest statement is not in the same scope as the currently focused statement
+    //     // Get a list of all types of the variable assignments up to the currently focused line
+    //     const types = assignmentsToVar
+    //         .filter((assignment) => assignment.lineNumber <= lineNumber)
+    //         .map((filteredRecord) => filteredRecord.dataType);
+    //     // Get the first type in the list
+    //     const firstType = types[0];
+    //     // Scope of the focused statement if it has a scope, otherwise the scope of the parent node
+    //     const statementAtLineScope = statementAtLine.hasScope()
+    //         ? statementAtLine.scope
+    //         : (statementAtLine.rootNode as Module | Statement).scope;
+    //     // Scope of the closest statement if it has a scope, otherwise the scope of the parent node
+    //     const closestStatementScope = closestStatement.hasScope()
+    //         ? closestStatement.scope
+    //         : (closestStatement.rootNode as Module | Statement).scope;
 
-        // // ERROR[1]: "closestStatement" is sometimes undefined (possibly fixed)
-        // if (closestStatement.rootNode === statementAtLine.rootNode) {
-        //     // They have the same parent, meaning they are in the same scope: we can
-        //     // simply use the type of the closest statement
-        //     return closestStatement.dataType;
-        // } else {
-        //     // The closest statement is not in the same scope as the currently focused statement
-        //     // Get a list of all types of the variable assignments up to the currently focused line
-        //     const types = assignmentsToVar
-        //         .filter((assignment) => assignment.lineNumber <= lineNumber)
-        //         .map((filteredRecord) => filteredRecord.dataType);
-        //     // Get the first type in the list
-        //     const firstType = types[0];
-        //     // Scope of the focused statement if it has a scope, otherwise the scope of the parent node
-        //     const statementAtLineScope = statementAtLine.hasScope()
-        //         ? statementAtLine.scope
-        //         : (statementAtLine.rootNode as Module | Statement).scope;
-        //     // Scope of the closest statement if it has a scope, otherwise the scope of the parent node
-        //     const closestStatementScope = closestStatement.hasScope()
-        //         ? closestStatement.scope
-        //         : (closestStatement.rootNode as Module | Statement).scope;
+    //     // Check if the closest statement's scope is an ancestor scope of the statement at the currently focused line
+    //     const closestStatementScopeIsParentScope = closestStatementScope.isAncestor(statementAtLineScope);
+    //     // Check if the closest statement has as parent an if or an elif statement
+    //     const closestStmtIsIfElseParent =
+    //         closestStatement.rootNode instanceof IfStatement ||
+    //         (closestStatement.rootNode instanceof ElseStatement &&
+    //             (closestStatement.rootNode as ElseStatement).hasCondition);
 
-        //     // Check if the closest statement's scope is an ancestor scope of the statement at the currently focused line
-        //     const closestStatementScopeIsParentScope = closestStatementScope.isAncestor(statementAtLineScope);
-        //     // Check if the closest statement has as parent an if or an elif statement
-        //     const closestStmtIsIfElseParent =
-        //         closestStatement.rootNode instanceof IfStatement ||
-        //         (closestStatement.rootNode instanceof ElseStatement &&
-        //             (closestStatement.rootNode as ElseStatement).hasCondition);
-
-        //     // If all types are equal, then it is safe to return that type
-        //     if (types.every((type) => type === firstType)) {
-        //         return firstType;
-        //     } else if (
-        //         // statementAtLineScope.parentScope === closestStatementScope || // Is it correct to remove this? Should be equivalent without it?
-        //         closestStatementScopeIsParentScope
-        //     ) {
-        //         /**
-        //          * abc = 123
-        //          * abc = ""
-        //          *
-        //          * if ---:
-        //          *    ref abc here should be string, not Any
-        //          */
-        //         return types[types.length - 1];
-        //     // The following "else if" makes sure that the type of the variable is not Any if it is in an if or an elif statement
-        //     } else if (closestStmtIsIfElseParent) {
-        //         // Get the parent scope of the if statement
-        //         const parentAssignments =
-        //             closestStatementScope.parentScope.getAllAssignmentsToVariableWithinScope(identifier);
-        //         // Get the type of the variable in the parent scope
-        //         return parentAssignments.length > 0
-        //             ? (parentAssignments[parentAssignments.length - 1].statement as VarAssignmentStmt).dataType
-        //             : DataType.Any;
-        //     } else {
-        //         return DataType.Any;
-        //     }
-        // }
+    //     // If all types are equal, then it is safe to return that type
+    //     if (types.every((type) => type === firstType)) {
+    //         return firstType;
+    //     } else if (
+    //         // statementAtLineScope.parentScope === closestStatementScope || // Is it correct to remove this? Should be equivalent without it?
+    //         closestStatementScopeIsParentScope
+    //     ) {
+    //         /**
+    //          * abc = 123
+    //          * abc = ""
+    //          *
+    //          * if ---:
+    //          *    ref abc here should be string, not Any
+    //          */
+    //         return types[types.length - 1];
+    //     // The following "else if" makes sure that the type of the variable is not Any if it is in an if or an elif statement
+    //     } else if (closestStmtIsIfElseParent) {
+    //         // Get the parent scope of the if statement
+    //         const parentAssignments =
+    //             closestStatementScope.parentScope.getAllAssignmentsToVariableWithinScope(identifier);
+    //         // Get the type of the variable in the parent scope
+    //         return parentAssignments.length > 0
+    //             ? (parentAssignments[parentAssignments.length - 1].statement as VarAssignmentStmt).dataType
+    //             : DataType.Any;
+    //     } else {
+    //         return DataType.Any;
+    //     }
+    // }
     // }
 
     // /**
@@ -584,7 +583,7 @@ export class VariableController {
     //  *
     //  * @param varStmt - The variable assignment statement
     //  * @param module - The current module
-    //  * @returns - true if the given variable assignment statement is a reassignment of a variable that appears before, 
+    //  * @returns - true if the given variable assignment statement is a reassignment of a variable that appears before,
     //  * false otherwise
     //  */
     // isVarStmtReassignment(varStmt: VarAssignmentStmt, module: Module): boolean {

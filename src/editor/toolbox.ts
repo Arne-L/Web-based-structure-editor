@@ -4,7 +4,7 @@ import { Position } from "monaco-editor";
 import { nova, runBtnToOutputWindow } from "..";
 import { attachPyodideActions, codeString } from "../pyodide-js/pyodide-controller";
 import { CONSOLE_ERR_TXT_CLASS, addTextToConsole, clearConsole } from "../pyodide-ts/pyodide-ui";
-import { CodeConstruct, Expression, Modifier, Statement, VariableReferenceExpr } from "../syntax-tree/ast";
+import { Construct, Expression, Modifier, Statement /*VariableReferenceExpr*/ } from "../syntax-tree/ast";
 import { DataType, InsertionType, Tooltip } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getUserFriendlyType } from "../utilities/util";
@@ -278,7 +278,7 @@ export class ToolboxButton {
     // Can remove export
     container: HTMLDivElement;
 
-    constructor(text: string, domId?: string, code?: CodeConstruct) {
+    constructor(text: string, domId?: string, code?: Construct) {
         // Container for the button
         this.container = document.createElement("div");
         this.container.classList.add("var-button-container");
@@ -910,7 +910,7 @@ export class TooltipComponent {
             }
         }
 
-        const returnType = null;//code.getUserFriendlyReturnType();
+        const returnType = null; //code.getUserFriendlyReturnType();
 
         const tooltipContainer = document.createElement("div");
         tooltipContainer.classList.add("tooltip-container");
@@ -1016,7 +1016,7 @@ export class TooltipComponent {
         }
 
         if (codeAction?.insertionResult?.insertionType === InsertionType.Invalid) {
-            const code = codeAction.getCode() as CodeConstruct;
+            const code = codeAction.getCode() as Construct;
             const errorMessage = document.createElement("div");
             errorMessage.classList.add("error-text");
 

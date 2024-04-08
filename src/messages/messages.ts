@@ -2,7 +2,7 @@ import { Selection } from "monaco-editor";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { nova } from "../index";
-import { CodeConstruct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
+import { Construct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 
 /**
@@ -35,7 +35,7 @@ abstract class CodeHighlight {
     /**
      * Code that this element is attached to.
      */
-    protected code: CodeConstruct;
+    protected code: Construct;
 
     /**
      * Current selection of the element. Used for calculating displacement during position changes.
@@ -57,7 +57,7 @@ abstract class CodeHighlight {
      */
     private callbacks: Map<string, CallbackType>;
 
-    constructor(editor: Editor, codeToHighlight: CodeConstruct) {
+    constructor(editor: Editor, codeToHighlight: Construct) {
         this.code = codeToHighlight;
         this.selection = this.code.getSelection();
         this.editor = editor;
@@ -124,7 +124,7 @@ abstract class CodeHighlight {
 }
 
 export class ConstructHighlight extends CodeHighlight {
-    constructor(editor: Editor, codeToHighlight: CodeConstruct, rgbColour: [number, number, number, number]) {
+    constructor(editor: Editor, codeToHighlight: Construct, rgbColour: [number, number, number, number]) {
         super(editor, codeToHighlight);
         this.changeHighlightColour(rgbColour);
     }
@@ -223,7 +223,7 @@ export class InlineMessage extends CodeHighlight {
 
     textElement: HTMLDivElement;
 
-    constructor(editor: Editor, code: CodeConstruct, warningTxt: string, index: number = -1) {
+    constructor(editor: Editor, code: Construct, warningTxt: string, index: number = -1) {
         super(editor, code);
 
         this.warningTxt = warningTxt;
@@ -264,7 +264,7 @@ export class HoverMessage extends InlineMessage {
 
     constructor(
         editor: Editor,
-        code: CodeConstruct,
+        code: Construct,
         warningText: string,
         highlightColour: [number, number, number, number],
         index: number = -1
@@ -435,7 +435,7 @@ export class HoverMessage extends InlineMessage {
 export class PopUpMessage extends InlineMessage {
     static warningTime: number = 5000;
 
-    constructor(editor: Editor, code: CodeConstruct, warningTxt: string, index: number = -1) {
+    constructor(editor: Editor, code: Construct, warningTxt: string, index: number = -1) {
         super(editor, code, warningTxt, index);
     }
 

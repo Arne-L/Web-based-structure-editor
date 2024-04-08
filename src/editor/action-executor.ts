@@ -5,7 +5,7 @@ import {
     // AssignmentModifier,
     AutocompleteTkn,
     BinaryOperatorExpr,
-    CodeConstruct,
+    Construct,
     // ElseStatement,
     EmptyOperatorTkn,
     Expression,
@@ -25,7 +25,7 @@ import {
     // ValueOperationExpr,
     // VarOperationStmt,
     // VarAssignmentStmt,
-    VariableReferenceExpr,
+    // VariableReferenceExpr,
 } from "../syntax-tree/ast";
 import { replaceInBody } from "../syntax-tree/body";
 import { Callback, CallbackType } from "../syntax-tree/callback";
@@ -144,10 +144,10 @@ export class ActionExecutor {
                         context.expressionToRight,
                         new EmptyOperatorTkn(" ", context.expressionToRight, context.expressionToRight.indexInRoot)
                     );
-                } else if (this.module.validator.atBeginningOfValOperation(context)) {
-                    this.module.deleteCode(context.expressionToRight.rootNode);
-                // } else if (context.expressionToRight instanceof Modifier) {
-                //     this.deleteModifier(context.expressionToRight, { deleting: true });
+                    // } else if (this.module.validator.atBeginningOfValOperation(context)) { // CAN THIS REALLY BE REMOVED?
+                    //     this.module.deleteCode(context.expressionToRight.rootNode);
+                    // } else if (context.expressionToRight instanceof Modifier) {
+                    //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 } else this.module.deleteCode(context.expressionToRight);
 
                 break;
@@ -160,11 +160,11 @@ export class ActionExecutor {
                         context.expressionToLeft,
                         new EmptyOperatorTkn(" ", context.expressionToLeft, context.expressionToLeft.indexInRoot)
                     );
-                // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
-                //     context.expressionToLeft instanceof VariableReferenceExpr &&
-                //     context.expressionToLeft.rootNode instanceof VarOperationStmt
-                // ) {
-                //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
+                    // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
+                    //     context.expressionToLeft instanceof VariableReferenceExpr &&
+                    //     context.expressionToLeft.rootNode instanceof VarOperationStmt
+                    // ) {
+                    //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
                 }
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
                 else this.module.deleteCode(context.expressionToLeft);
@@ -498,7 +498,7 @@ export class ActionExecutor {
 
                 // Check if it needs to turn back into a hole:
                 if (newText.length == 0) {
-                    let removableExpr: CodeConstruct = null;
+                    let removableExpr: Construct = null;
 
                     // If the current expression is atomic (has no subexpressions or editable token)
                     if (context.expression?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
@@ -979,7 +979,7 @@ export class ActionExecutor {
                 // Get the parent of the token
                 const rootNode = context.token.rootNode as GeneralExpression;
                 // The token which will replace the expression
-                let replacementTkn: CodeConstruct;
+                let replacementTkn: Construct;
                 for (let i = 0; i < rootNode.tokens.length; i++) {
                     // Set the last occuring construct that is not a hole, non-editable or operator token
                     // to be the replacementTkn
@@ -1204,7 +1204,7 @@ export class ActionExecutor {
      *
      * @param code - The construct to highlight
      */
-    private flashGreen(code: CodeConstruct) {
+    private flashGreen(code: Construct) {
         // If a construct is given
         if (code) {
             // Construct a construct highlighting object
@@ -1796,7 +1796,7 @@ export class ActionExecutor {
      * @param code - The construct to replace
      * @param replace - The construct to replace the given code with
      */
-    private replaceCode(code: CodeConstruct, replace: CodeConstruct) {
+    private replaceCode(code: Construct, replace: Construct) {
         // Get the range of the construct to replace
         const replacementRange = code.getBoundaries();
         // Get the parent construct

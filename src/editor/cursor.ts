@@ -1,10 +1,10 @@
-import { CodeConstruct, EmptyLineStmt, TypedEmptyExpr } from "../syntax-tree/ast";
+import { Construct, EmptyLineStmt, TypedEmptyExpr } from "../syntax-tree/ast";
 import { Editor } from "./editor";
 
 export class Cursor {
     editor: Editor;
     element: HTMLElement;
-    code: CodeConstruct;
+    code: Construct;
     container: HTMLElement;
 
     constructor(editor: Editor) {
@@ -25,7 +25,7 @@ export class Cursor {
         loop();
     }
 
-    setTransform(code: CodeConstruct) {
+    setTransform(code: Construct) {
         let leftPadding = 0;
         let rightPadding = 0;
 
@@ -46,7 +46,7 @@ export class Cursor {
         this.element.style.height = `${transform.height - 5 * 2}px`;
     }
 
-    setSelection(code: CodeConstruct = null) {
+    setSelection(code: Construct = null) {
         this.code = code;
         this.setTransform(code);
     }

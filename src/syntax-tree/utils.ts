@@ -1,6 +1,16 @@
 import { Range } from "monaco-editor";
 import { Context } from "../editor/focus";
-import { Token, EmptyOperatorTkn, Statement, TypedEmptyExpr, TemporaryStmt, GeneralStatement, CodeConstruct, Expression, BinaryOperatorExpr } from "./ast";
+import {
+    Token,
+    EmptyOperatorTkn,
+    Statement,
+    TypedEmptyExpr,
+    TemporaryStmt,
+    GeneralStatement,
+    Construct,
+    Expression,
+    BinaryOperatorExpr,
+} from "./ast";
 import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
 import { Module } from "./module";
@@ -9,7 +19,7 @@ import { isImportable } from "../utilities/util";
 import { InsertionResult } from "../editor/action-filter";
 
 export namespace ASTManupilation {
-    export function insertConstruct(context: Context, construct: CodeConstruct) {
+    export function insertConstruct(context: Context, construct: Construct) {
         const module = Module.instance;
         if (construct instanceof Token) {
             // If on empty line, replace the empty line
@@ -23,18 +33,20 @@ export namespace ASTManupilation {
             // Generalise to anything that can be to the left of a token; MAYBE just say switch to autocomplete or something
             else if (
                 /*module.validator.canSwitchLeftNumToAutocomplete(context) || */ module.validator.atRightOfExpression(
-                context
-            )
+                    context
+                )
             ) {
                 insertToken(context, construct, { toLeft: true });
             } else if (
                 /*module.validator.canSwitchRightNumToAutocomplete(context) || */ module.validator.atLeftOfExpression(
-                context
-            )
+                    context
+                )
             ) {
                 insertToken(context, construct, { toRight: true });
             } else {
-                console.error(`insertConstruct(${context}, ${construct}): When inserting a token in the AST, the context was not valid for insertion`);
+                console.error(
+                    `insertConstruct(${context}, ${construct}): When inserting a token in the AST, the context was not valid for insertion`
+                );
             }
         } else if (construct instanceof GeneralStatement) {
             // Currently for expressions and statements
@@ -157,9 +169,10 @@ export namespace ASTManupilation {
             // The root of the hole (either an expression or a statement)
             const root = context.token.rootNode;
             // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = new InsertionResult(InsertionType.Valid, "", []);// root.typeValidateInsertionIntoHole(code, context.token); // REMOVE
+            let insertionResult = new InsertionResult(InsertionType.Valid, "", []); // root.typeValidateInsertionIntoHole(code, context.token); // REMOVE
 
-            if (insertionResult.insertionType != InsertionType.Invalid) { // IF VALID OR DRAFT MODE
+            if (insertionResult.insertionType != InsertionType.Invalid) {
+                // IF VALID OR DRAFT MODE
                 // For all valid or draft mode insertions
                 // This seems to only update the types?
                 // if (root instanceof Statement) {

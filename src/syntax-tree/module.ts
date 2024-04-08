@@ -17,7 +17,7 @@ import { MenuController } from "../suggestions/suggestions-controller";
 import { Util } from "../utilities/util";
 import {
     AutocompleteTkn,
-    CodeConstruct,
+    Construct,
     EmptyLineStmt,
     Expression,
     // FormattedStringCurlyBracketsExpr,
@@ -61,7 +61,7 @@ export class Module {
     language: Language;
 
     /**
-     * 
+     *
      */
     static instance: Module;
 
@@ -175,13 +175,13 @@ export class Module {
      * @param code - The code to be notified
      * @param callbackType - The type of the notification
      */
-    recursiveNotify(code: CodeConstruct, callbackType: CallbackType) {
+    recursiveNotify(code: Construct, callbackType: CallbackType) {
         // Notify the current CodeConstruct
         code.notify(callbackType);
 
         // If the current CodeConstruct is a Statement or an Expression, notify all of its tokens
         if (code instanceof Expression || code instanceof Statement) {
-            const codeStack = new Array<CodeConstruct>();
+            const codeStack = new Array<Construct>();
             // Get all of the tokens of the construct
             codeStack.unshift(...code.tokens);
 
@@ -383,7 +383,7 @@ export class Module {
      * @param count
      * @returns
      */
-    removeItems(code: CodeConstruct, start: number, count: number): Array<CodeConstruct> {
+    removeItems(code: Construct, start: number, count: number): Array<Construct> {
         if (code instanceof Statement) {
             const removedItems = code.tokens.splice(start, count);
 
@@ -405,7 +405,7 @@ export class Module {
      * @param line - The statement to be removed
      * @returns - The empty line that replaces the removed statement
      */
-    private removeStatement(line: GeneralStatement): CodeConstruct {
+    private removeStatement(line: GeneralStatement): Construct {
         // Get the root of the construct
         const root = line.rootNode;
 
@@ -452,11 +452,11 @@ export class Module {
      * @param code
      * @param param1
      */
-    deleteCode(code: CodeConstruct, { statement = false, replaceType = null } = {}) {
+    deleteCode(code: Construct, { statement = false, replaceType = null } = {}) {
         // Get range of the construct to delete
         const replacementRange = code.getBoundaries();
         // The construct to replace the deleted code with
-        let replacement: CodeConstruct;
+        let replacement: Construct;
 
         // If the construct to delete is a statement
         if (statement) replacement = this.removeStatement(code as GeneralStatement);
@@ -477,7 +477,7 @@ export class Module {
      * @param item - The construct that has been deleted
      * @param root - The root of the construct
      */
-    private rebuildOnConstructDeletion(item: CodeConstruct, root: GeneralStatement) {
+    private rebuildOnConstructDeletion(item: Construct, root: GeneralStatement) {
         // Notify the construct that has been deleted
         this.recursiveNotify(item, CallbackType.delete);
 
@@ -491,7 +491,7 @@ export class Module {
         root.rebuild(root.getLeftPosition(), 0);
     }
 
-    replaceItemWTypedEmptyExpr(item: CodeConstruct, replaceType: DataType): CodeConstruct {
+    replaceItemWTypedEmptyExpr(item: Construct, replaceType: DataType): Construct {
         const root = item.rootNode;
 
         if (!(root instanceof GeneralStatement)) return null;
@@ -500,11 +500,9 @@ export class Module {
         //     replaceType = DataType.Any;
 
         let replacedItem = null;
-        const allowedTypes = DataType.Any;//root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
+        const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
-        replacedItem = new TypedEmptyExpr(
-            replaceType !== null ? [replaceType] : root.typeOfHoles[item.indexInRoot]
-        );
+        replacedItem = new TypedEmptyExpr(replaceType !== null ? [replaceType] : root.typeOfHoles[item.indexInRoot]);
 
         if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
 
@@ -709,7 +707,7 @@ export class Module {
      *
      * @param expr - The expression to replace the focussed expression with
      */
-    replaceFocusedExpression(construct: CodeConstruct) {
+    replaceFocusedExpression(construct: Construct) {
         // Current context
         const context = this.focus.getContext();
 
@@ -724,7 +722,7 @@ export class Module {
         }
     }
 
-    closeConstructDraftRecord(code: CodeConstruct) {
+    closeConstructDraftRecord(code: Construct) {
         if (code.draftModeEnabled) {
             code.draftModeEnabled = false;
             const removedRecord = this.draftExpressions.splice(this.draftExpressions.indexOf(code.draftRecord), 1)[0];
@@ -764,11 +762,11 @@ export class Module {
             return CodeStatus.Empty;
         }
 
-        const stack: CodeConstruct[] = [];
+        const stack: Construct[] = [];
         stack.push(...this.body);
 
         while (stack.length > 0) {
-            let cur: CodeConstruct = stack.pop();
+            let cur: Construct = stack.pop();
             const hasDraftMode = cur.draftModeEnabled;
 
             if (cur instanceof TypedEmptyExpr /*&& !cur.isListElement()*/) {
@@ -784,7 +782,7 @@ export class Module {
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
             } else if (cur instanceof Expression && cur.tokens.length > 0) {
-                const addHighlight = false;//cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
+                const addHighlight = false; //cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
                 status = addHighlight ? CodeStatus.ContainsEmptyHoles : status;
 
                 for (let i = 0; i < cur.tokens.length; i++) {
@@ -817,16 +815,16 @@ export class Module {
      *
      * @param duringAction - Function to be performed on each construct
      */
-    performActionOnBFS(duringAction: (code: CodeConstruct) => void) {
+    performActionOnBFS(duringAction: (code: Construct) => void) {
         // List with all CodeConstructs
-        const Q: CodeConstruct[] = [];
+        const Q: Construct[] = [];
         // Push all statements of the body of the module to the list
         Q.push(...this.body);
 
         // As long as there exists some construct in the list
         while (Q.length > 0) {
             // Delete the first element of the list
-            let curr: CodeConstruct = Q.splice(0, 1)[0];
+            let curr: Construct = Q.splice(0, 1)[0];
 
             // If the current construct has tokens and possibly a body
             if (curr instanceof GeneralStatement) {
@@ -844,7 +842,7 @@ export class Module {
     getAllImportStmts(): ImportStatement[] {
         const stmts: ImportStatement[] = [];
 
-        this.performActionOnBFS((code: CodeConstruct) => {
+        this.performActionOnBFS((code: Construct) => {
             if (code instanceof ImportStatement) {
                 stmts.push(code);
             }

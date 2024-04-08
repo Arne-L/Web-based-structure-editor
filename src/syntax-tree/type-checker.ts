@@ -1,4 +1,4 @@
-import { BinaryOperatorExpr, CodeConstruct, Expression, TypedEmptyExpr } from "./ast";
+import { BinaryOperatorExpr, Construct, Expression, TypedEmptyExpr } from "./ast";
 import {
     BinaryOperator,
     DataType,
@@ -125,7 +125,7 @@ export class TypeChecker {
         conversionRecords: TypeConversionRecord[],
         module: Module,
         itemToConvertKeyword: string,
-        codeToReplaceOnConversion: CodeConstruct
+        codeToReplaceOnConversion: Construct
     ) {
         if (conversionRecords.length === 0) return [];
 

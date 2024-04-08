@@ -4,7 +4,7 @@ import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
-import { CodeConstruct, GeneralStatement } from "../syntax-tree/ast";
+import { Construct, GeneralStatement } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
@@ -294,7 +294,7 @@ class Menu {
 
         // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
-            console.log(a, b)
+            console.log(a, b);
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
             if (a.matchRegex && b.matchString) return 1;
@@ -308,7 +308,7 @@ class Menu {
                 bStart = bText.indexOf(lowUserInput),
                 aDiff = aText.length - userInput.length,
                 bDiff = bText.length - userInput.length;
-            console.log("Hello", aText, bText)
+            console.log("Hello", aText, bText);
 
             // Give preference to the option that has the current text the closest
             // to the front
@@ -985,7 +985,7 @@ export class MenuController {
         return pos;
     }
 
-    getNewMenuPositionFromCode(code: CodeConstruct): { left: number; top: number } {
+    getNewMenuPositionFromCode(code: Construct): { left: number; top: number } {
         const pos = { left: 0, top: 0 };
         pos.left =
             document.getElementById(EDITOR_DOM_ID).offsetLeft +

@@ -1,6 +1,6 @@
 import { editor, KeyCode, KeyMod, languages, Range, Selection } from "monaco-editor";
 import {
-    CodeConstruct,
+    Construct,
     EditableTextTkn,
     EmptyOperatorTkn,
     IdentifierTkn,
@@ -320,7 +320,7 @@ export class Editor {
         return <HTMLElement>line?.children[0];
     }
 
-    addHoles(code: CodeConstruct) {
+    addHoles(code: Construct) {
         for (const hole of this.holes) if (hole.code == code) return;
 
         if (
@@ -343,7 +343,7 @@ export class Editor {
      * @param code - The code to insert
      * @param overwrite - The text to overwrite the range with. If null, the code's render text is used.
      */
-    executeEdits(range: Range, code: CodeConstruct, overwrite: string = null) {
+    executeEdits(range: Range, code: Construct, overwrite: string = null) {
         // Text to use in the given range
         let text = overwrite;
 
@@ -415,7 +415,7 @@ export class Editor {
         }
     }
 
-    insertAtCurPos(codeList: Array<CodeConstruct>) {
+    insertAtCurPos(codeList: Array<Construct>) {
         const curPos = this.monaco.getPosition();
         let text = "";
 

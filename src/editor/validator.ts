@@ -4,7 +4,7 @@ import {
     // AugmentedAssignmentModifier,
     AutocompleteTkn,
     BinaryOperatorExpr,
-    CodeConstruct,
+    Construct,
     EditableTextTkn,
     // ElseStatement,
     EmptyLineStmt,
@@ -25,7 +25,7 @@ import {
     TypedEmptyExpr,
     // ValueOperationExpr,
     // VarAssignmentStmt,
-    VariableReferenceExpr,
+    // VariableReferenceExpr,
 } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
@@ -139,28 +139,28 @@ export class Validator {
     //     );
     // }
 
-    /**
-     * Determines if the cursor is at the beginning of a value operation (e.g. "var = |", "| + |", "var += |")
-     *
-     * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-     * @returns - true if the cursor is at the beginning of a value operation, false otherwise
-     */
-    atBeginningOfValOperation(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Determines if the cursor is at the beginning of a value operation (e.g. "var = |", "| + |", "var += |")
+    //  *
+    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
+    //  * @returns - true if the cursor is at the beginning of a value operation, false otherwise
+    //  */
+    // atBeginningOfValOperation(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        const isCorrectExprType =
-            context.expressionToRight instanceof VariableReferenceExpr
-            // || context.expressionToRight instanceof LiteralValExpr;
+    //     const isCorrectExprType =
+    //         context.expressionToRight instanceof VariableReferenceExpr
+    //         // || context.expressionToRight instanceof LiteralValExpr;
 
-        const hasCorrectRootType =
-            context.expressionToRight.rootNode instanceof Modifier ||
-            // Updated to work with the new general assignment statement
-            (context.expressionToRight.rootNode instanceof GeneralStatement &&
-                context.expressionToRight.rootNode.containsAssignments())
-            // || context.expressionToRight.rootNode instanceof ValueOperationExpr;
+    //     const hasCorrectRootType =
+    //         context.expressionToRight.rootNode instanceof Modifier ||
+    //         // Updated to work with the new general assignment statement
+    //         (context.expressionToRight.rootNode instanceof GeneralStatement &&
+    //             context.expressionToRight.rootNode.containsAssignments())
+    //         // || context.expressionToRight.rootNode instanceof ValueOperationExpr;
 
-        return isCorrectExprType && hasCorrectRootType;
-    }
+    //     return isCorrectExprType && hasCorrectRootType;
+    // }
 
     // /**
     //  * Checks if the current position is above an else statement
@@ -1180,7 +1180,7 @@ export class Validator {
      * @returns A list of valid (or draft) variable references for the given code construct
      */
     static getValidVariableReferences(
-        code: CodeConstruct,
+        code: Construct,
         variableController: VariableController
     ): [Reference, InsertionType][] {
         // List of all references
@@ -1298,7 +1298,7 @@ export class Validator {
         if (!stmts) {
             stmts = this.module.getAllImportStmts();
         }
-        this.module.performActionOnBFS((code: CodeConstruct) => {
+        this.module.performActionOnBFS((code: Construct) => {
             // BFS = Breadth First Search?
             if (isImportable(code) && code.requiresImport()) {
                 const importStatus = code.validateImportFromImportList(stmts);

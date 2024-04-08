@@ -1,5 +1,5 @@
 import { Editor } from "../editor/editor";
-import { CodeConstruct } from "../syntax-tree/ast";
+import { Construct } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { ErrorMessage, ErrorMessageGenerator } from "./error-msg-generator";
 import { HoverMessage, InlineMessage, PopUpMessage } from "./messages";
@@ -33,7 +33,7 @@ export class MessageController {
      * @param errMsgType type of error message that should be displayed when hovered over
      */
     addHoverMessage(
-        codeToHighlight: CodeConstruct,
+        codeToHighlight: Construct,
         args: any,
         warningText?: string,
         errMsgType?: ErrorMessage,
@@ -64,7 +64,7 @@ export class MessageController {
      *
      * If args and errMsgType are specified, there is no need to specify text as it will be auto-generated.
      */
-    addPopUpMessage(code: CodeConstruct, args: any, errMsgType?: ErrorMessage, text?: string) {
+    addPopUpMessage(code: Construct, args: any, errMsgType?: ErrorMessage, text?: string) {
         if (text) {
             this.messages.push(
                 new PopUpMessage(
@@ -98,7 +98,7 @@ export class MessageController {
      *
      * @param code code construct to remove message from
      */
-    removeMessageFromConstruct(code: CodeConstruct) {
+    removeMessageFromConstruct(code: Construct) {
         if (code?.message) {
             const indexOfMessage = this.messages.indexOf(code.message);
             this.messages[code.message.systemIndex].removeFromDOM();

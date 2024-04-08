@@ -1,5 +1,5 @@
 import {
-    CodeConstruct,
+    Construct,
     EditableTextTkn,
     EmptyOperatorTkn,
     // ForStatement,
@@ -37,10 +37,10 @@ export class Hole {
 
     element: HTMLDivElement;
     editor: Editor;
-    code: CodeConstruct;
+    code: Construct;
     container: HTMLElement;
 
-    constructor(editor: Editor, code: CodeConstruct) {
+    constructor(editor: Editor, code: Construct) {
         this.editor = editor;
         /**
          * The code construct that is represented in this hole
@@ -81,7 +81,7 @@ export class Hole {
             // in the current location ... literally
             // This method will indicate visually all variable assignments that you can use
             // by giving them a green; idem for draft variables
-            // WE CURRENTLY DISABLE THIS FUNCTIONALITY AS THIS CAUSES ERROR AND REQUIRES SOME 
+            // WE CURRENTLY DISABLE THIS FUNCTIONALITY AS THIS CAUSES ERROR AND REQUIRES SOME
             // REWRITES WHILE NOT CONTRIBUTING TO THE MAIN FUNCTIONALITY
             // code.subscribe(
             //     CallbackType.showAvailableVars,
@@ -90,23 +90,20 @@ export class Hole {
             //         const c = Hole.module.focus.getContext();
             //         // Get the token or line statement that is currently focused
             //         const focusedNode = c.token && c.selected ? c.token : c.lineStatement;
-
             //         // Get all valid or draft variable references in the current context
             //         const refInsertionTypes = Validator.getValidVariableReferences(
             //             focusedNode,
             //             Hole.module.variableController
             //         );
-
-            //         // Get all valid variable references in the current context and map them to 
+            //         // Get all valid variable references in the current context and map them to
             //         // their buttonId and line number
             //         const validIdentifierIds: [string, number][] = refInsertionTypes.map((ref) => [
             //             ((ref[0] as Reference).statement as VarAssignmentStmt).buttonId,
             //             (ref[0] as Reference).getLineNumber(),
             //         ]);
-
             //         // Initialize a map to map the buttonId to the insertionType and line number
             //         const refInsertionTypeMap = new Map<string, [InsertionType, number]>();
-            //         // For each of the validIdentifierIds, add the buttonId as key and the 
+            //         // For each of the validIdentifierIds, add the buttonId as key and the
             //         // insertionType and line number as value
             //         for (let i = 0; i < validIdentifierIds.length; i++) {
             //             refInsertionTypeMap.set(validIdentifierIds[i][0] as string, [
@@ -114,7 +111,6 @@ export class Hole {
             //                 validIdentifierIds[i][1],
             //             ]); // key = buttonId, value = [insertionType, line]
             //         }
-
             //         // For each of the holes in the entire program
             //         for (const hole of Hole.holes) {
             //             // If hole is part of an assignment statement AND the
@@ -177,7 +173,7 @@ export class Hole {
         loop();
     }
 
-    setTransform(code: CodeConstruct) {
+    setTransform(code: Construct) {
         let leftPadding = 0;
         let rightPadding = 0;
         let transform = { x: 0, y: 0, width: 0, height: 0 };

@@ -1,5 +1,5 @@
 import { hasMatchWithIndex } from "../utilities/util";
-import { CodeConstruct, /*ForStatement,*/ Statement, /*VarAssignmentStmt,*/ AssignmentToken } from "./ast";
+import { Construct, /*ForStatement,*/ Statement, /*VarAssignmentStmt,*/ AssignmentToken } from "./ast";
 import { Module } from "./module";
 
 /**
@@ -156,7 +156,7 @@ export class Scope {
         return this.getValidReferences(lineNumber).filter((ref) => ref.getAssignment().getRenderText() === identifier);
 
         // !!!EQUIVALENT!!!
-        
+
         // const assignments = this.references.filter(
         //     (ref) => ref.getLineNumber() < lineNumber && ref.getAssignment().getRenderText() === identifier
         // );
@@ -386,7 +386,7 @@ export class Scope {
 
     /**
      * Remove the given reference from the current scope.
-     * 
+     *
      * @returns true if the reference was removed, false otherwise
      */
     removeAssignment(assigment: AssignmentToken): boolean {
@@ -397,7 +397,7 @@ export class Scope {
 
     /**
      * Add an assignment token to the current scope.
-     * 
+     *
      * @param assignment - The assignment token to add to the current scope
      */
     addAssignment(assignment: AssignmentToken) {
@@ -405,9 +405,9 @@ export class Scope {
     }
 
     /**
-     * Push all assignments tokens in the current scope to the given scope. If 
+     * Push all assignments tokens in the current scope to the given scope. If
      * a token is not in the current scope, it will not be added to the given scope.
-     * 
+     *
      * @param toScope - The scope to push the assignments to
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
@@ -424,13 +424,12 @@ export class Scope {
         }
 
         return total;
-
     }
 
     /**
-     * Push all assignments tokens in the current scope to the parent scope. If 
+     * Push all assignments tokens in the current scope to the parent scope. If
      * a token is not in the current scope, it will not be added to the parent scope.
-     * 
+     *
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
      */
@@ -444,7 +443,7 @@ export class Scope {
  */
 export class Reference {
     /**
-     * Token encapsulating the assignment. It has a place in the AST and 
+     * Token encapsulating the assignment. It has a place in the AST and
      * can be used for context information.
      */
     token: AssignmentToken;

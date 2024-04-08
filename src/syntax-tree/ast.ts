@@ -41,11 +41,11 @@ import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
 import { Editor } from "../editor/editor";
 
-export interface CodeConstruct {
+export abstract class Construct {
     /**
      * The parent/root node for this code-construct. Statements are the only code construct that could have the Module as their root node.
      */
-    rootNode: CodeConstruct | Module;
+    rootNode: Construct | Module;
 
     /**
      * The index this item has inside its root's body, or its tokens array.
@@ -74,7 +74,7 @@ export interface CodeConstruct {
 
     draftRecord: DraftRecord;
 
-    codeConstructName: ConstructName;
+    // codeConstructName: ConstructName;
 
     callbacksToBeDeleted: Map<CallbackType, string>;
 
@@ -88,7 +88,7 @@ export interface CodeConstruct {
      * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
      * @returns The range of the construct
      */
-    getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
+    abstract getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
 
     /**
      * Get the nearest scope if there is one.
@@ -97,7 +97,7 @@ export interface CodeConstruct {
      *
      * @returns the nearest scope if there is one, otherwise null
      */
-    getNearestScope(): Scope;
+    abstract getNearestScope(): Scope;
 
     /**
      * Builds the left and right positions of this node and all of its children nodes recursively.
@@ -107,63 +107,63 @@ export interface CodeConstruct {
      * @param pos - The left position to start building the nodes from
      * @returns The final right position of the whole node (calculated after building all of the children nodes)
      */
-    build(pos: Position): Position;
+    abstract build(pos: Position): Position;
 
     /**
      * Finds and returns the next empty hole (name or value) in this code construct
      * @returns The found empty token or null (if nothing it didn't include any empty tokens)
      */
-    getInitialFocus(): UpdatableContext;
+    abstract getInitialFocus(): UpdatableContext;
 
     /**
      * Returns the textual value of the code construct (joining internal tokens for expressions and statements)
      */
-    getRenderText(): string;
+    abstract getRenderText(): string;
 
     /**
      * Returns the line number of this code-construct in the rendered text.
      */
-    getLineNumber(): number;
+    abstract getLineNumber(): number;
 
     /**
      * Returns the left-position `(lineNumber, column)` of this code-construct in the rendered text.
      */
-    getLeftPosition(): Position;
+    abstract getLeftPosition(): Position;
 
     /**
      * Returns the right-position `(lineNumber, column)` of this code-construct in the rendered text.
      */
-    getRightPosition(): Position;
+    abstract getRightPosition(): Position;
 
     /**
      * Returns a `Selection` object for this particular code-construct when it is selected
      */
-    getSelection(): Selection;
+    abstract getSelection(): Selection;
 
     /**
      * Returns the parent statement of this code-construct (an element of the Module.body array).
      */
-    getParentConstruct(): Statement;
+    abstract getParentConstruct(): Statement;
 
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
      */
-    subscribe(type: CallbackType, callback: Callback);
+    abstract subscribe(type: CallbackType, callback: Callback);
 
     /**
      * Removes all subscribes of the given type for this code construct
      */
-    unsubscribe(type: CallbackType, callerId: string);
+    abstract unsubscribe(type: CallbackType, callerId: string);
 
     /**
      * Calls callback of the given type if this construct is subscribed to it.
      */
-    notify(type: CallbackType);
+    abstract notify(type: CallbackType);
 
     /**
      * Returns the keyword for a statement, identifier for a variable and contents for a literal
      */
-    getKeyword(): string;
+    abstract getKeyword(): string;
 
     //TODO: #526 already returns an insertion result so could also immediately populate it with a context-based message (which it probably does, needs to be checked InsertionResult does have a message field)
     // /**
@@ -188,14 +188,14 @@ export interface CodeConstruct {
      * @param insertInto code to insert into
      * @param insertCode code being inserted
      */
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
+    abstract performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
-    onFocusOff(arg: any): void;
+    abstract onFocusOff(arg: any): void;
 
     // FFD together with all its children (it is never called)
-    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
+    abstract performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
-    markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void;
+    abstract markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void;
 
     //TODO: This functionality needs to be merged with what Issue #526
     //This should be completely unnecessary once this is integrated with our validation inside of action-filter.ts and validaiton methods such as validateContext
@@ -203,15 +203,15 @@ export interface CodeConstruct {
      * Return a tooltip for the toolbox giving a general reason for why this construct cannot be inserted. This tooltip WILL NOT
      * have detailed, context-based information.
      */
-    getSimpleInvalidTooltip(): Tooltip;
+    abstract getSimpleInvalidTooltip(): Tooltip;
 
     /**
      * Return a tooltip for the toolbox giving a general reason for why this construct would trigger draft mode. This tooltip WILL NOT
      * have detailed, context-based information.
      */
-    getSimpleDraftTooltip(): Tooltip;
+    abstract getSimpleDraftTooltip(): Tooltip;
 
-    onDelete(): void;
+    abstract onDelete(): void;
 
     // getTypes(): DataType[];
 
@@ -221,13 +221,13 @@ export interface CodeConstruct {
      * @param construct - The construct to highlight
      * @param rgbColour - The colour to highlight the construct with
      */
-    addHighlight(rgbColour: [number, number, number, number], editor: Editor): void;
+    abstract addHighlight(rgbColour: [number, number, number, number], editor: Editor): void;
 }
 
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
-export abstract class Statement implements CodeConstruct {
+export abstract class Statement implements Construct {
     lineNumber: number;
     left: number;
     right: number;
@@ -235,7 +235,7 @@ export abstract class Statement implements CodeConstruct {
     indexInRoot: number;
     body = new Array<Statement>();
     scope: Scope = null;
-    tokens = new Array<CodeConstruct>();
+    tokens = new Array<Construct>();
     hasEmptyToken: boolean;
     callbacks = new Map<string, Array<Callback>>();
     background: CodeBackground = null;
@@ -245,7 +245,7 @@ export abstract class Statement implements CodeConstruct {
     typeOfHoles = new Map<number, Array<DataType>>();
     draftModeEnabled = false;
     draftRecord: DraftRecord = null;
-    codeConstructName = ConstructName.Default;
+    // codeConstructName = ConstructName.Default;
     callbacksToBeDeleted = new Map<CallbackType, string>();
     simpleDraftTooltip = Tooltip.None;
     simpleInvalidTooltip = Tooltip.InvalidInsertStatement;
@@ -522,7 +522,7 @@ export abstract class Statement implements CodeConstruct {
      * This function should be called after replacing a token within this statement. it checks if the newly added token `isEmpty` or not, and if yes, it will set `hasEmptyToken = true`
      * @param code the newly added node within the replace function
      */
-    updateHasEmptyToken(code: CodeConstruct) {
+    updateHasEmptyToken(code: Construct) {
         if (code instanceof Token) {
             if (code.isEmpty) this.hasEmptyToken = true;
             else this.hasEmptyToken = false;
@@ -534,7 +534,7 @@ export abstract class Statement implements CodeConstruct {
      * @param code the new code-construct to replace
      * @param index the index to replace at
      */
-    replace(code: CodeConstruct, index: number) {
+    replace(code: Construct, index: number) {
         // Notify the token being replaced
         const toReplace = this.tokens[index];
 
@@ -1326,7 +1326,7 @@ export class GeneralStatement extends Statement implements Importable {
          * @param stmts - Lists that will be expanded with the import statements which
          * fulfill the requirements
          */
-        const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
+        const checker = (construct: Construct, stmts: ImportStatement[]) => {
             if (
                 construct instanceof ImportStatement &&
                 this.getLineNumber() > construct.getLineNumber() && // Check if the import statement is above the current construct (outer)
@@ -1450,7 +1450,7 @@ export class GeneralExpression extends GeneralStatement {
 /**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
  */
-export abstract class Expression extends Statement implements CodeConstruct {
+export abstract class Expression extends Statement implements Construct {
     rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT;
     // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression
     // gefuseerd worden
@@ -1516,90 +1516,90 @@ export abstract class Expression extends Statement implements CodeConstruct {
      */
 
     //TODO: see if this needs any changes for #526
-    /**
-     * Return whether this construct can be replaced with newExpr based on their respective types.
-     * Can replace a bin expression in only two cases
-     *   1: newExpr has the same return type
-     *   2: newExpr can be cast/modified to become the same type as the bin op being replaced
-     */
-    canReplaceWithConstruct(newExpr: Expression): InsertionResult {
-        //when we are replacing at the top level (meaning the item above is a Statement),
-        //we need to check types against the type of hole that used to be there and not the expression
-        //that is currently there
+    // /**
+    //  * Return whether this construct can be replaced with newExpr based on their respective types.
+    //  * Can replace a bin expression in only two cases
+    //  *   1: newExpr has the same return type
+    //  *   2: newExpr can be cast/modified to become the same type as the bin op being replaced
+    //  */
+    // canReplaceWithConstruct(newExpr: Expression): InsertionResult {
+    //     //when we are replacing at the top level (meaning the item above is a Statement),
+    //     //we need to check types against the type of hole that used to be there and not the expression
+    //     //that is currently there
 
-        //Might need the same fix for MemberCallStmt in the future, but it does not work right now so cannot check
+    //     //Might need the same fix for MemberCallStmt in the future, but it does not work right now so cannot check
 
-        // If the rootnode is an valid expression
-        if (this.rootNode instanceof Expression && !this.draftModeEnabled) {
-            //when replacing within expression we need to check if the replacement can be cast into or already has the same type as the one being replaced
-            if (newExpr.returns === this.returns || this.returns === DataType.Any) {
-                // If datatype of newExpr is the same as the datatype of the expression being replaced
-                // or the datatype of the expression being replaced is Any
-                return new InsertionResult(InsertionType.Valid, "", []);
-            } else if (
-                newExpr.returns !== this.returns &&
-                hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), [this.returns]) &&
-                !(this.rootNode instanceof BinaryOperatorExpr)
-            ) {
-                // Types don't match but can be converted
-                const conversionRecords = typeToConversionRecord.has(newExpr.returns)
-                    ? typeToConversionRecord.get(newExpr.returns).filter((record) => record.convertTo == this.returns)
-                    : [];
+    //     // If the rootnode is an valid expression
+    //     if (this.rootNode instanceof Expression && !this.draftModeEnabled) {
+    //         //when replacing within expression we need to check if the replacement can be cast into or already has the same type as the one being replaced
+    //         if (newExpr.returns === this.returns || this.returns === DataType.Any) {
+    //             // If datatype of newExpr is the same as the datatype of the expression being replaced
+    //             // or the datatype of the expression being replaced is Any
+    //             return new InsertionResult(InsertionType.Valid, "", []);
+    //         } else if (
+    //             newExpr.returns !== this.returns &&
+    //             hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), [this.returns]) &&
+    //             !(this.rootNode instanceof BinaryOperatorExpr)
+    //         ) {
+    //             // Types don't match but can be converted
+    //             const conversionRecords = typeToConversionRecord.has(newExpr.returns)
+    //                 ? typeToConversionRecord.get(newExpr.returns).filter((record) => record.convertTo == this.returns)
+    //                 : [];
 
-                return new InsertionResult(
-                    InsertionType.DraftMode,
-                    TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(this.getKeyword(), [this.returns], newExpr.returns),
-                    conversionRecords
-                );
-            } else if (this.rootNode instanceof BinaryOperatorExpr) {
-                const typeOfHoles = this.rootNode.typeOfHoles[this.indexInRoot];
-                if (
-                    hasMatch(typeOfHoles, [newExpr.returns]) ||
-                    hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), typeOfHoles)
-                ) {
-                    return new InsertionResult(InsertionType.DraftMode, "", []);
-                }
-            } else {
-                return new InsertionResult(InsertionType.Invalid, "", []);
-            }
-        } else if (!(this.rootNode instanceof Module)) {
-            // rootNode is either a statement or an expression in draft mode
-            const rootTypeOfHoles = (this.rootNode as Statement).typeOfHoles;
+    //             return new InsertionResult(
+    //                 InsertionType.DraftMode,
+    //                 TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(this.getKeyword(), [this.returns], newExpr.returns),
+    //                 conversionRecords
+    //             );
+    //         } else if (this.rootNode instanceof BinaryOperatorExpr) {
+    //             const typeOfHoles = this.rootNode.typeOfHoles[this.indexInRoot];
+    //             if (
+    //                 hasMatch(typeOfHoles, [newExpr.returns]) ||
+    //                 hasMatch(Util.getInstance().typeConversionMap.get(newExpr.returns), typeOfHoles)
+    //             ) {
+    //                 return new InsertionResult(InsertionType.DraftMode, "", []);
+    //             }
+    //         } else {
+    //             return new InsertionResult(InsertionType.Invalid, "", []);
+    //         }
+    //     } else if (!(this.rootNode instanceof Module)) {
+    //         // rootNode is either a statement or an expression in draft mode
+    //         const rootTypeOfHoles = (this.rootNode as Statement).typeOfHoles;
 
-            if (Object.keys(rootTypeOfHoles).length > 0) {
-                const typesOfParentHole = rootTypeOfHoles[this.indexInRoot];
+    //         if (Object.keys(rootTypeOfHoles).length > 0) {
+    //             const typesOfParentHole = rootTypeOfHoles[this.indexInRoot];
 
-                let canConvertToParentType = hasMatch(
-                    Util.getInstance().typeConversionMap.get(newExpr.returns),
-                    typesOfParentHole
-                );
+    //             let canConvertToParentType = hasMatch(
+    //                 Util.getInstance().typeConversionMap.get(newExpr.returns),
+    //                 typesOfParentHole
+    //             );
 
-                if (canConvertToParentType && !hasMatch(typesOfParentHole, [newExpr.returns])) {
-                    const conversionRecords = typeToConversionRecord.has(newExpr.returns)
-                        ? typeToConversionRecord
-                              .get(newExpr.returns)
-                              .filter((record) => typesOfParentHole.indexOf(record.convertTo) > -1)
-                        : [];
+    //             if (canConvertToParentType && !hasMatch(typesOfParentHole, [newExpr.returns])) {
+    //                 const conversionRecords = typeToConversionRecord.has(newExpr.returns)
+    //                     ? typeToConversionRecord
+    //                           .get(newExpr.returns)
+    //                           .filter((record) => typesOfParentHole.indexOf(record.convertTo) > -1)
+    //                     : [];
 
-                    return new InsertionResult(
-                        InsertionType.DraftMode,
-                        TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(
-                            this.rootNode.getKeyword(),
-                            typesOfParentHole,
-                            newExpr.returns
-                        ),
-                        conversionRecords
-                    );
-                } else if (
-                    typesOfParentHole?.some((t) => t == DataType.Any) ||
-                    hasMatch(typesOfParentHole, [newExpr.returns])
-                ) {
-                    return new InsertionResult(InsertionType.Valid, "", []);
-                }
-            }
-        }
-        return new InsertionResult(InsertionType.Invalid, "", []);
-    }
+    //                 return new InsertionResult(
+    //                     InsertionType.DraftMode,
+    //                     TYPE_MISMATCH_EXPR_DRAFT_MODE_STR(
+    //                         this.rootNode.getKeyword(),
+    //                         typesOfParentHole,
+    //                         newExpr.returns
+    //                     ),
+    //                     conversionRecords
+    //                 );
+    //             } else if (
+    //                 typesOfParentHole?.some((t) => t == DataType.Any) ||
+    //                 hasMatch(typesOfParentHole, [newExpr.returns])
+    //             ) {
+    //                 return new InsertionResult(InsertionType.Valid, "", []);
+    //             }
+    //         }
+    //     }
+    //     return new InsertionResult(InsertionType.Invalid, "", []);
+    // }
 
     // updateVariableType(dataType: DataType) {
     //     //TODO: This probably needs to be recursive since this won't catch nested expression type updates
@@ -1660,9 +1660,9 @@ export abstract class Modifier extends Expression {
 /**
  * The smallest code construct: identifiers, holes (for either identifiers or expressions), operators and characters etc.
  */
-export abstract class Token implements CodeConstruct {
+export abstract class Token implements Construct {
     isTextEditable = false;
-    rootNode: CodeConstruct = null;
+    rootNode: Construct = null;
     indexInRoot: number;
     left: number;
     right: number;
@@ -1672,12 +1672,12 @@ export abstract class Token implements CodeConstruct {
     message = null;
     draftModeEnabled = false;
     draftRecord = null;
-    codeConstructName = ConstructName.Default;
+    // codeConstructName = ConstructName.Default;
     callbacksToBeDeleted = new Map<CallbackType, string>();
     simpleDraftTooltip = Tooltip.None;
     simpleInvalidTooltip = Tooltip.None;
 
-    constructor(text: string, root?: CodeConstruct) {
+    constructor(text: string, root?: Construct) {
         for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
 
         this.rootNode = root;
@@ -3421,7 +3421,7 @@ export class FunctionCallExpr extends Expression implements Importable {
     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
         let insertionType = currentInsertionType;
         let importsOfThisConstruct: ImportStatement[] = [];
-        const checker = (construct: CodeConstruct, stmts: ImportStatement[]) => {
+        const checker = (construct: Construct, stmts: ImportStatement[]) => {
             if (
                 construct instanceof ImportStatement &&
                 this.getLineNumber() > construct.getLineNumber() &&
@@ -3467,7 +3467,7 @@ export class FunctionCallExpr extends Expression implements Importable {
 }
 
 /**
- * {@link CodeConstruct}s implementing this interface need to be imported
+ * {@link Construct}s implementing this interface need to be imported
  */
 export interface Importable {
     requiredModule: string;
@@ -3928,11 +3928,11 @@ export class BinaryOperatorExpr extends Expression {
     //     this.replace(code, this.rightOperandIndex);
     // }
 
-    getLeftOperand(): CodeConstruct {
+    getLeftOperand(): Construct {
         return this.tokens[this.leftOperandIndex];
     }
 
-    getRightOperand(): CodeConstruct {
+    getRightOperand(): Construct {
         return this.tokens[this.rightOperandIndex];
     }
 
@@ -4683,7 +4683,7 @@ export class EditableTextTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
 
-    constructor(text: string, regex: RegExp, root?: CodeConstruct, indexInRoot?: number) {
+    constructor(text: string, regex: RegExp, root?: Construct, indexInRoot?: number) {
         super(text);
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
@@ -4742,14 +4742,14 @@ export class EditableTextTkn extends Token implements TextEditable {
 export class EmptyOperatorTkn extends Token {
     isEmpty = true;
 
-    constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
+    constructor(text: string, root?: Construct, indexInRoot?: number) {
         super(text);
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
     }
 
-    canReplaceWithConstruct(replaceWith: CodeConstruct): InsertionResult {
+    canReplaceWithConstruct(replaceWith: Construct): InsertionResult {
         if (replaceWith instanceof OperatorTkn) {
             return new InsertionResult(InsertionType.Valid, "", []);
         } else return new InsertionResult(InsertionType.Invalid, "", []);
@@ -5073,7 +5073,7 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     constructor(
         identifier?: string,
-        root?: CodeConstruct,
+        root?: Construct,
         indexInRoot?: number,
         validatorRegex = RegExp("^[^\\d\\W]\\w*$")
     ) {
@@ -5230,7 +5230,7 @@ export class AssignmentToken extends IdentifierTkn {
                 code instanceof GeneralStatement &&
                 code.tokens.some((refTkn) => {
                     return refTkn instanceof ReferenceTkn && refTkn.text === currentIdentifier;
-                }) 
+                })
                 // && code.draftModeEnabled
             ) {
                 // varRefs.push(code); // TEMPORARY DISABLED BECAUSE THE MESSAGE FUNCTIONALITY RESULTS IN ERRORS
@@ -5283,11 +5283,11 @@ export class AssignmentToken extends IdentifierTkn {
 }
 
 /**
- * Construct to be able to place non-statement (expressions and tokens) in a statement spot, 
+ * Construct to be able to place non-statement (expressions and tokens) in a statement spot,
  * like the autocomplete Token
  */
 export class TemporaryStmt extends Statement {
-    constructor(token: CodeConstruct) {
+    constructor(token: Construct) {
         super();
 
         token.indexInRoot = this.tokens.length;
@@ -5318,7 +5318,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
         firstChar: string,
         autocompleteCategory: AutoCompleteType,
         validMatches: EditCodeAction[],
-        root?: CodeConstruct,
+        root?: Construct,
         indexInRoot?: number
     ) {
         super(firstChar);
@@ -5422,7 +5422,7 @@ export class TypedEmptyExpr extends Token {
     isEmpty = true;
     type: DataType[];
 
-    constructor(type: DataType[], root?: CodeConstruct, indexInRoot?: number) {
+    constructor(type: DataType[], root?: Construct, indexInRoot?: number) {
         super("    ");
 
         this.rootNode = root;
@@ -5471,7 +5471,7 @@ export class TypedEmptyExpr extends Token {
  * Deletion results in the entire token being removed.
  */
 export class NonEditableTkn extends Token {
-    constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
+    constructor(text: string, root?: Construct, indexInRoot?: number) {
         super(text);
 
         this.rootNode = root;
