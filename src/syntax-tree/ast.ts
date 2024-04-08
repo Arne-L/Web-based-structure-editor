@@ -91,6 +91,15 @@ export interface CodeConstruct {
     getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
 
     /**
+     * Get the nearest scope if there is one.
+     * The nearest scope is either the scope of the current statement or the scope of the
+     * nearest parent statement with a scope.
+     *
+     * @returns the nearest scope if there is one, otherwise null
+     */
+    getNearestScope(): Scope;
+
+    /**
      * Builds the left and right positions of this node and all of its children nodes recursively.
      *
      * Implicitly sets the left and right positions and the line number of the construct and all of its tokens.
@@ -964,7 +973,7 @@ export class GeneralStatement extends Statement implements Importable {
                     this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
                     break;
                 case "reference":
-                    this.tokens.push(new NonEditableTkn(data?.reference ?? "", this, this.tokens.length));
+                    this.tokens.push(new ReferenceTkn(data?.reference ?? "", this, this.tokens.length));
                     break;
                 case "collection":
                     break;
@@ -1683,6 +1692,10 @@ export abstract class Token implements CodeConstruct {
         if (selectIndent) {
             return new Range(lineNumber, this.left - TAB_SPACES, lineNumber, this.right);
         } else return new Range(lineNumber, this.left, lineNumber, this.right);
+    }
+
+    getNearestScope(): Scope {
+        return this.rootNode.getNearestScope();
     }
 
     subscribe(type: CallbackType, callback: Callback) {
@@ -2998,60 +3011,60 @@ export class VariableReferenceExpr extends Expression {
 //         return "[---]";
 //     }
 
-    // validateTypes(module: Module): void {
-    //     const indxTkn = this.tokens[this.indexOfIndexTkn];
-    //     if (indxTkn instanceof Expression && indxTkn.returns !== DataType.Number) {
-    //         if (indxTkn.returns === DataType.Any) {
-    //             module.openDraftMode(
-    //                 indxTkn,
-    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.indexOfIndexTkn], indxTkn.returns),
-    //                 [
-    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-    //                         indxTkn.getKeyword(),
-    //                         module,
-    //                         indxTkn
-    //                     ),
-    //                 ]
-    //             );
-    //         } else {
-    //             const conversionRecords = TypeChecker.getTypeConversionRecords(indxTkn.returns, DataType.Number);
-    //             const actions = [
-    //                 ...conversionRecords.map((rec) => rec.getConversionButton(indxTkn.getKeyword(), module, indxTkn)),
-    //             ];
+// validateTypes(module: Module): void {
+//     const indxTkn = this.tokens[this.indexOfIndexTkn];
+//     if (indxTkn instanceof Expression && indxTkn.returns !== DataType.Number) {
+//         if (indxTkn.returns === DataType.Any) {
+//             module.openDraftMode(
+//                 indxTkn,
+//                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.indexOfIndexTkn], indxTkn.returns),
+//                 [
+//                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+//                         indxTkn.getKeyword(),
+//                         module,
+//                         indxTkn
+//                     ),
+//                 ]
+//             );
+//         } else {
+//             const conversionRecords = TypeChecker.getTypeConversionRecords(indxTkn.returns, DataType.Number);
+//             const actions = [
+//                 ...conversionRecords.map((rec) => rec.getConversionButton(indxTkn.getKeyword(), module, indxTkn)),
+//             ];
 
-    //             if (conversionRecords.length === 0) {
-    //                 module.openDraftMode(indxTkn, GET_TYPE_CANNOT_BE_CONVERTED_MSG(indxTkn.returns), [
-    //                     createWarningButton(
-    //                         Tooltip.Delete,
-    //                         indxTkn,
-    //                         (() => {
-    //                             this.deleteUnconvertibleTypeWarning(this, indxTkn, module);
-    //                         }).bind(this)
-    //                     ),
-    //                 ]);
-    //             } else {
-    //                 module.openDraftMode(
-    //                     indxTkn,
-    //                     GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(indxTkn.returns),
-    //                     actions
-    //                 );
-    //             }
-    //         }
-    //     }
-    // }
+//             if (conversionRecords.length === 0) {
+//                 module.openDraftMode(indxTkn, GET_TYPE_CANNOT_BE_CONVERTED_MSG(indxTkn.returns), [
+//                     createWarningButton(
+//                         Tooltip.Delete,
+//                         indxTkn,
+//                         (() => {
+//                             this.deleteUnconvertibleTypeWarning(this, indxTkn, module);
+//                         }).bind(this)
+//                     ),
+//                 ]);
+//             } else {
+//                 module.openDraftMode(
+//                     indxTkn,
+//                     GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG(indxTkn.returns),
+//                     actions
+//                 );
+//             }
+//         }
+//     }
+// }
 
-    // private deleteUnconvertibleTypeWarning(
-    //     rootExpression: Modifier,
-    //     codeToDelete: CodeConstruct,
-    //     module: Module
-    // ): void {
-    //     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
-    //         rootExpression: rootExpression,
-    //         codeToDelete: codeToDelete,
-    //     });
+// private deleteUnconvertibleTypeWarning(
+//     rootExpression: Modifier,
+//     codeToDelete: CodeConstruct,
+//     module: Module
+// ): void {
+//     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
+//         rootExpression: rootExpression,
+//         codeToDelete: codeToDelete,
+//     });
 
-    //     module.executer.execute(action);
-    // }
+//     module.executer.execute(action);
+// }
 // }
 
 // /**
@@ -5151,6 +5164,7 @@ export class AssignmentToken extends IdentifierTkn {
                 this.onFocusOff();
             })
         );
+        this.subscribe(CallbackType.delete, new Callback(() => this.onDelete()));
     }
 
     onFocusOff(): void {
@@ -5200,7 +5214,7 @@ export class AssignmentToken extends IdentifierTkn {
      */
     updateRefWarnings(identifierName?: string): void {
         // List of variable reference expressions refering to the current token
-        const varRefs: VariableReferenceExpr[] = [];
+        const varRefs: GeneralStatement[] = [];
         // Get the statement containing the token
         const parentStmt = this.getParentConstruct();
         // Current identifier
@@ -5209,12 +5223,17 @@ export class AssignmentToken extends IdentifierTkn {
         // Go through all constructs and add the construct if it is a variable reference to the given assignment token
         // and is in draft mode
         parentStmt.getModule().performActionOnBFS((code) => {
+            (code as GeneralStatement).tokens?.forEach((refTkn) => {
+                if (refTkn instanceof ReferenceTkn) console.log(refTkn.text, currentIdentifier);
+            });
             if (
-                code instanceof VariableReferenceExpr &&
-                code.identifier === currentIdentifier &&
-                code.draftModeEnabled
+                code instanceof GeneralStatement &&
+                code.tokens.some((refTkn) => {
+                    return refTkn instanceof ReferenceTkn && refTkn.text === currentIdentifier;
+                }) 
+                // && code.draftModeEnabled
             ) {
-                varRefs.push(code);
+                // varRefs.push(code); // TEMPORARY DISABLED BECAUSE THE MESSAGE FUNCTIONALITY RESULTS IN ERRORS
             }
         });
 
@@ -5248,6 +5267,7 @@ export class AssignmentToken extends IdentifierTkn {
     onDelete(): void {
         const parentStmt = this.getParentConstruct();
         const currentScope = parentStmt.getNearestScope();
+        console.log("Deleting assignment");
 
         // Remove the assignment from the nearest scope
         currentScope.removeAssignment(this);
@@ -5462,3 +5482,5 @@ export class NonEditableTkn extends Token {
         return this.rootNode.getSelection();
     }
 }
+
+export class ReferenceTkn extends NonEditableTkn {}
