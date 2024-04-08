@@ -5283,8 +5283,8 @@ export class AssignmentToken extends IdentifierTkn {
 }
 
 /**
- * Seems to be created when at the start of an empty line so that it can be replaced with a(n other)
- * statement
+ * Construct to be able to place non-statement (expressions and tokens) in a statement spot, 
+ * like the autocomplete Token
  */
 export class TemporaryStmt extends Statement {
     constructor(token: CodeConstruct) {
