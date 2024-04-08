@@ -55,8 +55,18 @@ export class ActionFilter {
                 const scope = context.lineStatement.getNearestScope();
                 const references = scope.getValidReferences(nearestStmt.getLineNumber());
                 for (const reference of references) {
-                    if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
-                    const regexTxt = String(action.matchRegex).replace("--", reference.getAssignment().getRenderText());
+
+                    // Update the match string and regex if the action contains a reference
+                    let matchTxt = action.matchString;
+                    let regexTxt = action.matchRegex;
+                    if (action.matchString) matchTxt = matchTxt.replace("--", reference.getAssignment().getRenderText());
+                    if (action.matchRegex) {
+                        const tmpRegexTxt = String(regexTxt).replace("--", reference.getAssignment().getRenderText());
+                        new RegExp(tmpRegexTxt.substring(1, tmpRegexTxt.length - 1));
+                    }
+
+                    // if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
+
 
                     validOptionMap.set(
                         Math.random().toString(36).substring(8), // Key is useless, thus should simply be unique
@@ -68,8 +78,8 @@ export class ActionFilter {
                             action.insertData,
                             action.validateAction(this.module.validator, context),
                             action.terminatingChars,
-                            action.matchString?.replace("--", reference.getAssignment().getRenderText()),
-                            new RegExp(regexTxt.substring(1, regexTxt.length - 1)),
+                            matchTxt,
+                            regexTxt,
                             action.insertableTerminatingCharRegex
                         )
                     );
