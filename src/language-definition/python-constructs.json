@@ -1304,8 +1304,8 @@
                 }
             ]
         ],
-        "match": "",
-        "matchRegex": null,
+        "match": null,
+        "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
         "triggerInsertion": [
             "+"
         ],

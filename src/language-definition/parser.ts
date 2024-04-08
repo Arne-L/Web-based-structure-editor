@@ -66,7 +66,7 @@ export function getAllCodeActions(): EditCodeAction[] {
         );
 
         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-         action.containsReference = construct.format.some((struct) => struct.type === "reference");
+        action.containsReference = construct.format.some((struct) => struct.type === "reference");
 
         // Add the action to the list
 
@@ -125,7 +125,7 @@ export function addEditCodeActionsToCategories(
  * @param construct - An object containing the information to build the GeneralStatement
  * @returns - a function that returns a GeneralStatement
  */
-function getCodeFunction(construct): (data?: {"reference": string}) => Statement {
+function getCodeFunction(construct): (data?: { reference: string }) => Statement {
     // Currently handle expression and statement separately
     // Merge them into one in the future
     if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct, null, null, data);
@@ -135,6 +135,11 @@ function getCodeFunction(construct): (data?: {"reference": string}) => Statement
 export function initLanguage() {
     return {
         language: languageConfig.name,
-        reservedWords: new Map<string, Set<string>>(languageConfig.reservedWords.map((reservedCategory) => [reservedCategory.reason, new Set(reservedCategory.words)])),
+        reservedWords: new Map<string, Set<string>>(
+            languageConfig.reservedWords.map((reservedCategory) => [
+                reservedCategory.reason,
+                new Set(reservedCategory.words),
+            ])
+        ),
     };
 }
