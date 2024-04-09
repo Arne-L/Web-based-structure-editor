@@ -92,7 +92,7 @@ export namespace ASTManupilation {
 
         // Get the range of the statement line
         // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
-        const range = new Range(statement.lineNumber, statement.left, statement.lineNumber, statement.right);
+        const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
 
         // Remove messages from the empty line statement
         if (emptyLine.message) module.messageController.removeMessageFromConstruct(emptyLine);
@@ -124,9 +124,9 @@ export namespace ASTManupilation {
             // Get the range of the focused token
             const range = new Range(
                 context.position.lineNumber,
-                context.token.left,
+                context.token.leftCol,
                 context.position.lineNumber,
-                context.token.right
+                context.token.rightCol
             );
 
             // Update the Monaco editor with the given token
@@ -192,9 +192,9 @@ export namespace ASTManupilation {
                 // Current range
                 const range = new Range(
                     context.position.lineNumber,
-                    context.token.left,
+                    context.token.leftCol,
                     context.position.lineNumber,
-                    context.token.right
+                    context.token.rightCol
                 );
 
                 // Update the text in the Monaco editor

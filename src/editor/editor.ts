@@ -372,9 +372,9 @@ export class Editor {
         this.module.editor.executeEdits(
             new Range(
                 statement.lineNumber,
-                statement.left,
+                statement.leftCol,
                 statement.lineNumber,
-                statement.left - (backward ? TAB_SPACES : 0)
+                statement.leftCol - (backward ? TAB_SPACES : 0)
             ),
             null,
             backward ? "" : "    "
@@ -402,9 +402,9 @@ export class Editor {
                 this.module.editor.executeEdits(
                     new Range(
                         curStmt.lineNumber,
-                        curStmt.left,
+                        curStmt.leftCol,
                         curStmt.lineNumber,
-                        curStmt.left - (backward ? TAB_SPACES : 0)
+                        curStmt.leftCol - (backward ? TAB_SPACES : 0)
                     ),
                     null,
                     backward ? "" : "    "

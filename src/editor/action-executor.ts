@@ -144,10 +144,10 @@ export class ActionExecutor {
                 //         context.expressionToRight,
                 //         new EmptyOperatorTkn(" ", context.expressionToRight, context.expressionToRight.indexInRoot)
                 //     );
-                    // } else if (this.module.validator.atBeginningOfValOperation(context)) { // CAN THIS REALLY BE REMOVED?
-                    //     this.module.deleteCode(context.expressionToRight.rootNode);
-                    // } else if (context.expressionToRight instanceof Modifier) {
-                    //     this.deleteModifier(context.expressionToRight, { deleting: true });
+                // } else if (this.module.validator.atBeginningOfValOperation(context)) { // CAN THIS REALLY BE REMOVED?
+                //     this.module.deleteCode(context.expressionToRight.rootNode);
+                // } else if (context.expressionToRight instanceof Modifier) {
+                //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 // } else
                 this.module.deleteCode(context.expressionToRight);
 
@@ -161,14 +161,14 @@ export class ActionExecutor {
                 //         context.expressionToLeft,
                 //         new EmptyOperatorTkn(" ", context.expressionToLeft, context.expressionToLeft.indexInRoot)
                 //     );
-                    // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
-                    //     context.expressionToLeft instanceof VariableReferenceExpr &&
-                    //     context.expressionToLeft.rootNode instanceof VarOperationStmt
-                    // ) {
-                    //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
+                // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
+                //     context.expressionToLeft instanceof VariableReferenceExpr &&
+                //     context.expressionToLeft.rootNode instanceof VarOperationStmt
+                // ) {
+                //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
                 // }
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
-                // else 
+                // else
                 this.module.deleteCode(context.expressionToLeft);
 
                 break;
@@ -260,20 +260,20 @@ export class ActionExecutor {
                 if (action.data?.pressedBackspace) {
                     const lineAbove = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
                     this.module.focus.updateContext({
-                        positionToMove: new Position(lineAbove.lineNumber, lineAbove.right),
+                        positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
                     });
                     range = new Range(
                         context.lineStatement.lineNumber,
-                        context.lineStatement.left,
+                        context.lineStatement.leftCol,
                         lineAbove.lineNumber,
-                        lineAbove.right
+                        lineAbove.rightCol
                     );
                 } else {
                     range = new Range(
                         context.lineStatement.lineNumber,
-                        context.lineStatement.left,
+                        context.lineStatement.leftCol,
                         context.lineStatement.lineNumber + 1,
-                        context.lineStatement.left
+                        context.lineStatement.leftCol
                     );
                 }
 
@@ -294,16 +294,16 @@ export class ActionExecutor {
             case EditActionType.DeletePrevLine: {
                 const prevLine = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
 
-                if (prevLine.left != context.lineStatement.left) {
+                if (prevLine.leftCol != context.lineStatement.leftCol) {
                     // Indent the current line
                     this.module.indentConstruct(context.lineStatement, false);
                 }
 
                 const deleteRange = new Range(
                     prevLine.lineNumber,
-                    prevLine.left,
+                    prevLine.leftCol,
                     prevLine.lineNumber + 1,
-                    prevLine.left
+                    prevLine.leftCol
                 );
                 this.module.deleteLine(prevLine);
                 this.module.editor.executeEdits(deleteRange, null, "");
@@ -388,7 +388,7 @@ export class ActionExecutor {
                 } else {
                     const curText = editableText.split("");
                     curText.splice(
-                        cursorPos.column - token.left,
+                        cursorPos.column - token.leftCol,
                         Math.abs(selectedText.startColumn - selectedText.endColumn),
                         pressedKey
                     );
@@ -418,9 +418,9 @@ export class ActionExecutor {
                     // Select the token for the given range
                     editRange = new Range(
                         cursorPos.lineNumber,
-                        context.tokenToRight.left,
+                        context.tokenToRight.leftCol,
                         cursorPos.lineNumber,
-                        context.tokenToRight.right
+                        context.tokenToRight.rightCol
                     );
                 } else {
                     // Otherwise make an empty range for the given cursor position
@@ -487,8 +487,8 @@ export class ActionExecutor {
 
                 curText.splice(
                     Math.min(
-                        cursorPos.column - token.left - toDeletePos,
-                        selectedText.startColumn - token.left - toDeletePos
+                        cursorPos.column - token.leftCol - toDeletePos,
+                        selectedText.startColumn - token.leftCol - toDeletePos
                     ),
                     toDeleteItems
                 );
@@ -525,15 +525,15 @@ export class ActionExecutor {
                         ) {
                             // Remove the temporary statement encapsulating the autocomplete token
                             this.module.deleteCode(removableExpr.rootNode, { statement: true });
-                        // } else if (
-                        //     removableExpr instanceof AutocompleteTkn &&
-                        //     removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
-                        // ) {
-                        //     // When at an operator, replace it with an empty operator
-                        //     this.replaceCode(
-                        //         removableExpr,
-                        //         new EmptyOperatorTkn(" ", removableExpr.rootNode, removableExpr.indexInRoot)
-                        //     );
+                            // } else if (
+                            //     removableExpr instanceof AutocompleteTkn &&
+                            //     removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
+                            // ) {
+                            //     // When at an operator, replace it with an empty operator
+                            //     this.replaceCode(
+                            //         removableExpr,
+                            //         new EmptyOperatorTkn(" ", removableExpr.rootNode, removableExpr.indexInRoot)
+                            //     );
                         } else if (
                             removableExpr instanceof AutocompleteTkn &&
                             (removableExpr.autocompleteType == AutoCompleteType.RightOfExpression ||
@@ -565,7 +565,12 @@ export class ActionExecutor {
 
                         // Update the editor with the new value
                         this.module.editor.executeEdits(
-                            new Range(cursorPos.lineNumber, identifier.left, cursorPos.lineNumber, identifier.right),
+                            new Range(
+                                cursorPos.lineNumber,
+                                identifier.leftCol,
+                                cursorPos.lineNumber,
+                                identifier.rightCol
+                            ),
                             null,
                             "  "
                         );
@@ -1293,9 +1298,9 @@ export class ActionExecutor {
             // Get the range of the focused token
             const range = new Range(
                 context.position.lineNumber,
-                context.token.left,
+                context.token.leftCol,
                 context.position.lineNumber,
-                context.token.right
+                context.token.rightCol
             );
 
             // Update the Monaco editor with the given token
@@ -1366,9 +1371,9 @@ export class ActionExecutor {
                 // Current range
                 const range = new Range(
                     context.position.lineNumber,
-                    context.token.left,
+                    context.token.leftCol,
                     context.position.lineNumber,
-                    context.token.right
+                    context.token.rightCol
                 );
 
                 // Update the text in the Monaco editor
@@ -1391,7 +1396,7 @@ export class ActionExecutor {
             //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
             //         }),
             //     ]);
-            // } else 
+            // } else
             if (isImportable(code)) {
                 //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
                 //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
@@ -1457,7 +1462,7 @@ export class ActionExecutor {
 
         // Get the range of the statement line
         // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
-        const range = new Range(statement.lineNumber, statement.left, statement.lineNumber, statement.right);
+        const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
 
         // Remove messages from the empty line statement
         if (emptyLine.message) this.module.messageController.removeMessageFromConstruct(emptyLine);

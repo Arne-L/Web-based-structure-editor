@@ -183,7 +183,7 @@ export class Validator {
     onBeginningOfLine(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.position.column == context.lineStatement.left;
+        return context.position.column == context.lineStatement.leftCol;
     }
 
     // /**
@@ -366,7 +366,8 @@ export class Validator {
 
         return (
             !context.selected &&
-            (curPosition.column == context.lineStatement.left || curPosition.column == context.lineStatement.right)
+            (curPosition.column == context.lineStatement.leftCol ||
+                curPosition.column == context.lineStatement.rightCol)
         );
     }
 
@@ -423,7 +424,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const curPosition = this.module.editor.monaco.getPosition();
 
-        return curPosition.column == context.lineStatement.left && this.getLineAbove() instanceof EmptyLineStmt;
+        return curPosition.column == context.lineStatement.leftCol && this.getLineAbove() instanceof EmptyLineStmt;
     }
 
     /**
@@ -835,7 +836,7 @@ export class Validator {
         if (context.lineStatement.lineNumber > 2) {
             const lineAbove = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
 
-            return context.lineStatement.left < lineAbove.left;
+            return context.lineStatement.leftCol < lineAbove.leftCol;
         }
     }
 
@@ -1065,7 +1066,8 @@ export class Validator {
 
         // Check if the token is an autocomplete token and if it is not at the start of a line? (not sure about this)
         return (
-            context.tokenToRight instanceof AutocompleteTkn && context.tokenToRight.left != context.lineStatement.left
+            context.tokenToRight instanceof AutocompleteTkn &&
+            context.tokenToRight.leftCol != context.lineStatement.leftCol
         );
     }
 

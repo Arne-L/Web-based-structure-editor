@@ -225,7 +225,7 @@ export class Module {
             // after the original parent)
             removedItem[0].indexInRoot = root.indexInRoot + 1;
             // Rebuild the statement's placement in the AST
-            removedItem[0].build(new Position(stmt.lineNumber, stmt.left - TAB_SPACES));
+            removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol - TAB_SPACES));
 
             if (!stmt.hasBody()) {
                 // Might be better to change the condition in the future
@@ -259,7 +259,7 @@ export class Module {
                 while (stmtStack.length > 0) {
                     const curStmt = stmtStack.pop();
                     // Shift to the left
-                    curStmt.build(new Position(curStmt.lineNumber, curStmt.left - TAB_SPACES));
+                    curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol - TAB_SPACES));
 
                     // Keep doing it recusiveley
                     if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
@@ -290,7 +290,7 @@ export class Module {
             removedItem[0].rootNode = aboveMultilineStmt;
             removedItem[0].indexInRoot = aboveMultilineStmt.body.length;
             // Indent the statement to the right
-            removedItem[0].build(new Position(stmt.lineNumber, stmt.left + TAB_SPACES));
+            removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol + TAB_SPACES));
 
             if (!stmt.hasBody()) {
                 // If the current statement does not have a body
@@ -321,7 +321,7 @@ export class Module {
                 while (stmtStack.length > 0) {
                     const curStmt = stmtStack.pop();
                     // Shift to the right
-                    curStmt.build(new Position(curStmt.lineNumber, curStmt.left + TAB_SPACES));
+                    curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol + TAB_SPACES));
 
                     // Keep doing it recusiveley
                     if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
@@ -616,7 +616,7 @@ export class Module {
         // If the current statement is inside the body of its root
         if (curRoot instanceof GeneralStatement && curRoot.hasBody()) {
             // The left editor position of the current statement
-            leftPosToCheck = curRoot.left + TAB_SPACES;
+            leftPosToCheck = curRoot.leftCol + TAB_SPACES;
             // The parent statement has a body
             parentStmtHasBody = true;
 
@@ -631,10 +631,10 @@ export class Module {
         // PROBABLY: if the cursor is not at the start of the statement, it is at the end
         // meaning that the empty line should be inserted after the current statement in
         // its body
-        if (curStmt instanceof GeneralStatement && curStmt.hasBody() && curPos.column != curStmt.left) {
+        if (curStmt instanceof GeneralStatement && curStmt.hasBody() && curPos.column != curStmt.leftCol) {
             // is at the header / first body statement of a statement with body
             // The left editor position of a body statement
-            leftPosToCheck = curStmt.left + TAB_SPACES;
+            leftPosToCheck = curStmt.leftCol + TAB_SPACES;
             // The current statement has a body
             parentStmtHasBody = true;
             atCompoundStmt = true;
@@ -689,7 +689,7 @@ export class Module {
                 );
             } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.lineNumber + 1);
 
-            const range = new Range(curStmt.lineNumber, curStmt.right, curStmt.lineNumber, curStmt.right);
+            const range = new Range(curStmt.lineNumber, curStmt.rightCol, curStmt.lineNumber, curStmt.rightCol);
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
 

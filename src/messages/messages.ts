@@ -807,7 +807,7 @@ export class LineDimension {
         const transform = editor.computeBoundingBox(code.getSelection());
 
         let top = (code.getSelection().startLineNumber - 1) * editor.computeCharHeight();
-        let left = (code.left - 1) * 10.5;
+        let left = (code.leftCol - 1) * 10.5;
         let height = Math.floor(editor.computeCharHeight());
         let width = text.length * editor.computeCharWidthInvisible(lineNumber);
         let right = left + width;
