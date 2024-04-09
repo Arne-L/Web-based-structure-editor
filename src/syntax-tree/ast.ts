@@ -610,13 +610,9 @@ export abstract class Statement implements Construct {
         return;
     }
 
-    // getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
-    //     return [];
-    // }
-
-    // getTypes(): DataType[] {
-    //     return [];
-    // }
+    onReplaceToken(args: Object): void {
+        return;
+    }
 
     addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
         new ConstructHighlight(editor, this, rgbColour);
