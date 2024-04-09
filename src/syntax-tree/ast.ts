@@ -816,19 +816,14 @@ export class GeneralStatement extends Statement implements Importable {
          *    Use: A(a, b)
          */
 
+        // Add the requiring constructs
+        if (construct.requiringConstructs)
+            this.requiringConstructs = construct.requiringConstructs.map(
+                (req) => new OptionalConstruct(req.ref, req.min_repeat, req.max_repeat)
+            );
+
         for (const token of construct.format) {
             switch (token.type) {
-                case "construct":
-                    /**
-                     * Ordered list, in order of appearance in the code, of constructs that require this construct
-                     */
-                    this.requiringConstructs.push(new OptionalConstruct(token.ref, token.min_repeat, token.max_repeat));
-
-                    // TODO: Remove!
-                    // Search in list of all constructs for a corresponding name and insert it ... kinda?
-                    // this.tokens.push(new NonEditableTkn(construct.name, this, this.tokens.length)); // Maybe make this editable? See next line ...
-                    // this.tokens.push(new EditableTextTkn(construct.name, new RegExp("^[a-zA-Z]*$"), this, this.tokens.length)) // First two arguments should be replaced with something language specific
-                    break;
                 case "implementation":
                     this.tokens.push(new NonEditableTkn(construct[token.anchor], this, this.tokens.length));
                     break;

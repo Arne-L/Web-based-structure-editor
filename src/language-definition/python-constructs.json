@@ -609,16 +609,16 @@
             },
             {
                 "type": "body"
-            },
+            }
+        ],
+        "requiringConstructs": [
             {
-                "type": "construct",
                 "ref": "elif",
                 "optional": true,
                 "min_repeat": 0,
                 "max_repeat": null
             },
             {
-                "type": "construct",
                 "ref": "else",
                 "optional": true,
                 "min_repeat": 0,
