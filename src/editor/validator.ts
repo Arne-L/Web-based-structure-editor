@@ -3,12 +3,12 @@ import {
     // AssignmentModifier,
     // AugmentedAssignmentModifier,
     AutocompleteTkn,
-    BinaryOperatorExpr,
+    // BinaryOperatorExpr,
     Construct,
     EditableTextTkn,
     // ElseStatement,
     EmptyLineStmt,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     Expression,
     // FormattedStringCurlyBracketsExpr,
     // FormattedStringExpr,
@@ -20,7 +20,7 @@ import {
     // LiteralValExpr,
     Modifier,
     NonEditableTkn,
-    OperatorTkn,
+    // OperatorTkn,
     Statement,
     TypedEmptyExpr,
     // ValueOperationExpr,
@@ -72,23 +72,23 @@ export class Validator {
         const operatorExpr = context.token?.rootNode;
 
         // All the following code is to check typing compatibility
-        if (operatorExpr instanceof BinaryOperatorExpr) {
-            const leftOperand = operatorExpr.getLeftOperand();
-            const rightOperand = operatorExpr.getRightOperand();
+        // if (operatorExpr instanceof BinaryOperatorExpr) {
+        //     const leftOperand = operatorExpr.getLeftOperand();
+        //     const rightOperand = operatorExpr.getRightOperand();
 
-            const leftOperandCurType = leftOperand instanceof Expression ? leftOperand.returns : null;
-            const rightOperandCurType = rightOperand instanceof Expression ? rightOperand.returns : null;
+        //     const leftOperandCurType = leftOperand instanceof Expression ? leftOperand.returns : null;
+        //     const rightOperandCurType = rightOperand instanceof Expression ? rightOperand.returns : null;
 
-            if (operatorExpr.operatorCategory === OperatorCategory.Arithmetic) {
-                if (leftOperandCurType === DataType.String || rightOperandCurType === DataType.String) {
-                    return operator === BinaryOperator.Add;
-                } else return arithmeticOps.indexOf(operator) !== -1;
-            } else if (operatorExpr.operatorCategory === OperatorCategory.Comparison) {
-                return comparisonOps.indexOf(operator) !== -1;
-            } else if (operatorExpr.operatorCategory === OperatorCategory.Boolean) {
-                return boolOps.indexOf(operator) !== -1;
-            }
-        }
+        //     if (operatorExpr.operatorCategory === OperatorCategory.Arithmetic) {
+        //         if (leftOperandCurType === DataType.String || rightOperandCurType === DataType.String) {
+        //             return operator === BinaryOperator.Add;
+        //         } else return arithmeticOps.indexOf(operator) !== -1;
+        //     } else if (operatorExpr.operatorCategory === OperatorCategory.Comparison) {
+        //         return comparisonOps.indexOf(operator) !== -1;
+        //     } else if (operatorExpr.operatorCategory === OperatorCategory.Boolean) {
+        //         return boolOps.indexOf(operator) !== -1;
+        //     }
+        // }
 
         return true;
     }
@@ -551,8 +551,8 @@ export class Validator {
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
                 !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
-                !(rootNode.tokens[i] instanceof NonEditableTkn) &&
-                !(rootNode.tokens[i] instanceof OperatorTkn)
+                !(rootNode.tokens[i] instanceof NonEditableTkn)
+                // && !(rootNode.tokens[i] instanceof OperatorTkn)
             )
                 return false;
         }
@@ -1036,7 +1036,7 @@ export class Validator {
     atEmptyOperatorTkn(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.selected && context?.token?.isEmpty && context.token instanceof EmptyOperatorTkn;
+        return false; //context.selected && context?.token?.isEmpty && context.token instanceof EmptyOperatorTkn;
     }
 
     // insideFormattedString(providedContext?: Context): boolean {

@@ -12,7 +12,7 @@ import {
     VariableReferenceExpr,
     // VarOperationStmt,
 } from "../syntax-tree/ast";
-import { DataType, InsertionType, TypeConversionRecord } from "../syntax-tree/consts";
+import { DataType, InsertionType/*, TypeConversionRecord*/ } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
 import { createFinalConstruct, getHoleValues, getUserFriendlyType } from "../utilities/util";
@@ -607,11 +607,11 @@ export class EditCodeAction extends UserAction {
 export class InsertionResult {
     insertionType: InsertionType;
     message: string;
-    conversionRecords: TypeConversionRecord[];
+    // conversionRecords: TypeConversionRecord[];
 
-    constructor(insertionType: InsertionType, msg: string, typeConversionRecord: TypeConversionRecord[]) {
+    constructor(insertionType: InsertionType, msg: string, typeConversionRecord: /*TypeConversionRecord*/[]) {
         this.insertionType = insertionType;
         this.message = msg;
-        this.conversionRecords = typeConversionRecord;
+        // this.conversionRecords = typeConversionRecord;
     }
 }

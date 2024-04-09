@@ -1,10 +1,10 @@
 import {
     Construct,
     EditableTextTkn,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     // ForStatement,
     IdentifierTkn,
-    OperatorTkn,
+    // OperatorTkn,
     TypedEmptyExpr,
     // VarAssignmentStmt,
 } from "../syntax-tree/ast";
@@ -60,15 +60,16 @@ export class Hole {
 
         Hole.holes.push(hole);
 
-        if (code instanceof EmptyOperatorTkn) this.element.classList.add("empty-operator-hole");
-        else if (code instanceof IdentifierTkn) this.element.classList.add("identifier-hole");
+        // if (code instanceof EmptyOperatorTkn) this.element.classList.add("empty-operator-hole");
+        // else
+        if (code instanceof IdentifierTkn) this.element.classList.add("identifier-hole");
         else if (code instanceof EditableTextTkn) {
             this.element.classList.add("text-editable-expr-hole");
         } else if (code instanceof TypedEmptyExpr) {
             this.element.classList.add("expression-hole");
         }
 
-        if (code instanceof EditableTextTkn || code instanceof IdentifierTkn || code instanceof OperatorTkn) {
+        if (code instanceof EditableTextTkn || code instanceof IdentifierTkn /*|| code instanceof OperatorTkn*/) {
             // When focussing this hole, add the editable class to the hole
             code.subscribe(
                 CallbackType.focusEditableHole,

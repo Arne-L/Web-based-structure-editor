@@ -19,7 +19,7 @@ import {
     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES,
     GET_LIST_INDEX_TYPE_MISMATCH_CONVERSION_MSG,
     GET_TYPE_CANNOT_BE_CONVERTED_MSG,
-    IgnoreConversionRecord,
+    // IgnoreConversionRecord,
     InsertionType,
     ListTypes,
     NumberRegex,
@@ -31,13 +31,13 @@ import {
     Tooltip,
     UnaryOperator,
     getOperatorCategory,
-    typeToConversionRecord,
+    // typeToConversionRecord,
 } from "./consts";
 import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "./module";
 import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "../language-definition/settings";
-import { TypeChecker } from "./type-checker";
+// import { TypeChecker } from "./type-checker";
 import { VariableController } from "./variable-controller";
 import { Editor } from "../editor/editor";
 
@@ -1854,34 +1854,34 @@ export interface TextEditable {
     getToken(): Token;
 }
 
-export interface VariableContainer {
-    assignId();
+// export interface VariableContainer {
+//     assignId();
 
-    assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]);
+//     assignVariable(varController: VariableController, currentIdentifierAssignments: Statement[]);
 
-    assignNewVariable(varController: VariableController);
+//     assignNewVariable(varController: VariableController);
 
-    assignExistingVariable(currentIdentifierAssignments: Statement[]);
+//     assignExistingVariable(currentIdentifierAssignments: Statement[]);
 
-    reassignVar(
-        oldVarId: string,
-        varController: VariableController,
-        currentIdentifierAssignments: Statement[],
-        oldIdentifierAssignments: Statement[]
-    );
-}
+//     reassignVar(
+//         oldVarId: string,
+//         varController: VariableController,
+//         currentIdentifierAssignments: Statement[],
+//         oldIdentifierAssignments: Statement[]
+//     );
+// }
 
-export class Argument {
-    type: DataType[];
-    name: string;
-    isOptional: boolean;
+// export class Argument {
+//     type: DataType[];
+//     name: string;
+//     isOptional: boolean;
 
-    constructor(type: DataType[], name: string, isOptional: boolean) {
-        this.type = type;
-        this.name = name;
-        this.isOptional = isOptional;
-    }
-}
+//     constructor(type: DataType[], name: string, isOptional: boolean) {
+//         this.type = type;
+//         this.name = name;
+//         this.isOptional = isOptional;
+//     }
+// }
 
 // REPLACED
 // /**
@@ -3284,187 +3284,187 @@ export class VariableReferenceExpr extends Expression {
 //     }
 // }
 
-/**
- * Call functions or methods with a return value. E.g. len("hello")
- * Currently, these are all standard methods
- *
- * Similar to {@link FunctionCallStmt} but for expressions (and thus with return values)
- */
-export class FunctionCallExpr extends Expression implements Importable {
-    /**
-     * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
-     */
-    private argumentsIndices = new Array<number>();
-    functionName: string = "";
-    args: Array<Argument>;
-    requiredModule: string;
+// /**
+//  * Call functions or methods with a return value. E.g. len("hello")
+//  * Currently, these are all standard methods
+//  *
+//  * Similar to {@link FunctionCallStmt} but for expressions (and thus with return values)
+//  */
+// export class FunctionCallExpr extends Expression implements Importable {
+//     /**
+//      * function calls such as `print()` are single-line statements, while `randint()` are expressions and could be used inside a more complex expression, this should be specified when instantiating the `FunctionCallStmt` class.
+//      */
+//     private argumentsIndices = new Array<number>();
+//     functionName: string = "";
+//     args: Array<Argument>;
+//     requiredModule: string;
 
-    constructor(
-        functionName: string,
-        args: Array<Argument>,
-        returns: DataType,
-        root?: Statement,
-        indexInRoot?: number,
-        requiredModule: string = ""
-    ) {
-        super(returns);
+//     constructor(
+//         functionName: string,
+//         args: Array<Argument>,
+//         returns: DataType,
+//         root?: Statement,
+//         indexInRoot?: number,
+//         requiredModule: string = ""
+//     ) {
+//         super(returns);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-        this.functionName = functionName;
-        this.args = args;
-        this.requiredModule = requiredModule;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//         this.functionName = functionName;
+//         this.args = args;
+//         this.requiredModule = requiredModule;
 
-        if (args.length > 0) {
-            this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
+//         if (args.length > 0) {
+//             this.tokens.push(new NonEditableTkn(functionName + "(", this, this.tokens.length));
 
-            // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
+//             // TODO: handle parenthesis in a better way (to be able to highlight the other when selecting one)
 
-            for (let i = 0; i < args.length; i++) {
-                let arg = args[i];
+//             for (let i = 0; i < args.length; i++) {
+//                 let arg = args[i];
 
-                this.argumentsIndices.push(this.tokens.length);
-                this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
+//                 this.argumentsIndices.push(this.tokens.length);
+//                 this.tokens.push(new TypedEmptyExpr([...arg.type], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [...arg.type];
 
-                if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
-            }
+//                 if (i + 1 < args.length) this.tokens.push(new NonEditableTkn(", ", this, this.tokens.length));
+//             }
 
-            this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+//             this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
 
-            this.hasEmptyToken = true;
-        } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
-    }
+//             this.hasEmptyToken = true;
+//         } else this.tokens.push(new NonEditableTkn(functionName + "()", this, this.tokens.length));
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        /**
-         * Two cases:
-         * * Either we are at the left of an expression and the function we want to insert has exactly one element,
-         * then we check if the expression to the right has a type that matches the type of the argument of the function
-         * we want to insert AND if the function can be inserted at the current hole. (first case however seems bugged)
-         * * Otherwise we simply check whether or not we are at an empty expression hole
-         */
-        // TEMPORARY DISABLED FOR EASY BUG FIXING => SHOULD BE REPLACED BY GENERALISATION
-        // if (validator.atLeftOfExpression(providedContext) && this.args.length == 1) {
-        //     // check if we can add to next
-        //     // has only one arg
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         /**
+//          * Two cases:
+//          * * Either we are at the left of an expression and the function we want to insert has exactly one element,
+//          * then we check if the expression to the right has a type that matches the type of the argument of the function
+//          * we want to insert AND if the function can be inserted at the current hole. (first case however seems bugged)
+//          * * Otherwise we simply check whether or not we are at an empty expression hole
+//          */
+//         // TEMPORARY DISABLED FOR EASY BUG FIXING => SHOULD BE REPLACED BY GENERALISATION
+//         // if (validator.atLeftOfExpression(providedContext) && this.args.length == 1) {
+//         //     // check if we can add to next
+//         //     // has only one arg
 
-        //     const argType = this.args[0].type;
-        //     const canInsertExprIntoThisFunction =
-        //         argType.some((x) => x == DataType.Any) ||
-        //         hasMatch(argType, [providedContext.expressionToRight.returns]);
+//         //     const argType = this.args[0].type;
+//         //     const canInsertExprIntoThisFunction =
+//         //         argType.some((x) => x == DataType.Any) ||
+//         //         hasMatch(argType, [providedContext.expressionToRight.returns]);
 
-        //     if (providedContext.expressionToRight.returns) {
-        //         const map = Util.getInstance().typeConversionMap.get(providedContext.expressionToRight.returns);
+//         //     if (providedContext.expressionToRight.returns) {
+//         //         const map = Util.getInstance().typeConversionMap.get(providedContext.expressionToRight.returns);
 
-        //         const willItBeDraftMode = hasMatch(map, argType);
-        //         const canFunctionBeInsertedAtCurrentHole =
-        //             providedContext.expressionToRight.canReplaceWithConstruct(this);
+//         //         const willItBeDraftMode = hasMatch(map, argType);
+//         //         const canFunctionBeInsertedAtCurrentHole =
+//         //             providedContext.expressionToRight.canReplaceWithConstruct(this);
 
-        //         if (
-        //             canInsertExprIntoThisFunction &&
-        //             canFunctionBeInsertedAtCurrentHole.insertionType == InsertionType.Valid
-        //         ) {
-        //             return InsertionType.Valid;
-        //         } else {
-        //             const states = [willItBeDraftMode, canFunctionBeInsertedAtCurrentHole.insertionType];
+//         //         if (
+//         //             canInsertExprIntoThisFunction &&
+//         //             canFunctionBeInsertedAtCurrentHole.insertionType == InsertionType.Valid
+//         //         ) {
+//         //             return InsertionType.Valid;
+//         //         } else {
+//         //             const states = [willItBeDraftMode, canFunctionBeInsertedAtCurrentHole.insertionType];
 
-        //             if (states.some((s) => s == InsertionType.Invalid)) return InsertionType.Invalid;
-        //             else if (states.every((s) => s == InsertionType.Valid)) return InsertionType.Valid;
-        //             else if (states.some((s) => s == InsertionType.DraftMode)) return InsertionType.DraftMode;
-        //         }
-        //     } else return InsertionType.Invalid;
-        // }
+//         //             if (states.some((s) => s == InsertionType.Invalid)) return InsertionType.Invalid;
+//         //             else if (states.every((s) => s == InsertionType.Valid)) return InsertionType.Valid;
+//         //             else if (states.some((s) => s == InsertionType.DraftMode)) return InsertionType.DraftMode;
+//         //         }
+//         //     } else return InsertionType.Invalid;
+//         // }
 
-        return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
-    }
+//         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+//     }
 
-    // DEAD CODE
-    // replaceArgument(index: number, to: CodeConstruct) {
-    //     this.replace(to, this.argumentsIndices[index]);
-    // }
+//     // DEAD CODE
+//     // replaceArgument(index: number, to: CodeConstruct) {
+//     //     this.replace(to, this.argumentsIndices[index]);
+//     // }
 
-    getFunctionName(): string {
-        return this.functionName;
-    }
+//     getFunctionName(): string {
+//         return this.functionName;
+//     }
 
-    getKeyword(): string {
-        return this.functionName;
-    }
+//     getKeyword(): string {
+//         return this.functionName;
+//     }
 
-    getFullConstructText(): string {
-        let text = this.getFunctionName();
-        text += "(";
+//     getFullConstructText(): string {
+//         let text = this.getFunctionName();
+//         text += "(";
 
-        for (let i = 0; i < this.tokens.length; i++) {
-            const tkn = this.tokens[i];
+//         for (let i = 0; i < this.tokens.length; i++) {
+//             const tkn = this.tokens[i];
 
-            if (tkn instanceof Expression || tkn instanceof TypedEmptyExpr) {
-                text += tkn.getKeyword().replace(/   /g, "---");
+//             if (tkn instanceof Expression || tkn instanceof TypedEmptyExpr) {
+//                 text += tkn.getKeyword().replace(/   /g, "---");
 
-                if (i < this.tokens.length - 1 && this.args.length > 1) {
-                    text += ",";
-                }
-            }
-        }
+//                 if (i < this.tokens.length - 1 && this.args.length > 1) {
+//                     text += ",";
+//                 }
+//             }
+//         }
 
-        text += ")";
+//         text += ")";
 
-        return text;
-    }
+//         return text;
+//     }
 
-    // DEAD CODE
-    // validateImport(importedModule: string, importedItem: string): boolean {
-    //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
-    // }
+//     // DEAD CODE
+//     // validateImport(importedModule: string, importedItem: string): boolean {
+//     //     return this.requiredModule === importedModule && this.getFunctionName() === importedItem;
+//     // }
 
-    validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
-        let insertionType = currentInsertionType;
-        let importsOfThisConstruct: ImportStatement[] = [];
-        const checker = (construct: Construct, stmts: ImportStatement[]) => {
-            if (
-                construct instanceof ImportStatement &&
-                this.getLineNumber() > construct.getLineNumber() &&
-                this.requiredModule === construct.getImportModuleName()
-            ) {
-                stmts.push(construct);
-            }
-        };
+//     validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
+//         let insertionType = currentInsertionType;
+//         let importsOfThisConstruct: ImportStatement[] = [];
+//         const checker = (construct: Construct, stmts: ImportStatement[]) => {
+//             if (
+//                 construct instanceof ImportStatement &&
+//                 this.getLineNumber() > construct.getLineNumber() &&
+//                 this.requiredModule === construct.getImportModuleName()
+//             ) {
+//                 stmts.push(construct);
+//             }
+//         };
 
-        module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
+//         module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
 
-        if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
-            //imports of required module don't exist and this item requires an import
-            insertionType = InsertionType.DraftMode;
-        } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
-            //imports of required module exist and this item requires an import
-            insertionType =
-                importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
-                    ? currentInsertionType
-                    : InsertionType.DraftMode;
-        }
+//         if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
+//             //imports of required module don't exist and this item requires an import
+//             insertionType = InsertionType.DraftMode;
+//         } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
+//             //imports of required module exist and this item requires an import
+//             insertionType =
+//                 importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
+//                     ? currentInsertionType
+//                     : InsertionType.DraftMode;
+//         }
 
-        return insertionType;
-    }
+//         return insertionType;
+//     }
 
-    validateImportFromImportList(imports: ImportStatement[]): boolean {
-        const relevantImports = imports.filter(
-            (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
-        );
+//     validateImportFromImportList(imports: ImportStatement[]): boolean {
+//         const relevantImports = imports.filter(
+//             (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
+//         );
 
-        if (relevantImports.length === 0) {
-            return false;
-        }
+//         if (relevantImports.length === 0) {
+//             return false;
+//         }
 
-        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
-            ? true
-            : false;
-    }
+//         return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getFunctionName()).length > 0
+//             ? true
+//             : false;
+//     }
 
-    requiresImport(): boolean {
-        return this.requiredModule !== "";
-    }
-}
+//     requiresImport(): boolean {
+//         return this.requiredModule !== "";
+//     }
+// }
 
 /**
  * {@link Construct}s implementing this interface need to be imported
@@ -3724,898 +3724,898 @@ export interface Importable {
  * Expression for a binary operator like +, -, *, /, %, **, //, ==, !=, <, >,
  * <=, >=, in, not in, and, or ...
  */
-export class BinaryOperatorExpr extends Expression {
-    operator: BinaryOperator;
-    operatorCategory: OperatorCategory;
-    private leftOperandIndex: number;
-    private rightOperandIndex: number;
-    private originalReturnType: DataType;
-
-    static originalTypeOfHolesAdd = new Map<string, Array<DataType>>([
-        ["left", [DataType.Number, DataType.String, ...ListTypes]],
-        ["right", [DataType.Number, DataType.String, ...ListTypes]],
-    ]);
-    static originalTypeOfHolesArithmetic = new Map<string, Array<DataType>>([
-        ["left", [DataType.Number]],
-        ["right", [DataType.Number]],
-    ]);
-    static originalTypeOfHolesBool = new Map<string, Array<DataType>>([
-        ["left", [DataType.Boolean]],
-        ["right", [DataType.Boolean]],
-    ]);
-    static originalTypeOfHolesEquality = new Map<string, Array<DataType>>([
-        ["left", [DataType.Any]],
-        ["right", [DataType.Any]],
-    ]);
-    static originalTypeOfHolesIn = new Map<string, Array<DataType>>([
-        ["left", [DataType.String, DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList]],
-        ["right", [DataType.String, DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList]],
-    ]);
-    static originalTypeOfHolesInequality = new Map<string, Array<DataType>>([
-        ["left", [DataType.Number, DataType.String]],
-        ["right", [DataType.Number, DataType.String]],
-    ]);
-    static originalReturnTypeBool = DataType.Boolean;
-    static originReturnTypeComp = DataType.Boolean;
-    static originalReturnTypeAdd = DataType.Any;
-    static originalReturnTypeArithmetic = DataType.Number;
-
-    constructor(operator: BinaryOperator, returns: DataType, root?: Statement | Expression, indexInRoot?: number) {
-        super(returns);
-
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-        this.operator = operator;
-        this.operatorCategory = getOperatorCategory(operator);
-
-        this.tokens.push(new NonEditableTkn("(", this, this.tokens.length));
-
-        this.leftOperandIndex = this.tokens.length;
-
-        this.originalReturnType = returns;
-
-        if (this.operatorCategory === OperatorCategory.Arithmetic && operator == BinaryOperator.Add) {
-            if (returns !== DataType.String && returns !== DataType.Number) {
-                this.tokens.push(
-                    new TypedEmptyExpr([DataType.Number, DataType.String, ...ListTypes], this, this.tokens.length)
-                );
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.keywordIndex = this.tokens.length;
-                this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.rightOperandIndex = this.tokens.length;
-                this.tokens.push(
-                    new TypedEmptyExpr([DataType.Number, DataType.String, ...ListTypes], this, this.tokens.length)
-                );
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
-
-                this.returns = DataType.Any;
-                this.originalReturnType = DataType.Any;
-            } else {
-                this.tokens.push(new TypedEmptyExpr([returns], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.keywordIndex = this.tokens.length;
-                this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.rightOperandIndex = this.tokens.length;
-                this.tokens.push(new TypedEmptyExpr([returns], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
-            }
-        } else if (this.operatorCategory === OperatorCategory.Arithmetic) {
-            this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
-            this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
-            this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-            this.keywordIndex = this.tokens.length;
-            this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-            this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-            this.rightOperandIndex = this.tokens.length;
-            this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
-            this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
-
-            this.returns = DataType.Number;
-            this.originalReturnType = DataType.Number;
-        } else if (this.operatorCategory === OperatorCategory.Boolean) {
-            this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
-            this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
-            this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-            this.keywordIndex = this.tokens.length;
-            this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-            this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-            this.rightOperandIndex = this.tokens.length;
-            this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
-            this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
-
-            this.returns = DataType.Boolean;
-            this.originalReturnType = DataType.Boolean;
-        } else if (this.operatorCategory == OperatorCategory.Comparison) {
-            if (this.operator === BinaryOperator.Equal || this.operator === BinaryOperator.NotEqual) {
-                this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.keywordIndex = this.tokens.length;
-                this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.rightOperandIndex = this.tokens.length;
-                this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-            } else if (this.operator === BinaryOperator.In || this.operator === BinaryOperator.NotIn) {
-                this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.keywordIndex = this.tokens.length;
-                this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.rightOperandIndex = this.tokens.length;
-                this.tokens.push(
-                    new TypedEmptyExpr(
-                        [
-                            DataType.String,
-                            DataType.AnyList,
-                            DataType.NumberList,
-                            DataType.StringList,
-                            DataType.BooleanList,
-                        ],
-                        this,
-                        this.tokens.length
-                    )
-                );
-                this.typeOfHoles[this.tokens.length - 1] = [
-                    DataType.String,
-                    DataType.AnyList,
-                    DataType.NumberList,
-                    DataType.StringList,
-                    DataType.BooleanList,
-                ];
-            } else {
-                this.tokens.push(new TypedEmptyExpr([DataType.Number, DataType.String], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String];
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.keywordIndex = this.tokens.length;
-                this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
-                this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
-                this.rightOperandIndex = this.tokens.length;
-                this.tokens.push(new TypedEmptyExpr([DataType.Number, DataType.String], this, this.tokens.length));
-                this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String];
-            }
-
-            this.returns = DataType.Boolean;
-            this.originalReturnType = DataType.Boolean;
-        }
-
-        this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
-        this.hasEmptyToken = true;
-    }
-
-    static getRootExpr(expr: BinaryOperatorExpr): BinaryOperatorExpr {
-        if (expr.rootNode instanceof BinaryOperatorExpr) return BinaryOperatorExpr.getRootExpr(expr.rootNode);
-        else return expr;
-    }
-
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        /**
-         * Three cases:
-         * * We are at an empty expression hole
-         * * Either we are at the left of an expression and the current expression to the left has a type compatible
-         * with the current binary operator (for example + with numbers and strings, - with numbers etc)
-         * * Or we are at the right of an expression and the current expression to the right has a type compatible
-         * with the current binary operator (for example + with numbers and strings, - with numbers etc)
-         */
-        return InsertionType.Valid;
-        // validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
-        //     (validator.atLeftOfExpression(providedContext) &&
-        //         !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt)) /*&&
-        //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
-        //             (x) => x === this.operator
-        //         )*/ ||
-        //     (validator.atRightOfExpression(providedContext) &&
-        //         !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt)) /*&&
-        //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
-        //             (x) => x === this.operator
-        //         )*/
-        //     ? InsertionType.Valid
-        //     : InsertionType.Invalid;
-    }
-
-    // replaceLeftOperand(code: Expression) {
-    //     this.onInsertInto(code);
-    //     this.replace(code, this.leftOperandIndex);
-    // }
-
-    // replaceRightOperand(code: Expression) {
-    //     this.onInsertInto(code);
-    //     this.replace(code, this.rightOperandIndex);
-    // }
-
-    getLeftOperand(): Construct {
-        return this.tokens[this.leftOperandIndex];
-    }
-
-    getRightOperand(): Construct {
-        return this.tokens[this.rightOperandIndex];
-    }
-
-    isBoolean(): boolean {
-        return this.operatorCategory === OperatorCategory.Boolean;
-    }
-
-    isArithmetic(): boolean {
-        return this.operatorCategory === OperatorCategory.Arithmetic;
-    }
-
-    isComparison(): boolean {
-        return this.operatorCategory === OperatorCategory.Comparison;
-    }
-
-    /**
-     * Update types of empty holes when inserting into the binary operator expression.
-     *
-     * @param type new return/operand type
-     */
-    performTypeUpdatesOnInsertion(type: DataType) {
-        if (this.operatorCategory !== OperatorCategory.Boolean) {
-            //in this case the type arrays will always only contain a single type unless it is the + operator
-            const leftOperandTypes = (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type;
-            const rightOperandTypes = (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type;
-
-            if (leftOperandTypes.indexOf(type) == -1) {
-                leftOperandTypes.push(type);
-            }
-
-            if (rightOperandTypes.indexOf(type) == -1) {
-                rightOperandTypes.push(type);
-            }
-
-            this.returns = type;
-        }
-    }
-
-    /**
-     * Removes "type" from the type array of the operands of this expression.
-     *
-     * @param type type to remove
-     */
-    removeTypeFromOperands(type: DataType) {
-        if (!this.isBoolean()) {
-            //in this case the type arrays will always only contain a single type unless it is the + operator
-            const leftOperandTypes = (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type;
-            const rightOperandTypes = (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type;
-
-            if (leftOperandTypes.indexOf(type) > -1) {
-                leftOperandTypes.splice(leftOperandTypes.indexOf(type), 1);
-            }
-
-            if (rightOperandTypes.indexOf(type) > -1) {
-                rightOperandTypes.splice(rightOperandTypes.indexOf(type), 1);
-            }
-        }
-    }
-
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {
-        // Special case. + supports String and number and needs to be updated when it is inserted into a hole of one of those types
-        if (
-            this.operator === BinaryOperator.Add &&
-            (insertInto.type.indexOf(DataType.String) > -1 || insertInto.type.indexOf(DataType.Number) > -1)
-        ) {
-            this.returns = insertInto.type[0]; // it is safe to assume insertInto.type will have a single type because a hole cannot accept both Number and String
-            this.performTypeUpdatesOnInsertion(insertInto.type[0]);
-
-            if (insertInto.type.indexOf(DataType.String) > -1) {
-                this.removeTypeFromOperands(DataType.Number);
-            } else this.removeTypeFromOperands(DataType.String);
-        }
-    }
-
-    private performReturnTypeUpdatesForAdditionOnInsertInto(rootExpr: BinaryOperatorExpr) {
-        const leftOperand = rootExpr.getLeftOperand();
-        const rightOperand = rootExpr.getRightOperand();
-
-        if (leftOperand instanceof BinaryOperatorExpr) {
-            rootExpr.performReturnTypeUpdatesForAdditionOnInsertInto(leftOperand);
-        }
-
-        if (rightOperand instanceof BinaryOperatorExpr) {
-            rootExpr.performReturnTypeUpdatesForAdditionOnInsertInto(rightOperand);
-        }
-
-        if (
-            leftOperand &&
-            rightOperand &&
-            leftOperand instanceof TypedEmptyExpr &&
-            rightOperand instanceof TypedEmptyExpr
-        ) {
-            return;
-        } else if (rootExpr.operator === BinaryOperator.Add) {
-            if (
-                leftOperand &&
-                rightOperand &&
-                leftOperand instanceof Expression &&
-                rightOperand instanceof Expression
-            ) {
-                if (
-                    leftOperand.returns === rightOperand.returns &&
-                    TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(rootExpr.operator) > -1
-                ) {
-                    rootExpr.returns = leftOperand.returns;
-                } else {
-                    rootExpr.returns = DataType.Any;
-                }
-            } else if (
-                leftOperand &&
-                leftOperand instanceof Expression &&
-                (rootExpr.originalReturnType === leftOperand.returns || rootExpr.originalReturnType === DataType.Any)
-            ) {
-                rootExpr.returns = leftOperand.returns;
-            } else if (
-                rightOperand &&
-                rightOperand instanceof Expression &&
-                (rootExpr.originalReturnType === rightOperand.returns || rootExpr.originalReturnType === DataType.Any)
-            ) {
-                rootExpr.returns = rightOperand.returns;
-            } else if (
-                leftOperand &&
-                leftOperand instanceof TypedEmptyExpr &&
-                rightOperand &&
-                rightOperand instanceof Expression &&
-                (rootExpr.originalReturnType === rightOperand.returns || rootExpr.originalReturnType === DataType.Any)
-            ) {
-                rootExpr.returns = rightOperand.returns;
-            } else if (
-                rightOperand &&
-                rightOperand instanceof TypedEmptyExpr &&
-                leftOperand &&
-                leftOperand instanceof Expression &&
-                (rootExpr.originalReturnType === leftOperand.returns || rootExpr.originalReturnType === DataType.Any)
-            ) {
-                rootExpr.returns = leftOperand.returns;
-            }
-        } else if (rootExpr.isArithmetic()) {
-            if (
-                leftOperand &&
-                rightOperand &&
-                leftOperand instanceof Expression &&
-                rightOperand instanceof Expression
-            ) {
-                if (
-                    leftOperand.returns === rightOperand.returns &&
-                    TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(rootExpr.operator) > -1
-                ) {
-                    rootExpr.returns = leftOperand.returns;
-                } else {
-                    rootExpr.returns = DataType.Any;
-                }
-            } else {
-                rootExpr.returns = DataType.Any;
-            }
-        }
-    }
-
-    // /**
-    //  * Update the return type of an expression and its operands when inserting into the expression.
-    //  *
-    //  * @param insertCode - The code to insert
-    //  */
-    // performTypeUpdatesOnInsertInto(insertCode: Expression) {
-    //     //return type update
-    //     if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
-    //         // Get the first non empty operand in the binary add expression
-    //         const nonEmptyOperand = !this.isOperandEmpty(this.leftOperandIndex)
-    //             ? this.getLeftOperand()
-    //             : !this.isOperandEmpty(this.rightOperandIndex)
-    //             ? this.getRightOperand()
-    //             : null;
-
-    //         // If there is an operand in the binary add expression, update the return type of the binary add expression
-    //         if (nonEmptyOperand) {
-    //             // If the inserted is of the same type as the non empty operand
-    //             if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns === insertCode.returns) {
-    //                 // If a binary operator is allowed for the type of the non empty operand, return the same type
-    //                 if (TypeChecker.isBinOpAllowed(this.operator, nonEmptyOperand.returns, nonEmptyOperand.returns)) {
-    //                     this.returns = nonEmptyOperand.returns;
-    //                 } else {
-    //                     // If not allowed, this type is set to any
-    //                     this.returns = DataType.Any;
-    //                 }
-    //                 // If different types, set the return type to any
-    //             } else if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns !== insertCode.returns) {
-    //                 this.returns = DataType.Any;
-    //             }
-    //         } else {
-    //             // If there is no non empty operand, set the return type to the insertCode return type
-    //             this.returns = insertCode.returns;
-    //         }
-    //     }
-
-    //     //operand type updates
-    //     if (!this.isBoolean()) {
-    //         //Check if one of the holes is not empty and get its type
-    //         let existingLiteralType = this.getFilledHoleType();
-
-    //         //if existingLiteralType is null then both operands are still empty holes and since we are inserting
-    //         //into one of them, the types need to be updated
-    //         if (!existingLiteralType && (this.returns === DataType.Any || this.isComparison())) {
-    //             if (
-    //                 this.isOperandEmpty(this.leftOperandIndex) &&
-    //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
-    //             ) {
-    //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
-    //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
-    //                 } else {
-    //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
-    //                 }
-    //             }
-    //             if (
-    //                 this.isOperandEmpty(this.rightOperandIndex) &&
-    //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
-    //             ) {
-    //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
-    //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
-    //                 } else {
-    //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
-    //                 }
-    //             }
-    //         }
-
-    //         if (
-    //             insertCode.returns === this.getFilledHoleType() &&
-    //             TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1 &&
-    //             this.tokens[this.getIndexOfFilledOperand()].draftModeEnabled
-    //         ) {
-    //             this.getModule().closeConstructDraftRecord(this.tokens[this.getIndexOfFilledOperand()]);
-    //         }
-    //     }
-
-    //     //find root
-    //     let curr = this as BinaryOperatorExpr;
-    //     while (curr.rootNode !== null && curr.rootNode instanceof BinaryOperatorExpr) {
-    //         curr = curr.rootNode;
-    //     }
-
-    //     //update return types in root
-    //     if (curr && this.isArithmetic()) this.performReturnTypeUpdatesForAdditionOnInsertInto(curr);
-    // }
-
-    //should only be used on nested binary ops
-    checkAllHolesAreEmpty() {
-        let result = [];
-
-        if (
-            (!(this.tokens[this.leftOperandIndex] instanceof TypedEmptyExpr) &&
-                !(this.tokens[this.leftOperandIndex] instanceof BinaryOperatorExpr)) ||
-            (!(this.tokens[this.rightOperandIndex] instanceof TypedEmptyExpr) &&
-                !(this.tokens[this.rightOperandIndex] instanceof BinaryOperatorExpr))
-        ) {
-            result.push(false);
-        }
-
-        for (const tkn of this.tokens) {
-            if (tkn instanceof BinaryOperatorExpr) {
-                result.push(...tkn.checkAllHolesAreEmpty());
-            }
-        }
-
-        return result;
-    }
-
-    //use this for comparators and arithmetic ops to get their top level expression parent in case they are inside of a nested epxression
-    getTopLevelBinExpression(): BinaryOperatorExpr {
-        let currParentExpression = this.rootNode instanceof BinaryOperatorExpr ? this.rootNode : this;
-        let nextParentExpression = this.rootNode instanceof Module ? null : this.rootNode?.rootNode;
-        while (nextParentExpression && nextParentExpression instanceof BinaryOperatorExpr) {
-            currParentExpression = nextParentExpression;
-            nextParentExpression = nextParentExpression.rootNode;
-        }
-
-        return currParentExpression as BinaryOperatorExpr;
-    }
-
-    /**
-     * Return whether all holes of a nested expression are still empty when used on a nested binary operator expression.
-     *
-     * @returns true if all holes are TypedEmptyExpr. false otherwise.
-     */
-    areAllHolesEmpty() {
-        const topLevelExpression = this.getTopLevelBinExpression();
-
-        return topLevelExpression.checkAllHolesAreEmpty().every((element) => {
-            element;
-        });
-    }
-
-    //this is for finding out if the holes of just this epxression are empty (does not check nestings)
-    areOperandsEmpty(): boolean {
-        return (
-            this.tokens[this.rightOperandIndex] instanceof TypedEmptyExpr &&
-            this.tokens[this.leftOperandIndex] instanceof TypedEmptyExpr
-        );
-    }
-
-    // onInsertInto(insertCode: Expression) {
-    //     this.performTypeUpdatesOnInsertInto(insertCode);
-    // }
-
-    onReplaceToken(args: { indexInRoot: number }): void {
-        this.updateReturnTypeOnDeletion(args.indexInRoot);
-        const otherOperand = this.getIndexOfOtherOperand(args.indexInRoot);
-
-        if (
-            otherOperand > -1 &&
-            this.tokens[otherOperand].draftModeEnabled &&
-            TypeChecker.getAllowedBinaryOperatorsForType((this.tokens[otherOperand] as Expression).returns).indexOf(
-                this.operator
-            ) > -1
-        ) {
-            this.getModule().closeConstructDraftRecord(this.tokens[otherOperand]);
-        }
-
-        // this.updateVariableType(this.returns);
-    }
-
-    // getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
-    //     return this.getCurrentAllowedTypesOfOperand(index, beingDeleted);
-    // }
-
-    // validateTypes(module: Module) {
-    //     let curr = this.rootNode;
-    //     while (curr && curr.rootNode instanceof BinaryOperatorExpr) {
-    //         curr = curr.rootNode;
-    //     }
-    //     this.validateBinExprTypes(curr instanceof BinaryOperatorExpr ? curr : this, module);
-    // }
-
-    getKeyword(): string {
-        return `${this.getLeftOperand().getKeyword()} ${this.operator} ${this.getRightOperand().getKeyword()}`;
-    }
-
-    /**
-     * Only call this when you are sure that the operand is a TypedEmptyExpr
-     * @param operand
-     */
-    updateTypeOfEmptyOperandOnOperatorChange(operand: string) {
-        const operandToUpdate = (operand === "left" ? this.getLeftOperand() : this.getRightOperand()) as TypedEmptyExpr;
-
-        switch (this.operatorCategory) {
-            case OperatorCategory.Boolean:
-                operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesBool.get(operand);
-                break;
-            case OperatorCategory.Comparison:
-                if (this.operator === BinaryOperator.Equal || this.operator === BinaryOperator.NotEqual) {
-                    operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesEquality.get(operand);
-                } else {
-                    operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesInequality.get(operand);
-                }
-                break;
-            case OperatorCategory.Arithmetic:
-                if (this.operator === BinaryOperator.Add) {
-                    operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesAdd.get(operand);
-                } else {
-                    operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesArithmetic.get(operand);
-                }
-                break;
-        }
-    }
-
-    //TODO: Passing module recursively is bad for memory
-    //TODO: Function is way too large. Can definitely be split into smaller ones.
-    // /**
-    //  * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
-    //  * recursively for all nested binary expressions.
-    //  *
-    //  * @param expr - Binary expression
-    //  * @param module - Current module
-    //  * @returns Whether the binary expression is valid
-    //  */
-    // private validateBinExprTypes(expr: BinaryOperatorExpr, module: Module): boolean {
-    //     const leftOperand = expr.getLeftOperand();
-    //     const rightOperand = expr.getRightOperand();
-    //     let leftOpened = false,
-    //         rightOpened = false;
-
-    //     if (leftOperand instanceof BinaryOperatorExpr) {
-    //         leftOpened = this.validateBinExprTypes(leftOperand, module);
-    //     }
-
-    //     if (rightOperand instanceof BinaryOperatorExpr) {
-    //         rightOpened = this.validateBinExprTypes(rightOperand, module);
-    //     }
-
-    //     if (leftOpened || rightOpened) return true;
-
-    //     //get all conversions
-    //     const leftExprTypes = leftOperand.getTypes();
-    //     const rightExprTypes = rightOperand.getTypes();
-
-    //     const conversionActionsForLeft = [];
-    //     const conversionActionsForRight = [];
-
-    //     //if types can be added, there is no need to get conversion records
-    //     let operationDefinedBetweenTypes = false;
-    //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
-    //         operationDefinedBetweenTypes = TypeChecker.isBinOpAllowed(
-    //             this.operator,
-    //             leftOperand.returns,
-    //             rightOperand.returns
-    //         );
-    //     }
-
-    //     if (!operationDefinedBetweenTypes) {
-    //         //get all possible ways of converting all types of left to types of right and vice versa
-    //         for (const leftType of leftExprTypes) {
-    //             for (const rightType of rightExprTypes) {
-    //                 const conversionRecordsLeftToRight = TypeChecker.getTypeConversionRecords(leftType, rightType);
-    //                 const conversionRecordsRightToLeft = TypeChecker.getTypeConversionRecords(rightType, leftType);
-
-    //                 for (const leftRecord of conversionRecordsLeftToRight) {
-    //                     if (
-    //                         TypeChecker.getAllowedBinaryOperatorsForType(leftRecord.convertTo).indexOf(expr.operator) >
-    //                         -1
-    //                     ) {
-    //                         conversionActionsForLeft.push(
-    //                             leftRecord.getConversionButton(leftOperand.getKeyword(), module, leftOperand)
-    //                         );
-    //                     }
-    //                 }
-
-    //                 for (const rightRecord of conversionRecordsRightToLeft) {
-    //                     if (
-    //                         TypeChecker.getAllowedBinaryOperatorsForType(rightRecord.convertTo).indexOf(expr.operator) >
-    //                         -1
-    //                     ) {
-    //                         conversionActionsForRight.push(
-    //                             rightRecord.getConversionButton(rightOperand.getKeyword(), module, rightOperand)
-    //                         );
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     //note that if one of them or both are a TypedEmptyExpr, then any insertions are validated elsewhere
-    //     //so at this point if something is inserted into the left or right operand then that insertion at the very least
-    //     //was NOT invalid
-    //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
-    //         if (leftOperand.returns === rightOperand.returns && operationDefinedBetweenTypes) {
-    //             if (leftOperand.draftModeEnabled) module.closeConstructDraftRecord(leftOperand);
-    //             if (rightOperand.draftModeEnabled) module.closeConstructDraftRecord(rightOperand);
-    //             return false;
-    //         }
-
-    //         //TODO: These if blocks are identical. Should be a function
-    //         if (leftOperand.returns === DataType.Any) {
-    //             module.openDraftMode(
-    //                 leftOperand,
-    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], leftOperand.returns),
-    //                 [
-    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-    //                         "",
-    //                         module,
-    //                         leftOperand
-    //                     ),
-    //                 ]
-    //             );
-    //         } else if (!operationDefinedBetweenTypes) {
-    //             if (conversionActionsForLeft.length > 0) {
-    //                 module.openDraftMode(
-    //                     leftOperand,
-    //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([rightOperand.returns], leftOperand.returns),
-    //                     conversionActionsForLeft
-    //                 );
-    //             } else if (
-    //                 conversionActionsForLeft.length === 0 &&
-    //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
-    //             ) {
-    //                 module.openDraftMode(
-    //                     leftOperand,
-    //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
-    //                         expr.operator,
-    //                         leftOperand.returns,
-    //                         rightOperand.returns
-    //                     ),
-    //                     [
-    //                         createWarningButton(
-    //                             Tooltip.Delete,
-    //                             leftOperand,
-    //                             (() => {
-    //                                 this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
-    //                             }).bind(this)
-    //                         ),
-    //                     ]
-    //                 );
-    //             }
-    //         } else if (leftOperand.draftModeEnabled) {
-    //             module.closeConstructDraftRecord(leftOperand);
-    //         }
-
-    //         if (rightOperand.returns === DataType.Any) {
-    //             module.openDraftMode(
-    //                 rightOperand,
-    //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], rightOperand.returns),
-    //                 [
-    //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
-    //                         "",
-    //                         module,
-    //                         rightOperand
-    //                     ),
-    //                 ]
-    //             );
-    //         } else if (!operationDefinedBetweenTypes) {
-    //             if (conversionActionsForRight.length > 0) {
-    //                 module.openDraftMode(
-    //                     rightOperand,
-    //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([leftOperand.returns], rightOperand.returns),
-    //                     conversionActionsForRight
-    //                 );
-    //             } else if (
-    //                 conversionActionsForRight.length === 0 &&
-    //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
-    //             ) {
-    //                 module.openDraftMode(
-    //                     rightOperand,
-    //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
-    //                         expr.operator,
-    //                         leftOperand.returns,
-    //                         rightOperand.returns
-    //                     ),
-    //                     [
-    //                         createWarningButton(
-    //                             Tooltip.Delete,
-    //                             rightOperand,
-    //                             (() => {
-    //                                 this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
-    //                             }).bind(this)
-    //                         ),
-    //                     ]
-    //                 );
-    //             }
-    //         } else if (rightOperand.draftModeEnabled) {
-    //             module.closeConstructDraftRecord(rightOperand);
-    //         }
-
-    //         rightOpened = true;
-    //         leftOpened = true;
-    //     } else if (
-    //         leftOperand instanceof Expression &&
-    //         rightOperand instanceof TypedEmptyExpr &&
-    //         TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(expr.operator) === -1
-    //     ) {
-    //         if (conversionActionsForLeft.length > 0) {
-    //             module.openDraftMode(
-    //                 leftOperand,
-    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(leftOperand.returns, expr.operator),
-    //                 conversionActionsForLeft
-    //             );
-    //         } else {
-    //             module.openDraftMode(
-    //                 leftOperand,
-    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(leftOperand.returns, expr.operator),
-    //                 [
-    //                     createWarningButton(
-    //                         Tooltip.Delete,
-    //                         leftOperand,
-    //                         (() => {
-    //                             this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
-    //                         }).bind(this)
-    //                     ),
-    //                 ]
-    //             );
-    //         }
-
-    //         leftOpened = true;
-    //     } else if (
-    //         leftOperand instanceof TypedEmptyExpr &&
-    //         rightOperand instanceof Expression &&
-    //         TypeChecker.getAllowedBinaryOperatorsForType(rightOperand.returns).indexOf(expr.operator) === -1
-    //     ) {
-    //         if (conversionActionsForLeft.length > 0) {
-    //             module.openDraftMode(
-    //                 rightOperand,
-    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(rightOperand.returns, expr.operator),
-    //                 conversionActionsForRight
-    //             );
-    //         } else {
-    //             module.openDraftMode(
-    //                 rightOperand,
-    //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(rightOperand.returns, expr.operator),
-    //                 [
-    //                     createWarningButton(
-    //                         Tooltip.Delete,
-    //                         rightOperand,
-    //                         (() => {
-    //                             this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
-    //                         }).bind(this)
-    //                     ),
-    //                 ]
-    //             );
-    //         }
-
-    //         rightOpened = true;
-    //     }
-
-    //     return leftOpened || rightOpened;
-    // }
-
-    //TODO: Duplicated in ListElementAccessModifier
-    // private deleteUnconvertibleOperandWarning(
-    //     rootExpression: BinaryOperatorExpr,
-    //     codeToDelete: CodeConstruct,
-    //     module: Module
-    // ): void {
-    //     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
-    //         rootExpression: rootExpression,
-    //         codeToDelete: codeToDelete,
-    //     });
-
-    //     module.executer.execute(action);
-    // }
-
-    // private getCurrentAllowedTypesOfOperand(index: number, beingDeleted: boolean = false): DataType[] {
-    //     if (this.isBoolean()) {
-    //         return [DataType.Boolean];
-    //     }
-    //     return this.typeOfHoles[index];
-    // }
-
-    private isOperandEmpty(index: number): boolean {
-        return this.tokens[index] instanceof TypedEmptyExpr;
-    }
-
-    private updateReturnTypeOnDeletion(operandBeingDeletedIndex: number): void {
-        const operandBeingKept = this.tokens[this.getIndexOfOtherOperand(operandBeingDeletedIndex)];
-
-        if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
-            if (operandBeingKept instanceof TypedEmptyExpr) {
-                this.returns = DataType.Any;
-            } else if (operandBeingKept instanceof Expression) {
-                this.returns = operandBeingKept.returns;
-            }
-        } else {
-            this.returns = this.originalReturnType;
-        }
-    }
-
-    private areBothOperandsFilled(): boolean {
-        return !this.isOperandEmpty(this.leftOperandIndex) && !this.isOperandEmpty(this.rightOperandIndex);
-    }
-
-    private getIndexOfOtherOperand(index: number): number {
-        if (this.leftOperandIndex === index) {
-            return this.rightOperandIndex;
-        } else if (this.rightOperandIndex === index) {
-            return this.leftOperandIndex;
-        }
-
-        return -1;
-    }
-
-    private getFilledHoleType(): DataType {
-        if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return null;
-        let existingLiteralType = null;
-        if (this.tokens[this.leftOperandIndex] instanceof Expression) {
-            existingLiteralType = (this.tokens[this.leftOperandIndex] as Expression).returns;
-        } else if (this.tokens[this.rightOperandIndex] instanceof Expression) {
-            existingLiteralType = (this.tokens[this.rightOperandIndex] as Expression).returns;
-        }
-
-        return existingLiteralType;
-    }
-
-    // private getIndexOfEmptyOperand(): number {
-    //     if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
-    //     else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
-    //         return this.leftOperandIndex;
-    //     else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
-    //         return this.rightOperandIndex;
-    // }
-
-    private getIndexOfFilledOperand(): number {
-        if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
-        else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
-            return this.rightOperandIndex;
-        else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
-            return this.leftOperandIndex;
-    }
-}
+// export class BinaryOperatorExpr extends Expression {
+//     operator: BinaryOperator;
+//     operatorCategory: OperatorCategory;
+//     private leftOperandIndex: number;
+//     private rightOperandIndex: number;
+//     private originalReturnType: DataType;
+
+//     static originalTypeOfHolesAdd = new Map<string, Array<DataType>>([
+//         ["left", [DataType.Number, DataType.String, ...ListTypes]],
+//         ["right", [DataType.Number, DataType.String, ...ListTypes]],
+//     ]);
+//     static originalTypeOfHolesArithmetic = new Map<string, Array<DataType>>([
+//         ["left", [DataType.Number]],
+//         ["right", [DataType.Number]],
+//     ]);
+//     static originalTypeOfHolesBool = new Map<string, Array<DataType>>([
+//         ["left", [DataType.Boolean]],
+//         ["right", [DataType.Boolean]],
+//     ]);
+//     static originalTypeOfHolesEquality = new Map<string, Array<DataType>>([
+//         ["left", [DataType.Any]],
+//         ["right", [DataType.Any]],
+//     ]);
+//     static originalTypeOfHolesIn = new Map<string, Array<DataType>>([
+//         ["left", [DataType.String, DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList]],
+//         ["right", [DataType.String, DataType.AnyList, DataType.NumberList, DataType.StringList, DataType.BooleanList]],
+//     ]);
+//     static originalTypeOfHolesInequality = new Map<string, Array<DataType>>([
+//         ["left", [DataType.Number, DataType.String]],
+//         ["right", [DataType.Number, DataType.String]],
+//     ]);
+//     static originalReturnTypeBool = DataType.Boolean;
+//     static originReturnTypeComp = DataType.Boolean;
+//     static originalReturnTypeAdd = DataType.Any;
+//     static originalReturnTypeArithmetic = DataType.Number;
+
+//     constructor(operator: BinaryOperator, returns: DataType, root?: Statement | Expression, indexInRoot?: number) {
+//         super(returns);
+
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//         this.operator = operator;
+//         this.operatorCategory = getOperatorCategory(operator);
+
+//         this.tokens.push(new NonEditableTkn("(", this, this.tokens.length));
+
+//         this.leftOperandIndex = this.tokens.length;
+
+//         this.originalReturnType = returns;
+
+//         if (this.operatorCategory === OperatorCategory.Arithmetic && operator == BinaryOperator.Add) {
+//             if (returns !== DataType.String && returns !== DataType.Number) {
+//                 this.tokens.push(
+//                     new TypedEmptyExpr([DataType.Number, DataType.String, ...ListTypes], this, this.tokens.length)
+//                 );
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.keywordIndex = this.tokens.length;
+//                 this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.rightOperandIndex = this.tokens.length;
+//                 this.tokens.push(
+//                     new TypedEmptyExpr([DataType.Number, DataType.String, ...ListTypes], this, this.tokens.length)
+//                 );
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
+
+//                 this.returns = DataType.Any;
+//                 this.originalReturnType = DataType.Any;
+//             } else {
+//                 this.tokens.push(new TypedEmptyExpr([returns], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.keywordIndex = this.tokens.length;
+//                 this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.rightOperandIndex = this.tokens.length;
+//                 this.tokens.push(new TypedEmptyExpr([returns], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String, ...ListTypes];
+//             }
+//         } else if (this.operatorCategory === OperatorCategory.Arithmetic) {
+//             this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
+//             this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
+//             this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//             this.keywordIndex = this.tokens.length;
+//             this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//             this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//             this.rightOperandIndex = this.tokens.length;
+//             this.tokens.push(new TypedEmptyExpr([DataType.Number], this, this.tokens.length));
+//             this.typeOfHoles[this.tokens.length - 1] = [DataType.Number];
+
+//             this.returns = DataType.Number;
+//             this.originalReturnType = DataType.Number;
+//         } else if (this.operatorCategory === OperatorCategory.Boolean) {
+//             this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
+//             this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
+//             this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//             this.keywordIndex = this.tokens.length;
+//             this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//             this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//             this.rightOperandIndex = this.tokens.length;
+//             this.tokens.push(new TypedEmptyExpr([DataType.Boolean], this, this.tokens.length));
+//             this.typeOfHoles[this.tokens.length - 1] = [DataType.Boolean];
+
+//             this.returns = DataType.Boolean;
+//             this.originalReturnType = DataType.Boolean;
+//         } else if (this.operatorCategory == OperatorCategory.Comparison) {
+//             if (this.operator === BinaryOperator.Equal || this.operator === BinaryOperator.NotEqual) {
+//                 this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.keywordIndex = this.tokens.length;
+//                 this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.rightOperandIndex = this.tokens.length;
+//                 this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//             } else if (this.operator === BinaryOperator.In || this.operator === BinaryOperator.NotIn) {
+//                 this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.keywordIndex = this.tokens.length;
+//                 this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.rightOperandIndex = this.tokens.length;
+//                 this.tokens.push(
+//                     new TypedEmptyExpr(
+//                         [
+//                             DataType.String,
+//                             DataType.AnyList,
+//                             DataType.NumberList,
+//                             DataType.StringList,
+//                             DataType.BooleanList,
+//                         ],
+//                         this,
+//                         this.tokens.length
+//                     )
+//                 );
+//                 this.typeOfHoles[this.tokens.length - 1] = [
+//                     DataType.String,
+//                     DataType.AnyList,
+//                     DataType.NumberList,
+//                     DataType.StringList,
+//                     DataType.BooleanList,
+//                 ];
+//             } else {
+//                 this.tokens.push(new TypedEmptyExpr([DataType.Number, DataType.String], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String];
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.keywordIndex = this.tokens.length;
+//                 this.tokens.push(new OperatorTkn(operator, this, this.tokens.length));
+//                 this.tokens.push(new NonEditableTkn(" ", this, this.tokens.length));
+//                 this.rightOperandIndex = this.tokens.length;
+//                 this.tokens.push(new TypedEmptyExpr([DataType.Number, DataType.String], this, this.tokens.length));
+//                 this.typeOfHoles[this.tokens.length - 1] = [DataType.Number, DataType.String];
+//             }
+
+//             this.returns = DataType.Boolean;
+//             this.originalReturnType = DataType.Boolean;
+//         }
+
+//         this.tokens.push(new NonEditableTkn(")", this, this.tokens.length));
+//         this.hasEmptyToken = true;
+//     }
+
+//     static getRootExpr(expr: BinaryOperatorExpr): BinaryOperatorExpr {
+//         if (expr.rootNode instanceof BinaryOperatorExpr) return BinaryOperatorExpr.getRootExpr(expr.rootNode);
+//         else return expr;
+//     }
+
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         /**
+//          * Three cases:
+//          * * We are at an empty expression hole
+//          * * Either we are at the left of an expression and the current expression to the left has a type compatible
+//          * with the current binary operator (for example + with numbers and strings, - with numbers etc)
+//          * * Or we are at the right of an expression and the current expression to the right has a type compatible
+//          * with the current binary operator (for example + with numbers and strings, - with numbers etc)
+//          */
+//         return InsertionType.Valid;
+//         // validator.atEmptyExpressionHole(providedContext) || // type validation will happen later
+//         //     (validator.atLeftOfExpression(providedContext) &&
+//         //         !(providedContext.expressionToRight.rootNode instanceof VarOperationStmt)) /*&&
+//         //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToRight?.returns).some(
+//         //             (x) => x === this.operator
+//         //         )*/ ||
+//         //     (validator.atRightOfExpression(providedContext) &&
+//         //         !(providedContext.expressionToLeft.rootNode instanceof VarOperationStmt)) /*&&
+//         //         TypeChecker.getAllowedBinaryOperatorsForType(providedContext?.expressionToLeft?.returns).some(
+//         //             (x) => x === this.operator
+//         //         )*/
+//         //     ? InsertionType.Valid
+//         //     : InsertionType.Invalid;
+//     }
+
+//     // replaceLeftOperand(code: Expression) {
+//     //     this.onInsertInto(code);
+//     //     this.replace(code, this.leftOperandIndex);
+//     // }
+
+//     // replaceRightOperand(code: Expression) {
+//     //     this.onInsertInto(code);
+//     //     this.replace(code, this.rightOperandIndex);
+//     // }
+
+//     getLeftOperand(): Construct {
+//         return this.tokens[this.leftOperandIndex];
+//     }
+
+//     getRightOperand(): Construct {
+//         return this.tokens[this.rightOperandIndex];
+//     }
+
+//     isBoolean(): boolean {
+//         return this.operatorCategory === OperatorCategory.Boolean;
+//     }
+
+//     isArithmetic(): boolean {
+//         return this.operatorCategory === OperatorCategory.Arithmetic;
+//     }
+
+//     isComparison(): boolean {
+//         return this.operatorCategory === OperatorCategory.Comparison;
+//     }
+
+//     /**
+//      * Update types of empty holes when inserting into the binary operator expression.
+//      *
+//      * @param type new return/operand type
+//      */
+//     performTypeUpdatesOnInsertion(type: DataType) {
+//         if (this.operatorCategory !== OperatorCategory.Boolean) {
+//             //in this case the type arrays will always only contain a single type unless it is the + operator
+//             const leftOperandTypes = (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type;
+//             const rightOperandTypes = (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type;
+
+//             if (leftOperandTypes.indexOf(type) == -1) {
+//                 leftOperandTypes.push(type);
+//             }
+
+//             if (rightOperandTypes.indexOf(type) == -1) {
+//                 rightOperandTypes.push(type);
+//             }
+
+//             this.returns = type;
+//         }
+//     }
+
+//     /**
+//      * Removes "type" from the type array of the operands of this expression.
+//      *
+//      * @param type type to remove
+//      */
+//     removeTypeFromOperands(type: DataType) {
+//         if (!this.isBoolean()) {
+//             //in this case the type arrays will always only contain a single type unless it is the + operator
+//             const leftOperandTypes = (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type;
+//             const rightOperandTypes = (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type;
+
+//             if (leftOperandTypes.indexOf(type) > -1) {
+//                 leftOperandTypes.splice(leftOperandTypes.indexOf(type), 1);
+//             }
+
+//             if (rightOperandTypes.indexOf(type) > -1) {
+//                 rightOperandTypes.splice(rightOperandTypes.indexOf(type), 1);
+//             }
+//         }
+//     }
+
+//     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {
+//         // Special case. + supports String and number and needs to be updated when it is inserted into a hole of one of those types
+//         if (
+//             this.operator === BinaryOperator.Add &&
+//             (insertInto.type.indexOf(DataType.String) > -1 || insertInto.type.indexOf(DataType.Number) > -1)
+//         ) {
+//             this.returns = insertInto.type[0]; // it is safe to assume insertInto.type will have a single type because a hole cannot accept both Number and String
+//             this.performTypeUpdatesOnInsertion(insertInto.type[0]);
+
+//             if (insertInto.type.indexOf(DataType.String) > -1) {
+//                 this.removeTypeFromOperands(DataType.Number);
+//             } else this.removeTypeFromOperands(DataType.String);
+//         }
+//     }
+
+//     private performReturnTypeUpdatesForAdditionOnInsertInto(rootExpr: BinaryOperatorExpr) {
+//         const leftOperand = rootExpr.getLeftOperand();
+//         const rightOperand = rootExpr.getRightOperand();
+
+//         if (leftOperand instanceof BinaryOperatorExpr) {
+//             rootExpr.performReturnTypeUpdatesForAdditionOnInsertInto(leftOperand);
+//         }
+
+//         if (rightOperand instanceof BinaryOperatorExpr) {
+//             rootExpr.performReturnTypeUpdatesForAdditionOnInsertInto(rightOperand);
+//         }
+
+//         if (
+//             leftOperand &&
+//             rightOperand &&
+//             leftOperand instanceof TypedEmptyExpr &&
+//             rightOperand instanceof TypedEmptyExpr
+//         ) {
+//             return;
+//         } else if (rootExpr.operator === BinaryOperator.Add) {
+//             if (
+//                 leftOperand &&
+//                 rightOperand &&
+//                 leftOperand instanceof Expression &&
+//                 rightOperand instanceof Expression
+//             ) {
+//                 if (
+//                     leftOperand.returns === rightOperand.returns &&
+//                     TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(rootExpr.operator) > -1
+//                 ) {
+//                     rootExpr.returns = leftOperand.returns;
+//                 } else {
+//                     rootExpr.returns = DataType.Any;
+//                 }
+//             } else if (
+//                 leftOperand &&
+//                 leftOperand instanceof Expression &&
+//                 (rootExpr.originalReturnType === leftOperand.returns || rootExpr.originalReturnType === DataType.Any)
+//             ) {
+//                 rootExpr.returns = leftOperand.returns;
+//             } else if (
+//                 rightOperand &&
+//                 rightOperand instanceof Expression &&
+//                 (rootExpr.originalReturnType === rightOperand.returns || rootExpr.originalReturnType === DataType.Any)
+//             ) {
+//                 rootExpr.returns = rightOperand.returns;
+//             } else if (
+//                 leftOperand &&
+//                 leftOperand instanceof TypedEmptyExpr &&
+//                 rightOperand &&
+//                 rightOperand instanceof Expression &&
+//                 (rootExpr.originalReturnType === rightOperand.returns || rootExpr.originalReturnType === DataType.Any)
+//             ) {
+//                 rootExpr.returns = rightOperand.returns;
+//             } else if (
+//                 rightOperand &&
+//                 rightOperand instanceof TypedEmptyExpr &&
+//                 leftOperand &&
+//                 leftOperand instanceof Expression &&
+//                 (rootExpr.originalReturnType === leftOperand.returns || rootExpr.originalReturnType === DataType.Any)
+//             ) {
+//                 rootExpr.returns = leftOperand.returns;
+//             }
+//         } else if (rootExpr.isArithmetic()) {
+//             if (
+//                 leftOperand &&
+//                 rightOperand &&
+//                 leftOperand instanceof Expression &&
+//                 rightOperand instanceof Expression
+//             ) {
+//                 if (
+//                     leftOperand.returns === rightOperand.returns &&
+//                     TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(rootExpr.operator) > -1
+//                 ) {
+//                     rootExpr.returns = leftOperand.returns;
+//                 } else {
+//                     rootExpr.returns = DataType.Any;
+//                 }
+//             } else {
+//                 rootExpr.returns = DataType.Any;
+//             }
+//         }
+//     }
+
+//     // /**
+//     //  * Update the return type of an expression and its operands when inserting into the expression.
+//     //  *
+//     //  * @param insertCode - The code to insert
+//     //  */
+//     // performTypeUpdatesOnInsertInto(insertCode: Expression) {
+//     //     //return type update
+//     //     if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
+//     //         // Get the first non empty operand in the binary add expression
+//     //         const nonEmptyOperand = !this.isOperandEmpty(this.leftOperandIndex)
+//     //             ? this.getLeftOperand()
+//     //             : !this.isOperandEmpty(this.rightOperandIndex)
+//     //             ? this.getRightOperand()
+//     //             : null;
+
+//     //         // If there is an operand in the binary add expression, update the return type of the binary add expression
+//     //         if (nonEmptyOperand) {
+//     //             // If the inserted is of the same type as the non empty operand
+//     //             if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns === insertCode.returns) {
+//     //                 // If a binary operator is allowed for the type of the non empty operand, return the same type
+//     //                 if (TypeChecker.isBinOpAllowed(this.operator, nonEmptyOperand.returns, nonEmptyOperand.returns)) {
+//     //                     this.returns = nonEmptyOperand.returns;
+//     //                 } else {
+//     //                     // If not allowed, this type is set to any
+//     //                     this.returns = DataType.Any;
+//     //                 }
+//     //                 // If different types, set the return type to any
+//     //             } else if (nonEmptyOperand instanceof Expression && nonEmptyOperand.returns !== insertCode.returns) {
+//     //                 this.returns = DataType.Any;
+//     //             }
+//     //         } else {
+//     //             // If there is no non empty operand, set the return type to the insertCode return type
+//     //             this.returns = insertCode.returns;
+//     //         }
+//     //     }
+
+//     //     //operand type updates
+//     //     if (!this.isBoolean()) {
+//     //         //Check if one of the holes is not empty and get its type
+//     //         let existingLiteralType = this.getFilledHoleType();
+
+//     //         //if existingLiteralType is null then both operands are still empty holes and since we are inserting
+//     //         //into one of them, the types need to be updated
+//     //         if (!existingLiteralType && (this.returns === DataType.Any || this.isComparison())) {
+//     //             if (
+//     //                 this.isOperandEmpty(this.leftOperandIndex) &&
+//     //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
+//     //             ) {
+//     //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
+//     //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
+//     //                 } else {
+//     //                     (this.tokens[this.leftOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
+//     //                 }
+//     //             }
+//     //             if (
+//     //                 this.isOperandEmpty(this.rightOperandIndex) &&
+//     //                 TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1
+//     //             ) {
+//     //                 if (ListTypes.indexOf(insertCode.returns) > -1) {
+//     //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [...ListTypes];
+//     //                 } else {
+//     //                     (this.tokens[this.rightOperandIndex] as TypedEmptyExpr).type = [insertCode.returns];
+//     //                 }
+//     //             }
+//     //         }
+
+//     //         if (
+//     //             insertCode.returns === this.getFilledHoleType() &&
+//     //             TypeChecker.getAllowedBinaryOperatorsForType(insertCode.returns)?.indexOf(this.operator) > -1 &&
+//     //             this.tokens[this.getIndexOfFilledOperand()].draftModeEnabled
+//     //         ) {
+//     //             this.getModule().closeConstructDraftRecord(this.tokens[this.getIndexOfFilledOperand()]);
+//     //         }
+//     //     }
+
+//     //     //find root
+//     //     let curr = this as BinaryOperatorExpr;
+//     //     while (curr.rootNode !== null && curr.rootNode instanceof BinaryOperatorExpr) {
+//     //         curr = curr.rootNode;
+//     //     }
+
+//     //     //update return types in root
+//     //     if (curr && this.isArithmetic()) this.performReturnTypeUpdatesForAdditionOnInsertInto(curr);
+//     // }
+
+//     //should only be used on nested binary ops
+//     checkAllHolesAreEmpty() {
+//         let result = [];
+
+//         if (
+//             (!(this.tokens[this.leftOperandIndex] instanceof TypedEmptyExpr) &&
+//                 !(this.tokens[this.leftOperandIndex] instanceof BinaryOperatorExpr)) ||
+//             (!(this.tokens[this.rightOperandIndex] instanceof TypedEmptyExpr) &&
+//                 !(this.tokens[this.rightOperandIndex] instanceof BinaryOperatorExpr))
+//         ) {
+//             result.push(false);
+//         }
+
+//         for (const tkn of this.tokens) {
+//             if (tkn instanceof BinaryOperatorExpr) {
+//                 result.push(...tkn.checkAllHolesAreEmpty());
+//             }
+//         }
+
+//         return result;
+//     }
+
+//     //use this for comparators and arithmetic ops to get their top level expression parent in case they are inside of a nested epxression
+//     getTopLevelBinExpression(): BinaryOperatorExpr {
+//         let currParentExpression = this.rootNode instanceof BinaryOperatorExpr ? this.rootNode : this;
+//         let nextParentExpression = this.rootNode instanceof Module ? null : this.rootNode?.rootNode;
+//         while (nextParentExpression && nextParentExpression instanceof BinaryOperatorExpr) {
+//             currParentExpression = nextParentExpression;
+//             nextParentExpression = nextParentExpression.rootNode;
+//         }
+
+//         return currParentExpression as BinaryOperatorExpr;
+//     }
+
+//     /**
+//      * Return whether all holes of a nested expression are still empty when used on a nested binary operator expression.
+//      *
+//      * @returns true if all holes are TypedEmptyExpr. false otherwise.
+//      */
+//     areAllHolesEmpty() {
+//         const topLevelExpression = this.getTopLevelBinExpression();
+
+//         return topLevelExpression.checkAllHolesAreEmpty().every((element) => {
+//             element;
+//         });
+//     }
+
+//     //this is for finding out if the holes of just this epxression are empty (does not check nestings)
+//     areOperandsEmpty(): boolean {
+//         return (
+//             this.tokens[this.rightOperandIndex] instanceof TypedEmptyExpr &&
+//             this.tokens[this.leftOperandIndex] instanceof TypedEmptyExpr
+//         );
+//     }
+
+//     // onInsertInto(insertCode: Expression) {
+//     //     this.performTypeUpdatesOnInsertInto(insertCode);
+//     // }
+
+//     onReplaceToken(args: { indexInRoot: number }): void {
+//         this.updateReturnTypeOnDeletion(args.indexInRoot);
+//         const otherOperand = this.getIndexOfOtherOperand(args.indexInRoot);
+
+//         if (
+//             otherOperand > -1 &&
+//             this.tokens[otherOperand].draftModeEnabled &&
+//             TypeChecker.getAllowedBinaryOperatorsForType((this.tokens[otherOperand] as Expression).returns).indexOf(
+//                 this.operator
+//             ) > -1
+//         ) {
+//             this.getModule().closeConstructDraftRecord(this.tokens[otherOperand]);
+//         }
+
+//         // this.updateVariableType(this.returns);
+//     }
+
+//     // getCurrentAllowedTypesOfHole(index: number, beingDeleted: boolean = false): DataType[] {
+//     //     return this.getCurrentAllowedTypesOfOperand(index, beingDeleted);
+//     // }
+
+//     // validateTypes(module: Module) {
+//     //     let curr = this.rootNode;
+//     //     while (curr && curr.rootNode instanceof BinaryOperatorExpr) {
+//     //         curr = curr.rootNode;
+//     //     }
+//     //     this.validateBinExprTypes(curr instanceof BinaryOperatorExpr ? curr : this, module);
+//     // }
+
+//     getKeyword(): string {
+//         return `${this.getLeftOperand().getKeyword()} ${this.operator} ${this.getRightOperand().getKeyword()}`;
+//     }
+
+//     /**
+//      * Only call this when you are sure that the operand is a TypedEmptyExpr
+//      * @param operand
+//      */
+//     updateTypeOfEmptyOperandOnOperatorChange(operand: string) {
+//         const operandToUpdate = (operand === "left" ? this.getLeftOperand() : this.getRightOperand()) as TypedEmptyExpr;
+
+//         switch (this.operatorCategory) {
+//             case OperatorCategory.Boolean:
+//                 operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesBool.get(operand);
+//                 break;
+//             case OperatorCategory.Comparison:
+//                 if (this.operator === BinaryOperator.Equal || this.operator === BinaryOperator.NotEqual) {
+//                     operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesEquality.get(operand);
+//                 } else {
+//                     operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesInequality.get(operand);
+//                 }
+//                 break;
+//             case OperatorCategory.Arithmetic:
+//                 if (this.operator === BinaryOperator.Add) {
+//                     operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesAdd.get(operand);
+//                 } else {
+//                     operandToUpdate.type = BinaryOperatorExpr.originalTypeOfHolesArithmetic.get(operand);
+//                 }
+//                 break;
+//         }
+//     }
+
+//     //TODO: Passing module recursively is bad for memory
+//     //TODO: Function is way too large. Can definitely be split into smaller ones.
+//     // /**
+//     //  * Check the current binary expression for type mismatches and open draft mode if necessary. Do this
+//     //  * recursively for all nested binary expressions.
+//     //  *
+//     //  * @param expr - Binary expression
+//     //  * @param module - Current module
+//     //  * @returns Whether the binary expression is valid
+//     //  */
+//     // private validateBinExprTypes(expr: BinaryOperatorExpr, module: Module): boolean {
+//     //     const leftOperand = expr.getLeftOperand();
+//     //     const rightOperand = expr.getRightOperand();
+//     //     let leftOpened = false,
+//     //         rightOpened = false;
+
+//     //     if (leftOperand instanceof BinaryOperatorExpr) {
+//     //         leftOpened = this.validateBinExprTypes(leftOperand, module);
+//     //     }
+
+//     //     if (rightOperand instanceof BinaryOperatorExpr) {
+//     //         rightOpened = this.validateBinExprTypes(rightOperand, module);
+//     //     }
+
+//     //     if (leftOpened || rightOpened) return true;
+
+//     //     //get all conversions
+//     //     const leftExprTypes = leftOperand.getTypes();
+//     //     const rightExprTypes = rightOperand.getTypes();
+
+//     //     const conversionActionsForLeft = [];
+//     //     const conversionActionsForRight = [];
+
+//     //     //if types can be added, there is no need to get conversion records
+//     //     let operationDefinedBetweenTypes = false;
+//     //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
+//     //         operationDefinedBetweenTypes = TypeChecker.isBinOpAllowed(
+//     //             this.operator,
+//     //             leftOperand.returns,
+//     //             rightOperand.returns
+//     //         );
+//     //     }
+
+//     //     if (!operationDefinedBetweenTypes) {
+//     //         //get all possible ways of converting all types of left to types of right and vice versa
+//     //         for (const leftType of leftExprTypes) {
+//     //             for (const rightType of rightExprTypes) {
+//     //                 const conversionRecordsLeftToRight = TypeChecker.getTypeConversionRecords(leftType, rightType);
+//     //                 const conversionRecordsRightToLeft = TypeChecker.getTypeConversionRecords(rightType, leftType);
+
+//     //                 for (const leftRecord of conversionRecordsLeftToRight) {
+//     //                     if (
+//     //                         TypeChecker.getAllowedBinaryOperatorsForType(leftRecord.convertTo).indexOf(expr.operator) >
+//     //                         -1
+//     //                     ) {
+//     //                         conversionActionsForLeft.push(
+//     //                             leftRecord.getConversionButton(leftOperand.getKeyword(), module, leftOperand)
+//     //                         );
+//     //                     }
+//     //                 }
+
+//     //                 for (const rightRecord of conversionRecordsRightToLeft) {
+//     //                     if (
+//     //                         TypeChecker.getAllowedBinaryOperatorsForType(rightRecord.convertTo).indexOf(expr.operator) >
+//     //                         -1
+//     //                     ) {
+//     //                         conversionActionsForRight.push(
+//     //                             rightRecord.getConversionButton(rightOperand.getKeyword(), module, rightOperand)
+//     //                         );
+//     //                     }
+//     //                 }
+//     //             }
+//     //         }
+//     //     }
+
+//     //     //note that if one of them or both are a TypedEmptyExpr, then any insertions are validated elsewhere
+//     //     //so at this point if something is inserted into the left or right operand then that insertion at the very least
+//     //     //was NOT invalid
+//     //     if (leftOperand instanceof Expression && rightOperand instanceof Expression) {
+//     //         if (leftOperand.returns === rightOperand.returns && operationDefinedBetweenTypes) {
+//     //             if (leftOperand.draftModeEnabled) module.closeConstructDraftRecord(leftOperand);
+//     //             if (rightOperand.draftModeEnabled) module.closeConstructDraftRecord(rightOperand);
+//     //             return false;
+//     //         }
+
+//     //         //TODO: These if blocks are identical. Should be a function
+//     //         if (leftOperand.returns === DataType.Any) {
+//     //             module.openDraftMode(
+//     //                 leftOperand,
+//     //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], leftOperand.returns),
+//     //                 [
+//     //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+//     //                         "",
+//     //                         module,
+//     //                         leftOperand
+//     //                     ),
+//     //                 ]
+//     //             );
+//     //         } else if (!operationDefinedBetweenTypes) {
+//     //             if (conversionActionsForLeft.length > 0) {
+//     //                 module.openDraftMode(
+//     //                     leftOperand,
+//     //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([rightOperand.returns], leftOperand.returns),
+//     //                     conversionActionsForLeft
+//     //                 );
+//     //             } else if (
+//     //                 conversionActionsForLeft.length === 0 &&
+//     //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
+//     //             ) {
+//     //                 module.openDraftMode(
+//     //                     leftOperand,
+//     //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
+//     //                         expr.operator,
+//     //                         leftOperand.returns,
+//     //                         rightOperand.returns
+//     //                     ),
+//     //                     [
+//     //                         createWarningButton(
+//     //                             Tooltip.Delete,
+//     //                             leftOperand,
+//     //                             (() => {
+//     //                                 this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
+//     //                             }).bind(this)
+//     //                         ),
+//     //                     ]
+//     //                 );
+//     //             }
+//     //         } else if (leftOperand.draftModeEnabled) {
+//     //             module.closeConstructDraftRecord(leftOperand);
+//     //         }
+
+//     //         if (rightOperand.returns === DataType.Any) {
+//     //             module.openDraftMode(
+//     //                 rightOperand,
+//     //                 TYPE_MISMATCH_ANY(this.typeOfHoles[this.leftOperandIndex], rightOperand.returns),
+//     //                 [
+//     //                     new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning).getConversionButton(
+//     //                         "",
+//     //                         module,
+//     //                         rightOperand
+//     //                     ),
+//     //                 ]
+//     //             );
+//     //         } else if (!operationDefinedBetweenTypes) {
+//     //             if (conversionActionsForRight.length > 0) {
+//     //                 module.openDraftMode(
+//     //                     rightOperand,
+//     //                     TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR([leftOperand.returns], rightOperand.returns),
+//     //                     conversionActionsForRight
+//     //                 );
+//     //             } else if (
+//     //                 conversionActionsForRight.length === 0 &&
+//     //                 !TypeChecker.isBinOpAllowed(expr.operator, leftOperand.returns, rightOperand.returns)
+//     //             ) {
+//     //                 module.openDraftMode(
+//     //                     rightOperand,
+//     //                     GET_BINARY_OPERATION_OPERATOR_NOT_DEFINED_BETWEEN_TYPES(
+//     //                         expr.operator,
+//     //                         leftOperand.returns,
+//     //                         rightOperand.returns
+//     //                     ),
+//     //                     [
+//     //                         createWarningButton(
+//     //                             Tooltip.Delete,
+//     //                             rightOperand,
+//     //                             (() => {
+//     //                                 this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
+//     //                             }).bind(this)
+//     //                         ),
+//     //                     ]
+//     //                 );
+//     //             }
+//     //         } else if (rightOperand.draftModeEnabled) {
+//     //             module.closeConstructDraftRecord(rightOperand);
+//     //         }
+
+//     //         rightOpened = true;
+//     //         leftOpened = true;
+//     //     } else if (
+//     //         leftOperand instanceof Expression &&
+//     //         rightOperand instanceof TypedEmptyExpr &&
+//     //         TypeChecker.getAllowedBinaryOperatorsForType(leftOperand.returns).indexOf(expr.operator) === -1
+//     //     ) {
+//     //         if (conversionActionsForLeft.length > 0) {
+//     //             module.openDraftMode(
+//     //                 leftOperand,
+//     //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(leftOperand.returns, expr.operator),
+//     //                 conversionActionsForLeft
+//     //             );
+//     //         } else {
+//     //             module.openDraftMode(
+//     //                 leftOperand,
+//     //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(leftOperand.returns, expr.operator),
+//     //                 [
+//     //                     createWarningButton(
+//     //                         Tooltip.Delete,
+//     //                         leftOperand,
+//     //                         (() => {
+//     //                             this.deleteUnconvertibleOperandWarning(expr, leftOperand, module);
+//     //                         }).bind(this)
+//     //                     ),
+//     //                 ]
+//     //             );
+//     //         }
+
+//     //         leftOpened = true;
+//     //     } else if (
+//     //         leftOperand instanceof TypedEmptyExpr &&
+//     //         rightOperand instanceof Expression &&
+//     //         TypeChecker.getAllowedBinaryOperatorsForType(rightOperand.returns).indexOf(expr.operator) === -1
+//     //     ) {
+//     //         if (conversionActionsForLeft.length > 0) {
+//     //             module.openDraftMode(
+//     //                 rightOperand,
+//     //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_CONVERT_MSG(rightOperand.returns, expr.operator),
+//     //                 conversionActionsForRight
+//     //             );
+//     //         } else {
+//     //             module.openDraftMode(
+//     //                 rightOperand,
+//     //                 GET_BINARY_OPERATION_NOT_DEFINED_FOR_TYPE_DELETE_MSG(rightOperand.returns, expr.operator),
+//     //                 [
+//     //                     createWarningButton(
+//     //                         Tooltip.Delete,
+//     //                         rightOperand,
+//     //                         (() => {
+//     //                             this.deleteUnconvertibleOperandWarning(expr, rightOperand, module);
+//     //                         }).bind(this)
+//     //                     ),
+//     //                 ]
+//     //             );
+//     //         }
+
+//     //         rightOpened = true;
+//     //     }
+
+//     //     return leftOpened || rightOpened;
+//     // }
+
+//     //TODO: Duplicated in ListElementAccessModifier
+//     // private deleteUnconvertibleOperandWarning(
+//     //     rootExpression: BinaryOperatorExpr,
+//     //     codeToDelete: CodeConstruct,
+//     //     module: Module
+//     // ): void {
+//     //     const action = new EditAction(EditActionType.DeleteUnconvertibleOperandWarning, {
+//     //         rootExpression: rootExpression,
+//     //         codeToDelete: codeToDelete,
+//     //     });
+
+//     //     module.executer.execute(action);
+//     // }
+
+//     // private getCurrentAllowedTypesOfOperand(index: number, beingDeleted: boolean = false): DataType[] {
+//     //     if (this.isBoolean()) {
+//     //         return [DataType.Boolean];
+//     //     }
+//     //     return this.typeOfHoles[index];
+//     // }
+
+//     private isOperandEmpty(index: number): boolean {
+//         return this.tokens[index] instanceof TypedEmptyExpr;
+//     }
+
+//     private updateReturnTypeOnDeletion(operandBeingDeletedIndex: number): void {
+//         const operandBeingKept = this.tokens[this.getIndexOfOtherOperand(operandBeingDeletedIndex)];
+
+//         if (this.isArithmetic() && this.operator === BinaryOperator.Add) {
+//             if (operandBeingKept instanceof TypedEmptyExpr) {
+//                 this.returns = DataType.Any;
+//             } else if (operandBeingKept instanceof Expression) {
+//                 this.returns = operandBeingKept.returns;
+//             }
+//         } else {
+//             this.returns = this.originalReturnType;
+//         }
+//     }
+
+//     private areBothOperandsFilled(): boolean {
+//         return !this.isOperandEmpty(this.leftOperandIndex) && !this.isOperandEmpty(this.rightOperandIndex);
+//     }
+
+//     private getIndexOfOtherOperand(index: number): number {
+//         if (this.leftOperandIndex === index) {
+//             return this.rightOperandIndex;
+//         } else if (this.rightOperandIndex === index) {
+//             return this.leftOperandIndex;
+//         }
+
+//         return -1;
+//     }
+
+//     private getFilledHoleType(): DataType {
+//         if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return null;
+//         let existingLiteralType = null;
+//         if (this.tokens[this.leftOperandIndex] instanceof Expression) {
+//             existingLiteralType = (this.tokens[this.leftOperandIndex] as Expression).returns;
+//         } else if (this.tokens[this.rightOperandIndex] instanceof Expression) {
+//             existingLiteralType = (this.tokens[this.rightOperandIndex] as Expression).returns;
+//         }
+
+//         return existingLiteralType;
+//     }
+
+//     // private getIndexOfEmptyOperand(): number {
+//     //     if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
+//     //     else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
+//     //         return this.leftOperandIndex;
+//     //     else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
+//     //         return this.rightOperandIndex;
+//     // }
+
+//     private getIndexOfFilledOperand(): number {
+//         if (this.areOperandsEmpty() || this.areBothOperandsFilled()) return -1;
+//         else if (this.getLeftOperand() instanceof TypedEmptyExpr && !(this.getRightOperand() instanceof TypedEmptyExpr))
+//             return this.rightOperandIndex;
+//         else if (this.getRightOperand() instanceof TypedEmptyExpr && !(this.getLeftOperand() instanceof TypedEmptyExpr))
+//             return this.leftOperandIndex;
+//     }
+// }
 
 // /**
 //  * Expression for operators with only one operand
@@ -4735,51 +4735,52 @@ export class EditableTextTkn extends Token implements TextEditable {
     }
 }
 
-/**
- * Token used on the spot where there should be an operator token, but there is none
- * This is for example the case the operator in a binary operator expression is deleted
- */
-export class EmptyOperatorTkn extends Token {
-    isEmpty = true;
+// /**
+//  * Token used on the spot where there should be an operator token, but there is none
+//  * This is for example the case the operator in a binary operator expression is deleted
+//  */
+// export class EmptyOperatorTkn extends Token {
+//     isEmpty = true;
 
-    constructor(text: string, root?: Construct, indexInRoot?: number) {
-        super(text);
+//     constructor(text: string, root?: Construct, indexInRoot?: number) {
+//         super(text);
 
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-    }
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//     }
 
-    canReplaceWithConstruct(replaceWith: Construct): InsertionResult {
-        if (replaceWith instanceof OperatorTkn) {
-            return new InsertionResult(InsertionType.Valid, "", []);
-        } else return new InsertionResult(InsertionType.Invalid, "", []);
-    }
-}
+//     canReplaceWithConstruct(replaceWith: Construct): InsertionResult {
+//         // if (replaceWith instanceof OperatorTkn) {
+//         //     return new InsertionResult(InsertionType.Valid, "", []);
+//         // } else 
+//         return new InsertionResult(InsertionType.Invalid, "", []);
+//     }
+// }
 
-/**
- * Token for the unary or binary operator itself. Think "+", "-", "and", "or" etc.
- * ==> Why is this an expression? (subclass of modifier, which is a subclass of expression)
- */
-export class OperatorTkn extends Modifier {
-    operator: UnaryOperator | BinaryOperator;
-    operatorCategory: OperatorCategory;
+// /**
+//  * Token for the unary or binary operator itself. Think "+", "-", "and", "or" etc.
+//  * ==> Why is this an expression? (subclass of modifier, which is a subclass of expression)
+//  */
+// export class OperatorTkn extends Modifier {
+//     operator: UnaryOperator | BinaryOperator;
+//     operatorCategory: OperatorCategory;
 
-    constructor(operator: UnaryOperator | BinaryOperator, root?: Statement | Expression, indexInRoot?: number) {
-        super();
+//     constructor(operator: UnaryOperator | BinaryOperator, root?: Statement | Expression, indexInRoot?: number) {
+//         super();
 
-        this.tokens.push(new NonEditableTkn(operator, this, this.tokens.length));
+//         this.tokens.push(new NonEditableTkn(operator, this, this.tokens.length));
 
-        this.operator = operator;
-        this.rootNode = root;
-        this.indexInRoot = indexInRoot;
-    }
+//         this.operator = operator;
+//         this.rootNode = root;
+//         this.indexInRoot = indexInRoot;
+//     }
 
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atEmptyOperatorTkn(providedContext) && validator.canInsertOp(this.operator, providedContext)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
+//     validateContext(validator: Validator, providedContext: Context): InsertionType {
+//         return validator.atEmptyOperatorTkn(providedContext) && validator.canInsertOp(this.operator, providedContext)
+//             ? InsertionType.Valid
+//             : InsertionType.Invalid;
+//     }
+// }
 
 // /**
 //  * Express values: string, number and boolean
@@ -5430,28 +5431,28 @@ export class TypedEmptyExpr extends Token {
         this.type = type;
     }
 
-    canReplaceWithConstruct(replaceWith: Expression): InsertionResult {
-        //check if the type of replaceWith can be converted into any of the hole's types
-        if (hasMatch(Util.getInstance().typeConversionMap.get(replaceWith.returns), this.type)) {
-            const conversionRecords = typeToConversionRecord.has(replaceWith.returns)
-                ? typeToConversionRecord
-                      .get(replaceWith.returns)
-                      .filter((record) => this.type.indexOf(record.convertTo) > -1)
-                : [];
+    // canReplaceWithConstruct(replaceWith: Expression): InsertionResult {
+    //     //check if the type of replaceWith can be converted into any of the hole's types
+    //     if (hasMatch(Util.getInstance().typeConversionMap.get(replaceWith.returns), this.type)) {
+    //         const conversionRecords = typeToConversionRecord.has(replaceWith.returns)
+    //             ? typeToConversionRecord
+    //                   .get(replaceWith.returns)
+    //                   .filter((record) => this.type.indexOf(record.convertTo) > -1)
+    //             : [];
 
-            return new InsertionResult(
-                InsertionType.DraftMode,
-                TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR(this.type, replaceWith.returns),
-                conversionRecords
-            );
-        } else if (replaceWith.returns === DataType.Any) {
-            return new InsertionResult(InsertionType.DraftMode, TYPE_MISMATCH_ANY(this.type, replaceWith.returns), [
-                new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning),
-            ]);
-        }
+    //         return new InsertionResult(
+    //             InsertionType.DraftMode,
+    //             TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR(this.type, replaceWith.returns),
+    //             conversionRecords
+    //         );
+    //     } else if (replaceWith.returns === DataType.Any) {
+    //         return new InsertionResult(InsertionType.DraftMode, TYPE_MISMATCH_ANY(this.type, replaceWith.returns), [
+    //             new IgnoreConversionRecord("", null, null, "", null, Tooltip.IgnoreWarning),
+    //         ]);
+    //     }
 
-        return new InsertionResult(InsertionType.Invalid, "", []);
-    }
+    //     return new InsertionResult(InsertionType.Invalid, "", []);
+    // }
 
     // isListElement(): boolean {
     //     return this.rootNode && this.rootNode instanceof ListLiteralExpression;

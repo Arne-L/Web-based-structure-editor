@@ -4,10 +4,10 @@ import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
     // AssignmentModifier,
     AutocompleteTkn,
-    BinaryOperatorExpr,
+    // BinaryOperatorExpr,
     Construct,
     // ElseStatement,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     Expression,
     GeneralExpression,
     GeneralStatement,
@@ -17,7 +17,7 @@ import {
     // ListAccessModifier,
     Modifier,
     NonEditableTkn,
-    OperatorTkn,
+    // OperatorTkn,
     Statement,
     TemporaryStmt,
     Token,
@@ -139,35 +139,37 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.DeleteNextToken: {
-                if (context.expressionToRight instanceof OperatorTkn) {
-                    this.replaceCode(
-                        context.expressionToRight,
-                        new EmptyOperatorTkn(" ", context.expressionToRight, context.expressionToRight.indexInRoot)
-                    );
+                // if (context.expressionToRight instanceof OperatorTkn) {
+                //     this.replaceCode(
+                //         context.expressionToRight,
+                //         new EmptyOperatorTkn(" ", context.expressionToRight, context.expressionToRight.indexInRoot)
+                //     );
                     // } else if (this.module.validator.atBeginningOfValOperation(context)) { // CAN THIS REALLY BE REMOVED?
                     //     this.module.deleteCode(context.expressionToRight.rootNode);
                     // } else if (context.expressionToRight instanceof Modifier) {
                     //     this.deleteModifier(context.expressionToRight, { deleting: true });
-                } else this.module.deleteCode(context.expressionToRight);
+                // } else
+                this.module.deleteCode(context.expressionToRight);
 
                 break;
             }
 
             // NOT language independent
             case EditActionType.DeletePrevToken: {
-                if (context.expressionToLeft instanceof OperatorTkn) {
-                    this.replaceCode(
-                        context.expressionToLeft,
-                        new EmptyOperatorTkn(" ", context.expressionToLeft, context.expressionToLeft.indexInRoot)
-                    );
+                // if (context.expressionToLeft instanceof OperatorTkn) {
+                //     this.replaceCode(
+                //         context.expressionToLeft,
+                //         new EmptyOperatorTkn(" ", context.expressionToLeft, context.expressionToLeft.indexInRoot)
+                //     );
                     // } else if ( // TEMPORARY DISABLED TO FIX ERRORS
                     //     context.expressionToLeft instanceof VariableReferenceExpr &&
                     //     context.expressionToLeft.rootNode instanceof VarOperationStmt
                     // ) {
                     //     this.module.deleteCode(context.expressionToLeft.rootNode, { statement: true });
-                }
+                // }
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
-                else this.module.deleteCode(context.expressionToLeft);
+                // else 
+                this.module.deleteCode(context.expressionToLeft);
 
                 break;
             }
@@ -523,15 +525,15 @@ export class ActionExecutor {
                         ) {
                             // Remove the temporary statement encapsulating the autocomplete token
                             this.module.deleteCode(removableExpr.rootNode, { statement: true });
-                        } else if (
-                            removableExpr instanceof AutocompleteTkn &&
-                            removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
-                        ) {
-                            // When at an operator, replace it with an empty operator
-                            this.replaceCode(
-                                removableExpr,
-                                new EmptyOperatorTkn(" ", removableExpr.rootNode, removableExpr.indexInRoot)
-                            );
+                        // } else if (
+                        //     removableExpr instanceof AutocompleteTkn &&
+                        //     removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
+                        // ) {
+                        //     // When at an operator, replace it with an empty operator
+                        //     this.replaceCode(
+                        //         removableExpr,
+                        //         new EmptyOperatorTkn(" ", removableExpr.rootNode, removableExpr.indexInRoot)
+                        //     );
                         } else if (
                             removableExpr instanceof AutocompleteTkn &&
                             (removableExpr.autocompleteType == AutoCompleteType.RightOfExpression ||
@@ -985,8 +987,8 @@ export class ActionExecutor {
                     // to be the replacementTkn
                     if (
                         !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
-                        !(rootNode.tokens[i] instanceof NonEditableTkn) &&
-                        !(rootNode.tokens[i] instanceof OperatorTkn)
+                        !(rootNode.tokens[i] instanceof NonEditableTkn)
+                        // && !(rootNode.tokens[i] instanceof OperatorTkn)
                     ) {
                         replacementTkn = rootNode.tokens[i];
                     }
@@ -1103,19 +1105,19 @@ export class ActionExecutor {
             case EditActionType.InsertOperatorTkn: {
                 this.replaceCode(context.tokenToLeft, action.data.operator);
 
-                if (context.tokenToLeft.rootNode instanceof BinaryOperatorExpr) {
-                    const root = context.tokenToLeft.rootNode;
-                    root.operator = action.data.operator.operator;
-                    root.operatorCategory = getOperatorCategory(root.operator);
+                // if (context.tokenToLeft.rootNode instanceof BinaryOperatorExpr) {
+                //     const root = context.tokenToLeft.rootNode;
+                //     root.operator = action.data.operator.operator;
+                //     root.operatorCategory = getOperatorCategory(root.operator);
 
-                    if (root.getLeftOperand() instanceof TypedEmptyExpr) {
-                        root.updateTypeOfEmptyOperandOnOperatorChange("left");
-                    }
+                //     if (root.getLeftOperand() instanceof TypedEmptyExpr) {
+                //         root.updateTypeOfEmptyOperandOnOperatorChange("left");
+                //     }
 
-                    if (root.getRightOperand() instanceof TypedEmptyExpr) {
-                        root.updateTypeOfEmptyOperandOnOperatorChange("right");
-                    }
-                }
+                //     if (root.getRightOperand() instanceof TypedEmptyExpr) {
+                //         root.updateTypeOfEmptyOperandOnOperatorChange("right");
+                //     }
+                // }
 
                 if (flashGreen) this.flashGreen(action.data.operator);
 
@@ -1273,7 +1275,7 @@ export class ActionExecutor {
      */
     private insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
-        if (context.token instanceof TypedEmptyExpr || context.token instanceof EmptyOperatorTkn) {
+        if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
             if (context.expression != null) {
                 // Get the parent of the expression
@@ -1379,16 +1381,18 @@ export class ActionExecutor {
                 }
             }
 
-            if (root instanceof BinaryOperatorExpr) {
-                // Type check binary expression
-                // root.validateTypes(this.module);
-            } else if (insertionResult.insertionType == InsertionType.DraftMode) {
-                this.module.openDraftMode(code, insertionResult.message, [
-                    ...insertionResult.conversionRecords.map((conversionRecord) => {
-                        return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
-                    }),
-                ]);
-            } else if (isImportable(code)) {
+            // if (root instanceof BinaryOperatorExpr) {
+            //     // Type check binary expression
+            //     // root.validateTypes(this.module);
+            // } else
+            // if (insertionResult.insertionType == InsertionType.DraftMode) {
+            //     this.module.openDraftMode(code, insertionResult.message, [
+            //         ...insertionResult.conversionRecords.map((conversionRecord) => {
+            //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
+            //         }),
+            //     ]);
+            // } else 
+            if (isImportable(code)) {
                 //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
                 //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
                 //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some

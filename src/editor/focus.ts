@@ -9,7 +9,7 @@ import {
     IdentifierTkn,
     // LiteralValExpr,
     NonEditableTkn,
-    OperatorTkn,
+    // OperatorTkn,
     Statement,
     TextEditable,
     Token,
@@ -333,7 +333,7 @@ export class Focus {
             } else {
                 const tokenAfter = this.getTokenAtStatementColumn(focusedLineStatement, nextColumn);
 
-                if (tokenAfter instanceof NonEditableTkn || tokenAfter instanceof OperatorTkn) {
+                if (tokenAfter instanceof NonEditableTkn /*|| tokenAfter instanceof OperatorTkn*/) {
                     // should skip this NonEditableTkn, and move to the next thing after it.
 
                     // getTokenAtStatementColumn for a token.right will return the next token (as left is inclusive)
@@ -402,7 +402,7 @@ export class Focus {
             } else {
                 const tokenBefore = this.getTokenAtStatementColumn(focusedLineStatement, prevColumn);
 
-                if (tokenBefore instanceof NonEditableTkn || tokenBefore instanceof OperatorTkn) {
+                if (tokenBefore instanceof NonEditableTkn /*|| tokenBefore instanceof OperatorTkn*/) {
                     // if char[col - 1] is N => just go to the beginning of N
 
                     const tokenBeforeBefore = this.getTokenAtStatementColumn(

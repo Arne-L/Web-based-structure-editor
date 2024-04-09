@@ -2,14 +2,14 @@ import { Range } from "monaco-editor";
 import { Context } from "../editor/focus";
 import {
     Token,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     Statement,
     TypedEmptyExpr,
     TemporaryStmt,
     GeneralStatement,
     Construct,
     Expression,
-    BinaryOperatorExpr,
+    // BinaryOperatorExpr,
 } from "./ast";
 import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
@@ -106,7 +106,7 @@ export namespace ASTManupilation {
         const module = Module.instance;
 
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
-        if (context.token instanceof TypedEmptyExpr || context.token instanceof EmptyOperatorTkn) {
+        if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
             if (context.expression != null) {
                 // Get the parent of the expression
@@ -207,16 +207,20 @@ export namespace ASTManupilation {
                 }
             }
 
-            if (root instanceof BinaryOperatorExpr) {
-                // Type check binary expression
-                // root.validateTypes(module);
-            } else if (insertionResult.insertionType == InsertionType.DraftMode) {
-                module.openDraftMode(code, insertionResult.message, [
-                    ...insertionResult.conversionRecords.map((conversionRecord) => {
-                        return conversionRecord.getConversionButton(code.getKeyword(), module, code);
-                    }),
-                ]);
-            } else if (isImportable(code)) {
+            // if (root instanceof BinaryOperatorExpr) {
+            //     // Type check binary expression
+            //     // root.validateTypes(module);
+            // } else
+            // !!!!!!!!!!!!!!!!!!!!! MIGHT BE IMPORTANT TO GET DRAFT MODE TO WORK
+            // if (insertionResult.insertionType == InsertionType.DraftMode) {
+            //     module.openDraftMode(code, insertionResult.message, [
+            //         ...insertionResult.conversionRecords.map((conversionRecord) => {
+            //             return conversionRecord.getConversionButton(code.getKeyword(), module, code);
+            //         }),
+            //     ]);
+            // } else
+            // !!!!!!!!!!!!!!!!!!!!!
+            if (isImportable(code)) {
                 //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
                 //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
                 //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some

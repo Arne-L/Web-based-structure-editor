@@ -2,7 +2,7 @@ import { editor, KeyCode, KeyMod, languages, Range, Selection } from "monaco-edi
 import {
     Construct,
     EditableTextTkn,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     IdentifierTkn,
     Statement,
     TypedEmptyExpr,
@@ -326,8 +326,8 @@ export class Editor {
         if (
             code instanceof EditableTextTkn ||
             code instanceof TypedEmptyExpr ||
-            code instanceof IdentifierTkn ||
-            code instanceof EmptyOperatorTkn
+            code instanceof IdentifierTkn
+            // || code instanceof EmptyOperatorTkn
         ) {
             this.holes.push(new Hole(this, code));
         } else if (code instanceof Statement) {

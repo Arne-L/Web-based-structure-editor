@@ -11,9 +11,9 @@ import {
     // VarAssignmentStmt,
     // VariableReferenceExpr,
 } from "./ast";
-import { DataType, typeToConversionRecord, TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR } from "./consts";
+// import { DataType, typeToConversionRecord, TYPE_MISMATCH_IN_HOLE_DRAFT_MODE_STR } from "./consts";
 import { Module } from "./module";
-import { Reference, Scope } from "./scope";
+// import { Reference, Scope } from "./scope";
 
 /**
  *
