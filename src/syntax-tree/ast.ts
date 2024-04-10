@@ -1057,7 +1057,6 @@ export class GeneralStatement extends Statement {
                 // Now we are at required construct and we have handled all the depending constructs
                 if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
                     // We found the required construct
-                    if (this.getKeyword() == "else") console.log("Check 6");
                     canInsertConstruct = true;
                 }
             }
