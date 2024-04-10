@@ -117,7 +117,7 @@ export abstract class Construct {
     /**
      * Returns the parent statement of this code-construct (an element of the Module.body array).
      */
-    abstract getParentConstruct(): Statement;
+    abstract getParentStatement(): Statement;
 
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
@@ -536,7 +536,7 @@ export abstract class Statement implements Construct {
         return new Selection(this.lineNumber, this.rightCol, this.lineNumber, this.leftCol);
     }
 
-    getParentConstruct(): Statement {
+    getParentStatement(): Statement {
         return this;
     }
 
@@ -965,11 +965,11 @@ export class GeneralExpression extends GeneralStatement {
      *
      * @returns The parent statement of the current expression
      */
-    getParentConstruct(): Statement {
+    getParentStatement(): Statement {
         // Change to GeneralStatement in the future
         if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
         else {
-            return this.rootNode.getParentConstruct();
+            return this.rootNode.getParentStatement();
         }
     }
 
@@ -1020,8 +1020,8 @@ export abstract class Expression extends Statement implements Construct {
          */
     }
 
-    getParentConstruct(): Statement {
-        return this.rootNode.getParentConstruct();
+    getParentStatement(): Statement {
+        return this.rootNode.getParentStatement();
         /**
          * Generalisatie:
          * if (this.returns) return this.rootNode.getParentStatement(); // If expression
@@ -1180,8 +1180,8 @@ export abstract class Token implements Construct {
         return new Selection(line, this.rightCol, line, this.leftCol);
     }
 
-    getParentConstruct(): Statement {
-        return this.rootNode.getParentConstruct();
+    getParentStatement(): Statement {
+        return this.rootNode.getParentStatement();
     }
 
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
@@ -1566,7 +1566,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
         // Get the parent statement
-        const parentStmt = this.getParentConstruct();
+        const parentStmt = this.getParentStatement();
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
@@ -1611,7 +1611,7 @@ export class AssignmentToken extends IdentifierTkn {
         // List of variable reference expressions refering to the current token
         const varRefs: GeneralStatement[] = [];
         // Get the statement containing the token
-        const parentStmt = this.getParentConstruct();
+        const parentStmt = this.getParentStatement();
         // Current identifier
         const currentIdentifier = identifierName ?? this.getRenderText();
 
@@ -1660,7 +1660,7 @@ export class AssignmentToken extends IdentifierTkn {
      * assignments to the variable and update the variable references
      */
     onDelete(): void {
-        const parentStmt = this.getParentConstruct();
+        const parentStmt = this.getParentStatement();
         const currentScope = parentStmt.getNearestScope();
 
         // Remove the assignment from the nearest scope
