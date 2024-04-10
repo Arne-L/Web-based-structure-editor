@@ -187,8 +187,8 @@ export abstract class Construct {
  */
 export abstract class Statement implements Construct {
     lineNumber: number;
-    leftCol: number;
-    rightCol: number;
+    left: Position;
+    right: Position;
     rootNode: Statement | Module = null;
     indexInRoot: number;
     body = new Array<Statement>();
@@ -218,7 +218,22 @@ export abstract class Statement implements Construct {
     }
 
     /**
-     * The lineNumbers from the beginning to the end of this statement.
+     * The column number of the left position of this construct.
+     */
+    get leftCol(): number {
+        // Very rarely the left position is not set, so we need to add a check for this
+        return this.left?.column;
+    }
+
+    /**
+     * The column number of the right position of this construct.
+     */
+    get rightCol(): number {
+        return this.right.column;
+    }
+
+    /**
+     * The lineNumbers from the beginning to the end of this construct, including child constructs.
      */
     getHeight(): number {
         if (this.body.length == 0) return 1;
@@ -375,7 +390,7 @@ export abstract class Statement implements Construct {
     build(pos: Position): Position {
         // Set the linenumber and left position
         this.lineNumber = pos.lineNumber;
-        this.leftCol = pos.column;
+        this.left = pos;
 
         let curPos = pos;
 
@@ -383,7 +398,7 @@ export abstract class Statement implements Construct {
         for (const token of this.tokens) curPos = token.build(curPos);
 
         // After going through all tokens, the right position is the right position of the last token
-        this.rightCol = curPos.column;
+        this.right = curPos;
 
         // Notify all (child)construct of the change
         this.notify(CallbackType.change);
@@ -409,7 +424,7 @@ export abstract class Statement implements Construct {
         }
 
         // The right position of the last token is the right position of the construct
-        this.rightCol = curPos.column;
+        this.right = curPos;
 
         // If the construct has a root node, rebuild all constructs following this construct in the root node
         if (this.rootNode != undefined && this.indexInRoot != undefined) {
@@ -533,7 +548,9 @@ export abstract class Statement implements Construct {
     }
 
     getSelection(): Selection {
-        return new Selection(this.lineNumber, this.rightCol, this.lineNumber, this.leftCol);
+        const line = this.getLineNumber();
+
+        return new Selection(line, this.rightCol, line, this.leftCol);
     }
 
     getParentStatement(): Statement {
@@ -1056,8 +1073,8 @@ export abstract class Token implements Construct {
     isTextEditable = false;
     rootNode: Construct = null;
     indexInRoot: number;
-    leftCol: number;
-    rightCol: number;
+    left: Position;
+    right: Position;
     text: string;
     isEmpty: boolean = false;
     callbacks = new Map<string, Array<Callback>>();
@@ -1074,6 +1091,14 @@ export abstract class Token implements Construct {
 
         this.rootNode = root;
         this.text = text;
+    }
+
+    get leftCol(): number {
+        return this.left.column;
+    }
+
+    get rightCol(): number {
+        return this.right.column;
     }
 
     getBoundaries({ selectIndent = false } = {}): Range {
@@ -1127,14 +1152,14 @@ export abstract class Token implements Construct {
      * @returns the final right position of this node: for tokens it equals to `this.left + this.text.length - 1`
      */
     build(pos: Position): Position {
-        this.leftCol = pos.column;
+        this.left = pos;
 
         if (this.text.length == 0) {
             console.warn(
                 "do not use any Tokens with no textual length (i.e. all tokens should take some space in the editor)."
             );
-            this.rightCol = pos.column;
-        } else this.rightCol = pos.column + this.text.length;
+            this.right = pos;
+        } else this.right = new Position(pos.lineNumber, pos.column + this.text.length);
 
         this.notify(CallbackType.change);
 
@@ -1330,7 +1355,7 @@ export class EmptyLineStmt extends Statement {
 
     build(pos: Position): Position {
         this.lineNumber = pos.lineNumber;
-        this.leftCol = this.rightCol = pos.column;
+        this.left = this.right = pos;
 
         return new Position(this.lineNumber, this.rightCol);
     }
@@ -1441,12 +1466,12 @@ export class EditableTextTkn extends Token implements TextEditable {
     }
 
     build(pos: Position): Position {
-        this.leftCol = pos.column;
+        this.left = pos;
 
         if (this.text.length == 0) {
             console.warn("Do not use any Tokens with 0 textual length.");
-            this.rightCol = pos.column;
-        } else this.rightCol = pos.column + this.text.length;
+            this.right = pos;
+        } else this.right = new Position(pos.lineNumber, pos.column + this.text.length);
 
         this.notify(CallbackType.change);
 
