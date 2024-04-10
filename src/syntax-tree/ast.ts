@@ -185,7 +185,7 @@ export abstract class Construct {
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
 export abstract class Statement implements Construct {
-    lineNumber: number;
+    // lineNumber: number;
     left: Position;
     right: Position;
     rootNode: Statement | Module = null;
@@ -229,6 +229,10 @@ export abstract class Statement implements Construct {
      */
     get rightCol(): number {
         return this.right.column;
+    }
+
+    get lineNumber(): number {
+        return this.left.lineNumber;
     }
 
     /**
@@ -314,8 +318,13 @@ export abstract class Statement implements Construct {
         return text;
     }
 
+    // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
     setLineNumber(lineNumber: number) {
-        this.lineNumber = lineNumber;
+        // TEMPORARY FIX FOR THE LINE NUMBER
+        // this.lineNumber = lineNumber;
+        const lineDiff = this.right.lineNumber - this.left.lineNumber
+        this.left = new Position(lineNumber, this.leftCol);
+        this.right = new Position(lineNumber + lineDiff, this.rightCol);
 
         this.notify(CallbackType.change);
 
@@ -388,7 +397,7 @@ export abstract class Statement implements Construct {
 
     build(pos: Position): Position {
         // Set the linenumber and left position
-        this.lineNumber = pos.lineNumber;
+        // this.lineNumber = pos.lineNumber;
         this.left = pos;
 
         let curPos = pos;
@@ -1353,7 +1362,7 @@ export class EmptyLineStmt extends Statement {
     }
 
     build(pos: Position): Position {
-        this.lineNumber = pos.lineNumber;
+        // this.lineNumber = pos.lineNumber;
         this.left = this.right = pos;
 
         return new Position(this.lineNumber, this.rightCol);
