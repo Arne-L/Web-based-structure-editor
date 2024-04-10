@@ -294,7 +294,6 @@ class Menu {
 
         // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
-            console.log(a, b);
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
             if (a.matchRegex && b.matchString) return 1;
@@ -308,7 +307,6 @@ class Menu {
                 bStart = bText.indexOf(lowUserInput),
                 aDiff = aText.length - userInput.length,
                 bDiff = bText.length - userInput.length;
-            console.log("Hello", aText, bText);
 
             // Give preference to the option that has the current text the closest
             // to the front

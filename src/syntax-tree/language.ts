@@ -13,7 +13,6 @@ export class Language {
 
     constructor(module: Module) {
         this.module = module;
-        console.log("We get here");
 
         // Load the language definition file
         const langConfig = initLanguage();

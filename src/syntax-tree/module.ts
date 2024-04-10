@@ -623,8 +623,6 @@ export class Module {
             // Add the required number of spaces to give a statement
             // the required indentation
             spaces += " ".repeat(leftPosToCheck - 1);
-
-            console.log("First: ", spaces.length, leftPosToCheck);
         }
 
         // If the current statement has a body and the cursor is not at the start of the statement
@@ -642,11 +640,7 @@ export class Module {
             // Add the required number of spaces to give a statement
             // the required indentation
             spaces += " ".repeat(leftPosToCheck - 1);
-
-            console.log("Second: ", spaces.length, leftPosToCheck);
         }
-
-        console.log("Cursor: ", curPos.column, "Left: ", leftPosToCheck, "Spaces: ", spaces.length);
 
         // VERDER KIJKEN HOE DIT WERKT!
         // VOORAL: hoe dat de eerste if + tweede if spaces samen nog steeds valid zijn
@@ -669,7 +663,7 @@ export class Module {
             const range = new Range(curStmt.lineNumber - 1, 1, curStmt.lineNumber - 1, 1);
             this.editor.executeEdits(range, null, spaces + textToAdd);
 
-            for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
+            // for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
             return emptyLine;
         } else {
             // insert emptyStatement on next line, move other statements down
@@ -693,8 +687,8 @@ export class Module {
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
 
-            console.log("Monaco: ", this.editor.monaco.getModel().getValue());
-            for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
+            // console.log("Monaco: ", this.editor.monaco.getModel().getValue())
+            // for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
 
             return emptyLine;
         }

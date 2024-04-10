@@ -1461,7 +1461,6 @@ export class ActionExecutor {
         if (root instanceof Statement) root.notify(CallbackType.replace);
 
         // Get the range of the statement line
-        // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
         const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
 
         // Remove messages from the empty line statement

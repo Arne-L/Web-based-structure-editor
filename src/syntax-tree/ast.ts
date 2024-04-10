@@ -1646,9 +1646,9 @@ export class AssignmentToken extends IdentifierTkn {
         // Go through all constructs and add the construct if it is a variable reference to the given assignment token
         // and is in draft mode
         parentStmt.getModule().performActionOnBFS((code) => {
-            (code as GeneralStatement).tokens?.forEach((refTkn) => {
-                if (refTkn instanceof ReferenceTkn) console.log(refTkn.text, currentIdentifier);
-            });
+            // (code as GeneralStatement).tokens?.forEach((refTkn) => {
+            //     if (refTkn instanceof ReferenceTkn) console.log(refTkn.text, currentIdentifier);
+            // });
             if (
                 code instanceof GeneralStatement &&
                 code.tokens.some((refTkn) => {
@@ -1715,7 +1715,6 @@ export class TemporaryStmt extends Statement {
         token.indexInRoot = this.tokens.length;
         token.rootNode = this;
         this.tokens.push(token);
-        // console.log("TemporaryStmt: " + token.codeConstructName);
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -1809,7 +1808,6 @@ export class AutocompleteTkn extends Token implements TextEditable {
     checkMatch(newChar: string, text?: string): EditCodeAction {
         let curText = text !== undefined ? text : this.text;
 
-        // console.log("Match checked: ", newChar, " ", curText);
         // Check if the new character is a terminating character and whether the current text (text
         // before the current character) is a match
         for (const match of this.validMatches) {
@@ -1820,7 +1818,6 @@ export class AutocompleteTkn extends Token implements TextEditable {
                 else if (match.matchRegex != null && match.matchRegex.test(curText)) return match;
             }
         }
-        // console.log("Not completely matched: ", newChar);
         // No exact match when the new character is a terminating character or the new character was not a
         // terminating character
         return null;
@@ -1832,7 +1829,6 @@ export class AutocompleteTkn extends Token implements TextEditable {
     setEditedText(text: string): boolean {
         this.text = text;
         (this.rootNode as Expression).rebuild(this.getLeftPosition(), this.indexInRoot);
-        // console.log("AutocompleteTkn edited: " + text);
         return true;
     }
 }

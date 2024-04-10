@@ -418,7 +418,6 @@ export class EventRouter {
                         return new EditAction(EditActionType.OpenValidInsertMenu);
                     }
                 }
-                console.log("We should not be able to get here");
                 // If in text edit mode, insert a space
                 if (inTextEditMode) return new EditAction(EditActionType.InsertChar);
 
