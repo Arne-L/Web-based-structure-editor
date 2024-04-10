@@ -973,11 +973,6 @@ export class GeneralExpression extends GeneralStatement {
         }
     }
 
-    canReplaceWithConstruct(newExpr: Expression): InsertionResult {
-        // Currently simply return Valid, change if this poses problems
-        return new InsertionResult(InsertionType.Valid, "", []);
-    }
-
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
