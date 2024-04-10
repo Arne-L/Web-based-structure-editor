@@ -13,6 +13,7 @@ import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "../language-definition/settings";
 import { Editor } from "../editor/editor";
 import { SyntaxConstructor } from "./constructor";
+import { ValidatorNameSpace } from "./validator";
 
 export abstract class Construct {
     /**
@@ -731,7 +732,7 @@ export class GeneralStatement extends Statement {
      * Currently, all depending constructs are indented by 1 tab. This is not always the case, so this should be
      * generalised in the future.
      */
-    private requiringConstructs: OptionalConstruct[] = [];
+    readonly requiringConstructs: OptionalConstruct[] = [];
     /**
      * Constructs which this construct depends on (/ are required by this construct). For example, the "elif" construct depends on the
      * "if" construct, so the "if" is required by the "elif". As a construct can depend on multiple constructs, this list
@@ -744,8 +745,8 @@ export class GeneralStatement extends Statement {
      * constructs depending on it (in this specific case, we specified that the order was not fixed) However, it in the future
      * it follows that this (edge) case does not occur (or has a different solution), we can implement the above optimisation.
      */
-    private requiredConstructs: string[] = [];
-    private requiredAncestorConstructs: AncestorConstruct[] = [];
+    readonly requiredConstructs: string[] = [];
+    readonly requiredAncestorConstructs: AncestorConstruct[] = [];
 
     /**
      * List of all assignments within the statement.
@@ -911,189 +912,11 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        /**
-         * The current assumptions are:
-         * * Requiring constructs are either an element of the body or a sibling of the required construct
-         * * We assume that the requiring constructs are always after the required construct. If a construct
-         * has elements before the main construct, the element before can be taken to be the main construct
-         * * Currently does not support impeded depending connstructs e.g. else -> elif -> else -> ...
-         * However, simply defining a new construct in the config to encapsulate this repetition should suffice
-         *
-         * Checking if the required construct appears in front of the requiring construct will currently
-         * be implemented through a rudementary algorithm. This can (and maybe should be if it proves to be too slow)
-         * in the future by using a sort of sliding window algorithm.
-         * A few places to look are:
-         * * Take a look at String Matching algorithms in "Ontwerp van algoritmen" (lecture 8) e.g.
-         *   Boyer-Moore
-         *
-         * Further future optimisations:
-         * Simply keep track of what is allowed inside the current element instead of having to recheck for each
-         * possible insertion you want to make
-         */
-        // If the element depends on other elements
-        if (this.requiredConstructs.length > 0) {
-            let canInsertConstruct = false;
-            // For each of the constructs which are required by this construct, check if one of them
-            // appears (correctly) in front of the current construct
-            for (const requiredName of this.requiredConstructs) {
-                // TODO: This is currently casted because expression does inherit from Statement and not GeneralStatement => CHANGE IN THE FUTURE
-                const requiredConstruct = GeneralStatement.constructs.get(requiredName) as GeneralStatement; // NOT OKAY
-
-                // TODO: Currently the function assumes that each construct will only appear once
-                // This is however not always the case, so we should look for a way to generalise
-                // this in the future. A possibility is to use a form of sliding window from the back and
-                // try to match all construct you came acros in the editor with the constructs in the
-                // dependingConstructs list. if there is no match, we can shift the window until it matches
-                // again => look at the algorithm used in "Ontwerp van algoritmen" course for this
-
-                // Information about each of the depending constructs in order
-                const depConstructsInfo = requiredConstruct.requiringConstructs;
-
-                // Find where the current construct appears in the list of depending constructs
-                // TODO: See todo above
-                let dependingIndex = depConstructsInfo.findIndex(
-                    (construct) => construct.getConstructName() === this.getKeyword()
-                );
-
-                // Skip to next required construct; this case should never appear if required and requiring constructs
-                // are correctly defined
-                if (dependingIndex === -1) continue;
-
-                // Depending / requiring construct to start checking from
-                let currentConstruct = context.lineStatement;
-
-                // There is no construct in front of the current one, so the insertion is invalid
-                if (!currentConstruct) break;
-
-                // Get the next construct in the editor after this
-                let nextConstruct = validator.getNextSiblingOf(currentConstruct);
-
-                if (nextConstruct) {
-                    // Check if it appears in the depending constructs list
-                    let nextIndex = depConstructsInfo.findIndex(
-                        (construct) => construct.getConstructName() === nextConstruct.getKeyword()
-                    );
-
-                    // If it appears in the depending constructs at the same place of after the last
-                    // found depending construct, then we take that as the next construct
-                    while (nextIndex >= dependingIndex) {
-                        // Update the current with all the next construct information
-                        dependingIndex = nextIndex;
-                        currentConstruct = nextConstruct;
-
-                        // Check if the following construct in the editor also appears
-                        // in the depending constructs list
-                        nextConstruct = validator.getNextSiblingOf(nextConstruct);
-
-                        if (!nextConstruct) break;
-
-                        nextIndex = depConstructsInfo.findIndex(
-                            (construct) => construct.getConstructName() === nextConstruct.getKeyword()
-                        );
-                    }
-                }
-
-                // Keep track of how many times each depending construct has been visited / appeared, starting
-                // from the current construct to the first requiring construct
-                const dependingVisited = new Array(dependingIndex + 1).fill(0);
-
-                // The current construct we want to insert also needs to be counted
-                // Because we assume that each requiring construct can appear at least once, we do not need to
-                // check the constraints
-                // dependingVisited[dependingIndex] = 1;
-
-                let prevConstruct = currentConstruct; // NOT OKAY
-
-                // TODO: Not completely correct: what if there are multiple of the first requiring construct?
-                while (dependingIndex >= 0) {
-                    const currentEditorConstruct = currentConstruct;
-                    if (currentConstruct === context.lineStatement) {
-                        prevConstruct = prevConstruct === currentConstruct ? this : prevConstruct;
-                        currentConstruct = this;
-                    }
-
-                    // Still the same construct
-                    if (currentConstruct.getKeyword() === prevConstruct.getKeyword()) {
-                        // Check if it is allowed to have many of the same construct
-                        if (dependingVisited[dependingIndex] >= depConstructsInfo[dependingIndex].getMaxRepetition()) {
-                            // We are at or over the limit of the current construct
-                            // Start working on the next required construct, cause this one is not possible
-                            break;
-                        }
-                        // Current construct has the name of the construct in front of the previous construct
-                    } else {
-                        // New construct: names are different
-                        // First check if the previous construct occured enough times; if not, we need to move on and check the other required constructs
-                        if (dependingVisited[dependingIndex] < depConstructsInfo[dependingIndex].getMinRepetition()) {
-                            // We are under the limit of the current construct
-                            // The insertion is invalid
-                            break;
-                        }
-                        // Move on to the next requiring construct
-                        while (
-                            dependingIndex >= 0 &&
-                            currentConstruct.getKeyword() !== depConstructsInfo[dependingIndex].getConstructName()
-                        ) {
-                            dependingIndex--;
-                        }
-                    }
-
-                    // Increase the amount of times the current construct type has been visited
-                    dependingVisited[dependingIndex]++;
-
-                    // As long as the depending index is not smaller than zero, we need to look for requiring constructs
-                    // Else the current construct is the required construct
-                    if (dependingIndex >= 0) {
-                        prevConstruct = currentConstruct;
-                        currentConstruct = validator.getPrevSiblingOf(currentEditorConstruct) as GeneralStatement; // NOT OKAY
-
-                        // In case there are not yet any constructs in front of the current position
-                        if (!currentConstruct) {
-                            break;
-                        }
-                    }
-                }
-
-                // Now we are at required construct and we have handled all the depending constructs
-                if (currentConstruct && currentConstruct.getKeyword() === requiredConstruct.getKeyword()) {
-                    // We found the required construct
-                    canInsertConstruct = true;
-                }
-            }
-
-            if (!canInsertConstruct) return InsertionType.Invalid;
-        }
-
-        // If element needs to be a descendant of a certain construct
-        if (this.requiredAncestorConstructs.length > 0) {
-            let canInsertConstruct = false;
-
-            // Go all the way to the top of the tree, even when we have already matched one construct.
-            // We could also take the maximum level over all required ancestor constructs, but
-            // in reality this would probably often be infinite.
-
-            // If null, then we are at the top of the tree
-            let currentParent = validator.getParentOf(context.lineStatement);
-            let level = 0;
-            while (currentParent) {
-                const foundAncestor = this.requiredAncestorConstructs.find(
-                    (ancestor) => ancestor.getConstructName() === currentParent.getKeyword()
-                );
-                if (foundAncestor && foundAncestor.isValidLevel(level)) {
-                    // We found a required ancestor construct
-                    canInsertConstruct = true;
-                    break;
-                }
-
-                currentParent = validator.getParentOf(currentParent);
-
-                level++;
-            }
-
-            if (!canInsertConstruct) return InsertionType.Invalid;
-        }
-
-        return context.lineStatement instanceof EmptyLineStmt ? InsertionType.Valid : InsertionType.Invalid;
+        return context.lineStatement instanceof EmptyLineStmt &&
+            ValidatorNameSpace.validateRequiredConstructs(context, this) &&
+            ValidatorNameSpace.validateAncestors(context, this)
+            ? InsertionType.Valid
+            : InsertionType.Invalid;
     }
 
     // DEAD CODE
@@ -1102,7 +925,7 @@ export class GeneralStatement extends Statement {
     // Maybe generalise this to the simple "replace" from the Statement class
     // replaceArgument(index: number, to: CodeConstruct) {
     //     this.replace(to, this.argumentsIndices[index]);
-    // }    
+    // }
 }
 
 /**
