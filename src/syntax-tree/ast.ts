@@ -56,11 +56,10 @@ export abstract class Construct {
     simpleInvalidTooltip: Tooltip;
 
     /**
-     * Get the range of the entire construct, including potential body statements
+     * Get the entire range of the construct, including potential child constructs.
      *
-     * @param code - The construct to get the boundaries in the Monaco editor of
-     * @param param1 - { selectIndex: boolean }: If the indent should be included in the selection range
-     * @returns The range of the construct
+     * @param param0 - { selectIndent: boolean }: If the initial indent should be included in the selection range
+     * @returns The range of the construct including all children
      */
     abstract getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
 
