@@ -12,6 +12,7 @@ import { Module } from "./module";
 import { Scope } from "./scope";
 import { EMPTYIDENTIFIER } from "../language-definition/settings";
 import { Editor } from "../editor/editor";
+import { SyntaxConstructor } from "./constructor";
 
 export abstract class Construct {
     /**
@@ -197,7 +198,7 @@ export abstract class Statement implements Construct {
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
-    typeOfHoles = new Map<number, Array<DataType>>();
+    // typeOfHoles = new Map<number, Array<DataType>>();
     draftModeEnabled = false;
     draftRecord: DraftRecord = null;
     callbacksToBeDeleted = new Map<CallbackType, string>();
@@ -763,9 +764,6 @@ export class GeneralStatement extends Statement implements Importable {
         this.indexInRoot = indexInRoot;
         this.keyword = construct.keyword; // Rethink this one; will this really always be the name/keyword? MIGHT BE FIXED
 
-        // Keep track of the current hole
-        let holeIndex = 0;
-
         // If an empty construct is given, we can't do anything with it
         if (!construct || !construct.format) return;
 
@@ -822,89 +820,11 @@ export class GeneralStatement extends Statement implements Importable {
                 (req) => new OptionalConstruct(req.ref, req.min_repeat, req.max_repeat)
             );
 
-        for (const token of construct.format) {
-            switch (token.type) {
-                case "implementation":
-                    this.tokens.push(new NonEditableTkn(construct[token.anchor], this, this.tokens.length));
-                    break;
-                case "token":
-                    this.tokens.push(new NonEditableTkn(token.value, this, this.tokens.length));
-                    break;
-                case "hole":
-                    const holeParts = construct.holes[holeIndex];
-                    for (let i = 0; i < holeParts.length; i++) {
-                        // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                        this.tokens.push(new TypedEmptyExpr([DataType.Any], this, this.tokens.length));
-                        this.typeOfHoles[this.tokens.length - 1] = [DataType.Any];
-
-                        if (i + 1 < holeParts.length)
-                            this.tokens.push(new NonEditableTkn(token.delimiter, this, this.tokens.length));
-                    }
-                    if (holeParts.length > 0) this.hasEmptyToken = true;
-                    holeIndex++;
-                    this.hasSubValues = true;
-                    break;
-                case "body":
-                    this.body.push(new EmptyLineStmt(this, this.body.length));
-                    this.scope = new Scope();
-                    this.hasSubValues = true;
-                    /**
-                     * We still need to add scope for constructs without a body like else and elif
-                     */
-                    break;
-                case "identifier":
-                    // this.tokens.push(new EditableTextTkn("", RegExp(token.regex), this, this.tokens.length))
-                    this.tokens.push(new AssignmentToken(undefined, this, this.tokens.length, RegExp(token.regex)));
-                    this.addAssignment(this.tokens.length - 1); // Maybe add this in the token itself
-                    break;
-                case "reference":
-                    this.tokens.push(new ReferenceTkn(data?.reference ?? "", this, this.tokens.length));
-                    break;
-                case "collection":
-                    break;
-                case "editable":
-                    this.tokens.push(
-                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), this, this.tokens.length)
-                    );
-                    break;
-                default:
-                    // Invalid type => What to do about it?
-                    console.warn("Invalid type: " + token.type);
-
-                /**
-                 * 1) How will we handle new lines / empty lines? What will the configuration file require?
-                 * 2) Handle scope: how do we know when a statement has a scope or not? Can we determine
-                 * this whithout having to make it an explicit option?
-                 *
-                 * Possibilities:
-                 * 2) If the concept of statements exist, check if the construct contains a
-                 * statement. If so, it has a scope. If not, it doesn't.
-                 * 1) If the concept of statements exists, we can check if a hole is a statement. If
-                 * so, then we can see it as a EmptyLineStmt
-                 * => Problem: User error possible and even likely
-                 * 1) We can look at holes before and after which there is a new line character "\n",
-                 * signifying that the hole is the only thing on the line. In this case, we can assume
-                 * that it is a empty line statement.
-                 *
-                 *
-                 * What about expressions that can be placed on empty lines? Like methods call e.g. print()
-                 *
-                 *
-                 * How to handle "validateContext"?
-                 * Maybe we can have slots in which only certain statements / expressions can be inserted?
-                 *
-                 * How to handle scope for "elif" and "else"? Currently this is done by checking
-                 * if a statement has body, but that is not possible for "elif" and "else"
-                 *
-                 * All variable functionality in the for-loop is currently dropped
-                 * What is the best way to add this in the future?
-                 */
-            }
-        }
+        SyntaxConstructor.constructTokensFromJSON(construct, this, data);
     }
 
     /**
-     * TODO: Temporary solution
+     * TODO: Temporary solution REMOVE LATER!!
      *
      * @param constructs - The constructs to add to the map
      */
@@ -951,7 +871,7 @@ export class GeneralStatement extends Statement implements Importable {
         });
     }
 
-    addAssignment(index: number) {
+    addAssignmentIndex(index: number) {
         this.assignmentIndices.push(index);
     }
 
@@ -982,7 +902,7 @@ export class GeneralStatement extends Statement implements Importable {
     }
 
     /**
-     * Currently only implemented for statements (or is being implemented for statements ...)
+     * Checks if the construct can be inserted into the current context.
      *
      * @param validator - An instance of the validator class with methods to check the current context
      * @param providedContext - The current context
@@ -996,7 +916,7 @@ export class GeneralStatement extends Statement implements Importable {
          * * Requiring constructs are either an element of the body or a sibling of the required construct
          * * We assume that the requiring constructs are always after the required construct. If a construct
          * has elements before the main construct, the element before can be taken to be the main construct
-         * * Currently does not support impeded depeding connstructs e.g. else -> elif -> else -> ...
+         * * Currently does not support impeded depending connstructs e.g. else -> elif -> else -> ...
          * However, simply defining a new construct in the config to encapsulate this repetition should suffice
          *
          * Checking if the required construct appears in front of the requiring construct will currently
