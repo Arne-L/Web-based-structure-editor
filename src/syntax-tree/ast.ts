@@ -718,7 +718,7 @@ class AncestorConstruct {
  *
  * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
  */
-export class GeneralStatement extends Statement implements Importable {
+export class GeneralStatement extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     requiredModule: string;
@@ -1099,83 +1099,11 @@ export class GeneralStatement extends Statement implements Importable {
 
     // DEAD CODE
     // Maybe keep this, as (almost) all general purpose programming languages have something
-    // with argument?
+    // with arguments?
     // Maybe generalise this to the simple "replace" from the Statement class
     // replaceArgument(index: number, to: CodeConstruct) {
     //     this.replace(to, this.argumentsIndices[index]);
-    // }
-
-    // DEAD CODE
-    // Every language has methods/functions/... requiring imports, so this can probably be kept
-    // validateImport(importedModule: string, importedItem: string): boolean {
-    //     return this.requiredModule === importedModule && this.getKeyword() === importedItem;//&& this.getFunctionName() === importedItem;
-    // }
-
-    // I think this is language independent ... HOWEVER, TAKE A LOOK AT IT LATER!!!
-    /**
-     * Checks if the current construct requires an import and if so checks if it is already included
-     * or not in the module. If it is not included, the returned insertion type is DraftMode.
-     *
-     * @param module - The current Module
-     * @param currentInsertionType - The current insertion type of the construct
-     * @returns - The new insertion type of the construct
-     */
-    validateImportOnInsertion(module: Module, currentInsertionType: InsertionType) {
-        let insertionType = currentInsertionType;
-        let importsOfThisConstruct: ImportStatement[] = [];
-        /**
-         * Expands the given list with import statements for the same module as the current
-         * construct (outer) that are above the current construct (outer).
-         *
-         * @param construct - Current construc to check if it is an import statement
-         * @param stmts - Lists that will be expanded with the import statements which
-         * fulfill the requirements
-         */
-        const checker = (construct: Construct, stmts: ImportStatement[]) => {
-            if (
-                construct instanceof ImportStatement &&
-                this.getLineNumber() > construct.getLineNumber() && // Check if the import statement is above the current construct (outer)
-                this.requiredModule === construct.getImportModuleName() // Check if the current construct (outer) requires the module
-            ) {
-                stmts.push(construct);
-            }
-        };
-
-        // Perform "checker" on each of the constructs in the module (statements,
-        // expressions, tokens ...)
-        module.performActionOnBFS((code) => checker(code, importsOfThisConstruct));
-
-        if (importsOfThisConstruct.length === 0 && this.requiresImport()) {
-            //imports of required module don't exist and this item requires an import
-            insertionType = InsertionType.DraftMode;
-        } else if (importsOfThisConstruct.length > 0 && this.requiresImport()) {
-            //imports of required module exist and this item requires an import
-            insertionType =
-                importsOfThisConstruct.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0 // this.getFunctionName()
-                    ? currentInsertionType
-                    : InsertionType.DraftMode;
-        }
-
-        return insertionType;
-    }
-
-    validateImportFromImportList(imports: ImportStatement[]): boolean {
-        const relevantImports = imports.filter(
-            (stmt) => stmt.getImportModuleName() === this.requiredModule && this.getLineNumber() > stmt.getLineNumber()
-        );
-
-        if (relevantImports.length === 0) {
-            return false;
-        }
-
-        return relevantImports.filter((stmt) => stmt.getImportItemName() === this.getKeyword()).length > 0
-            ? true
-            : false;
-    }
-
-    requiresImport(): boolean {
-        return this.requiredModule !== "";
-    }
+    // }    
 }
 
 /**
