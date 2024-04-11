@@ -747,7 +747,6 @@ class AncestorConstruct {
 export class GeneralStatement extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
-    requiredModule: string;
     hasSubValues: boolean = false;
     /**
      * Constructs which depend on this construct. For example, the "elif" construct depends on the "if" construct.
