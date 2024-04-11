@@ -1837,3 +1837,30 @@ export class NonEditableTkn extends Token {
 }
 
 export class ReferenceTkn extends NonEditableTkn {}
+
+
+
+// !!!!!!!! Additional structure classes
+
+/**
+ * An abstract construct representing a hole in the code that can be filled 
+ * with a construct.
+ */
+abstract class HoleStructure extends Construct {
+
+}
+
+/**
+ * A hole structure representing a standard empty line in a construct.
+ * 
+ * TODO: Rename / merge in the future with EmptyLineStmt
+ */
+// class EmptyLineStructure extends HoleStructure {}
+
+/**
+ * A hole structure representing a construct that can be filled with a different
+ * construct.
+ * 
+ * TODO: Rename / merge in the future with TypedEmptyExpr
+ */
+// class ConstructHoleStructure extends HoleStructure {}
