@@ -9,7 +9,7 @@ import {
     TypedEmptyExpr,
     // ValueOperationExpr,
     // VarAssignmentStmt,
-    VariableReferenceExpr,
+    // VariableReferenceExpr,
     // VarOperationStmt,
 } from "../syntax-tree/ast";
 import { DataType, InsertionType/*, TypeConversionRecord*/ } from "../syntax-tree/consts";
@@ -117,17 +117,17 @@ export class ActionFilter {
         return new Map<string, EditCodeAction>();
     }
 
-    /**
-     * Get all valid EditCodeActions for a given variable reference / that can be used on a variable reference
-     *
-     * TAKE A NEW LOOK AT THIS FUNCTION IN THE FUTURE
-     *
-     * @param ref - Variable reference to check against
-     * @returns - Map of EditCodeActions that are valid for the given variable reference
-     */
-    validateVariableOperations(ref: VariableReferenceExpr): Map<string, EditCodeAction> {
-        // TEMPORARY DISABLED DUE TO ERRORS: TAKE A LOOK AT THIS FUNCTION IN THE FUTURE
-        return new Map<string, EditCodeAction>();
+    // /**
+    //  * Get all valid EditCodeActions for a given variable reference / that can be used on a variable reference
+    //  *
+    //  * TAKE A NEW LOOK AT THIS FUNCTION IN THE FUTURE
+    //  *
+    //  * @param ref - Variable reference to check against
+    //  * @returns - Map of EditCodeActions that are valid for the given variable reference
+    //  */
+    // validateVariableOperations(ref: VariableReferenceExpr): Map<string, EditCodeAction> {
+    //     // TEMPORARY DISABLED DUE TO ERRORS: TAKE A LOOK AT THIS FUNCTION IN THE FUTURE
+    //     return new Map<string, EditCodeAction>();
 
         // // Get current context
         // const context = this.module.focus.getContext();
@@ -203,7 +203,7 @@ export class ActionFilter {
         // }
 
         // return validOptionMap;
-    }
+    // }
 
     /**
      * Combined list of all insertions at the current location as EditCodeActions. These elements
@@ -217,7 +217,7 @@ export class ActionFilter {
         inserts.push(...this.getProcessedConstructInsertions());
         inserts.push(...this.getProcessedEditInsertions());
         // inserts.push(...this.getProcessedVariableInsertions());
-        inserts.push(...this.getProcessedVariableOperations());
+        // inserts.push(...this.getProcessedVariableOperations());
 
         return inserts;
     }
@@ -252,51 +252,51 @@ export class ActionFilter {
         return this.convertInsertionMapToList(this.validateInsertions());
     }
 
-    /**
-     *
-     *
-     * @returns
-     */
-    getProcessedVariableOperations(): EditCodeAction[] {
-        // Get the current context
-        const context = this.module.focus.getContext();
-        // Get all variable references at the current location that are either valid or in draft mode
-        const availableRefs: [Reference, InsertionType][] = Validator.getValidVariableReferences(
-            context.selected ? context.token : context.lineStatement,
-            this.module.variableController
-        );
+    // /**
+    //  *
+    //  *
+    //  * @returns
+    //  */
+    // getProcessedVariableOperations(): EditCodeAction[] {
+    //     // Get the current context
+    //     const context = this.module.focus.getContext();
+    //     // Get all variable references at the current location that are either valid or in draft mode
+    //     const availableRefs: [Reference, InsertionType][] = Validator.getValidVariableReferences(
+    //         context.selected ? context.token : context.lineStatement,
+    //         this.module.variableController
+    //     );
 
-        // Map of all actions that are valid on the current variable references
-        const validActionsForVar: Map<string, EditCodeAction>[] = [];
+    //     // Map of all actions that are valid on the current variable references
+    //     const validActionsForVar: Map<string, EditCodeAction>[] = [];
 
-        // For each of the available references
-        for (const refRecord of availableRefs) {
-            // Get the assignment to which it refers
-            const assignment = refRecord[0].getAssignment();
-            // const dataType = this.module.variableController.getVariableTypeNearLine(
-            //     context.lineStatement.hasScope() ? context.lineStatement.scope : context.lineStatement.rootNode.scope,
-            //     context.lineStatement.lineNumber,
-            //     assignment.getRenderText()
-            // );
-            // Create a new VariableReferenceExpr
-            const varRef = new VariableReferenceExpr(
-                assignment.getRenderText(),
-                DataType.Any,
-                "RANDOM_CSS_ID" // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
-            );
+    //     // For each of the available references
+    //     for (const refRecord of availableRefs) {
+    //         // Get the assignment to which it refers
+    //         const assignment = refRecord[0].getAssignment();
+    //         // const dataType = this.module.variableController.getVariableTypeNearLine(
+    //         //     context.lineStatement.hasScope() ? context.lineStatement.scope : context.lineStatement.rootNode.scope,
+    //         //     context.lineStatement.lineNumber,
+    //         //     assignment.getRenderText()
+    //         // );
+    //         // Create a new VariableReferenceExpr
+    //         const varRef = new VariableReferenceExpr(
+    //             assignment.getRenderText(),
+    //             DataType.Any,
+    //             "RANDOM_CSS_ID" // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
+    //         );
 
-            // Get all valid operations on the variable reference
-            validActionsForVar.push(this.validateVariableOperations(varRef));
-        }
+    //         // Get all valid operations on the variable reference
+    //         validActionsForVar.push(this.validateVariableOperations(varRef));
+    //     }
 
-        // Transform the map of actions to a list
-        const actionsList: EditCodeAction[] = [];
-        for (const map of validActionsForVar) {
-            actionsList.push(...this.convertInsertionMapToList(map));
-        }
+    //     // Transform the map of actions to a list
+    //     const actionsList: EditCodeAction[] = [];
+    //     for (const map of validActionsForVar) {
+    //         actionsList.push(...this.convertInsertionMapToList(map));
+    //     }
 
-        return actionsList;
-    }
+    //     return actionsList;
+    // }
 
     // getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
     //     const constructMap = this.validateInsertions();
