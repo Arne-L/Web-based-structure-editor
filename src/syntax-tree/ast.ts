@@ -1381,39 +1381,6 @@ export class EmptyLineStmt extends Statement {
     }
 }
 
-// /**
-//  * A reference expression to a variable "x". The value of the expression is equal to the value of the
-//  * variable referenced.
-//  */
-// export class VariableReferenceExpr extends Expression {
-//     isEmpty = false;
-//     identifier: string;
-//     uniqueId: string;
-
-//     constructor(id: string, returns: DataType, uniqueId: string, root?: Statement, indexInRoot?: number) {
-//         super(returns);
-
-//         const idToken = new NonEditableTkn(id, this, this.tokens.length);
-//         this.keywordIndex = this.tokens.length;
-//         this.tokens.push(idToken);
-
-//         this.uniqueId = uniqueId;
-//         this.identifier = id;
-//         this.rootNode = root;
-//         this.indexInRoot = indexInRoot;
-//     }
-
-//     validateContext(validator: Validator, providedContext: Context): InsertionType {
-//         if (validator.atEmptyExpressionHole(providedContext)) return InsertionType.Valid;
-//         else if (validator.onEmptyLine(providedContext)) return InsertionType.DraftMode;
-//         else return InsertionType.Invalid;
-//     }
-
-//     getKeyword(): string {
-//         return this.tokens[this.keywordIndex].getRenderText();
-//     }
-// }
-
 /**
  * {@link Construct}s implementing this interface need to be imported
  */
