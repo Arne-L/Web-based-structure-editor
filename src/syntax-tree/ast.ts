@@ -180,8 +180,7 @@ export abstract class Construct {
     /**
      * Method that needs to run when focus is moved off the construct
      * 
-     * @param arg - 
-     * @returns 
+     * @param arg - JavaScript object containing information about the focus event
      */
     onFocusOff(arg: any): void {
         return;
