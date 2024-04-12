@@ -201,24 +201,14 @@ export abstract class Construct {
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
 export abstract class Statement extends Construct {
-    // lineNumber: number;
-    // left: Position;
-    // right: Position;
     rootNode: Statement | Module = null;
-    // indexInRoot: number;
     body = new Array<Statement>();
     scope: Scope = null;
     tokens = new Array<Construct>();
     hasEmptyToken: boolean;
-    // callbacks = new Map<string, Array<Callback>>();
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
-    // typeOfHoles = new Map<number, Array<DataType>>();
-    // draftModeEnabled = false;
-    // draftRecord: DraftRecord = null;
-    // callbacksToBeDeleted = new Map<CallbackType, string>();
-    // simpleDraftTooltip = Tooltip.None;
     simpleInvalidTooltip = Tooltip.InvalidInsertStatement;
 
     constructor() {
@@ -1098,19 +1088,9 @@ export abstract class Modifier extends Expression {
 export abstract class Token extends Construct {
     isTextEditable = false;
     rootNode: Construct = null;
-    // indexInRoot: number;
-    // left: Position;
-    // right: Position;
     text: string;
     isEmpty: boolean = false;
-    // callbacks = new Map<string, Array<Callback>>();
     message = null;
-    // draftModeEnabled = false;
-    // draftRecord = null;
-    // codeConstructName = ConstructName.Default;
-    // callbacksToBeDeleted = new Map<CallbackType, string>();
-    // simpleDraftTooltip = Tooltip.None;
-    // simpleInvalidTooltip = Tooltip.None;
 
     constructor(text: string, root?: Construct) {
         super();
