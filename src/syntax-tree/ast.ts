@@ -13,6 +13,7 @@ import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
 import { Module } from "./module";
 import { Scope } from "./scope";
 import { ValidatorNameSpace } from "./validator";
+import { globalFormats } from "../language-definition/parser";
 
 export abstract class Construct {
     /**
@@ -1476,6 +1477,8 @@ export class AssignmentToken extends IdentifierTkn {
     constructor(identifier?: string, root?: Statement, indexInRoot?: number, regex?: RegExp) {
         super(identifier, root, indexInRoot, regex);
 
+        (root as GeneralStatement).addAssignmentIndex(indexInRoot);
+
         this.subscribe(
             CallbackType.onFocusOff,
             new Callback(() => {
@@ -1789,3 +1792,36 @@ abstract class HoleStructure extends Construct {}
  * TODO: Rename / merge in the future with TypedEmptyExpr
  */
 // class ConstructHoleStructure extends HoleStructure {}
+
+
+class CompositeConstruct {
+    private recursiveName: string;
+    // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
+    private tokens: Construct[] = []; 
+    // Hmmmm?
+    private scope: Scope;
+
+    constructor(recursiveName: string) {
+        // Could be split in two different constructors if we want to allow json as well 
+        // by using the factory method
+
+        this.recursiveName = recursiveName;
+
+        const format = globalFormats.get(recursiveName)
+
+        if (format.scope) this.scope = new Scope();
+
+
+
+        // How to construct? Build until a waitOnUser? The seperator token can maybe also have
+        // a waitOnUser? So that we leave the option to the specification writing user. 
+    }
+
+    addToken(token: Token) {
+        this.tokens.push(token);
+    }
+
+    getTokens(): Construct[] {
+        return this.tokens;
+    }
+}

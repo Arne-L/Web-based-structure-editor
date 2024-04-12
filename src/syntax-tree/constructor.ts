@@ -55,14 +55,11 @@ export namespace SyntaxConstructor {
                     codeconstruct.tokens.push(
                         new AssignmentToken(undefined, codeconstruct, codeconstruct.tokens.length, RegExp(token.regex))
                     );
-                    codeconstruct.addAssignmentIndex(codeconstruct.tokens.length - 1); // Maybe add codeconstruct in the token itself
                     break;
                 case "reference":
                     codeconstruct.tokens.push(
                         new ReferenceTkn(data?.reference ?? "", codeconstruct, codeconstruct.tokens.length)
                     );
-                    break;
-                case "collection":
                     break;
                 case "editable":
                     codeconstruct.tokens.push(
@@ -73,6 +70,8 @@ export namespace SyntaxConstructor {
                             codeconstruct.tokens.length
                         )
                     );
+                    break;
+                case "recursive":
                     break;
                 default:
                     // Invalid type => What to do about it?
