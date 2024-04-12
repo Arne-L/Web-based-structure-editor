@@ -1,4 +1,3 @@
-import Fuse from "fuse.js";
 import {
     // AssignmentModifier,
     // AugmentedAssignmentModifier,
@@ -16,33 +15,16 @@ import {
     IdentifierTkn,
     // IfStatement,
     ImportStatement,
-    // ListLiteralExpression,
-    // LiteralValExpr,
-    Modifier,
     NonEditableTkn,
     // OperatorTkn,
     Statement,
     TypedEmptyExpr,
-    // ValueOperationExpr,
-    // VarAssignmentStmt,
-    // VariableReferenceExpr,
 } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
 import { VariableController } from "../syntax-tree/variable-controller";
 import { isImportable } from "../utilities/util";
-import {
-    BinaryOperator,
-    DataType,
-    InsertionType,
-    NumberRegex,
-    OperatorCategory,
-    UnaryOperator,
-    arithmeticOps,
-    boolOps,
-    comparisonOps,
-} from "./../syntax-tree/consts";
-import { EditCodeAction } from "./action-filter";
+import { BinaryOperator, InsertionType, UnaryOperator } from "./../syntax-tree/consts";
 import { Context } from "./focus";
 
 /**
@@ -1195,14 +1177,16 @@ export class Validator {
             if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
                 // Get nearest scope
                 let scope =
-                    code instanceof TypedEmptyExpr ? code.getParentStatement()?.scope : (code.rootNode as Module).scope; //line that contains "code"
+                    code instanceof TypedEmptyExpr
+                        ? code.getNearestStatement()?.scope
+                        : (code.rootNode as Module).scope; //line that contains "code"
                 let currRootNode = code.rootNode;
 
                 // Keep going up the tree until we find a non-null scope
                 while (!scope) {
                     if (!(currRootNode instanceof Module)) {
-                        if (currRootNode.getParentStatement()?.hasScope()) {
-                            scope = currRootNode.getParentStatement().scope;
+                        if (currRootNode.getNearestStatement()?.hasScope()) {
+                            scope = currRootNode.getNearestStatement().scope;
                         } else if (currRootNode.rootNode instanceof Statement) {
                             currRootNode = currRootNode.rootNode;
                         } else if (currRootNode.rootNode instanceof Module) {

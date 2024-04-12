@@ -1,18 +1,17 @@
 import { Position, Range, Selection } from "monaco-editor";
-import { EditCodeAction, InsertionResult } from "../editor/action-filter";
+import { EditCodeAction } from "../editor/action-filter";
 import { DraftRecord } from "../editor/draft";
+import { Editor } from "../editor/editor";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
 import { ConstructDefinition } from "../language-definition/definitions";
+import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
+import { SyntaxConstructor } from "./constructor";
 import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
-import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { EMPTYIDENTIFIER } from "../language-definition/settings";
-import { Editor } from "../editor/editor";
-import { SyntaxConstructor } from "./constructor";
 import { ValidatorNameSpace } from "./validator";
 
 export abstract class Construct {
@@ -72,6 +71,13 @@ export abstract class Construct {
     }
 
     /**
+     * The line number of the construct.
+     */
+    get lineNumber(): number {
+        return this.left.lineNumber;
+    }
+
+    /**
      * Get the entire range of the construct, including potential child constructs.
      *
      * @param param0 - { selectIndent: boolean }: If the initial indent should be included in the selection range
@@ -117,22 +123,30 @@ export abstract class Construct {
     /**
      * Returns the left-position `(lineNumber, column)` of this code-construct in the rendered text.
      */
-    abstract getLeftPosition(): Position;
+    getLeftPosition(): Position {
+        return this.left;
+    }
 
     /**
      * Returns the right-position `(lineNumber, column)` of this code-construct in the rendered text.
      */
-    abstract getRightPosition(): Position;
+    getRightPosition(): Position {
+        return this.right;
+    }
 
     /**
      * Returns a `Selection` object for this particular code-construct when it is selected
      */
-    abstract getSelection(): Selection;
+    getSelection(): Selection {
+        const line = this.getLineNumber();
+
+        return new Selection(line, this.rightCol, line, this.leftCol);
+    }
 
     /**
      * Returns the parent statement of this code-construct (an element of the Module.body array).
      */
-    abstract getParentStatement(): Statement;
+    abstract getNearestStatement(): Statement;
 
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
@@ -163,12 +177,28 @@ export abstract class Construct {
      */
     abstract performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
-    abstract onFocusOff(arg: any): void;
+    /**
+     * Method that needs to run when focus is moved off the construct
+     * 
+     * @param arg - 
+     * @returns 
+     */
+    onFocusOff(arg: any): void {
+        return;
+    }
 
     // FFD together with all its children (it is never called)
     abstract performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
-    abstract markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void;
+    /**
+     * Puts a callback on the stack to be deleted
+     * 
+     * @param callbackType - The type of the callback to be marked for deletion
+     * @param callbackId - The id of the callback to be marked for deletion
+     */
+    markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void {
+        this.callbacksToBeDeleted.set(callbackType, callbackId);
+    }
 
     //TODO: This functionality needs to be merged with what Issue #526
     //This should be completely unnecessary once this is integrated with our validation inside of action-filter.ts and validaiton methods such as validateContext
@@ -176,17 +206,24 @@ export abstract class Construct {
      * Return a tooltip for the toolbox giving a general reason for why this construct cannot be inserted. This tooltip WILL NOT
      * have detailed, context-based information.
      */
-    abstract getSimpleInvalidTooltip(): Tooltip;
+    getSimpleInvalidTooltip(): Tooltip {
+        return this.simpleInvalidTooltip;
+    }
 
     /**
      * Return a tooltip for the toolbox giving a general reason for why this construct would trigger draft mode. This tooltip WILL NOT
      * have detailed, context-based information.
      */
-    abstract getSimpleDraftTooltip(): Tooltip;
+    getSimpleDraftTooltip(): Tooltip {
+        return this.simpleDraftTooltip;
+    }
 
-    abstract onDelete(): void;
-
-    // getTypes(): DataType[];
+    /**
+     * Method to be run when the construct is deleted
+     */
+    onDelete(): void {
+        return;
+    }
 
     /**
      * Highlight the given construct with the given colour
@@ -194,8 +231,9 @@ export abstract class Construct {
      * @param construct - The construct to highlight
      * @param rgbColour - The colour to highlight the construct with
      */
-    abstract addHighlight(rgbColour: [number, number, number, number], editor: Editor): void;
-}
+    addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
+        new ConstructHighlight(editor, this, rgbColour);
+    }}
 
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
@@ -222,26 +260,6 @@ export abstract class Statement extends Construct {
                 this.onDelete();
             })
         );
-    }
-
-    // TRYING TO DELETE THIS LEADS TO ERRORS; WHY?
-    // /**
-    //  * The column number of the left position of this construct.
-    //  */
-    // get leftCol(): number {
-    //     // Very rarely the left position is not set, so we need to add a check for this
-    //     return this.left?.column;
-    // }
-
-    /**
-     * The column number of the right position of this construct.
-     */
-    get rightCol(): number {
-        return this.right.column;
-    }
-
-    get lineNumber(): number {
-        return this.left.lineNumber;
     }
 
     /**
@@ -331,7 +349,7 @@ export abstract class Statement extends Construct {
     setLineNumber(lineNumber: number) {
         // TEMPORARY FIX FOR THE LINE NUMBER
         // this.lineNumber = lineNumber;
-        const lineDiff = this.right.lineNumber - this.left.lineNumber
+        const lineDiff = this.right.lineNumber - this.left.lineNumber;
         this.left = new Position(lineNumber, this.leftCol);
         this.right = new Position(lineNumber + lineDiff, this.rightCol);
 
@@ -466,7 +484,7 @@ export abstract class Statement extends Construct {
             }
         }
 
-        return { positionToMove: new Position(this.getLineNumber(), this.rightCol) };
+        return { positionToMove: this.right /*new Position(this.getLineNumber(), this.rightCol)*/ };
     }
 
     /**
@@ -556,21 +574,7 @@ export abstract class Statement extends Construct {
         return this.lineNumber;
     }
 
-    getLeftPosition(): Position {
-        return new Position(this.getLineNumber(), this.leftCol);
-    }
-
-    getRightPosition(): Position {
-        return new Position(this.getLineNumber(), this.rightCol);
-    }
-
-    getSelection(): Selection {
-        const line = this.getLineNumber();
-
-        return new Selection(line, this.rightCol, line, this.leftCol);
-    }
-
-    getParentStatement(): Statement {
+    getNearestStatement(): Statement {
         return this;
     }
 
@@ -625,33 +629,8 @@ export abstract class Statement extends Construct {
      */
     abstract validateContext(validator: Validator, providedContext: Context): InsertionType;
 
-    //actions that need to occur when the focus is switched off of this statement
-    onFocusOff(arg: any): void {
-        return;
-    }
-
-    markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void {
-        this.callbacksToBeDeleted.set(callbackType, callbackId);
-    }
-
-    getSimpleDraftTooltip(): Tooltip {
-        return this.simpleDraftTooltip;
-    }
-
-    getSimpleInvalidTooltip(): Tooltip {
-        return this.simpleInvalidTooltip;
-    }
-
-    onDelete(): void {
-        return;
-    }
-
     onReplaceToken(args: Object): void {
         return;
-    }
-
-    addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
-        new ConstructHighlight(editor, this, rgbColour);
     }
 }
 
@@ -998,11 +977,11 @@ export class GeneralExpression extends GeneralStatement {
      *
      * @returns The parent statement of the current expression
      */
-    getParentStatement(): Statement {
+    getNearestStatement(): Statement {
         // Change to GeneralStatement in the future
         if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
         else {
-            return this.rootNode.getParentStatement();
+            return this.rootNode.getNearestStatement();
         }
     }
 
@@ -1048,8 +1027,8 @@ export abstract class Expression extends Statement implements Construct {
          */
     }
 
-    getParentStatement(): Statement {
-        return this.rootNode.getParentStatement();
+    getNearestStatement(): Statement {
+        return this.rootNode.getNearestStatement();
         /**
          * Generalisatie:
          * if (this.returns) return this.rootNode.getParentStatement(); // If expression
@@ -1099,14 +1078,6 @@ export abstract class Token extends Construct {
 
         this.rootNode = root;
         this.text = text;
-    }
-
-    get leftCol(): number {
-        return this.left.column;
-    }
-
-    get rightCol(): number {
-        return this.right.column;
     }
 
     getBoundaries({ selectIndent = false } = {}): Range {
@@ -1194,29 +1165,11 @@ export abstract class Token extends Construct {
         else return (this.rootNode as Expression).getLineNumber();
     }
 
-    getLeftPosition(): Position {
-        return new Position(this.getLineNumber(), this.leftCol);
-    }
-
-    getRightPosition(): Position {
-        return new Position(this.getLineNumber(), this.rightCol);
-    }
-
-    getSelection(): Selection {
-        const line = this.getLineNumber();
-
-        return new Selection(line, this.rightCol, line, this.leftCol);
-    }
-
-    getParentStatement(): Statement {
-        return this.rootNode.getParentStatement();
+    getNearestStatement(): Statement {
+        return this.rootNode.getNearestStatement();
     }
 
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
-    onFocusOff(arg: any): void {
-        return;
-    }
 
     performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
@@ -1224,32 +1177,8 @@ export abstract class Token extends Construct {
     //     return new InsertionResult(InsertionType.Valid, "", []);
     // }
 
-    markCallbackForDeletion(callbackType: CallbackType, callbackId: string): void {
-        this.callbacksToBeDeleted.set(callbackType, callbackId);
-    }
-
     getKeyword(): string {
         return this.getRenderText();
-    }
-
-    getSimpleDraftTooltip(): Tooltip {
-        return this.simpleDraftTooltip;
-    }
-
-    getSimpleInvalidTooltip(): Tooltip {
-        return this.simpleInvalidTooltip;
-    }
-
-    onDelete() {
-        return;
-    }
-
-    // getTypes(): DataType[] {
-    //     return [];
-    // }
-
-    addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
-        new ConstructHighlight(editor, this, rgbColour);
     }
 }
 
@@ -1561,7 +1490,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
         // Get the parent statement
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getNearestStatement();
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
@@ -1606,7 +1535,7 @@ export class AssignmentToken extends IdentifierTkn {
         // List of variable reference expressions refering to the current token
         const varRefs: GeneralStatement[] = [];
         // Get the statement containing the token
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getNearestStatement();
         // Current identifier
         const currentIdentifier = identifierName ?? this.getRenderText();
 
@@ -1655,7 +1584,7 @@ export class AssignmentToken extends IdentifierTkn {
      * assignments to the variable and update the variable references
      */
     onDelete(): void {
-        const parentStmt = this.getParentStatement();
+        const parentStmt = this.getNearestStatement();
         const currentScope = parentStmt.getNearestScope();
 
         // Remove the assignment from the nearest scope
@@ -1839,21 +1768,17 @@ export class NonEditableTkn extends Token {
 
 export class ReferenceTkn extends NonEditableTkn {}
 
-
-
 // !!!!!!!! Additional structure classes
 
 /**
- * An abstract construct representing a hole in the code that can be filled 
+ * An abstract construct representing a hole in the code that can be filled
  * with a construct.
  */
-abstract class HoleStructure extends Construct {
-
-}
+abstract class HoleStructure extends Construct {}
 
 /**
  * A hole structure representing a standard empty line in a construct.
- * 
+ *
  * TODO: Rename / merge in the future with EmptyLineStmt
  */
 // class EmptyLineStructure extends HoleStructure {}
@@ -1861,7 +1786,7 @@ abstract class HoleStructure extends Construct {
 /**
  * A hole structure representing a construct that can be filled with a different
  * construct.
- * 
+ *
  * TODO: Rename / merge in the future with TypedEmptyExpr
  */
 // class ConstructHoleStructure extends HoleStructure {}

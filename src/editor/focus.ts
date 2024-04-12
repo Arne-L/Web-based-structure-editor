@@ -4,7 +4,6 @@ import {
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
-    Expression,
     GeneralExpression,
     IdentifierTkn,
     // LiteralValExpr,
@@ -16,7 +15,6 @@ import {
 } from "../syntax-tree/ast";
 import { CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
-import { DataType } from "./../syntax-tree/consts";
 import { ConstructName } from "./consts";
 
 export class Focus {
@@ -734,7 +732,7 @@ export class Focus {
                         );
                     }
 
-                    context.lineStatement = context.tokenToRight.getParentStatement();
+                    context.lineStatement = context.tokenToRight.getNearestStatement();
 
                     break;
                 } else if (column == curToken.rightCol) {
@@ -757,13 +755,13 @@ export class Focus {
                             context.tokenToLeft.rootNode.rightCol == column
                         );
                     }
-                    context.lineStatement = context.tokenToLeft.getParentStatement();
+                    context.lineStatement = context.tokenToLeft.getNearestStatement();
 
                     break;
                 } else if (column > curToken.leftCol && column < curToken.rightCol) {
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
-                    context.lineStatement = context.token.getParentStatement();
+                    context.lineStatement = context.token.getNearestStatement();
 
                     break;
                 }
