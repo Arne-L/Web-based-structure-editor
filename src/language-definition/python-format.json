@@ -11,7 +11,7 @@
             },
             {
                 "type": "recursive",
-                "name": "body_helper"
+                "recursiveName": "body_helper"
             }
         ]
     },
@@ -20,7 +20,7 @@
         "format": [
             {
                 "type": "recursive",
-                "name": "statement"
+                "recursiveName": "statement"
             },
             {
                 "type": "token",
@@ -31,7 +31,7 @@
             },
             {
                 "type": "recursive",
-                "name": "body_helper",
+                "recursiveName": "body_helper",
                 "min": 0,
                 "max": 1
             }

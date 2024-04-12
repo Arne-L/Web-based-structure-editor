@@ -1796,7 +1796,7 @@ abstract class HoleStructure extends Construct {}
 // class ConstructHoleStructure extends HoleStructure {}
 
 
-class CompositeConstruct {
+export class CompositeConstruct {
     private recursiveName: string;
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
     private tokens: Construct[] = []; 

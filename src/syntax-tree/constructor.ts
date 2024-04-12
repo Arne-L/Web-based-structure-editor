@@ -1,5 +1,7 @@
+import { ConstructDefinition } from "../language-definition/definitions";
 import {
     AssignmentToken,
+    CompositeConstruct,
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
@@ -13,7 +15,7 @@ import { Scope } from "./scope";
 
 export namespace SyntaxConstructor {
     export function constructTokensFromJSON(
-        jsonConstruct: any,
+        jsonConstruct: ConstructDefinition,
         rootConstruct: GeneralStatement,
         data?: any
     ): Construct[] {
@@ -65,10 +67,11 @@ export namespace SyntaxConstructor {
                     );
                     break;
                 case "recursive":
+                    // constructs.push(new CompositeConstruct(token.recursiveName));
                     break;
                 default:
                     // Invalid type => What to do about it?
-                    console.warn("Invalid type: " + token.type);
+                    console.warn("Invalid type for the given token: " + token);
 
                 /**
                  * 1) How will we handle new lines / empty lines? What will the configuration file require?
