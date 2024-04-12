@@ -15,6 +15,10 @@ export interface LanguageDefinition {
      */
     constructFile: string;
     /**
+     * The path to the file containing the recursive format definitions.
+     */
+    recursiveFile: string;
+    /**
      * A list of (key)words that can / should not be used as identifier names,
      * nested within the reason for which they are reserved. This allows for the
      * creation of multiple categories with a different reason. The reason is
@@ -138,6 +142,38 @@ export interface ConstructDefinition {
      * Required.
      */
     toolbox: ToolboxDefinition;
+}
+
+export interface RecursiveFormatDefinition {
+    /**
+     * The name of the format definition. This name is used call / inject the format definition
+     * 
+     * Required.
+     */
+    name: string;
+    /**
+     * Indicates whether the encapsulation represents a scope or not. 
+     * 
+     * Optional, defaults to false.
+     */
+    scope?: boolean;
+    /**
+     * The token that should be inserted before each iteration of the recursion. 
+     * This allows for example easy definitions of indented body structures like
+     * in Python.
+     * 
+     * Optional, defaults to null.
+     * 
+     * TODO: Maybe add an insertAfter as well? 
+     * TODO: Maybe a list of tokens?
+     */
+    insertBefore?: TokenFormatDefinition;
+    /**
+     * Definition of the format that should be repeated in the recursion.
+     * 
+     * Required.
+     */
+    format: FormatDefinition;
 }
 
 /**

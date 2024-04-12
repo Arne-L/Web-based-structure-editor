@@ -1,8 +1,8 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
-import { ConstructDefinition, LanguageDefinition } from "./definitions";
 import config from "./config.json";
+import { ConstructDefinition, LanguageDefinition, RecursiveFormatDefinition } from "./definitions";
 
 // Dynamically import the correct language and constructs
 let languageConfig: LanguageDefinition;
@@ -13,6 +13,16 @@ let constructs: ConstructDefinition[];
 if (languageConfig.constructFile)
     constructs = (await import(`../language-definition/${languageConfig.constructFile}`)).default;
 else throw new Error("No construct file specified in the language configuration file");
+
+let recursiveFormats: RecursiveFormatDefinition[];
+if (languageConfig.recursiveFile)
+    recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
+else throw new Error("No recursive file specified in the language configuration file");
+
+export const globalFormats = new Map(recursiveFormats.map((format) => {
+    const { name, ...formatData } = format;
+    return [format.name, formatData];
+}));
 
 /* EVERYTHING RELATED TO ACTIONS AND EDITCODEACTIONS AND AST */
 

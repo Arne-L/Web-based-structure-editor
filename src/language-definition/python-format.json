@@ -1,6 +1,7 @@
 [
     {
         "name": "body",
+        "scope": true,
         "format": [
             {
                 "type": "token",
@@ -9,7 +10,7 @@
                 "max": null
             },
             {
-                "type": "reference",
+                "type": "recursive",
                 "name": "body_helper"
             }
         ]
@@ -18,7 +19,7 @@
         "name": "body_helper",
         "format": [
             {
-                "type": "reference",
+                "type": "recursive",
                 "name": "statement"
             },
             {
@@ -29,7 +30,7 @@
                 "max": null
             },
             {
-                "type": "reference",
+                "type": "recursive",
                 "name": "body_helper",
                 "min": 0,
                 "max": 1

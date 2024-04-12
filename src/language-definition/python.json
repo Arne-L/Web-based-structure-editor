@@ -1,6 +1,7 @@
 {
     "name": "Python",
     "constructFile": "python-constructs.json",
+    "recursiveFile": "python-format.json",
     "reservedWords": [
         {
             "reason": "The current identifier is a reserved keyword. Please use a different one.",

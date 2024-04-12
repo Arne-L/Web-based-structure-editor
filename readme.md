@@ -213,7 +213,7 @@ Problemen die hier bij voor kunnen komen?
         -   Een bestaand construct naar achter of voor wordt geïndenteerd
             -   <span style="color:green">Naar voor indenteren gaat enkel als er na geen tokens / constructs meer komen met een zelfde oorspronkelijke indent</span>
             -   <span style="color:green">Naar achter indenteren gaat enkel als het verschil tussen het te indenteren construct en het construct ervoor één indentatie is</span><br>
-                ==> Indentatie naar volgende niveau werkt wel makkelijk, maar indentatie als deletion <br>
+                ==> Indentatie naar volgende niveau werkt wel makkelijk, maar indentatie als deletion niet<br>
                 ==> Interessant om dit in de paper ook uit te schrijven waarom hier een onderscheid in is
 -   Hoe deletion afhandelen?
     -   Alles is nu een token, een hole of empty line, dus hoe weten wat we moeten verwijderen bij een backspace of delete? Bv. een delete achter de "if --- :" moet de eerste lijn van de "body" verwijderen, wat nu een \n, \t en een statement is bij Python om een correcte structuur te behouden
@@ -249,3 +249,25 @@ Ideeën voor body:
 -   CompositeToken & Single token
     - Composite token: Een reeks tokens die samen bepaalde functionaliteit verwezenlijken, bv. scoping, bepaalde wederkerende tokens etc
     - Single token: zoals voorheen, een gewone token
+
+
+Er zijn nu twee alternatieven: recursief of imperatief
+
+Recursief:
+| Voordelen | Nadelen |
+| --- | --- |
+| Kunnen bepalen hoe vaak we een token willen herhalen | Niet eenvoudig om een scope aan te geven |
+| Mogelijk om verschillende recursiepunten te hebben |  |
+
+Notes: 
+* waitOnUser kan algemeen gebruikt worden, en dus ook in het geval van de imperatieve oplossing, maar mag niet top-level gebruikt worden (anders zou een niet geldig construct gegeneerd worden) / eventueel gewoon skippen op de top-level
+
+
+Imperatief:
+| Voordelen | Nadelen |
+| --- | --- |
+| Scopes kunnen eenvoudig aangegeven worden | Enkel herhaling mogelijk als het de seperator is die herhaald wordt |
+| Samenhoren en operaties op het geheel kunnen eenvoudig aangegeven worden | Slechts één punt waar herhaling mogelijk is binnen één loop (kunnen eventueel genest worden) |
+
+Kunnen beiden gecombineerd worden?
+Mogelijks ... Elk niveau van recursie een container geven waar ook een seperator token aan kan worden toegevoegd (= imperatief element)
