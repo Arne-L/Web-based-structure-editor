@@ -29,12 +29,12 @@ export abstract class Construct {
     /**
      * The left column position of this code-construct.
      */
-    leftCol: number;
+    left: Position;
 
     /**
      * The right column position of this code-construct.
      */
-    rightCol: number;
+    right: Position;
 
     /**
      * A warning or error message for this code construct. (null if there are no messages)
@@ -44,16 +44,32 @@ export abstract class Construct {
     /**
      * Whether this code construct is in draft mode or not. Always false for Tokens
      */
-    draftModeEnabled: boolean;
+    draftModeEnabled: boolean = false;
 
-    draftRecord: DraftRecord;
+    draftRecord: DraftRecord = null;
 
     // codeConstructName: ConstructName;
 
-    callbacksToBeDeleted: Map<CallbackType, string>;
+    callbacks: Map<string, Array<Callback>> = new Map<string, Array<Callback>>();
 
-    simpleDraftTooltip: Tooltip;
-    simpleInvalidTooltip: Tooltip;
+    callbacksToBeDeleted: Map<CallbackType, string> = new Map<CallbackType, string>();
+
+    simpleDraftTooltip: Tooltip = Tooltip.None;
+    simpleInvalidTooltip: Tooltip = Tooltip.None;
+
+    /**
+     * The column number of the left position of this construct.
+     */
+    get leftCol(): number {
+        return this.left?.column;
+    }
+
+    /**
+     * The column number of the right position of this construct.
+     */
+    get rightCol(): number {
+        return this.right.column;
+    }
 
     /**
      * Get the entire range of the construct, including potential child constructs.
@@ -184,28 +200,30 @@ export abstract class Construct {
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
-export abstract class Statement implements Construct {
+export abstract class Statement extends Construct {
     // lineNumber: number;
-    left: Position;
-    right: Position;
+    // left: Position;
+    // right: Position;
     rootNode: Statement | Module = null;
-    indexInRoot: number;
+    // indexInRoot: number;
     body = new Array<Statement>();
     scope: Scope = null;
     tokens = new Array<Construct>();
     hasEmptyToken: boolean;
-    callbacks = new Map<string, Array<Callback>>();
+    // callbacks = new Map<string, Array<Callback>>();
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
     // typeOfHoles = new Map<number, Array<DataType>>();
-    draftModeEnabled = false;
-    draftRecord: DraftRecord = null;
-    callbacksToBeDeleted = new Map<CallbackType, string>();
-    simpleDraftTooltip = Tooltip.None;
+    // draftModeEnabled = false;
+    // draftRecord: DraftRecord = null;
+    // callbacksToBeDeleted = new Map<CallbackType, string>();
+    // simpleDraftTooltip = Tooltip.None;
     simpleInvalidTooltip = Tooltip.InvalidInsertStatement;
 
     constructor() {
+        super();
+
         for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
 
         this.subscribe(
@@ -216,13 +234,14 @@ export abstract class Statement implements Construct {
         );
     }
 
-    /**
-     * The column number of the left position of this construct.
-     */
-    get leftCol(): number {
-        // Very rarely the left position is not set, so we need to add a check for this
-        return this.left?.column;
-    }
+    // TRYING TO DELETE THIS LEADS TO ERRORS; WHY?
+    // /**
+    //  * The column number of the left position of this construct.
+    //  */
+    // get leftCol(): number {
+    //     // Very rarely the left position is not set, so we need to add a check for this
+    //     return this.left?.column;
+    // }
 
     /**
      * The column number of the right position of this construct.
@@ -1076,24 +1095,26 @@ export abstract class Modifier extends Expression {
 /**
  * The smallest code construct: identifiers, holes (for either identifiers or expressions), operators and characters etc.
  */
-export abstract class Token implements Construct {
+export abstract class Token extends Construct {
     isTextEditable = false;
     rootNode: Construct = null;
-    indexInRoot: number;
-    left: Position;
-    right: Position;
+    // indexInRoot: number;
+    // left: Position;
+    // right: Position;
     text: string;
     isEmpty: boolean = false;
-    callbacks = new Map<string, Array<Callback>>();
+    // callbacks = new Map<string, Array<Callback>>();
     message = null;
-    draftModeEnabled = false;
-    draftRecord = null;
+    // draftModeEnabled = false;
+    // draftRecord = null;
     // codeConstructName = ConstructName.Default;
-    callbacksToBeDeleted = new Map<CallbackType, string>();
-    simpleDraftTooltip = Tooltip.None;
-    simpleInvalidTooltip = Tooltip.None;
+    // callbacksToBeDeleted = new Map<CallbackType, string>();
+    // simpleDraftTooltip = Tooltip.None;
+    // simpleInvalidTooltip = Tooltip.None;
 
     constructor(text: string, root?: Construct) {
+        super();
+
         for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
 
         this.rootNode = root;
