@@ -1,5 +1,6 @@
 import {
     AssignmentToken,
+    Construct,
     EditableTextTkn,
     EmptyLineStmt,
     GeneralStatement,
@@ -11,64 +12,56 @@ import { DataType } from "./consts";
 import { Scope } from "./scope";
 
 export namespace SyntaxConstructor {
-    export function constructTokensFromJSON(jsonConstruct: any, codeconstruct: GeneralStatement, data: any) {
+    export function constructTokensFromJSON(
+        jsonConstruct: any,
+        rootConstruct: GeneralStatement,
+        data?: any
+    ): Construct[] {
+        const constructs: Construct[] = [];
         let holeIndex = 0;
         for (const token of jsonConstruct.format) {
             switch (token.type) {
                 case "implementation":
-                    codeconstruct.tokens.push(
-                        new NonEditableTkn(jsonConstruct[token.anchor], codeconstruct, codeconstruct.tokens.length)
-                    );
+                    constructs.push(new NonEditableTkn(jsonConstruct[token.anchor], rootConstruct, constructs.length));
                     break;
                 case "token":
-                    codeconstruct.tokens.push(
-                        new NonEditableTkn(token.value, codeconstruct, codeconstruct.tokens.length)
-                    );
+                    constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
                     break;
                 case "hole":
                     const holeParts = jsonConstruct.holes[holeIndex];
                     for (let i = 0; i < holeParts.length; i++) {
                         // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                        codeconstruct.tokens.push(
-                            new TypedEmptyExpr([DataType.Any], codeconstruct, codeconstruct.tokens.length)
-                        );
+                        constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
 
                         if (i + 1 < holeParts.length)
-                            codeconstruct.tokens.push(
-                                new NonEditableTkn(token.delimiter, codeconstruct, codeconstruct.tokens.length)
-                            );
+                            constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
                     }
-                    if (holeParts.length > 0) codeconstruct.hasEmptyToken = true;
+                    // Try to remove these field accessors in the future
+                    if (holeParts.length > 0) rootConstruct.hasEmptyToken = true;
                     holeIndex++;
-                    codeconstruct.hasSubValues = true;
+                    rootConstruct.hasSubValues = true;
                     break;
                 case "body":
-                    codeconstruct.body.push(new EmptyLineStmt(codeconstruct, codeconstruct.body.length));
-                    codeconstruct.scope = new Scope();
-                    codeconstruct.hasSubValues = true;
+                    // FFD
+                    rootConstruct.body.push(new EmptyLineStmt(rootConstruct, rootConstruct.body.length));
+                    rootConstruct.scope = new Scope();
+                    rootConstruct.hasSubValues = true;
                     /**
                      * We still need to add scope for constructs without a body like else and elif
                      */
                     break;
                 case "identifier":
-                    // codeconstruct.tokens.push(new EditableTextTkn("", RegExp(token.regex), codeconstruct, codeconstruct.tokens.length))
-                    codeconstruct.tokens.push(
-                        new AssignmentToken(undefined, codeconstruct, codeconstruct.tokens.length, RegExp(token.regex))
+                    // constructs.push(new EditableTextTkn("", RegExp(token.regex), codeconstruct, constructs.length))
+                    constructs.push(
+                        new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex))
                     );
                     break;
                 case "reference":
-                    codeconstruct.tokens.push(
-                        new ReferenceTkn(data?.reference ?? "", codeconstruct, codeconstruct.tokens.length)
-                    );
+                    constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
                     break;
                 case "editable":
-                    codeconstruct.tokens.push(
-                        new EditableTextTkn(
-                            token.value ?? "",
-                            RegExp(token.regex),
-                            codeconstruct,
-                            codeconstruct.tokens.length
-                        )
+                    constructs.push(
+                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
                     );
                     break;
                 case "recursive":
@@ -107,5 +100,6 @@ export namespace SyntaxConstructor {
                  */
             }
         }
+        return constructs;
     }
 }

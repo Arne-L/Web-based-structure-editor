@@ -833,7 +833,9 @@ export class GeneralStatement extends Statement {
                 (req) => new OptionalConstruct(req.ref, req.min_repeat, req.max_repeat)
             );
 
-        SyntaxConstructor.constructTokensFromJSON(construct, this, data);
+        // Add all the elements to the end, even though the original array should be empty
+        // Maybe change to an assignment in the future if that is more efficient
+        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct, this, data));
     }
 
     /**
@@ -1807,9 +1809,11 @@ class CompositeConstruct {
 
         this.recursiveName = recursiveName;
 
-        const format = globalFormats.get(recursiveName)
+        const compositeContent = globalFormats.get(recursiveName)
 
-        if (format.scope) this.scope = new Scope();
+        if (compositeContent.scope) this.scope = new Scope();
+
+        // this.tokens = SyntaxConstructor.constructTokensFromJSON(compositeContent.format, this);
 
 
 
@@ -1817,11 +1821,11 @@ class CompositeConstruct {
         // a waitOnUser? So that we leave the option to the specification writing user. 
     }
 
-    addToken(token: Token) {
+    private addToken(token: Token) {
         this.tokens.push(token);
     }
 
-    getTokens(): Construct[] {
+    private getTokens(): Construct[] {
         return this.tokens;
     }
 }
