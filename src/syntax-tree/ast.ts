@@ -152,12 +152,25 @@ export abstract class Construct {
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
      */
-    abstract subscribe(type: CallbackType, callback: Callback);
+    subscribe(type: CallbackType, callback: Callback) {
+        this.callbacks[type].push(callback);
+    }
 
     /**
      * Removes all subscribes of the given type for this code construct
      */
-    abstract unsubscribe(type: CallbackType, callerId: string);
+    unsubscribe(type: CallbackType, callerId: string) {
+        let index = -1;
+
+        for (let i = 0; i < this.callbacks[type].length; i++) {
+            if (this.callbacks[type][i].callerId == callerId) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index >= 0) this.callbacks[type].splice(index, 1);
+    }
 
     /**
      * Calls callback of the given type if this construct is subscribed to it.
@@ -359,23 +372,6 @@ export abstract class Statement extends Construct {
             if (token instanceof Expression) token.setLineNumber(lineNumber);
             (token as Token).notify(CallbackType.change);
         }
-    }
-
-    subscribe(type: CallbackType, callback: Callback) {
-        this.callbacks[type].push(callback);
-    }
-
-    unsubscribe(type: CallbackType, callerId: string) {
-        let index = -1;
-
-        for (let i = 0; i < this.callbacks[type].length; i++) {
-            if (this.callbacks[type][i].callerId == callerId) {
-                index = i;
-                break;
-            }
-        }
-
-        if (index >= 0) this.callbacks[type].splice(index, 1);
     }
 
     /**
@@ -1796,14 +1792,18 @@ abstract class HoleStructure extends Construct {}
 // class ConstructHoleStructure extends HoleStructure {}
 
 
-export class CompositeConstruct {
+export class CompositeConstruct extends Construct {
     private recursiveName: string;
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
     private tokens: Construct[] = []; 
     // Hmmmm?
     private scope: Scope;
 
+    // Extra
+    hasEmptyToken = false;
+
     constructor(recursiveName: string) {
+        super();
         // Could be split in two different constructors if we want to allow json as well 
         // by using the factory method
 
@@ -1813,13 +1813,95 @@ export class CompositeConstruct {
 
         if (compositeContent.scope) this.scope = new Scope();
 
-        // this.tokens = SyntaxConstructor.constructTokensFromJSON(compositeContent.format, this);
+        // this.tokens = SyntaxConstructor.constructTokensFromJSON(compositeContent, this);
 
 
 
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user. 
     }
+
+    getBoundaries({ selectIndent }: { selectIndent: boolean; }): Range {
+        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
+    
+    }
+
+    getNearestScope(): Scope {
+        return this.scope ?? this.rootNode.getNearestScope();
+    }
+
+    getInitialFocus(): UpdatableContext {
+        // Maybe rewrite such that if you don't need to check for empty tokens explicitly, but
+        // by using the output of the getInitialFocus of the tokens
+        for (let token of this.tokens) {
+            if (token instanceof Token && token.isEmpty) return { tokenToSelect: token} 
+            if (token instanceof GeneralStatement && token.hasEmptyToken) return token.getInitialFocus();
+            if (token instanceof CompositeConstruct && token.hasEmptyToken) return token.getInitialFocus();
+        }
+        return { positionToMove: this.right };
+    }
+
+    getRenderText(): string {
+        return this.tokens.map(token => token.getRenderText()).join("");
+    }
+
+    getLineNumber(): number {
+        return this.lineNumber;
+    }
+
+    getKeyword(): string {
+        // Maybe make this more unique?
+        return this.recursiveName;
+    }
+
+    /**
+     * Returns the nearest statement, either itself or one of its ancestors
+     * 
+     * @returns The nearest statement, or null if there is no statement
+     */
+    getNearestStatement(): Statement {
+        if (this.rootNode instanceof Construct) return this.rootNode.getNearestStatement();
+    }
+
+    build(pos: Position): Position {
+        this.left = pos;
+
+        let curPos = pos;
+        for (const token of this.tokens) {
+            curPos = token.build(pos);
+        }
+
+        this.right = curPos;
+
+        // Notify all (child)construct of the change
+        this.notify(CallbackType.change);
+
+        return curPos;
+    }
+
+    notify(type: CallbackType) {
+        for (const callback of this.callbacks[type]) callback.callback(this);
+
+        // We call callbacks on all token of a statement as well
+        for (const token of this.tokens) {
+            token.notify(type);
+        }
+
+        if (this.callbacksToBeDeleted.size > 0) {
+            for (const [callbackType, callerId] of this.callbacksToBeDeleted) {
+                this.unsubscribe(callbackType, callerId);
+            }
+
+            this.callbacksToBeDeleted.clear();
+        }
+    }
+
+    // FFD
+    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
+
+    // FFD
+    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
+
 
     private addToken(token: Token) {
         this.tokens.push(token);

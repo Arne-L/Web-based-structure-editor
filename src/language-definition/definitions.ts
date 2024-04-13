@@ -172,7 +172,32 @@ export interface RecursiveDefinition {
      *
      * Required.
      */
-    format: FormatDefinition;
+    format: FormatDefType[];
+}
+export interface RecursiveRedefinedDefinition {
+    /**
+     * Indicates whether the encapsulation represents a scope or not.
+     *
+     * Optional, defaults to false.
+     */
+    scope?: boolean;
+    /**
+     * The token that should be inserted before each iteration of the recursion.
+     * This allows for example easy definitions of indented body structures like
+     * in Python.
+     *
+     * Optional, defaults to null.
+     *
+     * TODO: Maybe add an insertAfter as well?
+     * TODO: Maybe a list of tokens?
+     */
+    insertBefore?: TokenFormatDefinition;
+    /**
+     * Definition of the format that should be repeated in the recursion.
+     *
+     * Required.
+     */
+    format: FormatDefType[];
 }
 
 /**

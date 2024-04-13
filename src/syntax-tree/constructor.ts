@@ -1,4 +1,4 @@
-import { ConstructDefinition } from "../language-definition/definitions";
+import { ConstructDefinition, RecursiveRedefinedDefinition } from "../language-definition/definitions";
 import {
     AssignmentToken,
     CompositeConstruct,
@@ -24,12 +24,14 @@ export namespace SyntaxConstructor {
         for (const token of jsonConstruct.format) {
             switch (token.type) {
                 case "implementation":
+                    // Do we still want this?
                     constructs.push(new NonEditableTkn(jsonConstruct[token.anchor], rootConstruct, constructs.length));
                     break;
                 case "token":
                     constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
                     break;
                 case "hole":
+                    // DO we still want this or do we want it to be generalised?
                     const holeParts = jsonConstruct.holes[holeIndex];
                     for (let i = 0; i < holeParts.length; i++) {
                         // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
@@ -101,6 +103,49 @@ export namespace SyntaxConstructor {
                  * All variable functionality in the for-loop is currently dropped
                  * What is the best way to add this in the future?
                  */
+            }
+        }
+        return constructs;
+    }
+
+    /**
+     * TEMPORARY: should be merged with the function above
+     * 
+     * @param jsonConstruct 
+     * @param rootConstruct 
+     * @param data 
+     * @returns 
+     */
+    export function constructTokensFromJSONRecursive(
+        jsonConstruct: RecursiveRedefinedDefinition,
+        rootConstruct: GeneralStatement,
+        data?: any
+    ): Construct[] {
+        const constructs: Construct[] = [];
+        for (const token of jsonConstruct.format) {
+            switch (token.type) {
+                case "token":
+                    constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
+                    break;
+                case "identifier":
+                    constructs.push(
+                        new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex))
+                    );
+                    break;
+                case "reference":
+                    constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
+                    break;
+                case "editable":
+                    constructs.push(
+                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
+                    );
+                    break;
+                case "recursive":
+                    // constructs.push(new CompositeConstruct(token.recursiveName));
+                    break;
+                default:
+                    // Invalid type => What to do about it?
+                    console.warn("Invalid type for the given token: " + token);
             }
         }
         return constructs;
