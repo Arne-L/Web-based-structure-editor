@@ -1,8 +1,8 @@
-import { CompoundFormatDefinition, ConstructDefinition, FormatDefType, RecursiveRedefinedDefinition } from "../language-definition/definitions";
+import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
 import { globalFormats } from "../language-definition/parser";
 import {
     AssignmentToken,
-    CompositeConstruct,
+    CompoundConstruct,
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
@@ -119,19 +119,20 @@ export namespace SyntaxConstructor {
      */
     export function constructTokensFromJSONCompound(
         jsonConstruct: CompoundFormatDefinition,
-        rootConstruct: Construct,
-        data?: any
+        rootConstruct: CompoundConstruct,
+        data?: any,
+        startingConstructs?: Construct[],
+        startingIndex?: number
     ): Construct[] {
-        const constructs: Construct[] = [];
+        const constructs: Construct[] = startingConstructs ?? [];
 
-        let i = 0;
-        let stopCondition = false;
+        let i = startingIndex ?? 0;
         // Stopconditions?
         // 1) Coming across a token with "waitOnUser" set to some input
-        // 2) When reaching or exceeding a limit
+        // 2) When reaching or exceeding a limit ==> Currently NOT implemented
         // Wait actually: calls are recursive ... so ... we don't need the loop to keep on going,
         // we only call when we need to
-        while (stopCondition === false) {
+        while (!stopCondition(jsonConstruct.format[i])) {
             if (i === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
                 constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, constructs.length));
@@ -140,7 +141,15 @@ export namespace SyntaxConstructor {
 
             i = (i + 1) % jsonConstruct.format.length;
         }
+
+        rootConstruct.setElementToInsertNextIndex(i);
+
         return constructs;
+    }
+
+    function stopCondition(token: FormatDefType): boolean {
+        if ("waitOnUser" in token && token.waitOnUser) return true;
+        return false;
     }
 
     function hopefullytemp(jsonConstruct: FormatDefType[], rootConstruct: Construct, data?: any) {
@@ -176,7 +185,7 @@ export namespace SyntaxConstructor {
                 // constructs.push(new CompositeConstruct(token.recursiveName));
                 break;
             case "compound":
-                constructs.push(new CompositeConstruct(token));
+                constructs.push(new CompoundConstruct(token));
                 break;
             default:
                 // Invalid type => What to do about it?

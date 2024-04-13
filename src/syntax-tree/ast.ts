@@ -5,7 +5,6 @@ import { Editor } from "../editor/editor";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
 import { CompoundFormatDefinition, ConstructDefinition } from "../language-definition/definitions";
-import { globalFormats } from "../language-definition/parser";
 import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
@@ -1792,14 +1791,15 @@ abstract class HoleStructure extends Construct {}
  */
 // class ConstructHoleStructure extends HoleStructure {}
 
-export class CompositeConstruct extends Construct {
+export class CompoundConstruct extends Construct {
     private recursiveName: string;
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
     private tokens: Construct[] = [];
     // Hmmmm?
     private scope: Scope;
     //
-    // private waitOnUser:
+    private compoundDef: CompoundFormatDefinition;
+    private nextFormatIndex: number;
 
     // Extra
     hasEmptyToken = false;
@@ -1809,14 +1809,26 @@ export class CompositeConstruct extends Construct {
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
-
-
         if (compoundToken.scope) this.scope = new Scope();
 
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this);
 
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
+    }
+
+    setElementToInsertNextIndex(idx: number) {
+        this.nextFormatIndex = idx;
+    }
+
+    getWaitOnKey(): string {
+        const token = this.tokens[this.nextFormatIndex];
+        return "waitOnUser" in token ? (token.waitOnUser as string) : null;
+    }
+
+    continueExpansion() {
+        SyntaxConstructor.constructTokensFromJSONCompound(this.compoundDef, this, null, this.tokens, this.nextFormatIndex);
+        // Maybe some rebuilding that needs to be done?
     }
 
     getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {
@@ -1833,7 +1845,7 @@ export class CompositeConstruct extends Construct {
         for (let token of this.tokens) {
             if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
             if (token instanceof GeneralStatement && token.hasEmptyToken) return token.getInitialFocus();
-            if (token instanceof CompositeConstruct && token.hasEmptyToken) return token.getInitialFocus();
+            if (token instanceof CompoundConstruct && token.hasEmptyToken) return token.getInitialFocus();
         }
         return { positionToMove: this.right };
     }
