@@ -1,6 +1,8 @@
-import { ConstructDefinition, FormatDefType, RecursiveRedefinedDefinition } from "../language-definition/definitions";
+import { CompoundFormatDefinition, ConstructDefinition, FormatDefType, RecursiveRedefinedDefinition } from "../language-definition/definitions";
+import { globalFormats } from "../language-definition/parser";
 import {
     AssignmentToken,
+    CompositeConstruct,
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
@@ -115,15 +117,37 @@ export namespace SyntaxConstructor {
      * @param data
      * @returns
      */
-    export function constructTokensFromJSONRecursive(
-        jsonConstruct: RecursiveRedefinedDefinition,
+    export function constructTokensFromJSONCompound(
+        jsonConstruct: CompoundFormatDefinition,
         rootConstruct: Construct,
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
-        if (jsonConstruct.insertBefore)
-            addConstructToken(constructs, jsonConstruct.insertBefore, rootConstruct, data);
-        for (const token of jsonConstruct.format) {
+
+        let i = 0;
+        let stopCondition = false;
+        // Stopconditions?
+        // 1) Coming across a token with "waitOnUser" set to some input
+        // 2) When reaching or exceeding a limit
+        // Wait actually: calls are recursive ... so ... we don't need the loop to keep on going,
+        // we only call when we need to
+        while (stopCondition === false) {
+            if (i === 0 && jsonConstruct.insertBefore)
+                // Do we want to allow any token here? Or only non-editable tokens?
+                constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, constructs.length));
+
+            addConstructToken(constructs, jsonConstruct.format[i], rootConstruct, data);
+
+            i = (i + 1) % jsonConstruct.format.length;
+        }
+        return constructs;
+    }
+
+    function hopefullytemp(jsonConstruct: FormatDefType[], rootConstruct: Construct, data?: any) {
+        // Maybe replace it entirely with a reduce?
+        const constructs: Construct[] = [];
+
+        for (const token of jsonConstruct) {
             addConstructToken(constructs, token, rootConstruct, data);
         }
         return constructs;
@@ -146,7 +170,13 @@ export namespace SyntaxConstructor {
                 );
                 break;
             case "recursive":
+                const compositeContent = globalFormats.get(token.recursiveName);
+                const tokens = hopefullytemp(compositeContent.format, rootConstruct, data);
+                constructs.push(...tokens);
                 // constructs.push(new CompositeConstruct(token.recursiveName));
+                break;
+            case "compound":
+                constructs.push(new CompositeConstruct(token));
                 break;
             default:
                 // Invalid type => What to do about it?

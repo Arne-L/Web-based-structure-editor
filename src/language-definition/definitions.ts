@@ -302,6 +302,12 @@ interface RecursiveFormatDefinition extends FormatDefinition {
      */
     recursiveName: string;
 }
+export interface CompoundFormatDefinition extends FormatDefinition {
+    type: "compound";
+    scope: boolean;
+    insertBefore: string; // Maybe change to token if we want to accept multiple (different) tokens
+    format: FormatDefType[];
+}
 
 /**
  * Structure of a single hole definition
@@ -411,7 +417,8 @@ export type FormatDefType =
     | ImplementationFormatDefinition
     | IdentifierFormatDefinition
     | EditableFormatDefinition
-    | RecursiveFormatDefinition;
+    | RecursiveFormatDefinition
+    | CompoundFormatDefinition;
 /**
  * Type aggregating all possible toolbox tip definitions.
  */

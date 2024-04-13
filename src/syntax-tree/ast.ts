@@ -4,7 +4,8 @@ import { DraftRecord } from "../editor/draft";
 import { Editor } from "../editor/editor";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
-import { ConstructDefinition } from "../language-definition/definitions";
+import { CompoundFormatDefinition, ConstructDefinition } from "../language-definition/definitions";
+import { globalFormats } from "../language-definition/parser";
 import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
@@ -13,7 +14,6 @@ import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
 import { Module } from "./module";
 import { Scope } from "./scope";
 import { ValidatorNameSpace } from "./validator";
-import { globalFormats } from "../language-definition/parser";
 
 export abstract class Construct {
     /**
@@ -193,7 +193,7 @@ export abstract class Construct {
 
     /**
      * Method that needs to run when focus is moved off the construct
-     * 
+     *
      * @param arg - JavaScript object containing information about the focus event
      */
     onFocusOff(arg: any): void {
@@ -205,7 +205,7 @@ export abstract class Construct {
 
     /**
      * Puts a callback on the stack to be deleted
-     * 
+     *
      * @param callbackType - The type of the callback to be marked for deletion
      * @param callbackId - The id of the callback to be marked for deletion
      */
@@ -246,7 +246,8 @@ export abstract class Construct {
      */
     addHighlight(rgbColour: [number, number, number, number], editor: Editor) {
         new ConstructHighlight(editor, this, rgbColour);
-    }}
+    }
+}
 
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
@@ -1791,39 +1792,34 @@ abstract class HoleStructure extends Construct {}
  */
 // class ConstructHoleStructure extends HoleStructure {}
 
-
 export class CompositeConstruct extends Construct {
     private recursiveName: string;
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
-    private tokens: Construct[] = []; 
+    private tokens: Construct[] = [];
     // Hmmmm?
     private scope: Scope;
-    // 
-    // private waitOnUser: 
+    //
+    // private waitOnUser:
 
     // Extra
     hasEmptyToken = false;
 
-    constructor(recursiveName: string) {
+    constructor(compoundToken: CompoundFormatDefinition) {
         super();
-        // Could be split in two different constructors if we want to allow json as well 
+        // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
-        this.recursiveName = recursiveName;
-
-        const compositeContent = globalFormats.get(recursiveName)
-
-        if (compositeContent.scope) this.scope = new Scope();
-
-        this.tokens = SyntaxConstructor.constructTokensFromJSONRecursive(compositeContent, this);
 
 
+        if (compoundToken.scope) this.scope = new Scope();
+
+        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this);
 
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
-        // a waitOnUser? So that we leave the option to the specification writing user. 
+        // a waitOnUser? So that we leave the option to the specification writing user.
     }
 
-    getBoundaries({ selectIndent }: { selectIndent: boolean; }): Range {
+    getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {
         return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
@@ -1835,7 +1831,7 @@ export class CompositeConstruct extends Construct {
         // Maybe rewrite such that if you don't need to check for empty tokens explicitly, but
         // by using the output of the getInitialFocus of the tokens
         for (let token of this.tokens) {
-            if (token instanceof Token && token.isEmpty) return { tokenToSelect: token} 
+            if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
             if (token instanceof GeneralStatement && token.hasEmptyToken) return token.getInitialFocus();
             if (token instanceof CompositeConstruct && token.hasEmptyToken) return token.getInitialFocus();
         }
@@ -1843,7 +1839,7 @@ export class CompositeConstruct extends Construct {
     }
 
     getRenderText(): string {
-        return this.tokens.map(token => token.getRenderText()).join("");
+        return this.tokens.map((token) => token.getRenderText()).join("");
     }
 
     getLineNumber(): number {
@@ -1857,7 +1853,7 @@ export class CompositeConstruct extends Construct {
 
     /**
      * Returns the nearest statement, either itself or one of its ancestors
-     * 
+     *
      * @returns The nearest statement, or null if there is no statement
      */
     getNearestStatement(): Statement {
@@ -1902,7 +1898,6 @@ export class CompositeConstruct extends Construct {
 
     // FFD
     performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
 
     private addToken(token: Token) {
         this.tokens.push(token);

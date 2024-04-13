@@ -36,5 +36,27 @@
                 "max": 1
             }
         ]
+    },
+    {
+        "name": "new_body",
+        "format": [
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "",
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "\n\t",
+                        "min": 1,
+                        "max": null
+                    },
+                    {
+                        "type": "recursive",
+                        "recursiveName": "statement"
+                    }
+                ]
+            }
+        ]
     }
 ]
