@@ -1472,7 +1472,7 @@ export class AssignmentToken extends IdentifierTkn {
      * uniqueId is possibly not necessary; above methods thus possibly unnecessary
      */
 
-    constructor(identifier?: string, root?: Statement, indexInRoot?: number, regex?: RegExp) {
+    constructor(identifier?: string, root?: Construct, indexInRoot?: number, regex?: RegExp) {
         super(identifier, root, indexInRoot, regex);
 
         (root as GeneralStatement).addAssignmentIndex(indexInRoot);
@@ -1813,7 +1813,7 @@ export class CompositeConstruct extends Construct {
 
         if (compositeContent.scope) this.scope = new Scope();
 
-        // this.tokens = SyntaxConstructor.constructTokensFromJSON(compositeContent, this);
+        this.tokens = SyntaxConstructor.constructTokensFromJSONRecursive(compositeContent, this);
 
 
 

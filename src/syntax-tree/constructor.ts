@@ -118,7 +118,7 @@ export namespace SyntaxConstructor {
      */
     export function constructTokensFromJSONRecursive(
         jsonConstruct: RecursiveRedefinedDefinition,
-        rootConstruct: GeneralStatement,
+        rootConstruct: Construct,
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
