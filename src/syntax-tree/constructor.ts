@@ -1,7 +1,6 @@
-import { ConstructDefinition, RecursiveRedefinedDefinition } from "../language-definition/definitions";
+import { ConstructDefinition, FormatDefType, RecursiveRedefinedDefinition } from "../language-definition/definitions";
 import {
     AssignmentToken,
-    CompositeConstruct,
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
@@ -110,11 +109,11 @@ export namespace SyntaxConstructor {
 
     /**
      * TEMPORARY: should be merged with the function above
-     * 
-     * @param jsonConstruct 
-     * @param rootConstruct 
-     * @param data 
-     * @returns 
+     *
+     * @param jsonConstruct
+     * @param rootConstruct
+     * @param data
+     * @returns
      */
     export function constructTokensFromJSONRecursive(
         jsonConstruct: RecursiveRedefinedDefinition,
@@ -122,32 +121,36 @@ export namespace SyntaxConstructor {
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
+        if (jsonConstruct.insertBefore)
+            addConstructToken(constructs, jsonConstruct.insertBefore, rootConstruct, data);
         for (const token of jsonConstruct.format) {
-            switch (token.type) {
-                case "token":
-                    constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
-                    break;
-                case "identifier":
-                    constructs.push(
-                        new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex))
-                    );
-                    break;
-                case "reference":
-                    constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
-                    break;
-                case "editable":
-                    constructs.push(
-                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
-                    );
-                    break;
-                case "recursive":
-                    // constructs.push(new CompositeConstruct(token.recursiveName));
-                    break;
-                default:
-                    // Invalid type => What to do about it?
-                    console.warn("Invalid type for the given token: " + token);
-            }
+            addConstructToken(constructs, token, rootConstruct, data);
         }
         return constructs;
+    }
+
+    function addConstructToken(constructs: Construct[], token: FormatDefType, rootConstruct: Construct, data: any) {
+        switch (token.type) {
+            case "token":
+                constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
+                break;
+            case "identifier":
+                constructs.push(new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex)));
+                break;
+            case "reference":
+                constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
+                break;
+            case "editable":
+                constructs.push(
+                    new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
+                );
+                break;
+            case "recursive":
+                // constructs.push(new CompositeConstruct(token.recursiveName));
+                break;
+            default:
+                // Invalid type => What to do about it?
+                console.warn("Invalid type for the given token: " + token);
+        }
     }
 }

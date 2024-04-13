@@ -403,7 +403,7 @@ interface UseCaseTip extends ToolboxTipDefinition {
 /**
  * Type aggregating all possible format definitions.
  */
-type FormatDefType =
+export type FormatDefType =
     | TokenFormatDefinition
     | HoleFormatDefinition
     | BodyFormatDefinition

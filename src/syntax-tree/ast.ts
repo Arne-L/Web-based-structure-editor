@@ -1798,6 +1798,8 @@ export class CompositeConstruct extends Construct {
     private tokens: Construct[] = []; 
     // Hmmmm?
     private scope: Scope;
+    // 
+    // private waitOnUser: 
 
     // Extra
     hasEmptyToken = false;
@@ -1823,7 +1825,6 @@ export class CompositeConstruct extends Construct {
 
     getBoundaries({ selectIndent }: { selectIndent: boolean; }): Range {
         return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
-    
     }
 
     getNearestScope(): Scope {
