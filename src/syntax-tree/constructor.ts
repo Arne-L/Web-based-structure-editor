@@ -72,6 +72,9 @@ export namespace SyntaxConstructor {
                 case "recursive":
                     // constructs.push(new CompositeConstruct(token.recursiveName));
                     break;
+                case "compound":
+                    constructs.push(new CompoundConstruct(token));
+                    break;
                 default:
                     // Invalid type => What to do about it?
                     console.warn("Invalid type for the given token: " + token);

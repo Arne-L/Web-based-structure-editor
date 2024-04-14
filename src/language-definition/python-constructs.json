@@ -2422,6 +2422,65 @@
         }
     },
     {
+        "keyword": "test",
+        "constructType": "statement",
+        "editorName": "test: kok :test",
+        "format": [
+            {
+                "type": "token",
+                "value": "test: "
+            },
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "so...",
+                        "min": 1,
+                        "max": null
+                    },
+                    {
+                        "type": "token",
+                        "value": "hello again",
+                        "waitOnUser": "h"
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "kok"
+            },
+            {
+                "type": "token",
+                "value": " :test"
+            }
+        ],
+        "match": "test: kok :test",
+        "matchRegex": "",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                }
+            ],
+            "search-queries": [
+                "test",
+                "try"
+            ]
+        }
+    },
+    {
         "internalName": "type_conversion",
         "format": [
             {
@@ -2550,20 +2609,6 @@
                 "type": "editable",
                 "regex": "^[a-zA-Z_][a-zA-Z0-9_\\.]*$"
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "module",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "function",
-                    "optional": false
-                }
-            ]
         ],
         "match": "from",
         "triggerInsertion": [

@@ -56,6 +56,11 @@ export abstract class Construct {
     simpleDraftTooltip: Tooltip = Tooltip.None;
     simpleInvalidTooltip: Tooltip = Tooltip.None;
 
+    constructor() {
+        // Initialise the callbacks
+        for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
+    }
+
     /**
      * The column number of the left position of this construct.
      */
@@ -264,8 +269,6 @@ export abstract class Statement extends Construct {
 
     constructor() {
         super();
-
-        for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
 
         this.subscribe(
             CallbackType.delete,
@@ -1072,8 +1075,6 @@ export abstract class Token extends Construct {
     constructor(text: string, root?: Construct) {
         super();
 
-        for (const type in CallbackType) this.callbacks[type] = new Array<Callback>();
-
         this.rootNode = root;
         this.text = text;
     }
@@ -1798,7 +1799,7 @@ export class CompoundConstruct extends Construct {
     // Hmmmm?
     private scope: Scope;
     //
-    private compoundDef: CompoundFormatDefinition;
+    private compoundToken: CompoundFormatDefinition;
     private nextFormatIndex: number;
 
     // Extra
@@ -1827,8 +1828,15 @@ export class CompoundConstruct extends Construct {
     }
 
     continueExpansion() {
-        SyntaxConstructor.constructTokensFromJSONCompound(this.compoundDef, this, null, this.tokens, this.nextFormatIndex);
+        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
+            this.compoundToken,
+            this,
+            null,
+            this.tokens,
+            this.nextFormatIndex
+        );
         // Maybe some rebuilding that needs to be done?
+        // this.build(this.left); // Or something different?
     }
 
     getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {
