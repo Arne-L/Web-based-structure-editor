@@ -73,7 +73,7 @@ export namespace SyntaxConstructor {
                     // constructs.push(new CompositeConstruct(token.recursiveName));
                     break;
                 case "compound":
-                    constructs.push(new CompoundConstruct(token));
+                    constructs.push(new CompoundConstruct(token, rootConstruct, constructs.length));
                     break;
                 default:
                     // Invalid type => What to do about it?
@@ -188,7 +188,7 @@ export namespace SyntaxConstructor {
                 // constructs.push(new CompositeConstruct(token.recursiveName));
                 break;
             case "compound":
-                constructs.push(new CompoundConstruct(token));
+                constructs.push(new CompoundConstruct(token, rootConstruct, constructs.length));
                 break;
             default:
                 // Invalid type => What to do about it?

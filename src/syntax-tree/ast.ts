@@ -1805,8 +1805,10 @@ export class CompoundConstruct extends Construct {
     // Extra
     hasEmptyToken = false;
 
-    constructor(compoundToken: CompoundFormatDefinition) {
+    constructor(compoundToken: CompoundFormatDefinition, root?: Construct, indexInRoot?: number) {
         super();
+        this.rootNode = root;
+        this.indexInRoot = indexInRoot;
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
