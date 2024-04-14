@@ -1,10 +1,12 @@
 import { Position, Selection } from "monaco-editor";
 import {
     AutocompleteTkn,
+    CompoundConstruct,
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
     GeneralExpression,
+    GeneralStatement,
     IdentifierTkn,
     // LiteralValExpr,
     NonEditableTkn,
@@ -127,6 +129,7 @@ export class Focus {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
         const curLine = this.getStatementAtLineNumber(curPosition.lineNumber);
+        console.log("Stmt: ", curLine)
         let context: Context;
 
         if (curSelection.startColumn != curSelection.endColumn) {
@@ -707,7 +710,9 @@ export class Focus {
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
+            console.log(curToken)
 
+            if (curToken.getRenderText() === "so...") console.log(column, curToken.leftCol, curToken.rightCol)
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text
 
@@ -718,6 +723,7 @@ export class Focus {
                         statement,
                         (token) => token.rightCol == column
                     );
+                    console.log("Between token: ", context)
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(
@@ -765,7 +771,7 @@ export class Focus {
 
                     break;
                 }
-            } else if (curToken instanceof GeneralExpression) {
+            } else if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
@@ -800,7 +806,7 @@ export class Focus {
 
             if (curToken instanceof Token && curToken.leftCol != curToken.rightCol && check(curToken)) return curToken;
 
-            if (curToken instanceof GeneralExpression) {
+            if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
             }
         }
