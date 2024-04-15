@@ -17,6 +17,7 @@ import {
 } from "../syntax-tree/ast";
 import { CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
+import { doesConstructContainPos } from "../utilities/util";
 import { ConstructName } from "./consts";
 
 export class Focus {
@@ -128,8 +129,9 @@ export class Focus {
     getContext(position?: Position): Context {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
-        const curLine = this.getConstructAtPosition(curPosition) as Statement;//this.getStatementAtLineNumber(curPosition.lineNumber);
+        const curLine = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
+        console.log("position: ", curPosition)
 
         if (curSelection.startColumn != curSelection.endColumn) {
             context = this.getContextFromSelection(curLine, curSelection.startColumn, curSelection.endColumn);
@@ -146,7 +148,7 @@ export class Focus {
      * @returns The focused statement (line) in the editor.
      */
     getFocusedStatement(): Statement {
-        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement;//this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
+        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement; //this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
     }
 
     /**
@@ -182,7 +184,7 @@ export class Focus {
      * @param runNavOffCallbacks - If true, will run the onNavOff callbacks. Defaults to true.
      */
     navigatePos(pos: Position, runNavOffCallbacks: boolean = true) {
-        const focusedLineStatement = this.getStatementAtLineNumber(pos.lineNumber);
+        const focusedLineStatement = this.getConstructAtPosition(pos) as Statement; //this.getStatementAtLineNumber(pos.lineNumber);
 
         // clicked at an empty statement => just update focusedStatement
         if (focusedLineStatement instanceof EmptyLineStmt) {
@@ -251,12 +253,17 @@ export class Focus {
 
         const curPos = this.module.editor.monaco.getPosition();
 
-        if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
-            this.fireOnNavOffCallbacks(
-                this.getStatementAtLineNumber(this.prevPosition.lineNumber),
-                this.getStatementAtLineNumber(curPos.lineNumber)
-            );
+        const prevConstr = this.getConstructAtPosition(this.prevPosition),
+            currConstr = this.getConstructAtPosition(curPos);
+        if (runNavOffCallbacks && this.prevPosition != null && prevConstr !== currConstr) {
+            this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
         }
+        // if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
+        //     this.fireOnNavOffCallbacks(
+        //         this.getStatementAtLineNumber(this.prevPosition.lineNumber),
+        //         this.getStatementAtLineNumber(curPos.lineNumber)
+        //     );
+        // }
 
         this.prevPosition = curPos;
 
@@ -531,9 +538,13 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (column >= curToken.leftCol && column < curToken.rightCol && curToken instanceof Token) return curToken;
+            if (
+                curToken instanceof Token &&
+                doesConstructContainPos(curToken, new Position(statement.lineNumber, column)) // FIX STATEMENT.LINENUMBER => not okay
+            )
+                return curToken;
 
-            if (curToken instanceof GeneralExpression)
+            if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct)
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else return curToken;
         }
@@ -602,10 +613,10 @@ export class Focus {
      * TODO: currently returns the first construct, which will probably be the largest
      * construct overlapping with the given position -> do we want this?
      * TODO: currently build for statements, generalise to constructs
-     * 
-     * If the position is on the border between two constructs, the construct on the 
+     *
+     * If the position is on the border between two constructs, the construct on the
      * right side will be returned.
-     * 
+     *
      * @param position the given line number to search for.
      * @returns the Statement object of that line.
      */
@@ -617,7 +628,7 @@ export class Focus {
         while (bodyStack.length > 0) {
             const curStmt = bodyStack.pop();
 
-            if (curStmt.left.isBeforeOrEqual(position) && position.isBeforeOrEqual(curStmt.right)) return curStmt;
+            if (doesConstructContainPos(curStmt, position)) return curStmt;
             else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
         }
 

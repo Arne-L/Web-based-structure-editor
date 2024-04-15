@@ -1,3 +1,4 @@
+import { Position } from "monaco-editor";
 import { EditAction } from "../editor/data-types";
 import { AssignmentToken, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
@@ -313,4 +314,15 @@ export namespace DOMManupulation {
 
         return element;
     }
+}
+
+/**
+ * Checks if the given position is contained within the given construct.
+ * 
+ * @param construct - The construct to check
+ * @param pos - The position to check
+ * @returns True if the construct contains the position, false otherwise
+ */
+export function doesConstructContainPos(construct: Construct, pos: Position): boolean {
+    return construct.left.isBeforeOrEqual(pos) && pos.isBeforeOrEqual(construct.right);
 }
