@@ -1137,7 +1137,15 @@ export abstract class Token extends Construct {
                 "do not use any Tokens with no textual length (i.e. all tokens should take some space in the editor)."
             );
             this.right = pos;
-        } else this.right = new Position(pos.lineNumber, pos.column + this.text.length);
+        } else {
+            const lines = this.text.split("\n");
+            console.log("lines: ", lines);
+            const lineDiff = lines.length - 1;
+            const rightCol = (lineDiff > 0 ? this.getNearestStatement().leftCol : pos.column) + lines.at(-1).length;
+            this.right = new Position(pos.lineNumber + lineDiff, rightCol);
+        }
+
+        console.log(this.left, this.right);
 
         this.notify(CallbackType.change);
 
@@ -1837,7 +1845,7 @@ export class CompoundConstruct extends Construct {
             this.tokens,
             this.nextFormatIndex
         );
-        
+
         let leftpos = this.tokens[initLength - 1]?.right ?? this.right;
         for (const token of this.tokens.slice(initLength)) {
             leftpos = token.build(leftpos);
