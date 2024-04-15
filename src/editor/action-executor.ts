@@ -1473,6 +1473,7 @@ export class ActionExecutor {
 
         // Update the Monaco editor with the new statement
         this.module.editor.executeEdits(range, statement);
+        console.log("Replacement", statement);
         this.module.focus.updateContext(statement.getInitialFocus());
     }
 

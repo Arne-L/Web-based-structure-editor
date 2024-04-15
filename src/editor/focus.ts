@@ -146,7 +146,7 @@ export class Focus {
      * @returns The focused statement (line) in the editor.
      */
     getFocusedStatement(): Statement {
-        return this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
+        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement;//this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
     }
 
     /**
