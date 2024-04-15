@@ -131,7 +131,7 @@ export class Focus {
         const curSelection = this.module.editor.monaco.getSelection();
         const curLine = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
-        console.log("position: ", curPosition)
+        console.log("position: ", curPosition);
 
         if (curSelection.startColumn != curSelection.endColumn) {
             context = this.getContextFromSelection(curLine, curSelection.startColumn, curSelection.endColumn);
@@ -252,11 +252,11 @@ export class Focus {
         }
 
         const curPos = this.module.editor.monaco.getPosition();
-
-        const prevConstr = this.getConstructAtPosition(this.prevPosition),
-            currConstr = this.getConstructAtPosition(curPos);
-        if (runNavOffCallbacks && this.prevPosition != null && prevConstr !== currConstr) {
-            this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
+        if (runNavOffCallbacks && this.prevPosition != null) {
+            const prevConstr = this.getConstructAtPosition(this.prevPosition),
+                currConstr = this.getConstructAtPosition(curPos);
+                
+            if (prevConstr !== currConstr) this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
         }
         // if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
         //     this.fireOnNavOffCallbacks(
@@ -275,13 +275,13 @@ export class Focus {
      */
     navigateUp() {
         const curPosition = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
-        const lineAbove = this.getStatementAtLineNumber(curPosition.lineNumber - 1);
+        console.log("curPosition: ", curPosition);
+        const focusedLineStatement = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
+        const lineAbove = this.getConstructAtPosition(curPosition.delta(-1)) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber - 1);
 
-        this.fireOnNavOffCallbacks(focusedLineStatement, lineAbove);
+        if (focusedLineStatement !== lineAbove) this.fireOnNavOffCallbacks(focusedLineStatement, lineAbove);
 
-        if (curPosition.lineNumber > 1)
-            this.navigatePos(new Position(curPosition.lineNumber - 1, curPosition.column), false);
+        if (curPosition.lineNumber > 1) this.navigatePos(curPosition.delta(-1), false);
         else {
             this.module.editor.monaco.setPosition(new Position(curPosition.lineNumber, 1));
             this.module.editor.cursor.setSelection(null);
