@@ -129,7 +129,6 @@ export class Focus {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
         const curLine = this.getStatementAtLineNumber(curPosition.lineNumber);
-        console.log("Stmt: ", curLine)
         let context: Context;
 
         if (curSelection.startColumn != curSelection.endColumn) {
@@ -712,7 +711,6 @@ export class Focus {
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
-            console.log(curToken)
 
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text

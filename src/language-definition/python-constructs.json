@@ -2437,7 +2437,7 @@
                 "format": [
                     {
                         "type": "token",
-                        "value": "so...",
+                        "value": "so...\n",
                         "min": 1,
                         "max": null
                     },

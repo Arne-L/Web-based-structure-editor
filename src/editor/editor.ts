@@ -350,6 +350,7 @@ export class Editor {
         // If overwrite is null, use the code's render text
         if (overwrite == null) text = code?.getRenderText() ? code.getRenderText() : "";
 
+        if (text.includes("\n")) console.log("Newline in text: ", text, text.split("\n").length - 1);
         // Execute the edit in the monaco editor
         this.monaco.executeEdits("module", [{ range: range, text, forceMoveMarkers: true }]);
 

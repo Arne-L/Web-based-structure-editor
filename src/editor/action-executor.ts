@@ -1911,7 +1911,6 @@ export class ActionExecutor {
                     ErrorMessage.identifierIsBuiltInFunc
                 );
             }
-            console.log("validateIdentifier");
             // Everything above should be replaced with the line below ... but the first
             // if block can for some weird reason not be removed without breaking the code
             // in the strangest possible way!

@@ -72,7 +72,6 @@ export abstract class Construct {
      * The column number of the right position of this construct.
      */
     get rightCol(): number {
-        console.log(this.right)
         return this.right?.column;
     }
 
@@ -1142,8 +1141,7 @@ export abstract class Token extends Construct {
 
         this.notify(CallbackType.change);
 
-        if (this.text.length == 0) return new Position(pos.lineNumber, this.rightCol);
-        else return new Position(pos.lineNumber, this.rightCol);
+        return this.right;
     }
 
     /**
@@ -1817,7 +1815,6 @@ export class CompoundConstruct extends Construct {
         if (compoundToken.scope) this.scope = new Scope();
 
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this);
-
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
     }
@@ -1840,7 +1837,7 @@ export class CompoundConstruct extends Construct {
             this.tokens,
             this.nextFormatIndex
         );
-        console.log(this.tokens);
+        
         let leftpos = this.tokens[initLength - 1]?.right ?? this.right;
         for (const token of this.tokens.slice(initLength)) {
             leftpos = token.build(leftpos);
