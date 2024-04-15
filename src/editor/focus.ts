@@ -128,7 +128,7 @@ export class Focus {
     getContext(position?: Position): Context {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
-        const curLine = this.getStatementAtLineNumber(curPosition.lineNumber);
+        const curLine = this.getConstructAtPosition(curPosition) as Statement;//this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
 
         if (curSelection.startColumn != curSelection.endColumn) {
@@ -597,6 +597,34 @@ export class Focus {
     }
 
     /**
+     * Recursively searches through all code constructs and looks for the construct
+     * at the given position
+     * TODO: currently returns the first construct, which will probably be the largest
+     * construct overlapping with the given position -> do we want this?
+     * TODO: currently build for statements, generalise to constructs
+     * 
+     * If the position is on the border between two constructs, the construct on the 
+     * right side will be returned.
+     * 
+     * @param position the given line number to search for.
+     * @returns the Statement object of that line.
+     */
+    getConstructAtPosition(position: Position): Construct {
+        const bodyStack = new Array<Statement>();
+
+        bodyStack.unshift(...this.module.body);
+
+        while (bodyStack.length > 0) {
+            const curStmt = bodyStack.pop();
+
+            if (curStmt.left.isBeforeOrEqual(position) && position.isBeforeOrEqual(curStmt.right)) return curStmt;
+            else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
+        }
+
+        return null;
+    }
+
+    /**
      * Selects the given code construct.
      * @param code the editor will set its selection to the left and right of this given code.
      */
@@ -707,6 +735,7 @@ export class Focus {
         const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
+        console.log(statement, statement?.tokens);
         for (const token of statement?.tokens) tokensStack.unshift(token);
 
         while (tokensStack.length > 0) {
