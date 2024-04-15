@@ -599,7 +599,7 @@ export class Module {
         const curPos = this.editor.monaco.getPosition();
         // The statement in / at which the cursor is currently located
         const curStmt = this.focus.getFocusedStatement();
-        // Parent of the curernt statement
+        // Parent of the current statement
         const curRoot = curStmt.rootNode;
 
         // Column positions in the editor start at one
@@ -613,6 +613,7 @@ export class Module {
         let spaces = "";
         let atCompoundStmt = false;
 
+        // TODO: How to rewrite?
         // If the current statement is inside the body of its root
         if (curRoot instanceof GeneralStatement && curRoot.hasBody()) {
             // The left editor position of the current statement
@@ -668,7 +669,7 @@ export class Module {
         } else {
             // insert emptyStatement on next line, move other statements down
             const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
-            emptyLine.build(new Position(curStmt.lineNumber + 1, leftPosToCheck));
+            emptyLine.build(new Position(curStmt.right.lineNumber + 1, leftPosToCheck));
 
             if (parentStmtHasBody && atCompoundStmt) {
                 emptyLine.indexInRoot = 0;
@@ -681,14 +682,11 @@ export class Module {
                     curStmt.indexInRoot + 1,
                     curStmt.lineNumber + 1
                 );
-            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.lineNumber + 1);
+            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.right.lineNumber + 1);
 
-            const range = new Range(curStmt.lineNumber, curStmt.rightCol, curStmt.lineNumber, curStmt.rightCol);
+            const range = new Range(curStmt.right.lineNumber, curStmt.rightCol, curStmt.right.lineNumber, curStmt.rightCol);
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
-
-            // console.log("Monaco: ", this.editor.monaco.getModel().getValue())
-            // for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
 
             return emptyLine;
         }
