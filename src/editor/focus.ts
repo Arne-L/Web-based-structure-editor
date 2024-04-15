@@ -701,6 +701,8 @@ export class Focus {
      * @returns - The context of the given column in the given statements.
      */
     private getContextFromPosition(statement: Statement, column: number): Context {
+        // PROBABLY REFORMAT IN THE FUTURE
+        // NOW they search a lot of trees, while this could probably be minimised
         const context = new Context();
         context.lineStatement = statement;
         const tokensStack = new Array<Construct>();
@@ -712,7 +714,6 @@ export class Focus {
             const curToken = tokensStack.pop();
             console.log(curToken)
 
-            if (curToken.getRenderText() === "so...") console.log(column, curToken.leftCol, curToken.rightCol)
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text
 
@@ -723,7 +724,6 @@ export class Focus {
                         statement,
                         (token) => token.rightCol == column
                     );
-                    console.log("Between token: ", context)
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(

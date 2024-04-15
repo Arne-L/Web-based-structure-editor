@@ -412,7 +412,7 @@ export class EventRouter {
                 if (e.ctrlKey && e.key.length == 1) {
                     if (context.tokenToLeft instanceof ast.AutocompleteTkn) {
                         return new EditAction(EditActionType.OpenValidInsertMenu, {
-                            autoCompleteTkn: context.tokenToLeft
+                            autoCompleteTkn: context.tokenToLeft,
                         });
                     } else {
                         return new EditAction(EditActionType.OpenValidInsertMenu);
@@ -426,137 +426,145 @@ export class EventRouter {
 
             // NOT language independent
             default: {
+                console.log(context);
                 // Should be the printable characters (excluding things like arrow keys etc)
-                if (e.key.length == 1) {
-                    if (inTextEditMode) {
-                        // Handle flow control keys (Not currently implemented)
-                        switch (e.key) {
-                            // Are any of these implemented?
-                            case KeyPress.C:
-                                if (e.ctrlKey) return new EditAction(EditActionType.Copy);
+                if (e.key.length !== 1) break;
 
-                                break;
+                if (inTextEditMode) {
+                    // Handle flow control keys (Not currently implemented)
+                    switch (e.key) {
+                        // Are any of these implemented?
+                        case KeyPress.C:
+                            if (e.ctrlKey) return new EditAction(EditActionType.Copy);
 
-                            case KeyPress.V:
-                                if (e.ctrlKey) return new EditAction(EditActionType.Paste);
+                            break;
 
-                                break;
+                        case KeyPress.V:
+                            if (e.ctrlKey) return new EditAction(EditActionType.Paste);
 
-                            case KeyPress.Z:
-                                if (e.ctrlKey) return new EditAction(EditActionType.Undo);
+                            break;
 
-                                break;
+                        case KeyPress.Z:
+                            if (e.ctrlKey) return new EditAction(EditActionType.Undo);
 
-                            case KeyPress.Y:
-                                if (e.ctrlKey) return new EditAction(EditActionType.Redo);
+                            break;
 
-                                break;
-                        }
+                        case KeyPress.Y:
+                            if (e.ctrlKey) return new EditAction(EditActionType.Redo);
 
-                        // Check if a sequence of sequence of characters, e.g. abc, can be converted to a string
-                        // At least, I think ...
-                        if (this.module.validator.canConvertAutocompleteToString(context)) {
-                            // String literals
-                            return new EditAction(EditActionType.ConvertAutocompleteToString, {
-                                token: context.tokenToRight,
-                            });
-                        }
+                            break;
+                    }
 
-                        // If a key is being pressed right after a number literal, check if
-                        // the new literal is not part of the literal (e.g. 12+) and if so
-                        // open the autocomplete menu
-                        // if (this.module.validator.canSwitchLeftNumToAutocomplete(e.key)) {
-                        //     return new EditAction(EditActionType.OpenAutocomplete, {
-                        //         autocompleteType: AutoCompleteType.RightOfExpression,
-                        //         firstChar: e.key,
-                        //         validMatches: this.module.actionFilter
-                        //             .getProcessedInsertionsList()
-                        //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        //     });
-                        //     // Idem but now for (+12)
-                        // } else if (this.module.validator.canSwitchRightNumToAutocomplete(e.key)) {
-                        //     return new EditAction(EditActionType.OpenAutocomplete, {
-                        //         autocompleteType: AutoCompleteType.LeftOfExpression,
-                        //         firstChar: e.key,
-                        //         validMatches: this.module.actionFilter
-                        //             .getProcessedInsertionsList()
-                        //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        //     });
-                        //     // Else just simply insert the character
-                        // } else 
-                        // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
-                        // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
-                        return new EditAction(EditActionType.InsertChar);
-                        // If at a slot where an operator token is expected, e.g. 1 ... 15
-                    } else if (this.module.validator.atEmptyOperatorTkn(context)) {
-                        // Return the autocomplete menu for the operator token
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
-                            firstChar: e.key,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        });
-                        // If at an expression hole, the "---" in the editor
-                    } else if (this.module.validator.atEmptyExpressionHole(context)) {
-                        // HEU IS THIS NECESSARY?
-                        // [...Actions.instance().actionsMap.values()].filter(
-                        //     (action) => !(action.getCode() as ast.GeneralStatement).hasSubValues
-                        // );
-                        // If the pressed character is a number
-                        // if (["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].indexOf(e.key) > -1) {
-                        //     // Insert the number literal
-                        //     return new EditAction(EditActionType.InsertLiteral, {
-                        //         literalType: DataType.Number,
-                        //         initialValue: e.key,
-                        //     });
-                        //     // If the pressed character is a double quote
-                        // } else if (['"'].indexOf(e.key) > -1) {
-                        //     // Insert the string literal
-                        //     return new EditAction(EditActionType.InsertLiteral, {
-                        //         literalType: DataType.String,
-                        //     });
-                        // } else {
-                        // Else open the autocomplete menu
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.AtExpressionHole,
-                            firstChar: e.key,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        });
-                        // }
-                        // If on an empty line and the identifier regex matches the pressed character
-                    } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
-                        // Open the autocomplete menu
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.StartOfLine,
-                            firstChar: e.key,
-                            validatorRegex: IdentifierRegex,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        });
-                        // If at the right of an expresssion and a single character key is pressed
-                    } else if (this.module.validator.atRightOfExpression(context)) {
-                        // Open the autocomplete menu starting from all possible matches
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.RightOfExpression,
-                            firstChar: e.key,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        });
-                        // Idem but now the cursor is at the left of an expression
-                    } else if (this.module.validator.atLeftOfExpression(context)) {
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.LeftOfExpression,
-                            firstChar: e.key,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    // Check if a sequence of sequence of characters, e.g. abc, can be converted to a string
+                    // At least, I think ...
+                    if (this.module.validator.canConvertAutocompleteToString(context)) {
+                        // String literals
+                        return new EditAction(EditActionType.ConvertAutocompleteToString, {
+                            token: context.tokenToRight,
                         });
                     }
+
+                    // If a key is being pressed right after a number literal, check if
+                    // the new literal is not part of the literal (e.g. 12+) and if so
+                    // open the autocomplete menu
+                    // if (this.module.validator.canSwitchLeftNumToAutocomplete(e.key)) {
+                    //     return new EditAction(EditActionType.OpenAutocomplete, {
+                    //         autocompleteType: AutoCompleteType.RightOfExpression,
+                    //         firstChar: e.key,
+                    //         validMatches: this.module.actionFilter
+                    //             .getProcessedInsertionsList()
+                    //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    //     });
+                    //     // Idem but now for (+12)
+                    // } else if (this.module.validator.canSwitchRightNumToAutocomplete(e.key)) {
+                    //     return new EditAction(EditActionType.OpenAutocomplete, {
+                    //         autocompleteType: AutoCompleteType.LeftOfExpression,
+                    //         firstChar: e.key,
+                    //         validMatches: this.module.actionFilter
+                    //             .getProcessedInsertionsList()
+                    //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    //     });
+                    //     // Else just simply insert the character
+                    // } else
+                    // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
+                    // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
+                    return new EditAction(EditActionType.InsertChar);
+                } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
+                    const compound = context.tokenToLeft?.rootNode;
+                    console.log("we are getting there:", compound.getWaitOnKey(), "and", e.key);
+                    if (compound.getWaitOnKey() === e.key) {
+                        compound.continueExpansion();
+                    }
+                    break;
+                    // If at a slot where an operator token is expected, e.g. 1 ... 15
+                } else if (this.module.validator.atEmptyOperatorTkn(context)) {
+                    // Return the autocomplete menu for the operator token
+                    return new EditAction(EditActionType.OpenAutocomplete, {
+                        autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
+                        firstChar: e.key,
+                        validMatches: this.module.actionFilter
+                            .getProcessedInsertionsList()
+                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    });
+                    // If at an expression hole, the "---" in the editor
+                } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                    // HEU IS THIS NECESSARY?
+                    // [...Actions.instance().actionsMap.values()].filter(
+                    //     (action) => !(action.getCode() as ast.GeneralStatement).hasSubValues
+                    // );
+                    // If the pressed character is a number
+                    // if (["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].indexOf(e.key) > -1) {
+                    //     // Insert the number literal
+                    //     return new EditAction(EditActionType.InsertLiteral, {
+                    //         literalType: DataType.Number,
+                    //         initialValue: e.key,
+                    //     });
+                    //     // If the pressed character is a double quote
+                    // } else if (['"'].indexOf(e.key) > -1) {
+                    //     // Insert the string literal
+                    //     return new EditAction(EditActionType.InsertLiteral, {
+                    //         literalType: DataType.String,
+                    //     });
+                    // } else {
+                    // Else open the autocomplete menu
+                    return new EditAction(EditActionType.OpenAutocomplete, {
+                        autocompleteType: AutoCompleteType.AtExpressionHole,
+                        firstChar: e.key,
+                        validMatches: this.module.actionFilter
+                            .getProcessedInsertionsList()
+                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    });
+                    // }
+                    // If on an empty line and the identifier regex matches the pressed character
+                } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
+                    // Open the autocomplete menu
+                    return new EditAction(EditActionType.OpenAutocomplete, {
+                        autocompleteType: AutoCompleteType.StartOfLine,
+                        firstChar: e.key,
+                        validatorRegex: IdentifierRegex,
+                        validMatches: this.module.actionFilter
+                            .getProcessedInsertionsList()
+                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    });
+                    // If at the right of an expresssion and a single character key is pressed
+                } else if (this.module.validator.atRightOfExpression(context)) {
+                    // Open the autocomplete menu starting from all possible matches
+                    return new EditAction(EditActionType.OpenAutocomplete, {
+                        autocompleteType: AutoCompleteType.RightOfExpression,
+                        firstChar: e.key,
+                        validMatches: this.module.actionFilter
+                            .getProcessedInsertionsList()
+                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    });
+                    // Idem but now the cursor is at the left of an expression
+                } else if (this.module.validator.atLeftOfExpression(context)) {
+                    return new EditAction(EditActionType.OpenAutocomplete, {
+                        autocompleteType: AutoCompleteType.LeftOfExpression,
+                        firstChar: e.key,
+                        validMatches: this.module.actionFilter
+                            .getProcessedInsertionsList()
+                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    });
                 }
             }
         }

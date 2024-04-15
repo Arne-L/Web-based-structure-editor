@@ -72,7 +72,8 @@ export abstract class Construct {
      * The column number of the right position of this construct.
      */
     get rightCol(): number {
-        return this.right.column;
+        console.log(this.right)
+        return this.right?.column;
     }
 
     /**
@@ -1795,7 +1796,7 @@ abstract class HoleStructure extends Construct {}
 export class CompoundConstruct extends Construct {
     private recursiveName: string;
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
-    private tokens: Construct[] = [];
+    tokens: Construct[] = [];
     // Hmmmm?
     private scope: Scope;
     //
@@ -1809,6 +1810,7 @@ export class CompoundConstruct extends Construct {
         super();
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
+        this.compoundToken = compoundToken;
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
@@ -1825,11 +1827,12 @@ export class CompoundConstruct extends Construct {
     }
 
     getWaitOnKey(): string {
-        const token = this.tokens[this.nextFormatIndex];
+        const token = this.compoundToken.format[this.nextFormatIndex];
         return "waitOnUser" in token ? (token.waitOnUser as string) : null;
     }
 
     continueExpansion() {
+        const initLength = this.tokens.length;
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
             this,
@@ -1837,8 +1840,20 @@ export class CompoundConstruct extends Construct {
             this.tokens,
             this.nextFormatIndex
         );
+        console.log(this.tokens);
+        let leftpos = this.tokens[initLength - 1]?.right ?? this.right;
+        for (const token of this.tokens.slice(initLength)) {
+            leftpos = token.build(leftpos);
+            const range = new Range(token.lineNumber, token.leftCol, token.lineNumber, token.leftCol);
+            Module.instance.editor.executeEdits(range, token);
+        }
+        this.right = leftpos;
         // Maybe some rebuilding that needs to be done?
         // this.build(this.left); // Or something different?
+        // const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
+
+        // Module.instance.editor.executeEdits(range, statement);
+        // this.module.focus.updateContext(statement.getInitialFocus());
     }
 
     getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {

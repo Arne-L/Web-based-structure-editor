@@ -135,7 +135,7 @@ export namespace SyntaxConstructor {
         // 2) When reaching or exceeding a limit ==> Currently NOT implemented
         // Wait actually: calls are recursive ... so ... we don't need the loop to keep on going,
         // we only call when we need to
-        while (!stopCondition(jsonConstruct.format[i])) {
+        do {
             if (i === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
                 constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, constructs.length));
@@ -143,7 +143,7 @@ export namespace SyntaxConstructor {
             addConstructToken(constructs, jsonConstruct.format[i], rootConstruct, data);
 
             i = (i + 1) % jsonConstruct.format.length;
-        }
+        } while (!stopCondition(jsonConstruct.format[i])) // Does not work if the first construct has a waitOnUser
 
         rootConstruct.setElementToInsertNextIndex(i);
 
