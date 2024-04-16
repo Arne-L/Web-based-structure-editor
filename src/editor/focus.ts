@@ -135,9 +135,10 @@ export class Focus {
 
         if (curSelection.startColumn != curSelection.endColumn) {
             context = this.getContextFromSelection(curLine, curSelection.startColumn, curSelection.endColumn);
-        } else context = this.getContextFromPosition(curLine, curPosition.column);
+        } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
+        console.log("Context", context);
 
         return context;
     }
@@ -188,21 +189,25 @@ export class Focus {
 
         // clicked at an empty statement => just update focusedStatement
         if (focusedLineStatement instanceof EmptyLineStmt) {
+            console.log("Clicked at an empty statement")
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
         // clicked before a statement => navigate to the beginning of the statement
-        else if (pos.column <= focusedLineStatement.leftCol) {
+        else if (pos.isBeforeOrEqual(focusedLineStatement.left)/*pos.column <= focusedLineStatement.leftCol*/) {
+            console.log("Clicked before a statement")
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
-        // clicked before a statement => navigate to the end of the line
-        else if (pos.column >= focusedLineStatement.rightCol) {
+        // clicked after a statement => navigate to the end of the line
+        else if (focusedLineStatement.right.isBeforeOrEqual(pos)/*pos.column >= focusedLineStatement.rightCol*/) {
+            console.log("Clicked after a statement")
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.rightCol));
             this.module.editor.cursor.setSelection(null);
         } else {
+            console.log("Taking a look inside")
             // look into the tokens of the statement:
             const focusedToken = this.getTokenAtStatementColumn(focusedLineStatement, pos.column);
 
@@ -699,10 +704,10 @@ export class Focus {
      * Finds the non-textual hole, read no string, at the given column in the given statement
      *
      * @param statement - Statement to search in
-     * @param column - Column to search for
+     * @param pos - Column to search for
      * @returns - The non-textual hole at the given column, or null if not found.
      */
-    private findNonTextualHole(statement: Statement, column: number): Token {
+    private findNonTextualHole(statement: Statement, pos: Position): Token {
         const tokensStack = new Array<Construct>();
 
         for (const token of statement.tokens) tokensStack.unshift(token); // One liner: tokensStack.unshift(...statement.tokens);?
@@ -711,8 +716,8 @@ export class Focus {
             const curToken = tokensStack.pop();
 
             if (
-                column == curToken.leftCol &&
-                column == curToken.rightCol &&
+                pos == curToken.left &&
+                pos == curToken.right &&
                 (curToken instanceof EditableTextTkn ||
                     // curToken instanceof LiteralValExpr ||
                     curToken instanceof IdentifierTkn)
@@ -732,13 +737,13 @@ export class Focus {
     }
 
     /**
-     * Finds the context of the given column in the given statement.
+     * Finds the context of the given position in the given statement.
      *
      * @param statement - The statement to search in.
-     * @param column - The column to search for.
-     * @returns - The context of the given column in the given statements.
+     * @param pos - The position to search for.
+     * @returns - The context of the given position in the given statements.
      */
-    private getContextFromPosition(statement: Statement, column: number): Context {
+    private getContextFromPosition(statement: Statement, pos: Position): Context {
         // PROBABLY REFORMAT IN THE FUTURE
         // NOW they search a lot of trees, while this could probably be minimised
         const context = new Context();
@@ -746,7 +751,6 @@ export class Focus {
         const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
-        console.log(statement, statement?.tokens);
         for (const token of statement?.tokens) tokensStack.unshift(token);
 
         while (tokensStack.length > 0) {
@@ -755,54 +759,57 @@ export class Focus {
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text
 
-                if (column == curToken.leftCol) {
-                    context.token = this.findNonTextualHole(statement, column);
+                if (pos.equals(curToken.left)) {
+                    console.log("Left")
+                    context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToRight = curToken;
                     context.tokenToLeft = this.searchNonEmptyTokenWithCheck(
                         statement,
-                        (token) => token.rightCol == column
+                        (token) => token.right.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(
                             context.tokenToRight,
-                            context.tokenToRight.rootNode.leftCol == column
+                            context.tokenToRight.rootNode.left.equals(pos)
                         );
                     }
                     if (context.tokenToLeft) {
                         context.expressionToLeft = this.getExpression(
                             context.tokenToLeft,
-                            context.tokenToLeft.rootNode.rightCol == column
+                            context.tokenToLeft.rootNode.right.equals(pos)
                         );
                     }
 
                     context.lineStatement = context.tokenToRight.getNearestStatement();
 
                     break;
-                } else if (column == curToken.rightCol) {
-                    context.token = this.findNonTextualHole(statement, column);
+                } else if (pos.equals(curToken.right)) {
+                    console.log("Right")
+                    context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToLeft = curToken;
                     context.tokenToRight = this.searchNonEmptyTokenWithCheck(
                         statement,
-                        (token) => token.leftCol == column
+                        (token) => token.left.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(
                             context.tokenToRight,
-                            context.tokenToRight.rootNode.leftCol == column
+                            context.tokenToRight.rootNode.left.equals(pos)
                         );
                     }
                     if (context.tokenToLeft) {
                         context.expressionToLeft = this.getExpression(
                             context.tokenToLeft,
-                            context.tokenToLeft.rootNode.rightCol == column
+                            context.tokenToLeft.rootNode.right.equals(pos)
                         );
                     }
                     context.lineStatement = context.tokenToLeft.getNearestStatement();
 
                     break;
-                } else if (column > curToken.leftCol && column < curToken.rightCol) {
+                } else if (curToken.left.isBefore(pos) && pos.isBefore(curToken.right)) {
+                    console.log("Between")
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
                     context.lineStatement = context.token.getNearestStatement();
@@ -813,7 +820,7 @@ export class Focus {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
-                        `getContextFromPosition(statement: ${statement}, column: ${column}) -> found expression with no child tokens.`
+                        `getContextFromPosition(statement: ${statement}, column: ${pos}) -> found expression with no child tokens.`
                     );
                 }
             }

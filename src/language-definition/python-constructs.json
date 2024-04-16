@@ -2437,9 +2437,13 @@
                 "format": [
                     {
                         "type": "token",
-                        "value": "so...\n",
+                        "value": "so...",
                         "min": 1,
                         "max": null
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n"
                     },
                     {
                         "type": "token",
