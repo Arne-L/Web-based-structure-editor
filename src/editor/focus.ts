@@ -762,6 +762,7 @@ export class Focus {
                 // this code assumes that there is no token with an empty text
 
                 if (pos.equals(curToken.left)) {
+                    console.log("Left")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToRight = curToken;
                     context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
@@ -785,6 +786,7 @@ export class Focus {
 
                     break;
                 } else if (pos.equals(curToken.right)) {
+                    console.log("Right")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToLeft = curToken;
                     context.tokenToRight = this.searchNonEmptyTokenWithCheck(statement, (token) =>
@@ -806,7 +808,8 @@ export class Focus {
                     context.lineStatement = context.tokenToLeft.getNearestStatement();
 
                     break;
-                } else if (curToken.left.isBefore(pos) && pos.isBefore(curToken.right)) {
+                } else if (doesConstructContainPos(curToken, pos, { left: false, right: false })) {
+                    console.log("Between")
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
                     context.lineStatement = context.token.getNearestStatement();
@@ -846,7 +849,7 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken instanceof Token && curToken.left.equals(curToken.right) && check(curToken)) return curToken;
+            if (curToken instanceof Token && !curToken.left.equals(curToken.right) && check(curToken)) return curToken;
 
             if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
