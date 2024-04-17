@@ -1,7 +1,7 @@
 import { Selection } from "monaco-editor";
 import { Editor } from "../editor/editor";
-import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { nova } from "../index";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
 import { Construct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 
@@ -317,7 +317,7 @@ export class HoverMessage extends InlineMessage {
         document.querySelector(editorDomElementClass).appendChild(this.domElement);
 
         //set the initial position
-        const currentLinePosition = nova.focus.getStatementAtLineNumber(this.code.getLineNumber()).getRightPosition();
+        const currentLinePosition = nova.focus.getConstructAtLineNumber(this.code.getLineNumber()).getRightPosition();
         this.domElement.style.top = `${(this.selection.startLineNumber - 1) * this.editor.computeCharHeight()}px`; // 0 is the line below this.code, -1 is this.code's line, -2 is the line above this.code
         this.domElement.style.left = `${
             (currentLinePosition.column + 2) * this.editor.computeCharWidthGlobal() + 10

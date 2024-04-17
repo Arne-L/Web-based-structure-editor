@@ -318,11 +318,18 @@ export namespace DOMManupulation {
 
 /**
  * Checks if the given position is contained within the given construct.
- * 
+ *
  * @param construct - The construct to check
  * @param pos - The position to check
  * @returns True if the construct contains the position, false otherwise
  */
-export function doesConstructContainPos(construct: Construct, pos: Position): boolean {
-    return construct.left.isBeforeOrEqual(pos) && pos.isBeforeOrEqual(construct.right);
+export function doesConstructContainPos(
+    construct: Construct,
+    pos: Position,
+    inclusive: { left: boolean; right: boolean } = { left: true, right: true }
+): boolean {
+    return (
+        (inclusive.left ? construct.left.isBeforeOrEqual(pos) : construct.left.isBefore(pos)) &&
+        (inclusive.right ? pos.isBeforeOrEqual(construct.right) : pos.isBefore(construct.right))
+    );
 }

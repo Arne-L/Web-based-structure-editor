@@ -816,7 +816,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (context.lineStatement.lineNumber > 2) {
-            const lineAbove = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
+            const lineAbove = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
 
             return context.lineStatement.leftCol < lineAbove.leftCol;
         }
@@ -1143,7 +1143,7 @@ export class Validator {
     private getLineBelow(providedContext?: Context): Statement {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.module.focus.getStatementAtLineNumber(context?.lineStatement?.lineNumber + 1);
+        return this.module.focus.getConstructAtLineNumber(context?.lineStatement?.lineNumber + 1);
     }
 
     private getLineAbove(providedContext?: Context): Statement {
@@ -1151,7 +1151,7 @@ export class Validator {
 
         const curLineNumber = context?.lineStatement?.lineNumber;
 
-        if (curLineNumber > 1) return this.module.focus.getStatementAtLineNumber(curLineNumber - 1);
+        if (curLineNumber > 1) return this.module.focus.getConstructAtLineNumber(curLineNumber - 1);
 
         return null;
     }

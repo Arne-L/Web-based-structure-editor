@@ -1,4 +1,5 @@
 import { Position, Range } from "monaco-editor";
+import { LIGHT_GRAY } from "../language-definition/settings";
 import { ErrorMessage } from "../messages/error-msg-generator";
 import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
@@ -14,37 +15,24 @@ import {
     IdentifierTkn,
     // IfStatement,
     Importable,
-    // ListAccessModifier,
-    Modifier,
     NonEditableTkn,
     // OperatorTkn,
     Statement,
     TemporaryStmt,
     Token,
     TypedEmptyExpr,
-    // ValueOperationExpr,
-    // VarOperationStmt,
-    // VarAssignmentStmt,
-    // VariableReferenceExpr,
 } from "../syntax-tree/ast";
 import { replaceInBody } from "../syntax-tree/body";
 import { Callback, CallbackType } from "../syntax-tree/callback";
-import {
-    AutoCompleteType,
-    BuiltInFunctions,
-    PythonKeywords,
-    TYPE_MISMATCH_ON_MODIFIER_DELETION_DRAFT_MODE_STR,
-    getOperatorCategory,
-} from "../syntax-tree/consts";
+import { AutoCompleteType, BuiltInFunctions, PythonKeywords } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
+import { ASTManupilation } from "../syntax-tree/utils";
 import { createFinalConstruct, isImportable } from "../utilities/util";
-import { BinaryOperator, DataType, InsertionType } from "./../syntax-tree/consts";
+import { InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction, InsertionResult } from "./action-filter";
 import { EditActionType } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
-import { LIGHT_GRAY } from "../language-definition/settings";
-import { ASTManupilation } from "../syntax-tree/utils";
 
 /**
  * General logic class responsible for executing the given action.
@@ -258,7 +246,7 @@ export class ActionExecutor {
                 let range: Range;
 
                 if (action.data?.pressedBackspace) {
-                    const lineAbove = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
+                    const lineAbove = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
                     this.module.focus.updateContext({
                         positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
                     });
@@ -292,7 +280,7 @@ export class ActionExecutor {
 
             // Partly language independent
             case EditActionType.DeletePrevLine: {
-                const prevLine = this.module.focus.getStatementAtLineNumber(context.lineStatement.lineNumber - 1);
+                const prevLine = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
 
                 if (prevLine.leftCol != context.lineStatement.leftCol) {
                     // Indent the current line
@@ -1473,7 +1461,6 @@ export class ActionExecutor {
 
         // Update the Monaco editor with the new statement
         this.module.editor.executeEdits(range, statement);
-        console.log("Replacement", statement);
         this.module.focus.updateContext(statement.getInitialFocus());
     }
 

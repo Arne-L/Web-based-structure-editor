@@ -133,7 +133,11 @@ export class Focus {
         let context: Context;
 
         if (!curSelection.getStartPosition().equals(curSelection.getEndPosition())) {
-            context = this.getContextFromSelection(curLine, curSelection.getStartPosition(), curSelection.getEndPosition());
+            context = this.getContextFromSelection(
+                curLine,
+                curSelection.getStartPosition(),
+                curSelection.getEndPosition()
+            );
         } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
@@ -183,29 +187,27 @@ export class Focus {
      * @param runNavOffCallbacks - If true, will run the onNavOff callbacks. Defaults to true.
      */
     navigatePos(pos: Position, runNavOffCallbacks: boolean = true) {
-        const focusedConstruct = this.getConstructAtPosition(pos) as Statement; //this.getStatementAtLineNumber(pos.lineNumber);
+        // TODO: This should return the closest construct to the given position if none is at the position, instead of
+        // just A construct at the given line
+        const focusedConstruct = this.getConstructAtLineNumber(pos.lineNumber) as Statement; //this.getStatementAtLineNumber(pos.lineNumber);
 
         // clicked at an empty statement => just update focusedStatement
         if (focusedConstruct instanceof EmptyLineStmt) {
-            console.log("Clicked at an empty statement")
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
         // clicked before a statement => navigate to the beginning of the statement
-        else if (pos.isBeforeOrEqual(focusedConstruct.left)/*pos.column <= focusedLineStatement.leftCol*/) {
-            console.log("Clicked before a statement")
+        else if (pos.isBeforeOrEqual(focusedConstruct.left) /*pos.column <= focusedLineStatement.leftCol*/) {
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
         // clicked after a statement => navigate to the end of the line
-        else if (focusedConstruct.right.isBeforeOrEqual(pos)/*pos.column >= focusedLineStatement.rightCol*/) {
-            console.log("Clicked after a statement")
+        else if (focusedConstruct.right.isBeforeOrEqual(pos) /*pos.column >= focusedLineStatement.rightCol*/) {
             this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.rightCol));
             this.module.editor.cursor.setSelection(null);
         } else {
-            console.log("Taking a look inside")
             // look into the tokens of the statement:
             const focusedToken = this.getTokenAtStatementColumn(focusedConstruct, pos);
 
@@ -220,12 +222,10 @@ export class Focus {
                     this.module.editor.cursor.setSelection(null);
                 } else this.selectCode(focusedToken);
             } else {
-                console.log("Going based on hit distance")
                 const hitDistance = pos.column - focusedToken.leftCol;
                 const tokenLength = focusedToken.rightCol - focusedToken.leftCol + 1;
 
                 if (hitDistance < tokenLength / 2) {
-                    console.log("Going to the start")
                     // go to the beginning (or the empty token before this)
 
                     // If there is still a token to the left of the current token
@@ -243,14 +243,14 @@ export class Focus {
                     this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.leftCol));
                     this.module.editor.cursor.setSelection(null);
                 } else {
-                    console.log("Going to the end")
                     // navigate to the end (or the empty token right after this token)
-                    const tokenAfter = this.getTokenAtStatementColumn(focusedConstruct, focusedToken.right.delta(undefined, 1));
-                    console.log("Token after", tokenAfter, "and focused token", focusedToken)
+                    const tokenAfter = this.getTokenAtStatementColumn(
+                        focusedConstruct,
+                        focusedToken.right.delta(undefined, 1)
+                    );
                     if (tokenAfter instanceof Token && tokenAfter.isEmpty) {
                         this.selectCode(tokenAfter);
                     } else {
-                        console.log("Position to set", new Position(pos.lineNumber, focusedToken.rightCol))
                         this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.rightCol));
                         this.module.editor.cursor.setSelection(null);
                     }
@@ -262,7 +262,7 @@ export class Focus {
         if (runNavOffCallbacks && this.prevPosition != null) {
             const prevConstr = this.getConstructAtPosition(this.prevPosition),
                 currConstr = this.getConstructAtPosition(curPos);
-                
+
             if (prevConstr !== currConstr) this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
         }
         // if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
@@ -302,7 +302,7 @@ export class Focus {
     navigateDown() {
         const curPosition = this.module.editor.monaco.getPosition();
         const focusedLineStatement = this.getConstructAtPosition(curPosition) as Statement;
-        const lineBelow = this.getConstructAtPosition(curPosition.delta(1)) as Statement;
+        const lineBelow = this.getConstructAtLineNumber(curPosition.lineNumber + 1) as Statement;
 
         if (focusedLineStatement !== lineBelow) this.fireOnNavOffCallbacks(focusedLineStatement, lineBelow);
 
@@ -325,7 +325,7 @@ export class Focus {
         const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
 
         if (this.onEndOfLine()) {
-            const lineBelow = this.getConstructAtPosition(curPos.delta(1));
+            const lineBelow = this.getConstructAtLineNumber(curPos.lineNumber + 1);
 
             if (lineBelow != null) {
                 this.module.editor.monaco.setPosition(lineBelow.left);
@@ -336,7 +336,8 @@ export class Focus {
             const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement; // Superfluous?
             let nextPos = curPos;
 
-            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition())) nextPos = curSelection.getEndPosition();
+            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()))
+                nextPos = curSelection.getEndPosition();
 
             if (
                 !curSelection.getEndPosition().equals(curSelection.getStartPosition()) &&
@@ -382,7 +383,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
+            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement
         );
         this.fireOnNavChangeCallbacks();
     }
@@ -392,12 +393,11 @@ export class Focus {
      */
     navigateLeft() {
         const curPos = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber);
+        const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
 
         if (this.onBeginningOfLine()) {
-            console.log("On beginning of line")
             if (curPos.lineNumber > 1) {
-                const lineBelow = this.getStatementAtLineNumber(curPos.lineNumber - 1);
+                const lineBelow = this.getConstructAtPosition(curPos.delta(-1));
 
                 if (lineBelow != null) {
                     this.module.editor.monaco.setPosition(lineBelow.right);
@@ -405,14 +405,17 @@ export class Focus {
                 }
             }
         } else {
-            console.log("Not on beginning of line")
             const curSelection = this.module.editor.monaco.getSelection();
             const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
             let prevPos = this.module.editor.monaco.getPosition().delta(undefined, -1);
 
-            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition())) prevPos = curSelection.getStartPosition().delta(undefined, -1)//curSelection.startColumn - 1;
+            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()))
+                prevPos = curSelection.getStartPosition().delta(undefined, -1); //curSelection.startColumn - 1;
 
-            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()) && curPos.equals(focusedLineStatement.left)) {
+            if (
+                !curSelection.getEndPosition().equals(curSelection.getStartPosition()) &&
+                curPos.equals(focusedLineStatement.left)
+            ) {
                 // if selected a thing that is at the beginning of a line (usually an identifier) => nav to the beginning of the line
                 this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, focusedLineStatement.leftCol));
                 this.module.editor.cursor.setSelection(null);
@@ -479,7 +482,7 @@ export class Focus {
 
         if (curSelection.startColumn == curSelection.endColumn) {
             const curPosition = curSelection.getStartPosition();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
+            const focusedLineStatement = this.getConstructAtPosition(curPosition);
 
             if (focusedLineStatement != null && curPosition.column == focusedLineStatement.rightCol) return true;
         }
@@ -495,7 +498,7 @@ export class Focus {
 
         if (curSelection.startColumn == curSelection.endColumn) {
             const curPosition = curSelection.getStartPosition();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
+            const focusedLineStatement = this.getConstructAtPosition(curPosition);
 
             if (focusedLineStatement != null && curPosition.column == focusedLineStatement.leftCol) return true;
         }
@@ -518,7 +521,7 @@ export class Focus {
     existsLineBelow(): boolean {
         const curPos = this.module.editor.monaco.getPosition();
 
-        return this.getStatementAtLineNumber(curPos.lineNumber + 1) != null;
+        return this.getConstructAtLineNumber(curPos.lineNumber + 1) != null;
     }
 
     /**
@@ -545,11 +548,7 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (
-                curToken instanceof Token &&
-                doesConstructContainPos(curToken, pos)
-            )
-                return curToken;
+            if (curToken instanceof Token && doesConstructContainPos(curToken, pos, { left: true, right: false })) return curToken;
 
             if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct)
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
@@ -599,7 +598,7 @@ export class Focus {
      * @param line the given line number to search for.
      * @returns the Statement object of that line.
      */
-    getStatementAtLineNumber(line: number): Statement {
+    getConstructAtLineNumber(line: number): Statement {
         const bodyStack = new Array<Statement>();
 
         bodyStack.unshift(...this.module.body);
@@ -607,7 +606,8 @@ export class Focus {
         while (bodyStack.length > 0) {
             const curStmt = bodyStack.pop();
 
-            if (line == curStmt.lineNumber) return curStmt;
+            // TODO: Could be multiple constructs on the same line, how to fix this?
+            if (curStmt.left.lineNumber <= line && line <= curStmt.right.lineNumber) return curStmt;
             else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
         }
 
@@ -752,9 +752,6 @@ export class Focus {
         context.lineStatement = statement;
         const tokensStack = new Array<Construct>();
 
-        console.log("Clicked position", pos, new Date().getSeconds())
-        console.log("Statement", statement)
-
         // initialize tokensStack
         for (const token of statement?.tokens) tokensStack.unshift(token);
 
@@ -765,12 +762,10 @@ export class Focus {
                 // this code assumes that there is no token with an empty text
 
                 if (pos.equals(curToken.left)) {
-                    console.log("Left")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToRight = curToken;
-                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(
-                        statement,
-                        (token) => token.right.equals(pos)
+                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                        token.right.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
@@ -790,12 +785,10 @@ export class Focus {
 
                     break;
                 } else if (pos.equals(curToken.right)) {
-                    console.log("Right")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToLeft = curToken;
-                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(
-                        statement,
-                        (token) => token.left.equals(pos)
+                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                        token.left.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
@@ -814,7 +807,6 @@ export class Focus {
 
                     break;
                 } else if (curToken.left.isBefore(pos) && pos.isBefore(curToken.right)) {
-                    console.log("Between")
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
                     context.lineStatement = context.token.getNearestStatement();

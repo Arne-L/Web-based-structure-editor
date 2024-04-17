@@ -1139,13 +1139,10 @@ export abstract class Token extends Construct {
             this.right = pos;
         } else {
             const lines = this.text.split("\n");
-            console.log("lines: ", lines);
             const lineDiff = lines.length - 1;
             const rightCol = (lineDiff > 0 ? this.getNearestStatement().leftCol : pos.column) + lines.at(-1).length;
             this.right = new Position(pos.lineNumber + lineDiff, rightCol);
         }
-
-        console.log(this.left, this.right);
 
         this.notify(CallbackType.change);
 
