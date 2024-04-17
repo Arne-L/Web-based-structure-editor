@@ -1907,7 +1907,7 @@ export class CompoundConstruct extends Construct {
 
         let curPos = pos;
         for (const token of this.tokens) {
-            curPos = token.build(pos);
+            curPos = token.build(curPos);
         }
 
         this.right = curPos;
