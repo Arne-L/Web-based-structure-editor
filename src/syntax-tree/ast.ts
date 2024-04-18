@@ -1828,9 +1828,28 @@ export class CompoundConstruct extends Construct {
         this.nextFormatIndex = idx;
     }
 
+    /**
+     * Get the key to wait on to continue the expansion of the compound
+     * 
+     * @returns The key to wait on for the next token to be inserted
+     */
     getWaitOnKey(): string {
         const token = this.compoundToken.format[this.nextFormatIndex];
         return "waitOnUser" in token ? (token.waitOnUser as string) : null;
+    }
+
+    /**
+     * Checks if the cursor is at the right position within the compound to continue the expansion
+     *
+     * @param context - The current context
+     * @returns Whether the cursor is at the right position within the compound 
+     * to continue the expansion of
+     */
+    atRightPosition(context: Context): boolean {
+        const formatLength = this.compoundToken.format.length;
+        return (
+            context.tokenToLeft.indexInRoot % formatLength === (this.nextFormatIndex - 1 + formatLength) % formatLength
+        );
     }
 
     continueExpansion() {

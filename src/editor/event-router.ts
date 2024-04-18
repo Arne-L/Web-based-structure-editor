@@ -491,7 +491,8 @@ export class EventRouter {
                     return new EditAction(EditActionType.InsertChar);
                 } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     const compound = context.tokenToLeft?.rootNode;
-                    if (compound.getWaitOnKey() === e.key) compound.continueExpansion();
+                    if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
+                        compound.continueExpansion();
                     break;
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
                 } else if (this.module.validator.atEmptyOperatorTkn(context)) {
