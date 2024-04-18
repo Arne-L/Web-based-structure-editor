@@ -752,7 +752,6 @@ export class Focus {
         context.lineStatement = statement;
         const tokensStack = new Array<Construct>();
 
-        console.log("Tokens: ", statement?.tokens, statement, "Position: ", pos);
         // initialize tokensStack
         for (const token of statement?.tokens) tokensStack.unshift(token);
 
@@ -763,7 +762,6 @@ export class Focus {
                 // this code assumes that there is no token with an empty text
 
                 if (pos.equals(curToken.left)) {
-                    console.log("Left")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToRight = curToken;
                     context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
@@ -787,7 +785,6 @@ export class Focus {
 
                     break;
                 } else if (pos.equals(curToken.right)) {
-                    console.log("Right")
                     context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToLeft = curToken;
                     context.tokenToRight = this.searchNonEmptyTokenWithCheck(statement, (token) =>
@@ -810,7 +807,6 @@ export class Focus {
 
                     break;
                 } else if (doesConstructContainPos(curToken, pos, { left: false, right: false })) {
-                    console.log("Between")
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
                     context.lineStatement = context.token.getNearestStatement();
