@@ -632,11 +632,9 @@ export class Focus {
 
         bodyStack.unshift(...this.module.body);
 
-        console.log("All constructs")
         while (bodyStack.length > 0) {
             const curStmt = bodyStack.pop();
-            console.log(curStmt, (curStmt?.tokens[1] as CompoundConstruct)?.tokens.length, doesConstructContainPos(curStmt, position))
-            console.log("Left and right", curStmt.left.clone(), curStmt.right.clone(), position)
+
             if (doesConstructContainPos(curStmt, position)) return curStmt;
             else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
         }

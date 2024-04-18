@@ -1830,7 +1830,7 @@ export class CompoundConstruct extends Construct {
 
     /**
      * Get the key to wait on to continue the expansion of the compound
-     * 
+     *
      * @returns The key to wait on for the next token to be inserted
      */
     getWaitOnKey(): string {
@@ -1842,7 +1842,7 @@ export class CompoundConstruct extends Construct {
      * Checks if the cursor is at the right position within the compound to continue the expansion
      *
      * @param context - The current context
-     * @returns Whether the cursor is at the right position within the compound 
+     * @returns Whether the cursor is at the right position within the compound
      * to continue the expansion of
      */
     atRightPosition(context: Context): boolean {
@@ -1865,8 +1865,6 @@ export class CompoundConstruct extends Construct {
         let leftpos = this.tokens[initLength - 1]?.right ?? this.right;
         for (const token of this.tokens.slice(initLength)) {
             leftpos = token.build(leftpos);
-            const range = new Range(token.lineNumber, token.leftCol, token.lineNumber, token.leftCol);
-            Module.instance.editor.executeEdits(range, token);
         }
         this.right = leftpos;
         // Maybe some rebuilding that needs to be done?
@@ -1883,6 +1881,13 @@ export class CompoundConstruct extends Construct {
         for (const constr of (root as Module).body) {
             leftposition = constr.build(leftposition);
         }
+
+        // Execute edits in the monaco editor at the end, as the cursor position will be changed
+        // and thus the constructs need to be (re)built first
+        this.tokens.slice(initLength).forEach((token) => {
+            const range = new Range(token.lineNumber, token.leftCol, token.lineNumber, token.leftCol);
+            Module.instance.editor.executeEdits(range, token);
+        });
     }
 
     getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {

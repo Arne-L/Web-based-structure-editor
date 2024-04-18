@@ -143,7 +143,7 @@ export namespace SyntaxConstructor {
             addConstructToken(constructs, jsonConstruct.format[i], rootConstruct, data);
 
             i = (i + 1) % jsonConstruct.format.length;
-        } while (!stopCondition(jsonConstruct.format[i])) // Does not work if the first construct has a waitOnUser
+        } while (!stopCondition(jsonConstruct.format[i])) // TODO: Does not work if the first construct has a waitOnUser
 
         rootConstruct.setElementToInsertNextIndex(i);
 
