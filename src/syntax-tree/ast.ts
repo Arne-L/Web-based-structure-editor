@@ -1856,6 +1856,14 @@ export class CompoundConstruct extends Construct {
 
         // Module.instance.editor.executeEdits(range, statement);
         // this.module.focus.updateContext(statement.getInitialFocus());
+
+        let root = this.rootNode;
+        while (root instanceof Construct) root = root.rootNode;
+
+        let leftposition = new Position(1, 1); // Not efficient, reuse information!
+        for (const constr of (root as Module).body) {
+            leftposition = constr.build(leftposition);
+        }
     }
 
     getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {
