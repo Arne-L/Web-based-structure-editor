@@ -13,6 +13,7 @@ import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
 import { Module } from "./module";
 import { Scope } from "./scope";
 import { ValidatorNameSpace } from "./validator";
+import { ASTManupilation } from "./utils";
 
 export abstract class Construct {
     /**
@@ -1881,10 +1882,7 @@ export class CompoundConstruct extends Construct {
         let root = this.rootNode;
         while (root instanceof Construct) root = root.rootNode;
 
-        let leftposition = new Position(1, 1); // Not efficient, reuse information!
-        for (const constr of (root as Module).body) {
-            leftposition = constr.build(leftposition);
-        }
+        ASTManupilation.rebuild(this, this.right, {rebuildConstruct: false})
 
         // Execute edits in the monaco editor at the end, as the cursor position will be changed
         // and thus the constructs need to be (re)built first

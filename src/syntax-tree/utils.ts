@@ -264,6 +264,9 @@ export namespace ASTManupilation {
                 rootTokens[i].notify(CallbackType.change);
             }
 
+            // Update the right position of root node
+            construct.rootNode.right = leftPos;
+
             leftPos = rebuild(construct.rootNode, leftPos, { rebuildConstruct: false });
             // If the parent is a module, rebuild all constructs following the given construct
             // But now looking in the body instead of the tokens, as this is currently programmed like that
