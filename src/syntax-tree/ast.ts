@@ -89,7 +89,9 @@ export abstract class Construct {
      * @param param0 - { selectIndent: boolean }: If the initial indent should be included in the selection range
      * @returns The range of the construct including all children
      */
-    abstract getBoundaries({ selectIndent }?: { selectIndent: boolean }): Range;
+    getBoundaries(): Range {
+        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
+    }
 
     /**
      * Get the nearest scope if there is one.
@@ -353,8 +355,8 @@ export abstract class Statement extends Construct {
         } else {
             // If the indent (one indent) has to be included in the selection range
             if (selectIndent) {
-                return new Range(lineNumber, this.leftCol - TAB_SPACES, lineNumber, this.rightCol);
-            } else return new Range(lineNumber, this.leftCol, lineNumber, this.rightCol);
+                return new Range(this.left.lineNumber, this.leftCol - TAB_SPACES, this.right.lineNumber, this.rightCol);
+            } else return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
         }
     }
 
@@ -1784,14 +1786,76 @@ export class ReferenceTkn extends NonEditableTkn {}
  * An abstract construct representing a hole in the code that can be filled
  * with a construct.
  */
-abstract class HoleStructure extends Construct {}
+abstract class HoleStructure extends Construct {
+    private text: string = "";
+    private selectable: boolean;
+
+    getNearestScope(): Scope {
+        return this.rootNode.getNearestScope();
+    }
+
+    build(pos: Position): Position {
+        this.left = pos;
+        this.right = pos.delta(undefined, this.text.length);
+
+        return pos;
+    }
+
+    getInitialFocus(): UpdatableContext {
+        if (this.selectable) return { tokenToSelect: this };
+        return { positionToMove: this.getLeftPosition() };
+    }
+
+    getRenderText(): string {
+        return this.text;
+    }
+
+    getNearestStatement(): Statement {
+        // TODO: Remove Module check later on
+        if (this.rootNode instanceof Module) return null;
+        return this.rootNode.getNearestStatement();
+    }
+
+    /**
+     * Call all callbacks of the given type on this statement and on all of its tokens.
+     *
+     * @param type - The type of the callback to be notified
+     */
+    notify(type: CallbackType) {
+        for (const callback of this.callbacks[type]) callback.callback(this);
+
+        if (this.callbacksToBeDeleted.size > 0) {
+            for (const entry of this.callbacksToBeDeleted) {
+                this.unsubscribe(entry[0], entry[1]);
+            }
+
+            this.callbacksToBeDeleted.clear();
+        }
+    }
+
+    getKeyword(): string {
+        return this.constructor.name;
+    }
+
+    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void {
+        return;
+    }
+
+    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void {
+        return;
+    }
+
+    getLineNumber(): number {
+        return this.lineNumber;
+    }
+}
 
 /**
  * A hole structure representing a standard empty line in a construct.
  *
  * TODO: Rename / merge in the future with EmptyLineStmt
  */
-// class EmptyLineStructure extends HoleStructure {}
+class EmptyLineStructure extends HoleStructure {}
 
 /**
  * A hole structure representing a construct that can be filled with a different
@@ -1799,7 +1863,7 @@ abstract class HoleStructure extends Construct {}
  *
  * TODO: Rename / merge in the future with TypedEmptyExpr
  */
-// class ConstructHoleStructure extends HoleStructure {}
+class ConstructHoleStructure extends HoleStructure {}
 
 export class CompoundConstruct extends Construct {
     private recursiveName: string;
@@ -1882,7 +1946,7 @@ export class CompoundConstruct extends Construct {
         let root = this.rootNode;
         while (root instanceof Construct) root = root.rootNode;
 
-        ASTManupilation.rebuild(this, this.right, {rebuildConstruct: false})
+        ASTManupilation.rebuild(this, this.right, { rebuildConstruct: false });
 
         // Execute edits in the monaco editor at the end, as the cursor position will be changed
         // and thus the constructs need to be (re)built first
@@ -1892,7 +1956,7 @@ export class CompoundConstruct extends Construct {
         });
     }
 
-    getBoundaries({ selectIndent }: { selectIndent: boolean }): Range {
+    getBoundaries(): Range {
         return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
@@ -1943,8 +2007,8 @@ export class CompoundConstruct extends Construct {
 
         this.right = curPos;
 
-        // Notify all (child)construct of the change
-        this.notify(CallbackType.change);
+        // Notify all (child)construct of the change => Is this necessary?
+        // this.notify(CallbackType.change);
 
         return curPos;
     }
