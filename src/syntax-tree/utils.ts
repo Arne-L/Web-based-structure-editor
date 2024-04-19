@@ -1,4 +1,4 @@
-import { Range } from "monaco-editor";
+import { Position, Range } from "monaco-editor";
 import { Context } from "../editor/focus";
 import {
     Token,
@@ -9,6 +9,7 @@ import {
     GeneralStatement,
     Construct,
     Expression,
+    CompoundConstruct,
     // BinaryOperatorExpr,
 } from "./ast";
 import { replaceInBody } from "./body";
@@ -231,5 +232,41 @@ export namespace ASTManupilation {
                 this.checkImports(code, insertionResult.insertionType);
             }
         }
+    }
+
+    export function rebuild(construct: Construct, leftPos: Position, options: { rebuildConstruct: boolean } = { rebuildConstruct: true }) {
+        // TEMPORARY SOLUTION: REBUILD EVERYTING that follows
+        if (options.rebuildConstruct) leftPos = construct.build(leftPos);
+
+        if (!(construct.rootNode instanceof Module)) {
+            const rootTokens = (construct.rootNode as GeneralStatement | CompoundConstruct).tokens;
+            for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
+                rootTokens[i].indexInRoot = i;
+                leftPos = rootTokens[i].build(leftPos);
+                rootTokens[i].notify(CallbackType.change);
+            }
+
+            leftPos = rebuild(construct.rootNode, leftPos, { rebuildConstruct: false });
+        }
+
+        return leftPos;
+
+
+
+        // LONG TERM SOLUTION: Call build on all constructs that are on the same line,
+        // and only reset the linenumbers of all the following constructs
+        // -> Does this actually make a performance difference?
+
+        // if (construct instanceof Token) return construct.build(leftPos);
+
+        // if (!(construct instanceof GeneralStatement) && !(construct instanceof CompoundConstruct)) return;
+        
+        // const rootTokens = construct.rootNode.tokens;
+        // for (let i = construct.indexInRoot; i < construct.tokens.length; i++) {
+        //     construct.indexInRoot = i;
+        //     if (construct.body[i].hasBody()) rebuild(construct.body[i], leftPos);
+        //     else construct.body[i].init(leftPos);
+        //     leftPos.lineNumber += construct.body[i].getHeight();
+        // }
     }
 }

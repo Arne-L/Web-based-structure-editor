@@ -548,7 +548,8 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken instanceof Token && doesConstructContainPos(curToken, pos, { left: true, right: false })) return curToken;
+            if (curToken instanceof Token && doesConstructContainPos(curToken, pos, { left: true, right: false }))
+                return curToken;
 
             if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct)
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
@@ -635,6 +636,14 @@ export class Focus {
         while (bodyStack.length > 0) {
             const curStmt = bodyStack.pop();
 
+            console.log(
+                "curStmt", curStmt,
+                curStmt.left.lineNumber,
+                curStmt.left.column,
+                curStmt.right.lineNumber,
+                curStmt.right.column,
+                position
+            );
             if (doesConstructContainPos(curStmt, position)) return curStmt;
             else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
         }
@@ -751,6 +760,9 @@ export class Focus {
         const context = new Context();
         context.lineStatement = statement;
         const tokensStack = new Array<Construct>();
+
+        if (!statement)
+            console.log("No statement");
 
         // initialize tokensStack
         for (const token of statement?.tokens) tokensStack.unshift(token);

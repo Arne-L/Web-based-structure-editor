@@ -139,6 +139,10 @@ export abstract class Construct {
         return this.right;
     }
 
+    getHeight(): number {
+        return this.right.lineNumber - this.left.lineNumber + 1;
+    }
+
     /**
      * Returns a `Selection` object for this particular code-construct when it is selected
      */

@@ -86,6 +86,7 @@ export class ActionExecutor {
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
                 const statement = createFinalConstruct(action);
+                console.log("Final construct: ", statement);
 
                 // Probably best to use this to get the final construct text to compare against
                 // in the suggestion controller

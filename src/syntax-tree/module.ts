@@ -37,6 +37,7 @@ import { TAB_SPACES, ERROR_HIGHLIGHT_COLOUR } from "../language-definition/setti
 import { Language } from "./language";
 import { Scope } from "./scope";
 import { VariableController } from "./variable-controller";
+import { ASTManupilation } from "./utils";
 
 /**
  * The main body of the code which includes an array of statements.
@@ -418,8 +419,23 @@ export class Module {
             root.body.splice(line.indexInRoot, 1, replacement);
             // Build the left and right positions and linenumber of the new construct
             replacement.build(line.getLeftPosition());
+            console.log(
+                "RemoveStatement",
+                replacement.left.lineNumber, replacement.left.column,
+                line.getLeftPosition().lineNumber,
+                line.getLeftPosition().column
+            );
             // Rebuilds all linenumbers for the entire editor
-            rebuildBody(this, 0, 1);
+            // rebuildBody(this, 0, 1); // <--- THIS IS THE PROBLEM
+            ASTManupilation.rebuild(replacement, line.getLeftPosition());
+
+            console.log(
+                "RemoveStatement",
+                replacement.left.lineNumber,
+                replacement.left.column,
+                line.getLeftPosition().lineNumber,
+                line.getLeftPosition().column
+            );
 
             return replacement;
         }
@@ -463,6 +479,7 @@ export class Module {
         // If the construct to delete is a expression
         else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
 
+        console.log("DeleteCode", replacement);
         // Replace all characters in the Monaco editor with the replacement construct
         this.editor.executeEdits(replacementRange, replacement);
         // Update the focus context
@@ -502,7 +519,9 @@ export class Module {
         let replacedItem = null;
         const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
-        replacedItem = new TypedEmptyExpr(replaceType !== null ? [replaceType] : [DataType.Any]/*root.typeOfHoles[item.indexInRoot]*/);
+        replacedItem = new TypedEmptyExpr(
+            replaceType !== null ? [replaceType] : [DataType.Any] /*root.typeOfHoles[item.indexInRoot]*/
+        );
 
         if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
 
@@ -597,8 +616,10 @@ export class Module {
     insertEmptyLine(): EmptyLineStmt {
         // Current cursor position
         const curPos = this.editor.monaco.getPosition();
+        console.log("Current position: ", curPos.lineNumber, curPos.column);
         // The statement in / at which the cursor is currently located
         const curStmt = this.focus.getFocusedStatement();
+        console.log("Current statement: ", curStmt);
         // Parent of the current statement
         const curRoot = curStmt.rootNode;
 
@@ -684,7 +705,12 @@ export class Module {
                 );
             } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.right.lineNumber + 1);
 
-            const range = new Range(curStmt.right.lineNumber, curStmt.rightCol, curStmt.right.lineNumber, curStmt.rightCol);
+            const range = new Range(
+                curStmt.right.lineNumber,
+                curStmt.rightCol,
+                curStmt.right.lineNumber,
+                curStmt.rightCol
+            );
             this.editor.executeEdits(range, null, textToAdd + spaces);
             this.focus.updateContext({ tokenToSelect: emptyLine });
 
