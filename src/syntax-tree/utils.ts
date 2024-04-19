@@ -234,12 +234,30 @@ export namespace ASTManupilation {
         }
     }
 
+    /**
+     * Rebuild all constructs following (and including) the given construct. This function
+     * should be used when a constructs boundaries have changed;
+     * 
+     * TODO: Function currently assumes that the module uses a body, but this will not keep to be
+     * te case in the future! Remove this in the future
+     * 
+     * @param construct - The construct to start rebuilding from
+     * @param leftPos - The left position to start rebuilding from
+     * @param options - Determines whether the given construct should be rebuilt or if only the
+     * constructs following the given construct should be rebuilt
+     * @returns The final right position of the last construct built
+     */
     export function rebuild(construct: Construct, leftPos: Position, options: { rebuildConstruct: boolean } = { rebuildConstruct: true }) {
         // TEMPORARY SOLUTION: REBUILD EVERYTING that follows
+
+        // Build the given construct if the option is set
         if (options.rebuildConstruct) leftPos = construct.build(leftPos);
 
+        // If the parent is not a module, rebuild all constructs following the given construct
         if (!(construct.rootNode instanceof Module)) {
+            // Get all tokens
             const rootTokens = (construct.rootNode as GeneralStatement | CompoundConstruct).tokens;
+            // For each of the following constructs, rebuild them
             for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
                 rootTokens[i].indexInRoot = i;
                 leftPos = rootTokens[i].build(leftPos);
@@ -247,8 +265,18 @@ export namespace ASTManupilation {
             }
 
             leftPos = rebuild(construct.rootNode, leftPos, { rebuildConstruct: false });
+            // If the parent is a module, rebuild all constructs following the given construct
+            // But now looking in the body instead of the tokens, as this is currently programmed like that
+        } else {
+            const rootTokens = construct.rootNode.body;
+            for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
+                rootTokens[i].indexInRoot = i;
+                leftPos = rootTokens[i].build(leftPos);
+                rootTokens[i].notify(CallbackType.change);
+            }
         }
 
+        // Return the final right position of the last construct built
         return leftPos;
 
 

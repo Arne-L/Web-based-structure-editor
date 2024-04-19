@@ -419,23 +419,10 @@ export class Module {
             root.body.splice(line.indexInRoot, 1, replacement);
             // Build the left and right positions and linenumber of the new construct
             replacement.build(line.getLeftPosition());
-            console.log(
-                "RemoveStatement",
-                replacement.left.lineNumber, replacement.left.column,
-                line.getLeftPosition().lineNumber,
-                line.getLeftPosition().column
-            );
+
             // Rebuilds all linenumbers for the entire editor
             // rebuildBody(this, 0, 1); // <--- THIS IS THE PROBLEM
             ASTManupilation.rebuild(replacement, line.getLeftPosition());
-
-            console.log(
-                "RemoveStatement",
-                replacement.left.lineNumber,
-                replacement.left.column,
-                line.getLeftPosition().lineNumber,
-                line.getLeftPosition().column
-            );
 
             return replacement;
         }
