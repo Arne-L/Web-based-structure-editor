@@ -1156,98 +1156,98 @@ export class Validator {
         return null;
     }
 
-    /**
-     * Gets the valid (or draft) variable references for the given code construct
-     *
-     * @param code - The code construct to get the valid variable references for
-     * @param variableController - The variable controller to use for the validation
-     * @returns A list of valid (or draft) variable references for the given code construct
-     */
-    static getValidVariableReferences(
-        code: Construct,
-        variableController: VariableController
-    ): [Reference, InsertionType][] {
-        // List of all references
-        const refs: Reference[] = [];
-        // List of mapped references mapped to their insertion type
-        const mappedRefs: [Reference, InsertionType][] = []; //no point of making this a map since we don't have access to the refs whereever this method is used. Otherwise would have to use buttonId or uniqueId as keys into the map.
+    // /**
+    //  * Gets the valid (or draft) variable references for the given code construct
+    //  *
+    //  * @param code - The code construct to get the valid variable references for
+    //  * @param variableController - The variable controller to use for the validation
+    //  * @returns A list of valid (or draft) variable references for the given code construct
+    //  */
+    // static getValidVariableReferences(
+    //     code: Construct,
+    //     variableController: VariableController
+    // ): [Reference, InsertionType][] {
+    //     // List of all references
+    //     const refs: Reference[] = [];
+    //     // List of mapped references mapped to their insertion type
+    //     const mappedRefs: [Reference, InsertionType][] = []; //no point of making this a map since we don't have access to the refs whereever this method is used. Otherwise would have to use buttonId or uniqueId as keys into the map.
 
-        try {
-            // If the code is an empty expression or an empty line
-            if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
-                // Get nearest scope
-                let scope =
-                    code instanceof TypedEmptyExpr
-                        ? code.getNearestStatement()?.scope
-                        : (code.rootNode as Module).scope; //line that contains "code"
-                let currRootNode = code.rootNode;
+    //     try {
+    //         // If the code is an empty expression or an empty line
+    //         if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
+    //             // Get nearest scope
+    //             let scope =
+    //                 code instanceof TypedEmptyExpr
+    //                     ? code.getNearestStatement()?.scope
+    //                     : (code.rootNode as Module).scope; //line that contains "code"
+    //             let currRootNode = code.rootNode;
 
-                // Keep going up the tree until we find a non-null scope
-                while (!scope) {
-                    if (!(currRootNode instanceof Module)) {
-                        if (currRootNode.getNearestStatement()?.hasScope()) {
-                            scope = currRootNode.getNearestStatement().scope;
-                        } else if (currRootNode.rootNode instanceof Statement) {
-                            currRootNode = currRootNode.rootNode;
-                        } else if (currRootNode.rootNode instanceof Module) {
-                            scope = currRootNode.rootNode.scope;
-                        }
-                    } else {
-                        break;
-                    }
-                }
+    //             // Keep going up the tree until we find a non-null scope
+    //             while (!scope) {
+    //                 if (!(currRootNode instanceof Module)) {
+    //                     if (currRootNode.getNearestStatement()?.hasScope()) {
+    //                         scope = currRootNode.getNearestStatement().scope;
+    //                     } else if (currRootNode.rootNode instanceof Statement) {
+    //                         currRootNode = currRootNode.rootNode;
+    //                     } else if (currRootNode.rootNode instanceof Module) {
+    //                         scope = currRootNode.rootNode.scope;
+    //                     }
+    //                 } else {
+    //                     break;
+    //                 }
+    //             }
 
-                // Get all accessable assignments
-                refs.push(...scope.getValidReferences(code.getSelection().startLineNumber));
+    //             // Get all accessable assignments
+    //             refs.push(...scope.getValidReferences(code.getSelection().startLineNumber));
 
-                // // For each of the accessable assignments
-                // for (const ref of refs) {
-                //     // Only add it to the mapped references if it is a variable assignment statement
-                //     if (ref.statement instanceof VarAssignmentStmt) {
-                //         // If it is a typed empty expression
-                //         if (code instanceof TypedEmptyExpr) {
-                //             // If the type of the hole / TypedEmptyExpr is the same as the type of
-                //             // the variable reference, add it to the mapped references with a valid insertion type
-                //             // Else add it to the mapped references with a draft mode insertion type
-                //             if (
-                //                 code.type.indexOf(
-                //                     variableController.getVariableTypeNearLine(
-                //                         scope,
-                //                         code.getLineNumber(),
-                //                         ref.statement.getIdentifier()
-                //                     )
-                //                 ) > -1 ||
-                //                 code.type.indexOf(DataType.Any) > -1
-                //             ) {
-                //                 mappedRefs.push([ref, InsertionType.Valid]);
-                //             } else {
-                //                 mappedRefs.push([ref, InsertionType.DraftMode]);
-                //             }
-                //         } else if (code instanceof EmptyLineStmt) {
-                //             // All variables can become var = --- so allow all of them to trigger draft mode
-                //             mappedRefs.push([ref, InsertionType.DraftMode]);
-                //         }
-                //     }
-                // }
-                // For each of the accessable assignments
-                for (const ref of refs) {
-                    // Only add it to the mapped references if it is a variable assignment statement
-                    // If it is a typed empty expression
-                    if (code instanceof TypedEmptyExpr) {
-                        // No types, thus valid
-                        mappedRefs.push([ref, InsertionType.Valid]);
-                    } else if (code instanceof EmptyLineStmt) {
-                        // Originally only possible for a variable refrence
-                        mappedRefs.push([ref, InsertionType.DraftMode]);
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Unable to get valid variable references for " + code + "\n\n" + e);
-        } finally {
-            return mappedRefs;
-        }
-    }
+    //             // // For each of the accessable assignments
+    //             // for (const ref of refs) {
+    //             //     // Only add it to the mapped references if it is a variable assignment statement
+    //             //     if (ref.statement instanceof VarAssignmentStmt) {
+    //             //         // If it is a typed empty expression
+    //             //         if (code instanceof TypedEmptyExpr) {
+    //             //             // If the type of the hole / TypedEmptyExpr is the same as the type of
+    //             //             // the variable reference, add it to the mapped references with a valid insertion type
+    //             //             // Else add it to the mapped references with a draft mode insertion type
+    //             //             if (
+    //             //                 code.type.indexOf(
+    //             //                     variableController.getVariableTypeNearLine(
+    //             //                         scope,
+    //             //                         code.getLineNumber(),
+    //             //                         ref.statement.getIdentifier()
+    //             //                     )
+    //             //                 ) > -1 ||
+    //             //                 code.type.indexOf(DataType.Any) > -1
+    //             //             ) {
+    //             //                 mappedRefs.push([ref, InsertionType.Valid]);
+    //             //             } else {
+    //             //                 mappedRefs.push([ref, InsertionType.DraftMode]);
+    //             //             }
+    //             //         } else if (code instanceof EmptyLineStmt) {
+    //             //             // All variables can become var = --- so allow all of them to trigger draft mode
+    //             //             mappedRefs.push([ref, InsertionType.DraftMode]);
+    //             //         }
+    //             //     }
+    //             // }
+    //             // For each of the accessable assignments
+    //             for (const ref of refs) {
+    //                 // Only add it to the mapped references if it is a variable assignment statement
+    //                 // If it is a typed empty expression
+    //                 if (code instanceof TypedEmptyExpr) {
+    //                     // No types, thus valid
+    //                     mappedRefs.push([ref, InsertionType.Valid]);
+    //                 } else if (code instanceof EmptyLineStmt) {
+    //                     // Originally only possible for a variable refrence
+    //                     mappedRefs.push([ref, InsertionType.DraftMode]);
+    //                 }
+    //             }
+    //         }
+    //     } catch (e) {
+    //         console.error("Unable to get valid variable references for " + code + "\n\n" + e);
+    //     } finally {
+    //         return mappedRefs;
+    //     }
+    // }
 
     // /**
     //  * Gets the EditCodeActions for the given search string

@@ -5,7 +5,7 @@ import { Editor } from "../editor/editor";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
 import { CompoundFormatDefinition, ConstructDefinition } from "../language-definition/definitions";
-import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
+import { EMPTYIDENTIFIER, HOLETEXT, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
@@ -1787,8 +1787,26 @@ export class ReferenceTkn extends NonEditableTkn {}
  * with a construct.
  */
 abstract class HoleStructure extends Construct {
-    private text: string = "";
+    /**
+     * Text representing the hole in the code.
+     */
+    private text: string;
+    /**
+     * Whether the hole is selectable by the user.
+     */
     private selectable: boolean;
+    /**
+     * The self defined construct types in the specification that can be inserted
+     * into this hole.
+     */
+    private constructTypes: string[];
+
+    constructor(text?: string, root?: Construct, indexInRoot?: number) {
+        super();
+
+        this.text = text ?? "";
+        this.selectable = this.text.length > 0;
+    }
 
     getNearestScope(): Scope {
         return this.rootNode.getNearestScope();
@@ -1855,7 +1873,11 @@ abstract class HoleStructure extends Construct {
  *
  * TODO: Rename / merge in the future with EmptyLineStmt
  */
-class EmptyLineStructure extends HoleStructure {}
+class EmptyLineStructure extends HoleStructure {
+    constructor(root?: Construct, indexInRoot?: number) {
+        super("", root, indexInRoot);
+    }
+}
 
 /**
  * A hole structure representing a construct that can be filled with a different
@@ -1863,7 +1885,11 @@ class EmptyLineStructure extends HoleStructure {}
  *
  * TODO: Rename / merge in the future with TypedEmptyExpr
  */
-class ConstructHoleStructure extends HoleStructure {}
+class ConstructHoleStructure extends HoleStructure {
+    constructor(root?: Construct, indexInRoot?: number) {
+        super(HOLETEXT, root, indexInRoot);
+    }
+}
 
 export class CompoundConstruct extends Construct {
     private recursiveName: string;

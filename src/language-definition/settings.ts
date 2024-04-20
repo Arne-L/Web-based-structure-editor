@@ -6,3 +6,5 @@ export const EDITOR_DOM_ID = "editor";
 export const navigationKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
 export const FONT_SIZE = 20;
 export const INITIAL_Z_INDEX = 500;
+
+export const HOLETEXT = "   ";
