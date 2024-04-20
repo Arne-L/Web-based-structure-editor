@@ -193,15 +193,6 @@ export abstract class Construct {
      */
     abstract getKeyword(): string;
 
-    // FFD together with all its children (it is never called)
-    /**
-     * Actions that need to run after the construct has been validated for insertion, but before it is inserted into the AST.
-     *
-     * @param insertInto code to insert into
-     * @param insertCode code being inserted
-     */
-    abstract performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
-
     /**
      * Method that needs to run when focus is moved off the construct
      *
@@ -210,9 +201,6 @@ export abstract class Construct {
     onFocusOff(arg: any): void {
         return;
     }
-
-    // FFD together with all its children (it is never called)
-    abstract performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void;
 
     /**
      * Puts a callback on the stack to be deleted
@@ -612,12 +600,6 @@ export abstract class Statement extends Construct {
 
         return "";
     }
-
-    // FFD
-    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
-    // FFD
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
     // /**
     //  * Actions performed when a code construct is inserted within a hole of this code construct.
@@ -1178,14 +1160,6 @@ export abstract class Token extends Construct {
     getNearestStatement(): Statement {
         return this.rootNode.getNearestStatement();
     }
-
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
-    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
-    // typeValidateInsertionIntoHole(insertCode: Expression, insertInto: TypedEmptyExpr): InsertionResult {
-    //     return new InsertionResult(InsertionType.Valid, "", []);
-    // }
 
     getKeyword(): string {
         return this.getRenderText();
@@ -1855,14 +1829,6 @@ abstract class HoleStructure extends Construct {
         return this.constructor.name;
     }
 
-    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void {
-        return;
-    }
-
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression): void {
-        return;
-    }
-
     getLineNumber(): number {
         return this.lineNumber;
     }
@@ -2055,12 +2021,6 @@ export class CompoundConstruct extends Construct {
             this.callbacksToBeDeleted.clear();
         }
     }
-
-    // FFD
-    performPostInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
-
-    // FFD
-    performPreInsertionUpdates(insertInto?: TypedEmptyExpr, insertCode?: Expression) {}
 
     private addToken(token: Token) {
         this.tokens.push(token);
