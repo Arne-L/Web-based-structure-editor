@@ -12,6 +12,7 @@ import {
     Expression,
     GeneralExpression,
     GeneralStatement,
+    HoleStructure,
     IdentifierTkn,
     // IfStatement,
     Importable,
@@ -1258,69 +1259,69 @@ export class ActionExecutor {
         );
     }
 
-    /**
-     * Insert the token in the current context, either by replacing the focused token / expression
-     * or by inserting right before or after the focused expression if toLeft or toRight is true.
-     *
-     * @param context - The current focus context
-     * @param code - The token to insert
-     * @param param2 - { toLeft, toRight }: Whether to insert to the left or right of the focused expression;
-     * if both are false, then the focused token / expression will be replaced
-     */
-    private insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
-        // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
-        if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
-            // If there is a focused expression
-            if (context.expression != null) {
-                // Get the parent of the expression
-                const root = context.expression.rootNode as Statement; // Statement or any of its derived classes
-                // Replace in the parent the expression with the given token
-                root.replace(code, context.expression.indexInRoot);
-                // If there is not a focused expression but there is a focused token
-            } else if (context.token != null) {
-                // Get the parent of the token
-                const root = context.token.rootNode as Statement;
-                // Replace in the parent the token with the given token
-                root.replace(code, context.token.indexInRoot);
-            }
+    // /**
+    //  * Insert the token in the current context, either by replacing the focused token / expression
+    //  * or by inserting right before or after the focused expression if toLeft or toRight is true.
+    //  *
+    //  * @param context - The current focus context
+    //  * @param code - The token to insert
+    //  * @param param2 - { toLeft, toRight }: Whether to insert to the left or right of the focused expression;
+    //  * if both are false, then the focused token / expression will be replaced
+    //  */
+    // private insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
+    //     // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
+    //     if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
+    //         // If there is a focused expression
+    //         if (context.expression != null) {
+    //             // Get the parent of the expression
+    //             const root = context.expression.rootNode as Statement; // Statement or any of its derived classes
+    //             // Replace in the parent the expression with the given token
+    //             root.replace(code, context.expression.indexInRoot);
+    //             // If there is not a focused expression but there is a focused token
+    //         } else if (context.token != null) {
+    //             // Get the parent of the token
+    //             const root = context.token.rootNode as Statement;
+    //             // Replace in the parent the token with the given token
+    //             root.replace(code, context.token.indexInRoot);
+    //         }
 
-            // Get the range of the focused token
-            const range = new Range(
-                context.position.lineNumber,
-                context.token.leftCol,
-                context.position.lineNumber,
-                context.token.rightCol
-            );
+    //         // Get the range of the focused token
+    //         const range = new Range(
+    //             context.position.lineNumber,
+    //             context.token.leftCol,
+    //             context.position.lineNumber,
+    //             context.token.rightCol
+    //         );
 
-            // Update the Monaco editor with the given token
-            this.module.editor.executeEdits(range, code);
-            // Insert the given token to the right of an expression on the left
-        } else if (toRight && context.expressionToLeft != null) {
-            // Get the parent of the expression to the left
-            const root = context.expressionToLeft.rootNode;
-            // Set the parent of the given token to the parent of the expression to the left
-            code.rootNode = root;
-            // Add the given token directly after the expression to the left
-            // without removing anything
-            root.tokens.splice(context.expressionToLeft.indexInRoot + 1, 0, code);
-            // Rebuild
-            root.rebuild(root.getLeftPosition(), 0);
-            // Add code construct to Monaco editor
-            this.module.editor.insertAtCurPos([code]);
-            // Insert the given token to the left of an expression on the right
-        } else if (toLeft && context.expressionToRight != null) {
-            // Get the parent of the expression to the right
-            const root = context.expressionToRight.rootNode;
-            // Set the parent of the given token to the parent of the expression to the right
-            code.rootNode = root;
-            // Add token directly before the expression to the right
-            root.tokens.splice(context.expressionToRight.indexInRoot, 0, code);
-            // Rebuild
-            root.rebuild(root.getLeftPosition(), 0);
-            // Add code construct to Monaco editor
-            this.module.editor.insertAtCurPos([code]);
-        }
-    }
+    //         // Update the Monaco editor with the given token
+    //         this.module.editor.executeEdits(range, code);
+    //         // Insert the given token to the right of an expression on the left
+    //     } else if (toRight && context.expressionToLeft != null) {
+    //         // Get the parent of the expression to the left
+    //         const root = context.expressionToLeft.rootNode;
+    //         // Set the parent of the given token to the parent of the expression to the left
+    //         code.rootNode = root;
+    //         // Add the given token directly after the expression to the left
+    //         // without removing anything
+    //         root.tokens.splice(context.expressionToLeft.indexInRoot + 1, 0, code);
+    //         // Rebuild
+    //         root.rebuild(root.getLeftPosition(), 0);
+    //         // Add code construct to Monaco editor
+    //         this.module.editor.insertAtCurPos([code]);
+    //         // Insert the given token to the left of an expression on the right
+    //     } else if (toLeft && context.expressionToRight != null) {
+    //         // Get the parent of the expression to the right
+    //         const root = context.expressionToRight.rootNode;
+    //         // Set the parent of the given token to the parent of the expression to the right
+    //         code.rootNode = root;
+    //         // Add token directly before the expression to the right
+    //         root.tokens.splice(context.expressionToRight.indexInRoot, 0, code);
+    //         // Rebuild
+    //         root.rebuild(root.getLeftPosition(), 0);
+    //         // Add code construct to Monaco editor
+    //         this.module.editor.insertAtCurPos([code]);
+    //     }
+    // }
 
     /**
      * Insert the given expression into the current context, checking types and updating the Monaco editor
@@ -1334,68 +1335,60 @@ export class ActionExecutor {
         // focusedNode.returns != code.returns would work, but we need more context to get the right error message
         // context.token is the focused hole in which you want to insert
         // We can only insert expressions in holes / TypedEmptyExpr
-        if (context.token instanceof TypedEmptyExpr) {
-            // The root of the hole (either an expression or a statement)
-            const root = context.token.rootNode;
-            // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = new InsertionResult(InsertionType.Valid, "", []); //root.typeValidateInsertionIntoHole(code, context.token);
 
-            if (insertionResult.insertionType != InsertionType.Invalid) {
-                // For all valid or draft mode insertions
-                // This seems to only update the types?
-                // if (root instanceof Statement) {
-                //     root.onInsertInto(code);
-                // }
+        if (!(context.token instanceof TypedEmptyExpr)) return;
 
-                // Remove message if there is one
-                if (context.token.message && context.selected) {
-                    //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
-                    this.module.messageController.removeMessageFromConstruct(context.token);
-                }
+        // The root of the hole (either an expression or a statement)
+        const root = context.token.rootNode;
+        // Determine whether the expression "code" can be inserted into the hole
+        let insertionResult = new InsertionResult(InsertionType.Valid, "", []); //root.typeValidateInsertionIntoHole(code, context.token);
 
-                // Replaces expression with the newly inserted expression
-                const expr = code as Expression;
-                this.module.replaceFocusedExpression(expr);
+        // Remove message if there is one
+        if (context.token.message && context.selected) {
+            //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
+            this.module.messageController.removeMessageFromConstruct(context.token);
+        }
 
-                // Current range
-                const range = new Range(
-                    context.position.lineNumber,
-                    context.token.leftCol,
-                    context.position.lineNumber,
-                    context.token.rightCol
-                );
+        // Replaces expression with the newly inserted expression
+        this.module.replaceFocusedExpression(code);
 
-                // Update the text in the Monaco editor
-                this.module.editor.executeEdits(range, expr);
+        // Current range
+        const range = new Range(
+            context.position.lineNumber,
+            context.token.leftCol,
+            context.position.lineNumber,
+            context.token.rightCol
+        );
 
-                //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
-                if (!context.token.message) {
-                    const newContext = code.getInitialFocus();
-                    this.module.focus.updateContext(newContext);
-                }
-            }
+        // Update the text in the Monaco editor
+        this.module.editor.executeEdits(range, code);
 
-            // if (root instanceof BinaryOperatorExpr) {
-            //     // Type check binary expression
-            //     // root.validateTypes(this.module);
-            // } else
-            // if (insertionResult.insertionType == InsertionType.DraftMode) {
-            //     this.module.openDraftMode(code, insertionResult.message, [
-            //         ...insertionResult.conversionRecords.map((conversionRecord) => {
-            //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
-            //         }),
-            //     ]);
-            // } else
-            if (isImportable(code)) {
-                //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
-                //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
-                //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some
-                //draft modes this way.
+        //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
+        if (!context.token.message) {
+            const newContext = code.getInitialFocus();
+            this.module.focus.updateContext(newContext);
+        }
 
-                //A quick fix for now would be to just trigger reinsertion. Otherwise we need a mechanism for having multiple draft modes. I have a commit on a separate branch for that.
-                //Converting them to a linked list seems to make the most sense.
-                this.checkImports(code, insertionResult.insertionType);
-            }
+        // if (root instanceof BinaryOperatorExpr) {
+        //     // Type check binary expression
+        //     // root.validateTypes(this.module);
+        // } else
+        // if (insertionResult.insertionType == InsertionType.DraftMode) {
+        //     this.module.openDraftMode(code, insertionResult.message, [
+        //         ...insertionResult.conversionRecords.map((conversionRecord) => {
+        //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
+        //         }),
+        //     ]);
+        // } else
+        if (isImportable(code)) {
+            //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
+            //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
+            //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some
+            //draft modes this way.
+
+            //A quick fix for now would be to just trigger reinsertion. Otherwise we need a mechanism for having multiple draft modes. I have a commit on a separate branch for that.
+            //Converting them to a linked list seems to make the most sense.
+            this.checkImports(code, insertionResult.insertionType);
         }
     }
 

@@ -1760,7 +1760,7 @@ export class ReferenceTkn extends NonEditableTkn {}
  * An abstract construct representing a hole in the code that can be filled
  * with a construct.
  */
-abstract class HoleStructure extends Construct {
+export abstract class HoleStructure extends Construct {
     /**
      * Text representing the hole in the code.
      */
