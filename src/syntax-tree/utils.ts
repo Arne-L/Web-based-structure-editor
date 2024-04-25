@@ -1,23 +1,22 @@
 import { Position, Range } from "monaco-editor";
+import { InsertionResult } from "../editor/action-filter";
 import { Context } from "../editor/focus";
+import { isImportable } from "../utilities/util";
 import {
-    Token,
-    // EmptyOperatorTkn,
-    Statement,
-    TypedEmptyExpr,
-    TemporaryStmt,
-    GeneralStatement,
+    CompoundConstruct,
     Construct,
     Expression,
-    CompoundConstruct,
-    // BinaryOperatorExpr,
+    GeneralStatement,
+    // EmptyOperatorTkn,
+    Statement,
+    TemporaryStmt,
+    Token,
+    TypedEmptyExpr,
 } from "./ast";
 import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
-import { Module } from "./module";
 import { InsertionType } from "./consts";
-import { isImportable } from "../utilities/util";
-import { InsertionResult } from "../editor/action-filter";
+import { Module } from "./module";
 
 export namespace ASTManupilation {
     export function insertConstruct(context: Context, construct: Construct) {
@@ -109,11 +108,11 @@ export namespace ASTManupilation {
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
         if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
-            if (context.expression != null) {
+            if (context.codeconstruct != null) {
                 // Get the parent of the expression
-                const root = context.expression.rootNode as Statement; // Statement or any of its derived classes
+                const root = context.codeconstruct.rootNode as Statement; // Statement or any of its derived classes
                 // Replace in the parent the expression with the given token
-                root.replace(code, context.expression.indexInRoot);
+                root.replace(code, context.codeconstruct.indexInRoot);
                 // If there is not a focused expression but there is a focused token
             } else if (context.token != null) {
                 // Get the parent of the token
@@ -237,17 +236,21 @@ export namespace ASTManupilation {
     /**
      * Rebuild all constructs following (and including) the given construct. This function
      * should be used when a constructs boundaries have changed;
-     * 
+     *
      * TODO: Function currently assumes that the module uses a body, but this will not keep to be
      * te case in the future! Remove this in the future
-     * 
+     *
      * @param construct - The construct to start rebuilding from
      * @param leftPos - The left position to start rebuilding from
      * @param options - Determines whether the given construct should be rebuilt or if only the
      * constructs following the given construct should be rebuilt
      * @returns The final right position of the last construct built
      */
-    export function rebuild(construct: Construct, leftPos: Position, options: { rebuildConstruct: boolean } = { rebuildConstruct: true }) {
+    export function rebuild(
+        construct: Construct,
+        leftPos: Position,
+        options: { rebuildConstruct: boolean } = { rebuildConstruct: true }
+    ) {
         // TEMPORARY SOLUTION: REBUILD EVERYTING that follows
 
         // Build the given construct if the option is set
@@ -282,8 +285,6 @@ export namespace ASTManupilation {
         // Return the final right position of the last construct built
         return leftPos;
 
-
-
         // LONG TERM SOLUTION: Call build on all constructs that are on the same line,
         // and only reset the linenumbers of all the following constructs
         // -> Does this actually make a performance difference?
@@ -291,7 +292,7 @@ export namespace ASTManupilation {
         // if (construct instanceof Token) return construct.build(leftPos);
 
         // if (!(construct instanceof GeneralStatement) && !(construct instanceof CompoundConstruct)) return;
-        
+
         // const rootTokens = construct.rootNode.tokens;
         // for (let i = construct.indexInRoot; i < construct.tokens.length; i++) {
         //     construct.indexInRoot = i;

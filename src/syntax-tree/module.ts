@@ -11,6 +11,7 @@ import { Context, Focus } from "../editor/focus";
 import { Hole } from "../editor/hole";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
+import { ERROR_HIGHLIGHT_COLOUR, TAB_SPACES } from "../language-definition/settings";
 import { MessageController } from "../messages/message-controller";
 import { NotificationManager } from "../messages/notifications";
 import { MenuController } from "../suggestions/suggestions-controller";
@@ -33,11 +34,10 @@ import {
 import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
 import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";
-import { TAB_SPACES, ERROR_HIGHLIGHT_COLOUR } from "../language-definition/settings";
 import { Language } from "./language";
 import { Scope } from "./scope";
-import { VariableController } from "./variable-controller";
 import { ASTManupilation } from "./utils";
+import { VariableController } from "./variable-controller";
 
 /**
  * The main body of the code which includes an array of statements.
@@ -716,10 +716,10 @@ export class Module {
         // Current context
         const context = this.focus.getContext();
 
-        if (context.expression != null) {
+        if (context.codeconstruct != null) {
             // If we currently focussing an expression, replace it with the given expression
-            const root = context.expression.rootNode as GeneralStatement;
-            root.replace(construct, context.expression.indexInRoot);
+            const root = context.codeconstruct.rootNode as GeneralStatement;
+            root.replace(construct, context.codeconstruct.indexInRoot);
         } else if (context.token != null) {
             // If we currently focussing a token, replace it with the given expression
             const root = context.token.rootNode as GeneralStatement;

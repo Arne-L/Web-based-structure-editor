@@ -133,6 +133,7 @@ export class Focus {
         let context: Context;
 
         if (!curSelection.getStartPosition().equals(curSelection.getEndPosition())) {
+            console.log("We are having a selection");
             context = this.getContextFromSelection(
                 curLine,
                 curSelection.getStartPosition(),
@@ -681,6 +682,8 @@ export class Focus {
         // initialize tokensStack
         tokensStack.unshift(...statement.tokens);
 
+        console.log(`Selection range: ${left.column} - ${right.column}`);
+
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
@@ -688,13 +691,13 @@ export class Focus {
                 context.selected = true;
 
                 if (curToken instanceof Token) context.token = curToken;
-                else if (curToken instanceof GeneralExpression) context.expression = curToken; // (1)
+                else if (curToken instanceof GeneralExpression) context.codeconstruct = curToken; // (1)
 
                 return context;
             } else if (curToken instanceof GeneralExpression) {
                 if (left.equals(curToken.left) && right.equals(curToken.right)) {
                     // Literally the same as (1) above
-                    context.expression = curToken;
+                    context.codeconstruct = curToken;
                     context.selected = true;
 
                     break;
@@ -880,7 +883,7 @@ export class Context {
      * Immediate items
      */
     // parentExpression?: Expression = null;
-    expression?: GeneralExpression = null;
+    codeconstruct?: GeneralExpression = null;
     expressionToLeft?: GeneralExpression = null;
     expressionToRight?: GeneralExpression = null;
 

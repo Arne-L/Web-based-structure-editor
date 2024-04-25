@@ -12,7 +12,6 @@ import {
     Expression,
     GeneralExpression,
     GeneralStatement,
-    HoleStructure,
     IdentifierTkn,
     // IfStatement,
     Importable,
@@ -493,8 +492,8 @@ export class ActionExecutor {
                     let removableExpr: Construct = null;
 
                     // If the current expression is atomic (has no subexpressions or editable token)
-                    if (context.expression?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
-                        removableExpr = context.expression;
+                    if (context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
+                        removableExpr = context.codeconstruct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
                     } else if (context.expressionToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
