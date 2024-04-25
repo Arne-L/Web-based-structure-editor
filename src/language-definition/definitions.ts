@@ -234,6 +234,13 @@ interface HoleFormatDefinition extends FormatDefinition {
      * it is optional but highly recommended to avoid confusion and future errors.
      */
     delimiter?: string;
+    /**
+     * Array defining each of the individual elements that can be represented as a hole
+     * Each element has the following fields:
+     * * type: The type of the expected element in the hole, most often "expression" or "statement"
+     * * optional: Whether the element is optional or not.
+     */
+    elements: {type: string, optional: boolean}[]
 }
 interface BodyFormatDefinition extends FormatDefinition {
     /**

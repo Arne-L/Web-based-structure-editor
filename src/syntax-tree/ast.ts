@@ -5,15 +5,15 @@ import { Editor } from "../editor/editor";
 import { Context, UpdatableContext } from "../editor/focus";
 import { Validator } from "../editor/validator";
 import { CompoundFormatDefinition, ConstructDefinition } from "../language-definition/definitions";
-import { EMPTYIDENTIFIER, HOLETEXT, TAB_SPACES } from "../language-definition/settings";
+import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
 import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { ValidatorNameSpace } from "./validator";
 import { ASTManupilation } from "./utils";
+import { ValidatorNameSpace } from "./validator";
 
 export abstract class Construct {
     /**
@@ -81,6 +81,12 @@ export abstract class Construct {
      */
     get lineNumber(): number {
         return this.left.lineNumber;
+    }
+
+    abstract get hasSubValues(): boolean;
+
+    get hasEmptyToken(): boolean {
+        return false;
     }
 
     /**
@@ -256,7 +262,6 @@ export abstract class Statement extends Construct {
     body = new Array<Statement>();
     scope: Scope = null;
     tokens = new Array<Construct>();
-    hasEmptyToken: boolean;
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
@@ -486,10 +491,11 @@ export abstract class Statement extends Construct {
      * @param code the newly added node within the replace function
      */
     updateHasEmptyToken(code: Construct) {
-        if (code instanceof Token) {
-            if (code.isEmpty) this.hasEmptyToken = true;
-            else this.hasEmptyToken = false;
-        }
+        // TODO: Check if code is always a TypedEmptyExpression or not
+        // if (code instanceof Token) {
+        //     if (code.isEmpty) this.hasEmptyToken = true;
+        //     else this.hasEmptyToken = false;
+        // }
     }
 
     /**
@@ -723,7 +729,6 @@ class AncestorConstruct {
 export class GeneralStatement extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
-    hasSubValues: boolean = false;
     /**
      * Constructs which depend on this construct. For example, the "elif" construct depends on the "if" construct.
      * If this list is empty, constructs can still depend on this, but their order and frequency is not fixed. (E.g.
@@ -826,6 +831,17 @@ export class GeneralStatement extends Statement {
         this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct, this, data));
     }
 
+    get hasEmptyToken(): boolean {
+        return this.tokens.some(tkn => tkn.hasEmptyToken)
+    }
+
+    /**
+     * Check if the construct is changeable or has changeable parts
+     */
+    get hasSubValues(): boolean {
+        return this.tokens.some((val) => val.hasSubValues);
+    }
+
     /**
      * TODO: Temporary solution REMOVE LATER!!
      *
@@ -900,6 +916,12 @@ export class GeneralStatement extends Statement {
         return this.keyword;
     }
 
+    /**
+     * Whether the construct has changeable parts.
+     *
+     * @returns True if subparts of the construct can be changed, such as subexpressions
+     * or changeable tokens, otherwise false
+     */
     isAtomic(): boolean {
         return !this.hasSubValues;
     }
@@ -1217,6 +1239,10 @@ export class ImportStatement extends Statement {
         );
     }
 
+    get hasSubValues(): boolean {
+        return true;
+    }
+
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         return InsertionType.Valid; // Temporary fix
         // return validator.onEmptyLine(providedContext) && !validator.isAboveElseStatement(providedContext)
@@ -1261,13 +1287,16 @@ export class ImportStatement extends Statement {
  * empty intended light blue line. It is also used to represent a currently empty line.
  */
 export class EmptyLineStmt extends Statement {
-    hasEmptyToken = false;
 
     constructor(root?: Statement | Module, indexInRoot?: number) {
         super();
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
+    }
+
+    get hasSubValues(): boolean {
+        return true;
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
@@ -1322,6 +1351,10 @@ export class EditableTextTkn extends Token implements TextEditable {
         this.validatorRegex = regex;
 
         if (text === "") this.isEmpty = true;
+    }
+
+    get hasSubValues(): boolean {
+        return true;
     }
 
     getToken(): Token {
@@ -1388,6 +1421,10 @@ export class IdentifierTkn extends Token implements TextEditable {
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.validatorRegex = validatorRegex;
+    }
+
+    get hasSubValues(): boolean {
+        return true;
     }
 
     getToken(): Token {
@@ -1599,6 +1636,10 @@ export class TemporaryStmt extends Statement {
         this.tokens.push(token);
     }
 
+    get hasSubValues(): boolean {
+        return this.tokens.some((val) => val.hasSubValues);
+    }
+
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         return validator.onBeginningOfLine(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
     }
@@ -1630,6 +1671,10 @@ export class AutocompleteTkn extends Token implements TextEditable {
         this.autocompleteType = autocompleteCategory;
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
+    }
+
+    get hasSubValues(): boolean {
+        return true;
     }
 
     getToken(): Token {
@@ -1730,6 +1775,14 @@ export class TypedEmptyExpr extends Token {
         this.type = type;
     }
 
+    get hasSubValues(): boolean {
+        return true;
+    }
+
+    get hasEmptyToken(): boolean {
+        return true;
+    }
+
     getKeyword(): string {
         return "---";
     }
@@ -1745,6 +1798,10 @@ export class NonEditableTkn extends Token {
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
+    }
+
+    get hasSubValues(): boolean {
+        return false;
     }
 
     getSelection(): Selection {
@@ -1839,11 +1896,11 @@ export abstract class HoleStructure extends Construct {
  *
  * TODO: Rename / merge in the future with EmptyLineStmt
  */
-class EmptyLineStructure extends HoleStructure {
-    constructor(root?: Construct, indexInRoot?: number) {
-        super("", root, indexInRoot);
-    }
-}
+// class EmptyLineStructure extends HoleStructure {
+//     constructor(root?: Construct, indexInRoot?: number) {
+//         super("", root, indexInRoot);
+//     }
+// }
 
 /**
  * A hole structure representing a construct that can be filled with a different
@@ -1851,11 +1908,11 @@ class EmptyLineStructure extends HoleStructure {
  *
  * TODO: Rename / merge in the future with TypedEmptyExpr
  */
-class ConstructHoleStructure extends HoleStructure {
-    constructor(root?: Construct, indexInRoot?: number) {
-        super(HOLETEXT, root, indexInRoot);
-    }
-}
+// class ConstructHoleStructure extends HoleStructure {
+//     constructor(root?: Construct, indexInRoot?: number) {
+//         super(HOLETEXT, root, indexInRoot);
+//     }
+// }
 
 export class CompoundConstruct extends Construct {
     private recursiveName: string;
@@ -1866,9 +1923,6 @@ export class CompoundConstruct extends Construct {
     //
     private compoundToken: CompoundFormatDefinition;
     private nextFormatIndex: number;
-
-    // Extra
-    hasEmptyToken = false;
 
     constructor(compoundToken: CompoundFormatDefinition, root?: Construct, indexInRoot?: number) {
         super();
@@ -1883,6 +1937,14 @@ export class CompoundConstruct extends Construct {
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
+    }
+
+    get hasSubValues(): boolean {
+        return this.tokens.some((tkn) => tkn.hasSubValues);
+    }
+
+    get hasEmptyToken(): boolean {
+        return this.tokens.some(tkn => tkn.hasEmptyToken)
     }
 
     setElementToInsertNextIndex(idx: number) {

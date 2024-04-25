@@ -8,7 +8,14 @@
                 "value": "while "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -101,14 +108,28 @@
                 "value": "for "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " in "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -220,7 +241,13 @@
             },
             {
                 "type": "hole",
-                "delimiter": ", "
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -601,7 +628,14 @@
                 "value": "if "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -724,7 +758,14 @@
                 "value": "elif "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -808,7 +849,14 @@
                 "value": " = "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -917,7 +965,14 @@
                 "value": " += "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -965,7 +1020,14 @@
                 "value": " -= "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1012,7 +1074,14 @@
                 "value": " *= "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1060,7 +1129,14 @@
                 "value": " /= "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1226,7 +1302,14 @@
                 "value": "["
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -1280,14 +1363,28 @@
         "editorName": "--- + ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " + "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1340,14 +1437,28 @@
         "editorName": "--- - ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " - "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1398,7 +1509,14 @@
                 "value": "-"
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1439,14 +1557,28 @@
         "editorName": "--- * ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " * "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1494,14 +1626,28 @@
         "editorName": "--- / ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " / "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1550,14 +1696,28 @@
         "editorName": "--- // ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " // "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1606,14 +1766,28 @@
         "editorName": "--- % ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " % "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1661,14 +1835,28 @@
         "editorName": "--- == ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " == "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1722,14 +1910,28 @@
         "editorName": "--- != ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " != "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1784,14 +1986,28 @@
         "editorName": "--- < ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " < "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1843,14 +2059,28 @@
         "editorName": "--- <= ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " <= "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1905,14 +2135,28 @@
         "editorName": "--- > ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " > "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -1964,14 +2208,28 @@
         "editorName": "--- >= ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " >= "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2025,14 +2283,28 @@
         "editorName": "--- in ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " in "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2083,14 +2355,28 @@
         "editorName": "--- not in ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " not in "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2140,14 +2426,28 @@
         "editorName": "--- and ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " and "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2201,14 +2501,28 @@
         "editorName": "--- or ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " or "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2268,7 +2582,14 @@
                 "value": "not "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -2442,6 +2763,16 @@
                         "max": null
                     },
                     {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
                         "type": "token",
                         "value": "\n"
                     },
@@ -2497,7 +2828,13 @@
             },
             {
                 "type": "hole",
-                "delimiter": ", "
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -2512,14 +2849,6 @@
                 "keyword": "str",
                 "method_name": "str",
                 "constructType": "expression",
-                "holes": [
-                    [
-                        {
-                            "name": "convertable",
-                            "optional": false
-                        }
-                    ]
-                ],
                 "editorName": "str(---)",
                 "match": "str",
                 "toolbox": {
@@ -2559,14 +2888,6 @@
                 "keyword": "int",
                 "method_name": "int",
                 "constructType": "expression",
-                "holes": [
-                    [
-                        {
-                            "name": "convertable",
-                            "optional": false
-                        }
-                    ]
-                ],
                 "editorName": "int(---)",
                 "match": "int",
                 "toolbox": {

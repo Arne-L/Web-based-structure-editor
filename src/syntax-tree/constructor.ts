@@ -32,25 +32,33 @@ export namespace SyntaxConstructor {
                     constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
                     break;
                 case "hole":
-                    // DO we still want this or do we want it to be generalised?
-                    const holeParts = jsonConstruct.holes[holeIndex];
-                    for (let i = 0; i < holeParts.length; i++) {
+                    for (let i = 0; i < token.elements.length; i++) {
                         // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
                         constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
-
-                        if (i + 1 < holeParts.length)
+    
+                        if (i + 1 < token.elements.length)
                             constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
                     }
-                    // Try to remove these field accessors in the future
-                    if (holeParts.length > 0) rootConstruct.hasEmptyToken = true;
-                    holeIndex++;
-                    rootConstruct.hasSubValues = true;
                     break;
+                    // DO we still want this or do we want it to be generalised?
+                    // const holeParts = jsonConstruct.holes[holeIndex];
+                    // for (let i = 0; i < holeParts.length; i++) {
+                    //     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
+                    //     constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
+
+                    //     if (i + 1 < holeParts.length)
+                    //         constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
+                    // }
+                    // Try to remove these field accessors in the future
+                    // if (holeParts.length > 0) rootConstruct.hasEmptyToken = true;
+                    // holeIndex++;
+                    // rootConstruct.hasSubValues = true;
+                    // break;
                 case "body":
                     // FFD
                     rootConstruct.body.push(new EmptyLineStmt(rootConstruct, rootConstruct.body.length));
                     rootConstruct.scope = new Scope();
-                    rootConstruct.hasSubValues = true;
+                    // rootConstruct.hasSubValues = true;
                     /**
                      * We still need to add scope for constructs without a body like else and elif
                      */
@@ -169,6 +177,16 @@ export namespace SyntaxConstructor {
         switch (token.type) {
             case "token":
                 constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
+                break;
+            case "hole":
+                // DO we still want this or do we want it to be generalised?
+                for (let i = 0; i < token.elements.length; i++) {
+                    // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
+                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
+
+                    if (i + 1 < token.elements.length)
+                        constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
+                }
                 break;
             case "identifier":
                 constructs.push(new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex)));

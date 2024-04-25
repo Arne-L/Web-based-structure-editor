@@ -637,7 +637,8 @@ export class Focus {
             const curStmt = bodyStack.pop();
 
             console.log(
-                "curStmt", curStmt,
+                "curStmt",
+                curStmt,
                 curStmt.left.lineNumber,
                 curStmt.left.column,
                 curStmt.right.lineNumber,
@@ -761,8 +762,7 @@ export class Focus {
         context.lineStatement = statement;
         const tokensStack = new Array<Construct>();
 
-        if (!statement)
-            console.log("No statement");
+        if (!statement) console.log("No statement");
 
         // initialize tokensStack
         for (const token of statement?.tokens) tokensStack.unshift(token);
