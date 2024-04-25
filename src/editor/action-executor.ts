@@ -492,7 +492,7 @@ export class ActionExecutor {
                     let removableExpr: Construct = null;
 
                     // If the current expression is atomic (has no subexpressions or editable token)
-                    if (context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
+                    if (context.codeconstruct instanceof GeneralStatement && context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
                         removableExpr = context.codeconstruct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;

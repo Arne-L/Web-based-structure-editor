@@ -254,14 +254,18 @@ export abstract class Construct {
     }
 }
 
+export abstract class CodeConstruct extends Construct {
+    // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
+    tokens = new Array<Construct>();
+}
+
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
-export abstract class Statement extends Construct {
+export abstract class Statement extends CodeConstruct {
     rootNode: Statement | Module = null;
     body = new Array<Statement>();
     scope: Scope = null;
-    tokens = new Array<Construct>();
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
@@ -832,7 +836,7 @@ export class GeneralStatement extends Statement {
     }
 
     get hasEmptyToken(): boolean {
-        return this.tokens.some(tkn => tkn.hasEmptyToken)
+        return this.tokens.some((tkn) => tkn.hasEmptyToken);
     }
 
     /**
@@ -1287,7 +1291,6 @@ export class ImportStatement extends Statement {
  * empty intended light blue line. It is also used to represent a currently empty line.
  */
 export class EmptyLineStmt extends Statement {
-
     constructor(root?: Statement | Module, indexInRoot?: number) {
         super();
 
@@ -1914,10 +1917,8 @@ export abstract class HoleStructure extends Construct {
 //     }
 // }
 
-export class CompoundConstruct extends Construct {
+export class CompoundConstruct extends CodeConstruct {
     private recursiveName: string;
-    // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
-    tokens: Construct[] = [];
     // Hmmmm?
     private scope: Scope;
     //
@@ -1944,7 +1945,7 @@ export class CompoundConstruct extends Construct {
     }
 
     get hasEmptyToken(): boolean {
-        return this.tokens.some(tkn => tkn.hasEmptyToken)
+        return this.tokens.some((tkn) => tkn.hasEmptyToken);
     }
 
     setElementToInsertNextIndex(idx: number) {

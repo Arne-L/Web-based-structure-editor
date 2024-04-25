@@ -1,6 +1,7 @@
 import { Position, Selection } from "monaco-editor";
 import {
     AutocompleteTkn,
+    CodeConstruct,
     CompoundConstruct,
     Construct,
     EditableTextTkn,
@@ -691,10 +692,10 @@ export class Focus {
                 context.selected = true;
 
                 if (curToken instanceof Token) context.token = curToken;
-                else if (curToken instanceof GeneralExpression) context.codeconstruct = curToken; // (1)
+                else if (curToken instanceof CodeConstruct) context.codeconstruct = curToken; // (1)
 
                 return context;
-            } else if (curToken instanceof GeneralExpression) {
+            } else if (curToken instanceof CodeConstruct) {
                 if (left.equals(curToken.left) && right.equals(curToken.right)) {
                     // Literally the same as (1) above
                     context.codeconstruct = curToken;
@@ -883,7 +884,7 @@ export class Context {
      * Immediate items
      */
     // parentExpression?: Expression = null;
-    codeconstruct?: GeneralExpression = null;
+    codeconstruct?: Construct = null;
     expressionToLeft?: GeneralExpression = null;
     expressionToRight?: GeneralExpression = null;
 
