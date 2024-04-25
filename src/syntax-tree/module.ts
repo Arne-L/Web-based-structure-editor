@@ -18,6 +18,7 @@ import { MenuController } from "../suggestions/suggestions-controller";
 import { Util } from "../utilities/util";
 import {
     AutocompleteTkn,
+    CodeConstruct,
     Construct,
     EmptyLineStmt,
     Expression,
@@ -481,7 +482,7 @@ export class Module {
      * @param item - The construct that has been deleted
      * @param root - The root of the construct
      */
-    private rebuildOnConstructDeletion(item: Construct, root: GeneralStatement) {
+    private rebuildOnConstructDeletion(item: Construct, root: CodeConstruct) {
         // Notify the construct that has been deleted
         this.recursiveNotify(item, CallbackType.delete);
 
@@ -492,13 +493,14 @@ export class Module {
         }
 
         // Update left and right positions of the root
-        root.rebuild(root.getLeftPosition(), 0);
+        // root.rebuild(root.getLeftPosition(), 0);
+        ASTManupilation.rebuild(root, root.getLeftPosition());
     }
 
     replaceItemWTypedEmptyExpr(item: Construct, replaceType: DataType): Construct {
-        const root = item.rootNode;
+        const root = item.rootNode as CodeConstruct; // TODO: Not okay
 
-        if (!(root instanceof GeneralStatement)) return null;
+        // if (!(root instanceof GeneralStatement)) return null; // TODO: Can this be deleted?
 
         // if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
         //     replaceType = DataType.Any;
@@ -512,7 +514,7 @@ export class Module {
 
         if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
 
-        root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
+        // root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
         root.tokens.splice(item.indexInRoot, 1, replacedItem);
         this.rebuildOnConstructDeletion(item, root);
 

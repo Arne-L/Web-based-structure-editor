@@ -257,6 +257,54 @@ export abstract class Construct {
 export abstract class CodeConstruct extends Construct {
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
     tokens = new Array<Construct>();
+
+    /**
+     * Replaces this node in its root, and then rebuilds the parent (recursively)
+     * @param code the new code-construct to replace
+     * @param index the index to replace at
+     */
+    replace(code: Construct, index: number) {
+        // Notify the token being replaced
+        const toReplace = this.tokens[index];
+
+        if (toReplace) {
+            toReplace.notify(CallbackType.delete);
+
+            if (!(toReplace instanceof Token)) {
+                (toReplace as Expression).tokens.forEach((token) => {
+                    if (token instanceof Token) {
+                        token.notify(CallbackType.delete);
+                    }
+                });
+            }
+        }
+
+        // prepare the new Node
+        code.rootNode = this;
+        code.indexInRoot = index;
+
+        // prepare to rebuild siblings and root (recursively)
+        let rebuildColumn: number;
+
+        if (this.tokens[index] instanceof Token) rebuildColumn = this.tokens[index].leftCol;
+        else rebuildColumn = (this.tokens[index] as Expression).leftCol;
+
+        // replace
+        //TODO: Update focus here? It is good up until now. But once the new construct is inserted, it is not being focused.
+        //The focus goes to the end of line
+        this.tokens[index] = code;
+
+        // if (rebuildColumn) this.rebuild(new Position(this.lineNumber, rebuildColumn), index);
+        if (rebuildColumn) ASTManupilation.rebuild(code, new Position(this.lineNumber, rebuildColumn));
+
+        // this.updateHasEmptyToken(code);
+
+        this.notify(CallbackType.replace);
+    }
+
+    onReplaceToken(args: Object): void {
+        return;
+    }
 }
 
 /**
@@ -502,49 +550,6 @@ export abstract class Statement extends CodeConstruct {
         // }
     }
 
-    /**
-     * Replaces this node in its root, and then rebuilds the parent (recursively)
-     * @param code the new code-construct to replace
-     * @param index the index to replace at
-     */
-    replace(code: Construct, index: number) {
-        // Notify the token being replaced
-        const toReplace = this.tokens[index];
-
-        if (toReplace) {
-            toReplace.notify(CallbackType.delete);
-
-            if (!(toReplace instanceof Token)) {
-                (toReplace as Expression).tokens.forEach((token) => {
-                    if (token instanceof Token) {
-                        token.notify(CallbackType.delete);
-                    }
-                });
-            }
-        }
-
-        // prepare the new Node
-        code.rootNode = this;
-        code.indexInRoot = index;
-
-        // prepare to rebuild siblings and root (recursively)
-        let rebuildColumn: number;
-
-        if (this.tokens[index] instanceof Token) rebuildColumn = this.tokens[index].leftCol;
-        else rebuildColumn = (this.tokens[index] as Expression).leftCol;
-
-        // replace
-        //TODO: Update focus here? It is good up until now. But once the new construct is inserted, it is not being focused.
-        //The focus goes to the end of line
-        this.tokens[index] = code;
-
-        if (rebuildColumn) this.rebuild(new Position(this.lineNumber, rebuildColumn), index);
-
-        this.updateHasEmptyToken(code);
-
-        this.notify(CallbackType.replace);
-    }
-
     getRenderText(): string {
         let leftPosToCheck = 1;
         let txt: string = "";
@@ -626,10 +631,6 @@ export abstract class Statement extends CodeConstruct {
      * @param providedContext - Current context
      */
     abstract validateContext(validator: Validator, providedContext: Context): InsertionType;
-
-    onReplaceToken(args: Object): void {
-        return;
-    }
 }
 
 /**
