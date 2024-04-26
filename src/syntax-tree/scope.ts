@@ -466,7 +466,7 @@ export class Reference {
     }
 
     getLineNumber(): number {
-        return this.token.getLineNumber();
+        return this.token.getFirstLineNumber();
     }
 
     getAssignment(): AssignmentToken {

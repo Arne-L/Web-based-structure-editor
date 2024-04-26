@@ -1,5 +1,5 @@
 import {
-    Expression,
+    // Expression,
     GeneralExpression,
     // ForStatement,
     GeneralStatement,
@@ -12,7 +12,7 @@ import {
     // VariableReferenceExpr,
     // VarOperationStmt,
 } from "../syntax-tree/ast";
-import { DataType, InsertionType/*, TypeConversionRecord*/ } from "../syntax-tree/consts";
+import { DataType, InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { Reference } from "../syntax-tree/scope";
 import { createFinalConstruct, getHoleValues, getUserFriendlyType } from "../utilities/util";
@@ -53,20 +53,19 @@ export class ActionFilter {
             if (action.containsReference) {
                 const nearestStmt = context.lineStatement;
                 const scope = context.lineStatement.getNearestScope();
-                const references = scope.getValidReferences(nearestStmt.getLineNumber());
+                const references = scope.getValidReferences(nearestStmt.getFirstLineNumber());
                 for (const reference of references) {
-
                     // Update the match string and regex if the action contains a reference
                     let matchTxt = action.matchString;
                     let regexTxt = action.matchRegex;
-                    if (action.matchString) matchTxt = matchTxt.replace("--", reference.getAssignment().getRenderText());
+                    if (action.matchString)
+                        matchTxt = matchTxt.replace("--", reference.getAssignment().getRenderText());
                     if (action.matchRegex) {
                         const tmpRegexTxt = String(regexTxt).replace("--", reference.getAssignment().getRenderText());
                         new RegExp(tmpRegexTxt.substring(1, tmpRegexTxt.length - 1));
                     }
 
                     // if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
-
 
                     validOptionMap.set(
                         Math.random().toString(36).substring(8), // Key is useless, thus should simply be unique
@@ -129,80 +128,80 @@ export class ActionFilter {
     //     // TEMPORARY DISABLED DUE TO ERRORS: TAKE A LOOK AT THIS FUNCTION IN THE FUTURE
     //     return new Map<string, EditCodeAction>();
 
-        // // Get current context
-        // const context = this.module.focus.getContext();
-        // // Datatype of the variable reference
-        // const dataType = ref.returns;
-        // // Get the modifiers that are available for the given datatype
-        // const availableModifiers = Actions.instance().varActionsMap.get(dataType);
-        // // Initialize the map from string to EditCodeAction
-        // const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>();
+    // // Get current context
+    // const context = this.module.focus.getContext();
+    // // Datatype of the variable reference
+    // const dataType = ref.returns;
+    // // Get the modifiers that are available for the given datatype
+    // const availableModifiers = Actions.instance().varActionsMap.get(dataType);
+    // // Initialize the map from string to EditCodeAction
+    // const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>();
 
-        // // If there are modifiers available for the given datatype
-        // if (availableModifiers) {
-        //     // For each of the modifiers
-        //     for (const varOperation of availableModifiers) {
-        //         // Get the statement / expression associated with the operation
-        //         const code = varOperation.action() as Expression;
+    // // If there are modifiers available for the given datatype
+    // if (availableModifiers) {
+    //     // For each of the modifiers
+    //     for (const varOperation of availableModifiers) {
+    //         // Get the statement / expression associated with the operation
+    //         const code = varOperation.action() as Expression;
 
-        //         if (code instanceof GeneralStatement && code.containsAssignments()) {
-        //             // Handles both the old VarAssignmentStmt and the ForStatement
-        //             code.setAssignmentIdentifier(ref.identifier, 0);
-        //         } else if (code instanceof ValueOperationExpr) {
-        //             code.setVariable(ref);
-        //             code.updateReturnType();
-        //         } else if (code instanceof VarOperationStmt) {
-        //             code.setVariable(ref);
-        //             code.updateModifierTypes();
-        //         }
+    //         if (code instanceof GeneralStatement && code.containsAssignments()) {
+    //             // Handles both the old VarAssignmentStmt and the ForStatement
+    //             code.setAssignmentIdentifier(ref.identifier, 0);
+    //         } else if (code instanceof ValueOperationExpr) {
+    //             code.setVariable(ref);
+    //             code.updateReturnType();
+    //         } else if (code instanceof VarOperationStmt) {
+    //             code.setVariable(ref);
+    //             code.updateModifierTypes();
+    //         }
 
-        //         let optionName = code.getRenderText();
+    //         let optionName = code.getRenderText();
 
-        //         if (code instanceof GeneralStatement && code.containsAssignments()) {
-        //             //if (code instanceof ForStatement) {
-        //             // optionName is in editor text which is empty, so we need to change it
-        //             // (back) to the dashed version
-        //             optionName = optionName.replace(/   /g, " --");
-        //         } else optionName = optionName.replace(/   /g, " ---");
+    //         if (code instanceof GeneralStatement && code.containsAssignments()) {
+    //             //if (code instanceof ForStatement) {
+    //             // optionName is in editor text which is empty, so we need to change it
+    //             // (back) to the dashed version
+    //             optionName = optionName.replace(/   /g, " --");
+    //         } else optionName = optionName.replace(/   /g, " ---");
 
-        //         const codeAction = new EditCodeAction(
-        //             optionName,
-        //             "",
-        //             () => {
-        //                 const code = varOperation.action() as Expression;
+    //         const codeAction = new EditCodeAction(
+    //             optionName,
+    //             "",
+    //             () => {
+    //                 const code = varOperation.action() as Expression;
 
-        //                 if (code instanceof GeneralStatement && code.containsAssignments()) {
-        //                     // Handles both the old VarAssignmentStmt and the ForStatement
-        //                     code.setAssignmentIdentifier(ref.identifier, 0);
-        //                 } else if (code instanceof ValueOperationExpr) {
-        //                     code.setVariable(ref);
-        //                     code.updateReturnType();
-        //                 } else if (code instanceof VarOperationStmt) {
-        //                     code.setVariable(ref);
-        //                     code.updateModifierTypes();
-        //                 }
+    //                 if (code instanceof GeneralStatement && code.containsAssignments()) {
+    //                     // Handles both the old VarAssignmentStmt and the ForStatement
+    //                     code.setAssignmentIdentifier(ref.identifier, 0);
+    //                 } else if (code instanceof ValueOperationExpr) {
+    //                     code.setVariable(ref);
+    //                     code.updateReturnType();
+    //                 } else if (code instanceof VarOperationStmt) {
+    //                     code.setVariable(ref);
+    //                     code.updateModifierTypes();
+    //                 }
 
-        //                 return code;
-        //             },
-        //             code instanceof Statement && !(code instanceof Expression)
-        //                 ? InsertActionType.InsertVarOperationStmt
-        //                 : InsertActionType.InsertValOperationExpr,
-        //             {},
-        //             null,
-        //             [""],
-        //             "",
-        //             null
-        //         );
-        //         // Validate the possible insertion in the current context and type validation
-        //         codeAction.insertionResult = codeAction.validateAction(this.module.validator, context);
-        //         // Add a short description to the EditCodeAction
-        //         codeAction.shortDescription = varOperation.description;
-        //         // Add to the map of valid options
-        //         validOptionMap.set(codeAction.optionName, codeAction);
-        //     }
-        // }
+    //                 return code;
+    //             },
+    //             code instanceof Statement && !(code instanceof Expression)
+    //                 ? InsertActionType.InsertVarOperationStmt
+    //                 : InsertActionType.InsertValOperationExpr,
+    //             {},
+    //             null,
+    //             [""],
+    //             "",
+    //             null
+    //         );
+    //         // Validate the possible insertion in the current context and type validation
+    //         codeAction.insertionResult = codeAction.validateAction(this.module.validator, context);
+    //         // Add a short description to the EditCodeAction
+    //         codeAction.shortDescription = varOperation.description;
+    //         // Add to the map of valid options
+    //         validOptionMap.set(codeAction.optionName, codeAction);
+    //     }
+    // }
 
-        // return validOptionMap;
+    // return validOptionMap;
     // }
 
     /**
@@ -364,7 +363,7 @@ export class UserAction {
 export class EditCodeAction extends UserAction {
     insertActionType: InsertActionType;
     insertData: any = {};
-    getCodeFunction: (data?: { reference: string }) => Statement | Expression;
+    getCodeFunction: (data?: { reference: string }) => Statement;
     terminatingChars: string[];
     insertionResult: InsertionResult;
     matchString: string;
@@ -397,7 +396,7 @@ export class EditCodeAction extends UserAction {
     constructor(
         optionName: string,
         cssId: string,
-        getCodeFunction: (data?: { reference: string }) => Statement | Expression,
+        getCodeFunction: (data?: { reference: string }) => Statement,
         insertActionType: InsertActionType,
         insertData: any = {},
         documentation: any,
@@ -423,7 +422,7 @@ export class EditCodeAction extends UserAction {
     static createDynamicEditCodeAction(
         optionName: string,
         cssId: string,
-        getCodeFunction: () => Statement | Expression,
+        getCodeFunction: () => Statement,
         insertActionType: InsertActionType,
         insertData: any = {},
         insertionResult: InsertionResult, // Determines if the EditCodeAction is valid or not, aka disabled in the toolbox or not
@@ -609,7 +608,7 @@ export class InsertionResult {
     message: string;
     // conversionRecords: TypeConversionRecord[];
 
-    constructor(insertionType: InsertionType, msg: string, typeConversionRecord: /*TypeConversionRecord*/[]) {
+    constructor(insertionType: InsertionType, msg: string, typeConversionRecord: /*TypeConversionRecord*/ []) {
         this.insertionType = insertionType;
         this.message = msg;
         // this.conversionRecords = typeConversionRecord;

@@ -166,9 +166,9 @@ export class Focus {
 
         if (newContext.tokenToSelect != undefined) {
             const selection = new Selection(
-                newContext.tokenToSelect.getLineNumber(),
+                newContext.tokenToSelect.getFirstLineNumber(),
                 newContext.tokenToSelect.rightCol,
-                newContext.tokenToSelect.getLineNumber(),
+                newContext.tokenToSelect.getFirstLineNumber(),
                 newContext.tokenToSelect.leftCol
             );
             this.module.editor.monaco.setSelection(selection);
@@ -660,7 +660,12 @@ export class Focus {
      */
     private selectCode(code: Construct) {
         if (code != null) {
-            const selection = new Selection(code.getLineNumber(), code.rightCol, code.getLineNumber(), code.leftCol);
+            const selection = new Selection(
+                code.getFirstLineNumber(),
+                code.rightCol,
+                code.getFirstLineNumber(),
+                code.leftCol
+            );
 
             this.module.editor.monaco.setSelection(selection);
             this.module.editor.cursor.setSelection(code);

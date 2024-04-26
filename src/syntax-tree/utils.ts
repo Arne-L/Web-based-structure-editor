@@ -5,7 +5,7 @@ import { isImportable } from "../utilities/util";
 import {
     CompoundConstruct,
     Construct,
-    Expression,
+    // Expression,
     GeneralStatement,
     // EmptyOperatorTkn,
     Statement,
@@ -159,7 +159,7 @@ export namespace ASTManupilation {
         }
     }
 
-    function insertExpression(context: Context, code: Expression) {
+    function insertExpression(context: Context, code: Construct) {
         const module = Module.instance;
         // type checks -- different handling based on type of code construct
         // focusedNode.returns != code.returns would work, but we need more context to get the right error message
@@ -186,7 +186,7 @@ export namespace ASTManupilation {
                 }
 
                 // Replaces expression with the newly inserted expression
-                const expr = code as Expression;
+                const expr = code;
                 module.replaceFocusedExpression(expr);
 
                 // Current range

@@ -9,7 +9,7 @@ import {
     Construct,
     // ElseStatement,
     // EmptyOperatorTkn,
-    Expression,
+    // Expression,
     GeneralExpression,
     GeneralStatement,
     IdentifierTkn,
@@ -114,7 +114,7 @@ export class ActionExecutor {
                 const expression = createFinalConstruct(action);
 
                 // NOT OKAY!!!
-                this.insertExpression(context, expression as unknown as Expression);
+                this.insertExpression(context, expression);
 
                 if (flashGreen) this.flashGreen(expression);
 
@@ -1329,7 +1329,7 @@ export class ActionExecutor {
      * @param context - The current focus context
      * @param code - The expression to insert
      */
-    private insertExpression(context: Context, code: Expression) {
+    private insertExpression(context: Context, code: Construct) {
         // type checks -- different handling based on type of code construct
         // focusedNode.returns != code.returns would work, but we need more context to get the right error message
         // context.token is the focused hole in which you want to insert

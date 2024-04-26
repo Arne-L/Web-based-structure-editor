@@ -132,7 +132,7 @@ export abstract class Construct {
     /**
      * Returns the line number of this code-construct in the rendered text.
      */
-    abstract getLineNumber(): number;
+    abstract getFirstLineNumber(): number;
 
     /**
      * Returns the left-position `(lineNumber, column)` of this code-construct in the rendered text.
@@ -156,7 +156,7 @@ export abstract class Construct {
      * Returns a `Selection` object for this particular code-construct when it is selected
      */
     getSelection(): Selection {
-        const line = this.getLineNumber();
+        const line = this.getFirstLineNumber();
 
         return new Selection(line, this.rightCol, line, this.leftCol);
     }
@@ -305,6 +305,14 @@ export abstract class CodeConstruct extends Construct {
     onReplaceToken(args: Object): void {
         return;
     }
+
+    toString(): string {
+        let text = "";
+
+        for (const token of this.tokens) text += token.getRenderText();
+
+        return text;
+    }
 }
 
 /**
@@ -369,7 +377,7 @@ export abstract class Statement extends CodeConstruct {
 
     getBoundaries({ selectIndent = false } = {}): Range {
         // Linenumber of the given construct
-        const lineNumber = this.getLineNumber();
+        const lineNumber = this.getFirstLineNumber();
 
         // If the given construct has a body
         if (this.hasBody()) {
@@ -403,14 +411,6 @@ export abstract class Statement extends CodeConstruct {
                 return new Range(this.left.lineNumber, this.leftCol - TAB_SPACES, this.right.lineNumber, this.rightCol);
             } else return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
         }
-    }
-
-    toString(): string {
-        let text = "";
-
-        for (const token of this.tokens) text += token.getRenderText();
-
-        return text;
     }
 
     // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
@@ -496,6 +496,8 @@ export abstract class Statement extends CodeConstruct {
     /**
      * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
      *
+     * TODO: Rewrite
+     *
      * @param pos - The left position to start building the nodes from
      * @param fromIndex - The index of the node that was edited.
      */
@@ -538,18 +540,22 @@ export abstract class Statement extends CodeConstruct {
         return { positionToMove: this.right /*new Position(this.getLineNumber(), this.rightCol)*/ };
     }
 
-    /**
-     * This function should be called after replacing a token within this statement. it checks if the newly added token `isEmpty` or not, and if yes, it will set `hasEmptyToken = true`
-     * @param code the newly added node within the replace function
-     */
-    updateHasEmptyToken(code: Construct) {
-        // TODO: Check if code is always a TypedEmptyExpression or not
-        // if (code instanceof Token) {
-        //     if (code.isEmpty) this.hasEmptyToken = true;
-        //     else this.hasEmptyToken = false;
-        // }
-    }
+    // /**
+    //  * This function should be called after replacing a token within this statement. it checks if the newly added token `isEmpty` or not, and if yes, it will set `hasEmptyToken = true`
+    //  * @param code the newly added node within the replace function
+    //  */
+    // updateHasEmptyToken(code: Construct) {
+    //     // TODO: Check if code is always a TypedEmptyExpression or not
+    //     // if (code instanceof Token) {
+    //     //     if (code.isEmpty) this.hasEmptyToken = true;
+    //     //     else this.hasEmptyToken = false;
+    //     // }
+    // }
 
+    /**
+     * TODO: Needs to become the same as the tostring function
+     * @returns
+     */
     getRenderText(): string {
         let leftPosToCheck = 1;
         let txt: string = "";
@@ -570,6 +576,8 @@ export abstract class Statement extends CodeConstruct {
 
     /**
      * Returns the textual value of the statement's particular line
+     *
+     * TODO: should only work until a newline character (\n) is encountered
      */
     getLineText(): string {
         let txt: string = "";
@@ -579,10 +587,18 @@ export abstract class Statement extends CodeConstruct {
         return txt;
     }
 
-    getLineNumber(): number {
+    getFirstLineNumber(): number {
         return this.lineNumber;
     }
 
+    /**
+     * TODO: Could be changed to getNearestConstruct, but it currently
+     * assumes that a statement is returned
+     *
+     * The only place it is used however, is in the context. So we
+     * could update the context to use a general construct and also update
+     * this method!
+     */
     getNearestStatement(): Statement {
         return this;
     }
@@ -598,12 +614,12 @@ export abstract class Statement extends CodeConstruct {
         return (this.rootNode as Statement).getModule();
     }
 
-    getRootBody(): Array<Statement> {
-        if (this.rootNode instanceof Module) this.rootNode.body;
-        else if (this.rootNode instanceof Statement && this.rootNode.hasBody()) return this.rootNode.body;
+    // getRootBody(): Array<Statement> {
+    //     if (this.rootNode instanceof Module) this.rootNode.body;
+    //     else if (this.rootNode instanceof Statement && this.rootNode.hasBody()) return this.rootNode.body;
 
-        throw Error("Statement must have a root body.");
-    }
+    //     throw Error("Statement must have a root body.");
+    // }
 
     /**
      * Return this statement's keyword if it has one. Otherwise return an empty string.
@@ -947,24 +963,7 @@ export class GeneralStatement extends Statement {
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
-
-    // DEAD CODE
-    // Maybe keep this, as (almost) all general purpose programming languages have something
-    // with arguments?
-    // Maybe generalise this to the simple "replace" from the Statement class
-    // replaceArgument(index: number, to: CodeConstruct) {
-    //     this.replace(to, this.argumentsIndices[index]);
-    // }
 }
-
-/**
- * Wat de expression betreft:
- * Kunnen wrs expression & statement samennemen
- *  Vereist de toevoeging van "returns" field aan statement
- * Meeste methods van expression kunnen gedropt worden, zolang er geen nood is aan
- * types. Moet echter wel nagedacht worden hoe dan de autocomplete & disabling
- * zou gebeuren van de toolbox items!
- */
 
 export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
@@ -979,14 +978,12 @@ export class GeneralExpression extends GeneralStatement {
         super(construct, root, indexInRoot, data);
     }
 
-    getLineNumber(): number {
-        return this.lineNumber ?? this.rootNode.getLineNumber();
+    getFirstLineNumber(): number {
+        return this.lineNumber ?? this.rootNode.getFirstLineNumber();
     }
 
     getSelection(): Selection {
-        const line = this.getLineNumber();
-
-        return new Selection(line, this.rightCol, line, this.leftCol);
+        return new Selection(this.left.lineNumber, this.rightCol, this.right.lineNumber, this.leftCol);
     }
 
     /**
@@ -1009,6 +1006,8 @@ export class GeneralExpression extends GeneralStatement {
 
 /**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
+ * 
+ * FFD!!!
  */
 export abstract class Expression extends Statement implements Construct {
     rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT;
@@ -1026,8 +1025,8 @@ export abstract class Expression extends Statement implements Construct {
         this.returns = returns;
     }
 
-    getLineNumber(): number {
-        return this.rootNode.getLineNumber();
+    getFirstLineNumber(): number {
+        return this.rootNode.getFirstLineNumber();
         /**
          * this.lineNumber seems to always work? Maybe we can simply remove this?
          */
@@ -1035,7 +1034,7 @@ export abstract class Expression extends Statement implements Construct {
     }
 
     getSelection(): Selection {
-        const line = this.lineNumber >= 0 ? this.lineNumber : this.getLineNumber();
+        const line = this.lineNumber >= 0 ? this.lineNumber : this.getFirstLineNumber();
 
         return new Selection(line, this.rightCol, line, this.leftCol);
         /**
@@ -1097,7 +1096,7 @@ export abstract class Token extends Construct {
 
     getBoundaries({ selectIndent = false } = {}): Range {
         // Linenumber of the given construct
-        const lineNumber = this.getLineNumber();
+        const lineNumber = this.getFirstLineNumber();
 
         // If the indent (one indent) has to be included in the selection range
         if (selectIndent) {
@@ -1172,16 +1171,16 @@ export abstract class Token extends Construct {
     getInitialFocus(): UpdatableContext {
         if (this.isEmpty) return { tokenToSelect: this };
 
-        return { positionToMove: new Position(this.getLineNumber(), this.rightCol) };
+        return { positionToMove: new Position(this.getFirstLineNumber(), this.rightCol) };
     }
 
     getRenderText(): string {
         return this.text;
     }
 
-    getLineNumber(): number {
-        if (this.rootNode instanceof Statement) return this.rootNode.getLineNumber();
-        else return (this.rootNode as Expression).getLineNumber();
+    getFirstLineNumber(): number {
+        if (this.rootNode instanceof Statement) return this.rootNode.getFirstLineNumber();
+        else return (this.rootNode as Expression).getFirstLineNumber();
     }
 
     getNearestStatement(): Statement {
@@ -1590,7 +1589,7 @@ export class AssignmentToken extends IdentifierTkn {
             const refScope = ref.getNearestScope();
 
             // If the assignment statement covers the reference expression, then update the reference expression
-            if (refScope.covers(currentIdentifier, ref.getLineNumber())) {
+            if (refScope.covers(currentIdentifier, ref.getFirstLineNumber())) {
                 // A valid assignment found, thus remove the warning
                 parentStmt.getModule().closeConstructDraftRecord(ref);
             } else {
@@ -1619,7 +1618,7 @@ export class AssignmentToken extends IdentifierTkn {
 
         // Check if a reference on the current location to the deleted assignment would
         // be invalid
-        if (!currentScope.covers(this.getRenderText(), this.getLineNumber())) {
+        if (!currentScope.covers(this.getRenderText(), this.getFirstLineNumber())) {
             // References to the deleted variable after this point could be invalid
             // if there are no assignments between the deleted variable and the reference
             this.updateRefWarnings();
@@ -1890,7 +1889,7 @@ export abstract class HoleStructure extends Construct {
         return this.constructor.name;
     }
 
-    getLineNumber(): number {
+    getFirstLineNumber(): number {
         return this.lineNumber;
     }
 }
@@ -2035,7 +2034,7 @@ export class CompoundConstruct extends CodeConstruct {
         return this.tokens.map((token) => token.getRenderText()).join("");
     }
 
-    getLineNumber(): number {
+    getFirstLineNumber(): number {
         return this.lineNumber;
     }
 
@@ -2070,7 +2069,7 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     rebuild(pos: Position, fromIndex: number) {
-        // TODO: Check if this is correct and / or can be simplified
+        // TODO: Check if this is correct and / or can be simplified and / or generalised
         let curPos = pos;
 
         // rebuild siblings:
@@ -2106,13 +2105,5 @@ export class CompoundConstruct extends CodeConstruct {
 
             this.callbacksToBeDeleted.clear();
         }
-    }
-
-    private addToken(token: Token) {
-        this.tokens.push(token);
-    }
-
-    private getTokens(): Construct[] {
-        return this.tokens;
     }
 }

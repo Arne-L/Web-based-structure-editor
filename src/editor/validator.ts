@@ -2,13 +2,14 @@ import {
     // AssignmentModifier,
     // AugmentedAssignmentModifier,
     AutocompleteTkn,
+    CodeConstruct,
     // BinaryOperatorExpr,
     Construct,
     EditableTextTkn,
     // ElseStatement,
     EmptyLineStmt,
     // EmptyOperatorTkn,
-    Expression,
+    // Expression,
     // FormattedStringCurlyBracketsExpr,
     // FormattedStringExpr,
     GeneralStatement,
@@ -529,7 +530,7 @@ export class Validator {
      */
     canDeleteExpression(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
-        const rootNode = context.token.rootNode as Expression;
+        const rootNode = context.token.rootNode as CodeConstruct;
 
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
