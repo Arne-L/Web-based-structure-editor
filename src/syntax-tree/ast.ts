@@ -2069,6 +2069,28 @@ export class CompoundConstruct extends CodeConstruct {
         return curPos;
     }
 
+    rebuild(pos: Position, fromIndex: number) {
+        // TODO: Check if this is correct and / or can be simplified
+        let curPos = pos;
+
+        // rebuild siblings:
+        for (let i = fromIndex; i < this.tokens.length; i++) {
+            this.tokens[i].indexInRoot = i;
+            if (this.tokens[i] instanceof Token) curPos = this.tokens[i].build(curPos);
+            else curPos = (this.tokens[i] as Expression).build(curPos);
+        }
+
+        // The right position of the last token is the right position of the construct
+        this.right = curPos;
+
+        // If the construct has a root node, rebuild all constructs following this construct in the root node
+        if (this.rootNode != undefined && this.indexInRoot != undefined) {
+            ASTManupilation.rebuild(this, curPos, { rebuildConstruct: false });
+        } else console.warn("node did not have rootNode or indexInRoot: ", this.tokens);
+
+        this.notify(CallbackType.change);
+    }
+
     notify(type: CallbackType) {
         for (const callback of this.callbacks[type]) callback.callback(this);
 
