@@ -34,7 +34,9 @@ export namespace SyntaxConstructor {
                 case "hole":
                     for (let i = 0; i < token.elements.length; i++) {
                         // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                        constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
+                        constructs.push(
+                            new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.type)
+                        );
     
                         if (i + 1 < token.elements.length)
                             constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
@@ -153,7 +155,7 @@ export namespace SyntaxConstructor {
             i = (i + 1) % jsonConstruct.format.length;
         } while (!stopCondition(jsonConstruct.format[i])) // TODO: Does not work if the first construct has a waitOnUser
 
-        rootConstruct.setElementToInsertNextIndex(i);
+        // rootConstruct.setElementToInsertNextIndex(i);
 
         return constructs;
     }
@@ -182,11 +184,21 @@ export namespace SyntaxConstructor {
                 // DO we still want this or do we want it to be generalised?
                 for (let i = 0; i < token.elements.length; i++) {
                     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
+                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.type));
 
                     if (i + 1 < token.elements.length)
                         constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
                 }
+                break;
+            case "body":
+                let root = rootConstruct as GeneralStatement;
+                // FFD
+                root.body.push(new EmptyLineStmt(root, root.body.length));
+                root.scope = new Scope();
+                // rootConstruct.hasSubValues = true;
+                /**
+                 * We still need to add scope for constructs without a body like else and elif
+                 */
                 break;
             case "identifier":
                 constructs.push(new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex)));

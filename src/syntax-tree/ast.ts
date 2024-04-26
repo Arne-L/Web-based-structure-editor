@@ -1769,13 +1769,15 @@ export class AutocompleteTkn extends Token implements TextEditable {
 export class TypedEmptyExpr extends Token {
     isEmpty = true;
     type: DataType[];
+    allowedType: string;
 
-    constructor(type: DataType[], root?: Construct, indexInRoot?: number) {
+    constructor(type: DataType[], root?: Construct, indexInRoot?: number, allowedType?: string) {
         super("    ");
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.type = type;
+        this.allowedType = allowedType;
     }
 
     get hasSubValues(): boolean {
@@ -1923,7 +1925,7 @@ export class CompoundConstruct extends CodeConstruct {
     private scope: Scope;
     //
     private compoundToken: CompoundFormatDefinition;
-    private nextFormatIndex: number;
+    // private nextFormatIndex: number;
 
     constructor(compoundToken: CompoundFormatDefinition, root?: Construct, indexInRoot?: number) {
         super();
@@ -1948,9 +1950,13 @@ export class CompoundConstruct extends CodeConstruct {
         return this.tokens.some((tkn) => tkn.hasEmptyToken);
     }
 
-    setElementToInsertNextIndex(idx: number) {
-        this.nextFormatIndex = idx;
+    get nextFormatIndex(): number {
+        return this.tokens.length % this.compoundToken.format.length;
     }
+
+    // setElementToInsertNextIndex(idx: number) {
+    //     this.nextFormatIndex = idx;
+    // }
 
     /**
      * Get the key to wait on to continue the expansion of the compound
@@ -2024,8 +2030,7 @@ export class CompoundConstruct extends CodeConstruct {
         // by using the output of the getInitialFocus of the tokens
         for (let token of this.tokens) {
             if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
-            if (token instanceof GeneralStatement && token.hasEmptyToken) return token.getInitialFocus();
-            if (token instanceof CompoundConstruct && token.hasEmptyToken) return token.getInitialFocus();
+            if (token instanceof CodeConstruct && token.hasEmptyToken) return token.getInitialFocus();
         }
         return { positionToMove: this.right };
     }
