@@ -970,13 +970,13 @@ export class ActionExecutor {
             }
 
             // Mostly language independent
-            // USE CASE?
+            // TODO: Update this to be for all constructs instead of only expressions
             case EditActionType.ReplaceExpressionWithItem: {
                 // Get the parent of the token
                 const rootNode = context.token.rootNode;
                 // The token which will replace the expression
                 let replacementTkn: Construct;
-                for (let i = 0; i < rootNode.tokens.length; i++) {
+                for (let i = rootNode.tokens.length - 1; i >= 0; i--) {
                     // Set the last occuring construct that is not a hole, non-editable or operator token
                     // to be the replacementTkn
                     if (
@@ -985,8 +985,11 @@ export class ActionExecutor {
                         // && !(rootNode.tokens[i] instanceof OperatorTkn)
                     ) {
                         replacementTkn = rootNode.tokens[i];
+                        // Preemptively break the loop when a construct has been found
+                        break;
                     }
                 }
+                
                 // Replace the expression with the replacement token
                 this.replaceCode(rootNode, replacementTkn);
                 break;
