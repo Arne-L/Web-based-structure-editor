@@ -34,10 +34,7 @@
             ]
         ],
         "match": "while",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
+        "triggerInsertion": [" ", "("],
         "toolbox": {
             "category": "Loops",
             "title": "while loop",
@@ -154,9 +151,7 @@
             ]
         ],
         "match": "for",
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Loops",
             "title": "for loop",
@@ -218,22 +213,17 @@
                     "id": "loop-chars-of-str"
                 }
             ],
-            "search-queries": [
-                "for",
-                "loop",
-                "repeat",
-                "go through",
-                "iterate",
-                "list"
-            ]
+            "search-queries": ["for", "loop", "repeat", "go through", "iterate", "list"]
         }
     },
     {
-        "internalName": "standard_method",
+        "keyword": "range",
+        "method_name": "range",
+        "constructType": "expression",
         "format": [
             {
-                "type": "implementation",
-                "anchor": "method_name"
+                "type": "token",
+                "value": "range"
             },
             {
                 "type": "token",
@@ -254,245 +244,315 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": [
-            "("
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "number",
+                    "optional": false
+                }
+            ]
         ],
-        "implementations": [
-            {
-                "keyword": "range",
-                "method_name": "range",
-                "constructType": "expression",
-                "holes": [
-                    [
-                        {
-                            "name": "number",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "range(---)",
-                "match": "range",
-                "toolbox": {
-                    "category": "Loops",
-                    "title": "range(end: number)",
-                    "tooltip": {
-                        "title": "Create Iterable Sequence",
-                        "body": "Generates a sequence of numbers from 0 to the provided input. Usually used with a for loop."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-range",
-                            "example": "for i in range(10):\n\tprint(i)"
-                        }
-                    ],
-                    "search-queries": [
-                        "range",
-                        "sequence",
-                        "iterate",
-                        "for loop"
-                    ]
+        "editorName": "range(---)",
+        "match": "range",
+        "toolbox": {
+            "category": "Loops",
+            "title": "range(end: number)",
+            "tooltip": {
+                "title": "Create Iterable Sequence",
+                "body": "Generates a sequence of numbers from 0 to the provided input. Usually used with a for loop."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-range",
+                    "example": "for i in range(10):\n\tprint(i)"
                 }
+            ],
+            "search-queries": ["range", "sequence", "iterate", "for loop"]
+        }
+    },
+    {
+        "keyword": "print",
+        "format": [
+            {
+                "type": "token",
+                "value": "print"
             },
             {
-                "keyword": "print",
-                "method_name": "print",
-                "holes": [
-                    [
-                        {
-                            "name": "text",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "print(---)",
-                "match": "print",
-                "toolbox": {
-                    "category": "Functions",
-                    "title": "print(message: any)",
-                    "tooltip": {
-                        "title": "Display Text in Console",
-                        "body": "Displays the textual value of its input in the console."
-                    },
-                    "invalidTooltip": "Can only be inserted on an empty line within a loop.",
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-print-num-str",
-                            "example": "print(123)\nprint(\"Hello World!\")"
-                        },
-                        {
-                            "type": "executable",
-                            "id": "ex-print-var",
-                            "example": "a = \"abc\"\nprint(a)"
-                        }
-                    ],
-                    "search-queries": [
-                        "output",
-                        "say",
-                        "print",
-                        "print output",
-                        "console",
-                        "write",
-                        "see output"
-                    ]
-                }
+                "type": "token",
+                "value": "("
             },
             {
-                "keyword": "input",
-                "constructType": "expression",
-                "method_name": "input",
-                "holes": [
-                    [
-                        {
-                            "name": "text",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "input(---)",
-                "match": "input",
-                "toolbox": {
-                    "category": "Functions",
-                    "title": "input(prompt: text)",
-                    "tooltip": {
-                        "title": "Ask User for Textual Input",
-                        "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-input-1",
-                            "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
-                        }
-                    ],
-                    "search-queries": [
-                        "input",
-                        "prompt",
-                        "text",
-                        "user",
-                        "ask input",
-                        "ask user"
-                    ]
-                }
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
-                "keyword": "len",
-                "constructType": "expression",
-                "method_name": "len",
-                "holes": [
-                    [
-                        {
-                            "name": "collection",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "len(---)",
-                "match": "len",
-                "toolbox": {
-                    "category": "Functions",
-                    "title": "len(iterable: list/text)",
-                    "tooltip": {
-                        "title": "Get Length of List or Text",
-                        "body": "Returns the number of items in an object, or the number of characters in a text."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-len-1",
-                            "example": "greeting = \"Hello World!\"\na = len(greeting)\nprint(a)"
-                        },
-                        {
-                            "type": "executable",
-                            "id": "ex-len-2",
-                            "example": "items = [1, 2, 3]\na = len(items)\nprint(a)"
-                        }
-                    ],
-                    "search-queries": [
-                        "length of list",
-                        "length of string",
-                        "length of text"
-                    ]
-                }
-            },
-            {
-                "keyword": "choice",
-                "constructType": "expression",
-                "method_name": "choice",
-                "holes": [
-                    [
-                        {
-                            "name": "collection",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "choice(---)",
-                "match": "choice",
-                "toolbox": {
-                    "category": "Random",
-                    "title": "choice(choices: list[any])",
-                    "tooltip": {
-                        "title": "Insert Choice from List",
-                        "body": "Randomly selects and returns an item from the given list. Needs to be imported from the random module."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-choice",
-                            "example": "from random import choice\n\nif choice([1, 2, 3, 4, 5, 6]) == 6:\n\tprint(\"Rolled Six!\")"
-                        }
-                    ],
-                    "search-queries": [
-                        "choice",
-                        "random choice",
-                        "choose randomly from list",
-                        "select randomly from array"
-                    ]
-                }
-            },
-            {
-                "keyword": "randint",
-                "constructType": "expression",
-                "method_name": "randint",
-                "holes": [
-                    [
-                        {
-                            "name": "number1",
-                            "optional": false
-                        },
-                        {
-                            "name": "number1",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "randint(---, ---)",
-                "match": "randint",
-                "toolbox": {
-                    "category": "Random",
-                    "title": "randint(min: number, max: number)",
-                    "tooltip": {
-                        "title": "Generate a Random Number",
-                        "body": "Returns a randomly generated number from the given range. Needs to be imported from the random module."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-randint",
-                            "example": "a = randint(0, 10)\nprint(a)"
-                        }
-                    ],
-                    "search-queries": [
-                        "random number",
-                        "random integer",
-                        "randint",
-                        "random between"
-                    ]
-                }
+                "type": "token",
+                "value": ")"
             }
-        ]
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "text",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "print(---)",
+        "match": "print",
+        "toolbox": {
+            "category": "Functions",
+            "title": "print(message: any)",
+            "tooltip": {
+                "title": "Display Text in Console",
+                "body": "Displays the textual value of its input in the console."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line within a loop.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-print-num-str",
+                    "example": "print(123)\nprint(\"Hello World!\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-print-var",
+                    "example": "a = \"abc\"\nprint(a)"
+                }
+            ],
+            "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
+        }
+    },
+    {
+        "keyword": "input",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "input"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "text",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "input(---)",
+        "match": "input",
+        "toolbox": {
+            "category": "Functions",
+            "title": "input(prompt: text)",
+            "tooltip": {
+                "title": "Ask User for Textual Input",
+                "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-input-1",
+                    "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
+                }
+            ],
+            "search-queries": ["input", "prompt", "text", "user", "ask input", "ask user"]
+        }
+    },
+    {
+        "keyword": "len",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "len"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "collection",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "len(---)",
+        "match": "len",
+        "toolbox": {
+            "category": "Functions",
+            "title": "len(iterable: list/text)",
+            "tooltip": {
+                "title": "Get Length of List or Text",
+                "body": "Returns the number of items in an object, or the number of characters in a text."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-len-1",
+                    "example": "greeting = \"Hello World!\"\na = len(greeting)\nprint(a)"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-len-2",
+                    "example": "items = [1, 2, 3]\na = len(items)\nprint(a)"
+                }
+            ],
+            "search-queries": ["length of list", "length of string", "length of text"]
+        }
+    },
+    {
+        "keyword": "choice",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "choice"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "collection",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "choice(---)",
+        "match": "choice",
+        "toolbox": {
+            "category": "Random",
+            "title": "choice(choices: list[any])",
+            "tooltip": {
+                "title": "Insert Choice from List",
+                "body": "Randomly selects and returns an item from the given list. Needs to be imported from the random module."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-choice",
+                    "example": "from random import choice\n\nif choice([1, 2, 3, 4, 5, 6]) == 6:\n\tprint(\"Rolled Six!\")"
+                }
+            ],
+            "search-queries": ["choice", "random choice", "choose randomly from list", "select randomly from array"]
+        }
+    },
+    {
+        "keyword": "randint",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "randint"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    },
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                    
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "editorName": "randint(---, ---)",
+        "match": "randint",
+        "toolbox": {
+            "category": "Random",
+            "title": "randint(min: number, max: number)",
+            "tooltip": {
+                "title": "Generate a Random Number",
+                "body": "Returns a randomly generated number from the given range. Needs to be imported from the random module."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-randint",
+                    "example": "a = randint(0, 10)\nprint(a)"
+                }
+            ],
+            "search-queries": ["random number", "random integer", "randint", "random between"]
+        }
     },
     {
         "keyword": "break",
@@ -516,9 +576,7 @@
             }
         ],
         "match": "brea",
-        "triggerInsertion": [
-            "k"
-        ],
+        "triggerInsertion": ["k"],
         "toolbox": {
             "category": "Loops",
             "title": "Break out of loops",
@@ -616,11 +674,7 @@
                     ]
                 }
             ],
-            "search-queries": [
-                "exit",
-                "loop",
-                "break"
-            ]
+            "search-queries": ["exit", "loop", "break"]
         }
     },
     {
@@ -663,19 +717,8 @@
                 "max_repeat": 1
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "if",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
+        "triggerInsertion": [" ", "("],
         "toolbox": {
             "category": "Conditionals",
             "title": "if statement",
@@ -704,13 +747,7 @@
                     "id": "check-val-variable"
                 }
             ],
-            "search-queries": [
-                "if",
-                "condition",
-                "conditional",
-                "choose",
-                "path"
-            ]
+            "search-queries": ["if", "condition", "conditional", "choose", "path"]
         }
     },
     {
@@ -727,9 +764,7 @@
             }
         ],
         "match": "else",
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if or elif statement.",
@@ -745,11 +780,7 @@
                     "example": "a = 2\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)\nelse:\n\tprint(\"None of the above are true.\")"
                 }
             ],
-            "search-queries": [
-                "else",
-                "otherwise",
-                "if"
-            ]
+            "search-queries": ["else", "otherwise", "if"]
         }
     },
     {
@@ -788,10 +819,7 @@
             ]
         ],
         "match": "elif",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
+        "triggerInsertion": [" ", "("],
         "toolbox": {
             "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if statement.",
@@ -830,14 +858,7 @@
                     "id": "elif-after-elif"
                 }
             ],
-            "search-queries": [
-                "else if",
-                "else",
-                "else condition",
-                "choose",
-                "path",
-                "elif"
-            ]
+            "search-queries": ["else if", "else", "else condition", "choose", "path", "elif"]
         }
     },
     {
@@ -873,10 +894,7 @@
         ],
         "match": null,
         "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": [
-            "=",
-            " "
-        ],
+        "triggerInsertion": ["=", " "],
         "toolbox": {
             "category": "Variables",
             "title": "Create/Reassign Variable",
@@ -905,11 +923,7 @@
                     ]
                 }
             ],
-            "search-queries": [
-                "create new variable",
-                "variable",
-                "var"
-            ]
+            "search-queries": ["create new variable", "variable", "var"]
         }
     },
     {
@@ -924,9 +938,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Variables",
             "title": "Reference Variable",
@@ -949,11 +961,7 @@
                     "text": "Reference names follow the same rules as variable names."
                 }
             ],
-            "search-queries": [
-                "reference variable",
-                "variable",
-                "var"
-            ]
+            "search-queries": ["reference variable", "variable", "var"]
         }
     },
     {
@@ -989,9 +997,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [
-            "+"
-        ],
+        "triggerInsertion": ["+"],
         "toolbox": {
             "category": "Variables",
             "title": "Add to Variable",
@@ -1006,9 +1012,7 @@
                     "example": "a = 2\na += 2\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "add to variable"
-            ]
+            "search-queries": ["add to variable"]
         }
     },
     {
@@ -1059,10 +1063,7 @@
                     "example": "a = 5\na -= 2\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "subtract from variable",
-                "deduct from variable"
-            ]
+            "search-queries": ["subtract from variable", "deduct from variable"]
         }
     },
     {
@@ -1098,9 +1099,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [
-            "*"
-        ],
+        "triggerInsertion": ["*"],
         "toolbox": {
             "category": "Variables",
             "title": "Multiply a Variable",
@@ -1115,9 +1114,7 @@
                     "example": "a = 5\na *= 2\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "multiply variable"
-            ]
+            "search-queries": ["multiply variable"]
         }
     },
     {
@@ -1153,9 +1150,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [
-            "/"
-        ],
+        "triggerInsertion": ["/"],
         "toolbox": {
             "category": "Variables",
             "title": "Divide a Variable",
@@ -1170,9 +1165,7 @@
                     "example": "a = 10\na /= 2\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "divide variable"
-            ]
+            "search-queries": ["divide variable"]
         }
     },
     {
@@ -1227,9 +1220,7 @@
         "holes": [],
         "match": "",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": [
-            "'"
-        ],
+        "triggerInsertion": ["'"],
         "toolbox": {
             "category": "Text",
             "title": "text",
@@ -1244,12 +1235,7 @@
                     "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
                 }
             ],
-            "search-queries": [
-                "create text",
-                "create string",
-                "empty string",
-                "empty text"
-            ]
+            "search-queries": ["create text", "create string", "empty string", "empty text"]
         }
     },
     {
@@ -1273,9 +1259,7 @@
         "holes": [],
         "match": "f",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": [
-            "'"
-        ],
+        "triggerInsertion": ["'"],
         "toolbox": {
             "category": "Text",
             "title": "formatted text",
@@ -1290,10 +1274,7 @@
                     "example": "age = 16\nname = \"Alex\"\nprint(f'My name is {name} and I am {age} years old')"
                 }
             ],
-            "search-queries": [
-                "formatted string",
-                "formatted text"
-            ]
+            "search-queries": ["formatted string", "formatted text"]
         }
     },
     {
@@ -1330,9 +1311,7 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": [
-            "["
-        ],
+        "triggerInsertion": ["["],
         "toolbox": {
             "category": "Lists",
             "title": "List",
@@ -1352,13 +1331,7 @@
                     "example": "a = [\"cat\", \"dog\", \"parrot\"]\nb = [1, \"cat\", true]\nc = [1, [1, \"dog\"], \"cat\", [true]]"
                 }
             ],
-            "search-queries": [
-                "empty list",
-                "create empty list",
-                "create list",
-                "array",
-                "create empty array"
-            ]
+            "search-queries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     },
     {
@@ -1407,9 +1380,7 @@
         ],
         "match": null,
         "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
-        "triggerInsertion": [
-            "+"
-        ],
+        "triggerInsertion": ["+"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "add",
@@ -1429,10 +1400,7 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["add", "sum"]
         }
     },
     {
@@ -1496,11 +1464,7 @@
                     "example": "a = 20\nb = 10\nprint((a - b))"
                 }
             ],
-            "search-queries": [
-                "subtract numbers",
-                "subtraction",
-                "deduct"
-            ]
+            "search-queries": ["subtract numbers", "subtraction", "deduct"]
         }
     },
     {
@@ -1548,11 +1512,7 @@
                     "example": "a = -2\nb = -5\nprint((a + b))"
                 }
             ],
-            "search-queries": [
-                "substract",
-                "negate",
-                "negative"
-            ]
+            "search-queries": ["substract", "negate", "negative"]
         }
     },
     {
@@ -1601,9 +1561,7 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": [
-            "*"
-        ],
+        "triggerInsertion": ["*"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "multiply",
@@ -1618,10 +1576,7 @@
                     "example": "a = 2\nb = 5\nprint((b * a))"
                 }
             ],
-            "search-queries": [
-                "multiply numbers",
-                "multiply"
-            ]
+            "search-queries": ["multiply numbers", "multiply"]
         }
     },
     {
@@ -1670,9 +1625,7 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": [
-            "/"
-        ],
+        "triggerInsertion": ["/"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "divide",
@@ -1687,11 +1640,7 @@
                     "example": "a = 2\nb = 10\nprint((b / a))"
                 }
             ],
-            "search-queries": [
-                "divide",
-                "division",
-                "divide numbers"
-            ]
+            "search-queries": ["divide", "division", "divide numbers"]
         }
     },
     {
@@ -1740,9 +1689,7 @@
         ],
         "match": "/",
         "matchRegex": null,
-        "triggerInsertion": [
-            "/"
-        ],
+        "triggerInsertion": ["/"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "floor division",
@@ -1757,11 +1704,7 @@
                     "example": "a = 2\nb = 7\nprint((b / a))"
                 }
             ],
-            "search-queries": [
-                "divide numbers",
-                "divide integer",
-                "divide floor"
-            ]
+            "search-queries": ["divide numbers", "divide integer", "divide floor"]
         }
     },
     {
@@ -1810,9 +1753,7 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": [
-            "%"
-        ],
+        "triggerInsertion": ["%"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "modulo",
@@ -1827,10 +1768,7 @@
                     "example": "print((29 % 5)) # prints 4\nprint((28 % 5)) # prints 3\nprint((27 % 5)) # prints 2\nprint((26 % 5)) # prints 1\nprint((25 % 5)) # prints 0"
                 }
             ],
-            "search-queries": [
-                "modulo",
-                "remainder"
-            ]
+            "search-queries": ["modulo", "remainder"]
         }
     },
     {
@@ -1879,9 +1817,7 @@
         ],
         "match": "=",
         "matchRegex": null,
-        "triggerInsertion": [
-            "="
-        ],
+        "triggerInsertion": ["="],
         "toolbox": {
             "category": "Comparisons",
             "title": "Is Equal?",
@@ -1901,11 +1837,7 @@
                     "example": "a = 5\nb = 5\nwhile a == b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "compare equal",
-                "check equal",
-                "are equal"
-            ]
+            "search-queries": ["compare equal", "check equal", "are equal"]
         }
     },
     {
@@ -1954,9 +1886,7 @@
         ],
         "match": "!",
         "matchRegex": null,
-        "triggerInsertion": [
-            "="
-        ],
+        "triggerInsertion": ["="],
         "toolbox": {
             "category": "Comparisons",
             "title": "Is Not Equal?",
@@ -1976,12 +1906,7 @@
                     "example": "a = 1\nb = 5\nwhile a != b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "not equal",
-                "compare not equal",
-                "not equal to",
-                "are not equal"
-            ]
+            "search-queries": ["not equal", "compare not equal", "not equal to", "are not equal"]
         }
     },
     {
@@ -2050,11 +1975,7 @@
                     "example": "a = 1\nb = 5\nwhile a < b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "compare",
-                "compare less than",
-                "check less than"
-            ]
+            "search-queries": ["compare", "compare less than", "check less than"]
         }
     },
     {
@@ -2103,9 +2024,7 @@
         ],
         "match": "<",
         "matchRegex": null,
-        "triggerInsertion": [
-            "="
-        ],
+        "triggerInsertion": ["="],
         "toolbox": {
             "category": "Comparisons",
             "title": "is less than or equal?",
@@ -2125,12 +2044,7 @@
                     "example": "a = 1\nb = 5\nwhile a <= b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "less than or equal",
-                "compare",
-                "compare less than or equal",
-                "check"
-            ]
+            "search-queries": ["less than or equal", "compare", "compare less than or equal", "check"]
         }
     },
     {
@@ -2199,11 +2113,7 @@
                     "example": "a = 1\nb = 5\nwhile b > a:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "compare greater than",
-                "compare",
-                "check greater than"
-            ]
+            "search-queries": ["compare greater than", "compare", "check greater than"]
         }
     },
     {
@@ -2252,9 +2162,7 @@
         ],
         "match": ">",
         "matchRegex": null,
-        "triggerInsertion": [
-            "="
-        ],
+        "triggerInsertion": ["="],
         "toolbox": {
             "category": "Comparisons",
             "title": "is greater than or equal?",
@@ -2274,11 +2182,7 @@
                     "example": "a = 1\nb = 5\nwhile b >= a:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": [
-                "compare greater than or equal",
-                "compare",
-                "check greater than or equal"
-            ]
+            "search-queries": ["compare greater than or equal", "compare", "check greater than or equal"]
         }
     },
     {
@@ -2327,9 +2231,7 @@
         ],
         "match": "in",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Comparisons",
             "title": "Inside?",
@@ -2344,13 +2246,7 @@
                     "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
                 }
             ],
-            "search-queries": [
-                "in list",
-                "inside list",
-                "is inside list",
-                "check inside list",
-                "check list includes"
-            ]
+            "search-queries": ["in list", "inside list", "is inside list", "check inside list", "check list includes"]
         }
     },
     {
@@ -2399,9 +2295,7 @@
         ],
         "match": "not in",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Comparisons",
             "title": "Not Inside?",
@@ -2416,12 +2310,7 @@
                     "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
                 }
             ],
-            "search-queries": [
-                "not in",
-                "not inside list",
-                "not within list",
-                "does not include"
-            ]
+            "search-queries": ["not in", "not inside list", "not within list", "does not include"]
         }
     },
     {
@@ -2470,9 +2359,7 @@
         ],
         "match": "and",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Booleans",
             "title": "and",
@@ -2492,11 +2379,7 @@
                     "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b > c)):\n\tprint(\"Both expressions are true.\")"
                 }
             ],
-            "search-queries": [
-                "and",
-                "both",
-                "and operator"
-            ]
+            "search-queries": ["and", "both", "and operator"]
         }
     },
     {
@@ -2545,9 +2428,7 @@
         ],
         "match": "or",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Booleans",
             "title": "or",
@@ -2567,13 +2448,7 @@
                     "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b < c)):\n\tprint(\"Only the first expression is true.\")"
                 }
             ],
-            "search-queries": [
-                "conditional",
-                "or",
-                "logical",
-                "boolean",
-                "one of"
-            ]
+            "search-queries": ["conditional", "or", "logical", "boolean", "one of"]
         }
     },
     {
@@ -2606,9 +2481,7 @@
         ],
         "match": "not",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Booleans",
             "title": "not",
@@ -2623,13 +2496,7 @@
                     "example": "a = 2\nb = 2\nif not (a == b):\n\tprint(\"Will not print.\")\n\nif not (b != a):\n\tprint(\"b is equal to a\")"
                 }
             ],
-            "search-queries": [
-                "negate",
-                "not",
-                "logical",
-                "boolean",
-                "opposite"
-            ]
+            "search-queries": ["negate", "not", "logical", "boolean", "opposite"]
         }
     },
     {
@@ -2660,10 +2527,7 @@
                     "example": "if True :\n\tprint(\"will print\")\n\nif False :\n\tprint(\"will not print\")"
                 }
             ],
-            "search-queries": [
-                "true",
-                "boolean"
-            ]
+            "search-queries": ["true", "boolean"]
         }
     },
     {
@@ -2694,10 +2558,7 @@
                     "example": "if False :\n\tprint(\"will not print\")\n\nif True :\n\tprint(\"will print\")"
                 }
             ],
-            "search-queries": [
-                "false",
-                "boolean"
-            ]
+            "search-queries": ["false", "boolean"]
         }
     },
     {
@@ -2740,10 +2601,7 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["add", "sum"]
         }
     },
     {
@@ -2813,47 +2671,38 @@
                     "example": "a = 2\nb = 5\nprint((a + b))"
                 }
             ],
-            "search-queries": [
-                "test",
-                "try"
-            ]
+            "search-queries": ["test", "try"]
         }
     },
-    {
-        "internalName": "type_conversion",
-        "format": [
-            {
-                "type": "implementation",
-                "anchor": "method_name"
-            },
-            {
-                "type": "token",
-                "value": "("
-            },
-            {
-                "type": "hole",
-                "delimiter": ", ",
-                "elements": [
-                    {
-                        "type": "expression",
-                        "optional": false
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": ")"
-            }
-        ],
-        "triggerInsertion": [
-            "("
-        ],
-        "implementations": [
             {
                 "keyword": "str",
-                "method_name": "str",
                 "constructType": "expression",
                 "editorName": "str(---)",
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "str"
+                    },
+                    {
+                        "type": "token",
+                        "value": "("
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": ")"
+                    }
+                ],
+                "triggerInsertion": ["("],
                 "match": "str",
                 "toolbox": {
                     "category": "Converts",
@@ -2880,19 +2729,38 @@
                             "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
                         }
                     ],
-                    "search-queries": [
-                        "string cast",
-                        "text convert",
-                        "convert to string",
-                        "convert to text"
-                    ]
+                    "search-queries": ["string cast", "text convert", "convert to string", "convert to text"]
                 }
             },
             {
                 "keyword": "int",
-                "method_name": "int",
                 "constructType": "expression",
                 "editorName": "int(---)",
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "int"
+                    },
+                    {
+                        "type": "token",
+                        "value": "("
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": ")"
+                    }
+                ],
+                "triggerInsertion": ["("],
                 "match": "int",
                 "toolbox": {
                     "category": "Converts",
@@ -2908,16 +2776,9 @@
                             "example": "a = \"2\"\nb = \"5\"\ntext_add = a + b\nnumber_add = int(a) + int(b)"
                         }
                     ],
-                    "search-queries": [
-                        "integer cast",
-                        "number convert",
-                        "convert to number",
-                        "convert to integer"
-                    ]
+                    "search-queries": ["integer cast", "number convert", "convert to number", "convert to integer"]
                 }
-            }
-        ]
-    },
+            },
     {
         "keyword": "import",
         "editorName": "from -- import --",
@@ -2940,9 +2801,7 @@
             }
         ],
         "match": "from",
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Imports",
             "title": "Import Module",
@@ -2962,10 +2821,7 @@
                     "example": "from random import randint\nprint(randint(1, 6))"
                 }
             ],
-            "search-queries": [
-                "import module",
-                "import random"
-            ]
+            "search-queries": ["import module", "import random"]
         }
     }
 ]

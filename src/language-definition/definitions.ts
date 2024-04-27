@@ -32,7 +32,7 @@ export interface LanguageDefinition {
 export interface ConstructDefinition {
     /**
      * Name identifying the construct to the designer. This name is not used in the editor
-     * and can thus be changed to anything reconisable.
+     * and can thus be changed to anything recognisable.
      *
      * Optional.
      */
