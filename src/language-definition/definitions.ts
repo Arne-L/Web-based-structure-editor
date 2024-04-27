@@ -84,6 +84,49 @@ export interface ConstructDefinition {
      */
     holes?: HoleDefinition[][];
     /**
+     * Constructs that require this construct to be valid.
+     * 
+     * Fields:
+     * * ref: The keyword of the construct that requires this construct
+     * * optional: Whether the construct is optional or not
+     * * min_repeat: The minimum number of times the construct has to be repeated. Defaults to 0.
+     * * max_repeat: The maximum number of times the construct can be repeated. Defaults to infinity.
+     */
+    requiringConstructs: {
+        ref: "string";
+        optional?: boolean;
+        min_repeat?: number;
+        max_repeat?: number;
+    }[];
+    /**
+     * The construct that has to appear before this construct in the editor. If multiple
+     * are given, at least one of them has to be present.
+     */
+    requiresConstruct: string | string[];
+    /**
+     * The ancestor that has to appear before this construct in the editor.
+     * 
+     * Fields:
+     * * ref: The keyword of the construct that has to be the ancestor
+     * * min_level: The minimum level of the ancestor. Defaults to 0.
+     * * max_level: The maximum level of the ancestor. Defaults to infinity.
+     * 
+     * Levels indicate the depth of the ancestor relative to the construct. Level 0
+     * indicates that the ancestor is the direct parent of the construct, level 1 
+     * the grandparent, etc.
+     */
+    requiresAncestor:
+        | {
+              ref: string;
+              min_level: number;
+              max_level: number;
+          }[]
+        | {
+              ref: string;
+              min_level: number;
+              max_level: number;
+          };
+    /**
      * String against which the user's input is matched when typing. Valid / matching options
      * are shown in the autocompletion menu.
      *
@@ -240,7 +283,7 @@ interface HoleFormatDefinition extends FormatDefinition {
      * * type: The type of the expected element in the hole, most often "expression" or "statement"
      * * optional: Whether the element is optional or not.
      */
-    elements: {type: string, optional: boolean}[]
+    elements: { type: string; optional: boolean }[];
 }
 interface BodyFormatDefinition extends FormatDefinition {
     /**
@@ -288,7 +331,7 @@ interface EditableFormatDefinition extends FormatDefinition {
     type: "editable";
     /**
      * The default value that should be inserted in the editor when the construct is inserted.
-     * 
+     *
      * Optional, defaults to an empty string.
      */
     value?: string;
@@ -351,6 +394,7 @@ interface ToolboxDefinition {
         title: string;
         body: string;
     };
+    invalidTooltip: string;
     /**
      * The list of all tips to be shown in the toolbox.
      */

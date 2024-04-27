@@ -16,108 +16,13 @@ import { Scope } from "./scope";
 
 export namespace SyntaxConstructor {
     export function constructTokensFromJSON(
-        jsonConstruct: ConstructDefinition,
-        rootConstruct: GeneralStatement,
+        formatTokens: FormatDefType[],
+        rootConstruct: Construct,
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
-        let holeIndex = 0;
-        for (const token of jsonConstruct.format) {
-            switch (token.type) {
-                case "implementation":
-                    // Do we still want this?
-                    constructs.push(new NonEditableTkn(jsonConstruct[token.anchor], rootConstruct, constructs.length));
-                    break;
-                case "token":
-                    constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
-                    break;
-                case "hole":
-                    for (let i = 0; i < token.elements.length; i++) {
-                        // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                        constructs.push(
-                            new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.type)
-                        );
-    
-                        if (i + 1 < token.elements.length)
-                            constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
-                    }
-                    break;
-                    // DO we still want this or do we want it to be generalised?
-                    // const holeParts = jsonConstruct.holes[holeIndex];
-                    // for (let i = 0; i < holeParts.length; i++) {
-                    //     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                    //     constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length));
-
-                    //     if (i + 1 < holeParts.length)
-                    //         constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
-                    // }
-                    // Try to remove these field accessors in the future
-                    // if (holeParts.length > 0) rootConstruct.hasEmptyToken = true;
-                    // holeIndex++;
-                    // rootConstruct.hasSubValues = true;
-                    // break;
-                case "body":
-                    // FFD
-                    rootConstruct.body.push(new EmptyLineStmt(rootConstruct, rootConstruct.body.length));
-                    rootConstruct.scope = new Scope();
-                    // rootConstruct.hasSubValues = true;
-                    /**
-                     * We still need to add scope for constructs without a body like else and elif
-                     */
-                    break;
-                case "identifier":
-                    // constructs.push(new EditableTextTkn("", RegExp(token.regex), codeconstruct, constructs.length))
-                    constructs.push(
-                        new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex))
-                    );
-                    break;
-                case "reference":
-                    constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
-                    break;
-                case "editable":
-                    constructs.push(
-                        new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
-                    );
-                    break;
-                case "recursive":
-                    // constructs.push(new CompositeConstruct(token.recursiveName));
-                    break;
-                case "compound":
-                    constructs.push(new CompoundConstruct(token, rootConstruct, constructs.length));
-                    break;
-                default:
-                    // Invalid type => What to do about it?
-                    console.warn("Invalid type for the given token: " + token);
-
-                /**
-                 * 1) How will we handle new lines / empty lines? What will the configuration file require?
-                 * 2) Handle scope: how do we know when a statement has a scope or not? Can we determine
-                 * this whithout having to make it an explicit option?
-                 *
-                 * Possibilities:
-                 * 2) If the concept of statements exist, check if the construct contains a
-                 * statement. If so, it has a scope. If not, it doesn't.
-                 * 1) If the concept of statements exists, we can check if a hole is a statement. If
-                 * so, then we can see it as a EmptyLineStmt
-                 * => Problem: User error possible and even likely
-                 * 1) We can look at holes before and after which there is a new line character "\n",
-                 * signifying that the hole is the only thing on the line. In this case, we can assume
-                 * that it is a empty line statement.
-                 *
-                 *
-                 * What about expressions that can be placed on empty lines? Like methods call e.g. print()
-                 *
-                 *
-                 * How to handle "validateContext"?
-                 * Maybe we can have slots in which only certain statements / expressions can be inserted?
-                 *
-                 * How to handle scope for "elif" and "else"? Currently this is done by checking
-                 * if a statement has body, but that is not possible for "elif" and "else"
-                 *
-                 * All variable functionality in the for-loop is currently dropped
-                 * What is the best way to add this in the future?
-                 */
-            }
+        for (const token of formatTokens) {
+            addConstructToken(constructs, token, rootConstruct, data);
         }
         return constructs;
     }
@@ -135,16 +40,25 @@ export namespace SyntaxConstructor {
         rootConstruct: CompoundConstruct,
         data?: any,
         startingConstructs?: Construct[],
-        startingIndex?: number
+        startingIndex?: number,
+        initialConstruction = false
     ): Construct[] {
         const constructs: Construct[] = startingConstructs ?? [];
 
         let i = startingIndex ?? 0;
+
         // Stopconditions?
         // 1) Coming across a token with "waitOnUser" set to some input
         // 2) When reaching or exceeding a limit ==> Currently NOT implemented
         // Wait actually: calls are recursive ... so ... we don't need the loop to keep on going,
         // we only call when we need to
+
+        // When constructing the compound for the first time, and the first token has waitOnUser set,
+        // return the (empty) constructs array
+        // Otherwise the loop will always run at least once (as the continue method on the compound
+        // only gets called after the waitOnUser key has been pressed)
+        if (initialConstruction && stopCondition(jsonConstruct.format[i])) return constructs;
+        
         do {
             if (i === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
@@ -165,16 +79,16 @@ export namespace SyntaxConstructor {
         return false;
     }
 
-    function hopefullytemp(jsonConstruct: FormatDefType[], rootConstruct: Construct, data?: any) {
-        // Maybe replace it entirely with a reduce?
-        const constructs: Construct[] = [];
-
-        for (const token of jsonConstruct) {
-            addConstructToken(constructs, token, rootConstruct, data);
-        }
-        return constructs;
-    }
-
+    /**
+     * Given the token specification, add the runtime construct to the constructs array
+     * 
+     * @param constructs - The array of constructs to which the new construct should be added.
+     * Often this is the array of constructs of the parent construct.
+     * @param token - The token specification from the language definition
+     * @param rootConstruct - The parent construct of the new construct
+     * @param data - Additional data that might be needed for the construct. Currently, this
+     * is only used for the reference token to keep track of the precise variable to which it referes.
+     */
     function addConstructToken(constructs: Construct[], token: FormatDefType, rootConstruct: Construct, data: any) {
         switch (token.type) {
             case "token":
@@ -213,7 +127,7 @@ export namespace SyntaxConstructor {
                 break;
             case "recursive":
                 const compositeContent = globalFormats.get(token.recursiveName);
-                const tokens = hopefullytemp(compositeContent.format, rootConstruct, data);
+                const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, data);
                 constructs.push(...tokens);
                 // constructs.push(new CompositeConstruct(token.recursiveName));
                 break;

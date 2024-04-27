@@ -55,7 +55,7 @@ export abstract class Construct {
     callbacksToBeDeleted: Map<CallbackType, string> = new Map<CallbackType, string>();
 
     simpleDraftTooltip: Tooltip = Tooltip.None;
-    simpleInvalidTooltip: Tooltip = Tooltip.None;
+    simpleInvalidTooltip: string /* Tooltip */ = Tooltip.None;
 
     constructor() {
         // Initialise the callbacks
@@ -224,7 +224,7 @@ export abstract class Construct {
      * Return a tooltip for the toolbox giving a general reason for why this construct cannot be inserted. This tooltip WILL NOT
      * have detailed, context-based information.
      */
-    getSimpleInvalidTooltip(): Tooltip {
+    getSimpleInvalidTooltip(): string {
         return this.simpleInvalidTooltip;
     }
 
@@ -325,7 +325,7 @@ export abstract class Statement extends CodeConstruct {
     background: CodeBackground = null;
     message: HoverMessage = null;
     keywordIndex = -1;
-    simpleInvalidTooltip = Tooltip.InvalidInsertStatement;
+    simpleInvalidTooltip: string = Tooltip.InvalidInsertStatement;
 
     constructor() {
         super();
@@ -706,10 +706,10 @@ class AncestorConstruct {
      * The primary purpose is to be able to specify some constraints on these constructs.
      *
      * @param keyword - The name of the construct
-     * @param min_level - The minimum level the descendant construct should be at (relative to the
-     * ancestor construct), starting with a direct child at level 0.
-     * @param max_level - The maximum level the descendant construct can be at (relative to the ancestor
-     * construct).
+     * @param min_level - The minimum level the ancestor construct should be at (relative to the
+     * current construct), starting with a direct parent at level 0. If not specified, it defaults to 0.
+     * @param max_level - The maximum level the ancestor construct can be at (relative to the current
+     * construct). If not specified, it defaults to Infinity.
      */
     constructor(keyword: string, min_level?: number, max_level?: number) {
         if (min_level && min_level < 0) throw Error("min_level should be larger than or equal to zero");
@@ -784,7 +784,12 @@ export class GeneralStatement extends Statement {
      */
     static constructs: Map<string, GeneralStatement>;
 
-    constructor(construct: any, root?: Statement | Module, indexInRoot?: number, data?: { reference: string }) {
+    constructor(
+        construct: ConstructDefinition,
+        root?: Statement | Module,
+        indexInRoot?: number,
+        data?: { reference: string }
+    ) {
         super();
 
         this.rootNode = root;
@@ -795,7 +800,7 @@ export class GeneralStatement extends Statement {
         if (!construct || !construct.format) return;
 
         // Set an invalid tooltip message if available
-        this.simpleInvalidTooltip = construct.toolbox.invalidTooptip || ""; // TODO: MAKE MORE CONCRETE
+        this.simpleInvalidTooltip = construct.toolbox.invalidTooltip || ""; // TODO: MAKE MORE CONCRETE
 
         // Check if the construct requires a different construct, and if so add the requirement
         if (construct.requiresConstruct) {
@@ -813,12 +818,12 @@ export class GeneralStatement extends Statement {
             if (construct.requiresAncestor instanceof Array) {
                 this.requiredAncestorConstructs = construct.requiresAncestor.map(
                     (ancestor) =>
-                        new AncestorConstruct(ancestor.ref ?? ancestor, ancestor.min_level, ancestor.max_level)
+                        new AncestorConstruct(ancestor.ref, ancestor.min_level, ancestor.max_level)
                 );
             } else {
                 this.requiredAncestorConstructs.push(
                     new AncestorConstruct(
-                        construct.requiresAncestor.ref ?? construct.requiresAncestor,
+                        construct.requiresAncestor.ref,
                         construct.requiresAncestor.min_level,
                         construct.requiresAncestor.max_level
                     )
@@ -849,7 +854,7 @@ export class GeneralStatement extends Statement {
 
         // Add all the elements to the end, even though the original array should be empty
         // Maybe change to an assignment in the future if that is more efficient
-        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct, this, data));
+        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct.format, this, data));
     }
 
     get hasEmptyToken(): boolean {
@@ -1937,7 +1942,7 @@ export class CompoundConstruct extends CodeConstruct {
 
         if (compoundToken.scope) this.scope = new Scope();
 
-        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this);
+        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, true);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
     }

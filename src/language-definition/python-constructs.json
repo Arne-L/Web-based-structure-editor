@@ -503,7 +503,11 @@
                 "min_level": 0,
                 "max_level": null
             },
-            "for"
+            {
+                "ref": "for",
+                "min_level": 0,
+                "max_level": null
+            }
         ],
         "format": [
             {
