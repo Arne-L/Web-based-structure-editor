@@ -88,6 +88,12 @@ export namespace SyntaxConstructor {
         return constructs;
     }
 
+    /**
+     * Given a token specification, check if the stop condition is met.
+     * 
+     * @param token - The token to check for the stop condition
+     * @returns True if the token has a stop condition, false otherwise
+     */
     function stopCondition(token: FormatDefType): boolean {
         if ("waitOnUser" in token && token.waitOnUser) return true;
         return false;
