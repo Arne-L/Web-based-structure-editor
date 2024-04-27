@@ -15,6 +15,14 @@ import { DataType } from "./consts";
 import { Scope } from "./scope";
 
 export namespace SyntaxConstructor {
+    /**
+     * Construct an array of constructs from the given JSON specification.
+     *
+     * @param formatTokens - The JSON specification of the constructs
+     * @param rootConstruct - The parent construct of the new constructs
+     * @param data - Additional data that might be needed for the construct.
+     * @returns An array of constructs that represent the JSON specification
+     */
     export function constructTokensFromJSON(
         formatTokens: FormatDefType[],
         rootConstruct: Construct,
@@ -28,12 +36,18 @@ export namespace SyntaxConstructor {
     }
 
     /**
-     * TEMPORARY: should be merged with the function above
-     *
-     * @param jsonConstruct
-     * @param rootConstruct
-     * @param data
-     * @returns
+     * Construct an array of constructs from the given JSON specification.
+     * The construction is specific for compound constructs, as it needs 
+     * to be able to handle various additional conditions.
+     * 
+     * @param formatTokens - The JSON specification of the constructs
+     * @param rootConstruct - The parent construct of the new constructs
+     * @param data - Additional data that might be needed for the construct.
+     * @param startingConstructs - The constructs that have already been constructed
+     * @param startingIndex - The index at which the construction should start
+     * @param initialConstruction - Whether this is the first time the compound's tokens 
+     * have been constructed
+     * @returns The extended array of constructs that represent the JSON specification
      */
     export function constructTokensFromJSONCompound(
         jsonConstruct: CompoundFormatDefinition,
@@ -58,7 +72,7 @@ export namespace SyntaxConstructor {
         // Otherwise the loop will always run at least once (as the continue method on the compound
         // only gets called after the waitOnUser key has been pressed)
         if (initialConstruction && stopCondition(jsonConstruct.format[i])) return constructs;
-        
+
         do {
             if (i === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
@@ -67,7 +81,7 @@ export namespace SyntaxConstructor {
             addConstructToken(constructs, jsonConstruct.format[i], rootConstruct, data);
 
             i = (i + 1) % jsonConstruct.format.length;
-        } while (!stopCondition(jsonConstruct.format[i])) // TODO: Does not work if the first construct has a waitOnUser
+        } while (!stopCondition(jsonConstruct.format[i])); // TODO: Does not work if the first construct has a waitOnUser
 
         // rootConstruct.setElementToInsertNextIndex(i);
 
@@ -81,7 +95,7 @@ export namespace SyntaxConstructor {
 
     /**
      * Given the token specification, add the runtime construct to the constructs array
-     * 
+     *
      * @param constructs - The array of constructs to which the new construct should be added.
      * Often this is the array of constructs of the parent construct.
      * @param token - The token specification from the language definition
