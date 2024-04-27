@@ -1087,12 +1087,12 @@ export abstract class Modifier extends Expression {
  */
 export abstract class Token extends Construct {
     isTextEditable = false;
-    rootNode: Construct = null;
+    rootNode: CodeConstruct = null;
     text: string;
     isEmpty: boolean = false;
     message = null;
 
-    constructor(text: string, root?: Construct) {
+    constructor(text: string, root?: CodeConstruct) {
         super();
 
         this.rootNode = root;
@@ -1352,7 +1352,7 @@ export class EditableTextTkn extends Token implements TextEditable {
     isTextEditable = true;
     validatorRegex: RegExp;
 
-    constructor(text: string, regex: RegExp, root?: Construct, indexInRoot?: number) {
+    constructor(text: string, regex: RegExp, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
@@ -1417,7 +1417,7 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     constructor(
         identifier?: string,
-        root?: Construct,
+        root?: CodeConstruct,
         indexInRoot?: number,
         validatorRegex = RegExp("^[^\\d\\W]\\w*$")
     ) {
@@ -1503,7 +1503,7 @@ export class AssignmentToken extends IdentifierTkn {
      * uniqueId is possibly not necessary; above methods thus possibly unnecessary
      */
 
-    constructor(identifier?: string, root?: Construct, indexInRoot?: number, regex?: RegExp) {
+    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, regex?: RegExp) {
         super(identifier, root, indexInRoot, regex);
 
         (root as GeneralStatement).addAssignmentIndex(indexInRoot);
@@ -1670,7 +1670,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
         firstChar: string,
         autocompleteCategory: AutoCompleteType,
         validMatches: EditCodeAction[],
-        root?: Construct,
+        root?: CodeConstruct,
         indexInRoot?: number
     ) {
         super(firstChar);
@@ -1776,7 +1776,7 @@ export class TypedEmptyExpr extends Token {
     type: DataType[];
     allowedType: string;
 
-    constructor(type: DataType[], root?: Construct, indexInRoot?: number, allowedType?: string) {
+    constructor(type: DataType[], root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
         super("    ");
 
         this.rootNode = root;
@@ -1803,7 +1803,7 @@ export class TypedEmptyExpr extends Token {
  * Deletion results in the entire token being removed.
  */
 export class NonEditableTkn extends Token {
-    constructor(text: string, root?: Construct, indexInRoot?: number) {
+    constructor(text: string, root?: CodeConstruct, indexInRoot?: number) {
         super(text);
 
         this.rootNode = root;

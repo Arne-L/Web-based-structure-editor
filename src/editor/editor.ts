@@ -1,5 +1,6 @@
 import { editor, KeyCode, KeyMod, languages, Range, Selection } from "monaco-editor";
 import {
+    CodeConstruct,
     Construct,
     EditableTextTkn,
     // EmptyOperatorTkn,
@@ -321,6 +322,7 @@ export class Editor {
     }
 
     addHoles(code: Construct) {
+        // If hole already exists, return
         for (const hole of this.holes) if (hole.code == code) return;
 
         if (
@@ -330,9 +332,8 @@ export class Editor {
             // || code instanceof EmptyOperatorTkn
         ) {
             this.holes.push(new Hole(this, code));
-        } else if (code instanceof Statement) {
-            const statement = <Statement>code;
-            statement.tokens.forEach((token) => this.addHoles(token));
+        } else if (code instanceof CodeConstruct) {
+            code.tokens.forEach((token) => this.addHoles(token));
         }
     }
 

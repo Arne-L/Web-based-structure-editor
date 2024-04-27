@@ -973,7 +973,7 @@ export class ActionExecutor {
             // USE CASE?
             case EditActionType.ReplaceExpressionWithItem: {
                 // Get the parent of the token
-                const rootNode = context.token.rootNode as GeneralExpression;
+                const rootNode = context.token.rootNode;
                 // The token which will replace the expression
                 let replacementTkn: Construct;
                 for (let i = 0; i < rootNode.tokens.length; i++) {

@@ -2,6 +2,7 @@ import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "..
 import { globalFormats } from "../language-definition/parser";
 import {
     AssignmentToken,
+    CodeConstruct,
     CompoundConstruct,
     Construct,
     EditableTextTkn,
@@ -25,7 +26,7 @@ export namespace SyntaxConstructor {
      */
     export function constructTokensFromJSON(
         formatTokens: FormatDefType[],
-        rootConstruct: Construct,
+        rootConstruct: CodeConstruct,
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
@@ -109,7 +110,7 @@ export namespace SyntaxConstructor {
      * @param data - Additional data that might be needed for the construct. Currently, this
      * is only used for the reference token to keep track of the precise variable to which it referes.
      */
-    function addConstructToken(constructs: Construct[], token: FormatDefType, rootConstruct: Construct, data: any) {
+    function addConstructToken(constructs: Construct[], token: FormatDefType, rootConstruct: CodeConstruct, data: any) {
         switch (token.type) {
             case "token":
                 constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
