@@ -161,75 +161,32 @@ export namespace ASTManupilation {
 
     function insertExpression(context: Context, code: Construct) {
         const module = Module.instance;
-        // type checks -- different handling based on type of code construct
-        // focusedNode.returns != code.returns would work, but we need more context to get the right error message
-        // context.token is the focused hole in which you want to insert
         // We can only insert expressions in holes / TypedEmptyExpr
-        if (context.token instanceof TypedEmptyExpr) {
-            // The root of the hole (either an expression or a statement)
-            const root = context.token.rootNode;
-            // Determine whether the expression "code" can be inserted into the hole
-            let insertionResult = new InsertionResult(InsertionType.Valid, "", []); // root.typeValidateInsertionIntoHole(code, context.token); // REMOVE
+        if (!(context.token instanceof TypedEmptyExpr)) return;
 
-            if (insertionResult.insertionType != InsertionType.Invalid) {
-                // IF VALID OR DRAFT MODE
-                // For all valid or draft mode insertions
-                // This seems to only update the types?
-                // if (root instanceof Statement) {
-                //     root.onInsertInto(code);
-                // }
+        // Remove message if there is one
+        if (context.token.message && context.selected) {
+            //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
+            module.messageController.removeMessageFromConstruct(context.token);
+        }
 
-                // Remove message if there is one
-                if (context.token.message && context.selected) {
-                    //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
-                    module.messageController.removeMessageFromConstruct(context.token);
-                }
+        // Replaces expression with the newly inserted expression
+        module.replaceFocusedExpression(code);
 
-                // Replaces expression with the newly inserted expression
-                const expr = code;
-                module.replaceFocusedExpression(expr);
+        // Current range
+        const range = new Range(
+            context.token.left.lineNumber,
+            context.token.leftCol,
+            context.token.right.lineNumber,
+            context.token.rightCol
+        );
 
-                // Current range
-                const range = new Range(
-                    context.position.lineNumber,
-                    context.token.leftCol,
-                    context.position.lineNumber,
-                    context.token.rightCol
-                );
+        // Update the text in the Monaco editor
+        module.editor.executeEdits(range, code);
 
-                // Update the text in the Monaco editor
-                module.editor.executeEdits(range, expr);
-
-                //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
-                if (!context.token.message) {
-                    const newContext = code.getInitialFocus();
-                    module.focus.updateContext(newContext);
-                }
-            }
-
-            // if (root instanceof BinaryOperatorExpr) {
-            //     // Type check binary expression
-            //     // root.validateTypes(module);
-            // } else
-            // !!!!!!!!!!!!!!!!!!!!! MIGHT BE IMPORTANT TO GET DRAFT MODE TO WORK
-            // if (insertionResult.insertionType == InsertionType.DraftMode) {
-            //     module.openDraftMode(code, insertionResult.message, [
-            //         ...insertionResult.conversionRecords.map((conversionRecord) => {
-            //             return conversionRecord.getConversionButton(code.getKeyword(), module, code);
-            //         }),
-            //     ]);
-            // } else
-            // !!!!!!!!!!!!!!!!!!!!!
-            if (isImportable(code)) {
-                //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
-                //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
-                //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some
-                //draft modes this way.
-
-                //A quick fix for now would be to just trigger reinsertion. Otherwise we need a mechanism for having multiple draft modes. I have a commit on a separate branch for that.
-                //Converting them to a linked list seems to make the most sense.
-                this.checkImports(code, insertionResult.insertionType);
-            }
+        //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
+        if (!context.token.message) {
+            module.focus.updateContext(code.getInitialFocus());
         }
     }
 
