@@ -25,15 +25,8 @@
                 "type": "body"
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "while",
+        "constructType": "statement",
         "triggerInsertion": [" ", "("],
         "toolbox": {
             "category": "Loops",
@@ -98,6 +91,7 @@
     },
     {
         "keyword": "for",
+        "constructType": "statement",
         "editorName": "for -- in --- :",
         "format": [
             {
@@ -135,20 +129,6 @@
             {
                 "type": "body"
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "iterable",
-                    "optional": false
-                }
-            ]
         ],
         "match": "for",
         "triggerInsertion": [" "],
@@ -218,7 +198,6 @@
     },
     {
         "keyword": "range",
-        "method_name": "range",
         "constructType": "expression",
         "format": [
             {
@@ -274,6 +253,7 @@
     },
     {
         "keyword": "print",
+        "constructType": "statement",
         "format": [
             {
                 "type": "token",
@@ -526,7 +506,6 @@
                         "type": "expression",
                         "optional": false
                     }
-                    
                 ]
             },
             {
@@ -556,6 +535,7 @@
     },
     {
         "keyword": "break",
+        "constructType": "statement",
         "editorName": "break",
         "requiresAncestor": [
             {
@@ -679,6 +659,7 @@
     },
     {
         "keyword": "if",
+        "constructType": "statement",
         "editorName": "if --- :",
         "format": [
             {
@@ -752,6 +733,7 @@
     },
     {
         "keyword": "else",
+        "constructType": "statement",
         "editorName": "else :",
         "requiresConstruct": "if",
         "format": [
@@ -785,6 +767,7 @@
     },
     {
         "keyword": "elif",
+        "constructType": "statement",
         "editorName": "elif --- :",
         "requiresConstruct": "if",
         "format": [
@@ -863,6 +846,7 @@
     },
     {
         "keyword": "varAssign",
+        "constructType": "statement",
         "editorName": "-- = ---",
         "format": [
             {
@@ -966,6 +950,7 @@
     },
     {
         "keyword": "addAssign",
+        "constructType": "statement",
         "editorName": "x += ---",
         "format": [
             {
@@ -1017,6 +1002,7 @@
     },
     {
         "keyword": "subAssign",
+        "constructType": "statement",
         "editorName": "x -= ---",
         "format": [
             {
@@ -1068,6 +1054,7 @@
     },
     {
         "keyword": "multAssign",
+        "constructType": "statement",
         "editorName": "x *= ---",
         "format": [
             {
@@ -1119,6 +1106,7 @@
     },
     {
         "keyword": "divAssign",
+        "constructType": "statement",
         "editorName": "x /= ---",
         "format": [
             {
@@ -2629,7 +2617,7 @@
                         "delimiter": ", ",
                         "elements": [
                             {
-                                "type": "expression",
+                                "type": "statement",
                                 "optional": false
                             }
                         ]
@@ -2674,113 +2662,114 @@
             "search-queries": ["test", "try"]
         }
     },
+    {
+        "keyword": "str",
+        "constructType": "expression",
+        "editorName": "str(---)",
+        "format": [
             {
-                "keyword": "str",
-                "constructType": "expression",
-                "editorName": "str(---)",
-                "format": [
-                    {
-                        "type": "token",
-                        "value": "str"
-                    },
-                    {
-                        "type": "token",
-                        "value": "("
-                    },
-                    {
-                        "type": "hole",
-                        "delimiter": ", ",
-                        "elements": [
-                            {
-                                "type": "expression",
-                                "optional": false
-                            }
-                        ]
-                    },
-                    {
-                        "type": "token",
-                        "value": ")"
-                    }
-                ],
-                "triggerInsertion": ["("],
-                "match": "str",
-                "toolbox": {
-                    "category": "Converts",
-                    "title": "str(object: any)",
-                    "body": [
-                        {
-                            "paragraph": "Converts the passed object to a text object. Useful when comparing values of different types and one of them is a text value. This type of conversion is called a <span class\"bold\">cast</span> because it is temporary."
-                        },
-                        {
-                            "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
-                        },
-                        {
-                            "paragraph": "In the above example you would not be able to compare <span class\"italics\">a</span> to <span class\"italics\">c</span> before performing the conversion."
-                        }
-                    ],
-                    "tooltip": {
-                        "title": "Converts Anything to Text",
-                        "body": "Converts the passed object to its textual representation."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-str-cast",
-                            "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
-                        }
-                    ],
-                    "search-queries": ["string cast", "text convert", "convert to string", "convert to text"]
-                }
+                "type": "token",
+                "value": "str"
             },
             {
-                "keyword": "int",
-                "constructType": "expression",
-                "editorName": "int(---)",
-                "format": [
-                    {
-                        "type": "token",
-                        "value": "int"
-                    },
-                    {
-                        "type": "token",
-                        "value": "("
-                    },
-                    {
-                        "type": "hole",
-                        "delimiter": ", ",
-                        "elements": [
-                            {
-                                "type": "expression",
-                                "optional": false
-                            }
-                        ]
-                    },
-                    {
-                        "type": "token",
-                        "value": ")"
-                    }
-                ],
-                "triggerInsertion": ["("],
-                "match": "int",
-                "toolbox": {
-                    "category": "Converts",
-                    "title": "int(object: string)",
-                    "tooltip": {
-                        "title": "Converts Text to Number",
-                        "body": "Converts a number text to an actual number. Extremely useful when trying to input numbers from the user."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-int-cast",
-                            "example": "a = \"2\"\nb = \"5\"\ntext_add = a + b\nnumber_add = int(a) + int(b)"
-                        }
-                    ],
-                    "search-queries": ["integer cast", "number convert", "convert to number", "convert to integer"]
-                }
+                "type": "token",
+                "value": "("
             },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "match": "str",
+        "toolbox": {
+            "category": "Converts",
+            "title": "str(object: any)",
+            "body": [
+                {
+                    "paragraph": "Converts the passed object to a text object. Useful when comparing values of different types and one of them is a text value. This type of conversion is called a <span class\"bold\">cast</span> because it is temporary."
+                },
+                {
+                    "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
+                },
+                {
+                    "paragraph": "In the above example you would not be able to compare <span class\"italics\">a</span> to <span class\"italics\">c</span> before performing the conversion."
+                }
+            ],
+            "tooltip": {
+                "title": "Converts Anything to Text",
+                "body": "Converts the passed object to its textual representation."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-str-cast",
+                    "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
+                }
+            ],
+            "search-queries": ["string cast", "text convert", "convert to string", "convert to text"]
+        }
+    },
+    {
+        "keyword": "int",
+        "constructType": "expression",
+        "editorName": "int(---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "int"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "match": "int",
+        "toolbox": {
+            "category": "Converts",
+            "title": "int(object: string)",
+            "tooltip": {
+                "title": "Converts Text to Number",
+                "body": "Converts a number text to an actual number. Extremely useful when trying to input numbers from the user."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-int-cast",
+                    "example": "a = \"2\"\nb = \"5\"\ntext_add = a + b\nnumber_add = int(a) + int(b)"
+                }
+            ],
+            "search-queries": ["integer cast", "number convert", "convert to number", "convert to integer"]
+        }
+    },
     {
         "keyword": "import",
+        "constructType": "statement",
         "editorName": "from -- import --",
         "format": [
             {

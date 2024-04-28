@@ -805,6 +805,8 @@ export class GeneralStatement extends Statement {
         this.indexInRoot = indexInRoot;
         this.keyword = construct.keyword; // Rethink this one; will this really always be the name/keyword? MIGHT BE FIXED
 
+        this.constructType = construct.constructType;
+
         // If an empty construct is given, we can't do anything with it
         if (!construct || !construct.format) return;
 
@@ -970,7 +972,7 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return context.lineStatement instanceof EmptyLineStmt &&
+        return (context.lineStatement instanceof EmptyLineStmt || validator.atHoleWithType(context, this.constructType)) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
             ValidatorNameSpace.validateAncestors(context, this)
             ? InsertionType.Valid
@@ -981,7 +983,6 @@ export class GeneralStatement extends Statement {
 export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
     rootNode: GeneralExpression | GeneralStatement = null;
-    constructType: string = "expression";
 
     constructor(
         construct: ConstructDefinition,
