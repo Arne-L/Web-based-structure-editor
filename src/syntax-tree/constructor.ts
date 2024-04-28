@@ -119,7 +119,8 @@ export namespace SyntaxConstructor {
                 // DO we still want this or do we want it to be generalised?
                 for (let i = 0; i < token.elements.length; i++) {
                     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.type));
+                    rootConstruct.holeTypes.set(constructs.length, token.elements[i].type);
+                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.elements[i].type));
 
                     if (i + 1 < token.elements.length)
                         constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));

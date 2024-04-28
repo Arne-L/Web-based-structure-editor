@@ -257,6 +257,10 @@ export abstract class Construct {
 export abstract class CodeConstruct extends Construct {
     // Maybe Tokens instead of Construct, but tokens should then encapsulate constructs
     tokens = new Array<Construct>();
+    /**
+     * Keep track of the allowed types of the holes
+     */
+    holeTypes: Map<number, string> = new Map<number, string>();
 
     /**
      * Replaces this node in its root, and then rebuilds the parent (recursively)
@@ -784,6 +788,11 @@ export class GeneralStatement extends Statement {
      */
     static constructs: Map<string, GeneralStatement>;
 
+    /**
+     * The type of the construct. Most frequent options are "statement" and "expression".
+     */
+    constructType: string;
+
     constructor(
         construct: ConstructDefinition,
         root?: Statement | Module,
@@ -817,8 +826,7 @@ export class GeneralStatement extends Statement {
         if (construct.requiresAncestor) {
             if (construct.requiresAncestor instanceof Array) {
                 this.requiredAncestorConstructs = construct.requiresAncestor.map(
-                    (ancestor) =>
-                        new AncestorConstruct(ancestor.ref, ancestor.min_level, ancestor.max_level)
+                    (ancestor) => new AncestorConstruct(ancestor.ref, ancestor.min_level, ancestor.max_level)
                 );
             } else {
                 this.requiredAncestorConstructs.push(
@@ -973,6 +981,7 @@ export class GeneralStatement extends Statement {
 export class GeneralExpression extends GeneralStatement {
     // Overwrite types of the superclass
     rootNode: GeneralExpression | GeneralStatement = null;
+    constructType: string = "expression";
 
     constructor(
         construct: ConstructDefinition,
@@ -1005,13 +1014,13 @@ export class GeneralExpression extends GeneralStatement {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atEmptyExpressionHole(providedContext) ? InsertionType.Valid : InsertionType.Invalid;
+        return validator.atHoleWithType(providedContext, this.constructType) ? InsertionType.Valid : InsertionType.Invalid;
     }
 }
 
 /**
  * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
- * 
+ *
  * FFD!!!
  */
 export abstract class Expression extends Statement implements Construct {
@@ -1775,6 +1784,10 @@ export class TypedEmptyExpr extends Token {
     isEmpty = true;
     type: DataType[];
     allowedType: string;
+    cssClasses = {
+        selectionBackground: "border-15",
+        hole: "expression-hole",
+    };
 
     constructor(type: DataType[], root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
         super("    ");
@@ -1782,7 +1795,7 @@ export class TypedEmptyExpr extends Token {
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.type = type;
-        this.allowedType = allowedType;
+        if (allowedType) this.allowedType = allowedType;
     }
 
     get hasSubValues(): boolean {

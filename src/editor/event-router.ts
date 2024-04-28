@@ -505,7 +505,7 @@ export class EventRouter {
                             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                     });
                     // If at an expression hole, the "---" in the editor
-                } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                } else if (this.module.validator.atEmptyHole(context)) {
                     // HEU IS THIS NECESSARY?
                     // [...Actions.instance().actionsMap.values()].filter(
                     //     (action) => !(action.getCode() as ast.GeneralStatement).hasSubValues
@@ -755,7 +755,7 @@ export class EventRouter {
                         operator: e.insertData?.operator,
                         source,
                     });
-                } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                } else if (this.module.validator.atEmptyHole(context)) {
                     return new EditAction(EditActionType.InsertBinaryOperator, {
                         replace: true,
                         operator: e.insertData?.operator,
@@ -773,7 +773,7 @@ export class EventRouter {
                         operator: e.insertData?.operator,
                         source,
                     });
-                } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                } else if (this.module.validator.atEmptyHole(context)) {
                     return new EditAction(EditActionType.InsertUnaryOperator, {
                         replace: true,
                         operator: e.insertData?.operator,
@@ -800,7 +800,7 @@ export class EventRouter {
             case InsertActionType.InsertCastStrExpr: {
                 if (this.module.validator.atLeftOfExpression(context)) {
                     return new EditAction(EditActionType.WrapExpressionWithItem, { expression: e.getCode(), source });
-                } else if (this.module.validator.atEmptyExpressionHole(context)) {
+                } else if (this.module.validator.atEmptyHole(context)) {
                     return new EditAction(EditActionType.InsertExpression, {
                         expression: e.getCode(),
                         source,

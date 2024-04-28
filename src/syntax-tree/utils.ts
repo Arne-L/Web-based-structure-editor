@@ -27,7 +27,7 @@ export namespace ASTManupilation {
                 replaceEmptyStatement(context.lineStatement, new TemporaryStmt(construct));
             }
             // If at empty expression hole, insert the token
-            else if (module.validator.atEmptyExpressionHole(context)) {
+            else if (module.validator.atEmptyHole(context)) {
                 insertToken(context, construct);
             }
             // Generalise to anything that can be to the left of a token; MAYBE just say switch to autocomplete or something
@@ -56,7 +56,7 @@ export namespace ASTManupilation {
                 replaceEmptyStatement(context.lineStatement, construct);
             }
             // If at empty expression hole, insert the token
-            else if (module.validator.atEmptyExpressionHole(context)) {
+            else if (module.validator.atEmptyHole(context)) {
             }
             // Generalise to anything that can be to the left of a token; MAYBE just say switch to autocomplete or something
             else if (

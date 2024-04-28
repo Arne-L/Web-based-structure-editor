@@ -77,7 +77,7 @@ export class Hole {
                     this.element.classList.add(Hole.editableHoleClass);
                 })
             );
-        } else if (code instanceof TypedEmptyExpr) {
+        // } else if (code instanceof TypedEmptyExpr) {
             // When focussing a hole with a TypedEmptyExpr, show the available variables
             // in the current location ... literally
             // This method will indicate visually all variable assignments that you can use
@@ -238,14 +238,15 @@ export class Hole {
         }
     }
 
-    /**
-     * Highlights all valid variable holes before the current line
-     *
-     * @param context - The current context of the editor
-     */
-    static highlightValidVarHoles(context: Context) {
-        if (context.selected && context.token && context.token instanceof TypedEmptyExpr) {
-            context.token.notify(CallbackType.showAvailableVars);
-        }
-    }
+    // TODO: Fix in the future; temporarily disabled
+    // /**
+    //  * Highlights all valid variable holes before the current line
+    //  *
+    //  * @param context - The current context of the editor
+    //  */
+    // static highlightValidVarHoles(context: Context) {
+    //     if (context.selected && context.token && context.token instanceof TypedEmptyExpr) {
+    //         context.token.notify(CallbackType.showAvailableVars);
+    //     }
+    // }
 }

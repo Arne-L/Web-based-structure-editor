@@ -118,7 +118,7 @@ export class Module {
             Hole.disableEditableHoleOutlines();
             Hole.disableVarHighlights();
             Hole.outlineTextEditableHole(c);
-            Hole.highlightValidVarHoles(c);
+            // Hole.highlightValidVarHoles(c); // TODO: TEMPORARILY DISABLED
         });
 
         // this.focus.subscribeOnNavChangeCallback((c: Context) => {
@@ -509,7 +509,7 @@ export class Module {
         const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
         replacedItem = new TypedEmptyExpr(
-            replaceType !== null ? [replaceType] : [DataType.Any] /*root.typeOfHoles[item.indexInRoot]*/
+            replaceType !== null ? [replaceType] : [DataType.Any], root, item.indexInRoot, root.holeTypes.get(item.indexInRoot)
         );
 
         if (allowedTypes.length > 0) replacedItem.type = allowedTypes;

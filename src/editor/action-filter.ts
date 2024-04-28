@@ -52,7 +52,7 @@ export class ActionFilter {
         for (const action of Actions.instance().actionsList) {
             if (action.containsReference) {
                 const nearestStmt = context.lineStatement;
-                const scope = context.lineStatement.getNearestScope();
+                const scope = nearestStmt.getNearestScope();
                 const references = scope.getValidReferences(nearestStmt.getFirstLineNumber());
                 for (const reference of references) {
                     // Update the match string and regex if the action contains a reference
@@ -214,7 +214,7 @@ export class ActionFilter {
     getProcessedInsertionsList(): EditCodeAction[] {
         const inserts: EditCodeAction[] = [];
         inserts.push(...this.getProcessedConstructInsertions());
-        inserts.push(...this.getProcessedEditInsertions());
+        // inserts.push(...this.getProcessedEditInsertions()); // Currently always empty
         // inserts.push(...this.getProcessedVariableInsertions());
         // inserts.push(...this.getProcessedVariableOperations());
 

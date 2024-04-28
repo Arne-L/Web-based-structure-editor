@@ -175,6 +175,8 @@ export class ConstructHighlight extends CodeHighlight {
         //instanceof Token does not have lineNumber
         let lineNumber = this.code.getFirstLineNumber();
 
+        console.log("Updating dimensions", this.domElement)
+
         let top = 0;
         let left = 0;
         let width = 0;

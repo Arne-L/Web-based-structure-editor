@@ -478,7 +478,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (context.token === null) return false;
-        if (!this.atEmptyExpressionHole) return false;
+        if (!this.atEmptyHole) return false;
 
         return true;
     }
@@ -504,6 +504,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const rootNode = context.token.rootNode as Statement;
 
+        // Only deletable if all its tokens are either a hole, non-editable token or an identifier
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
                 !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
@@ -532,10 +533,12 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const rootNode = context.token.rootNode as CodeConstruct;
 
+        // Only deletable if all its tokens are either a hole, non-editable token or an identifier
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
                 !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
-                !(rootNode.tokens[i] instanceof NonEditableTkn)
+                !(rootNode.tokens[i] instanceof NonEditableTkn) &&
+                !(rootNode.tokens[i] instanceof IdentifierTkn)
                 // && !(rootNode.tokens[i] instanceof OperatorTkn)
             )
                 return false;
@@ -756,25 +759,25 @@ export class Validator {
         return providedContext.tokenToLeft instanceof NonEditableTkn;
     }
 
-    /**
-     * Checks if the cursor is in a hole of an assignment statement
-     *
-     * @param providedContext
-     * @returns true if the cursor is in a hole of an assignment statement, false otherwise
-     */
-    shouldDeleteVarAssignmentOnHole(providedContext?: Context): boolean {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
+    // /**
+    //  * Checks if the cursor is in a hole of an assignment statement
+    //  *
+    //  * @param providedContext
+    //  * @returns true if the cursor is in a hole of an assignment statement, false otherwise
+    //  */
+    // shouldDeleteVarAssignmentOnHole(providedContext?: Context): boolean {
+    //     const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (context.token instanceof TypedEmptyExpr && context.selected) {
-            const root = context.token.rootNode;
+    //     if (context.token instanceof TypedEmptyExpr && context.selected) {
+    //         const root = context.token.rootNode;
 
-            if (root instanceof GeneralStatement && root.containsAssignments()) {
-                return true; // this.module.variableController.isVarStmtReassignment(root, this.module);
-            }
-        }
+    //         if (root instanceof GeneralStatement && root.containsAssignments()) {
+    //             return true; // this.module.variableController.isVarStmtReassignment(root, this.module);
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     // shouldDeleteHole(providedContext?: Context): boolean {
     //     const context = providedContext ? providedContext : this.module.focus.getContext();
@@ -1011,7 +1014,7 @@ export class Validator {
         );
     }
 
-    atEmptyExpressionHole(providedContext?: Context): boolean {
+    atEmptyHole(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return context.selected && context?.token?.isEmpty && context.token instanceof TypedEmptyExpr;
@@ -1021,6 +1024,25 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return false; //context.selected && context?.token?.isEmpty && context.token instanceof EmptyOperatorTkn;
+    }
+
+    /**
+     * Check if the current context is at a hole of the given type
+     * This is an extension of {@link atEmptyHole} that also checks the type of the hole
+     * 
+     * @param providedContext - The current context
+     * @param type - The type of the construct to insert
+     * @returns True if the current context is at a hole of the given type, false otherwise
+     */
+    atHoleWithType(providedContext?: Context, type?: string): boolean {
+        const context = providedContext ? providedContext : this.module.focus.getContext();
+
+        return (
+            context.selected &&
+            context?.token?.isEmpty &&
+            context.token instanceof TypedEmptyExpr &&
+            context.token.allowedType === type
+        );
     }
 
     // insideFormattedString(providedContext?: Context): boolean {
