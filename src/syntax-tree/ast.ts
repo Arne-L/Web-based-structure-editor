@@ -271,27 +271,14 @@ export abstract class CodeConstruct extends Construct {
         // Notify the token being replaced
         const toReplace = this.tokens[index];
 
-        if (toReplace) {
-            toReplace.notify(CallbackType.delete);
-
-            if (!(toReplace instanceof Token)) {
-                (toReplace as Expression).tokens.forEach((token) => {
-                    if (token instanceof Token) {
-                        token.notify(CallbackType.delete);
-                    }
-                });
-            }
-        }
+        if (toReplace) toReplace.notify(CallbackType.delete);
 
         // prepare the new Node
         code.rootNode = this;
         code.indexInRoot = index;
 
         // prepare to rebuild siblings and root (recursively)
-        let rebuildColumn: number;
-
-        if (this.tokens[index] instanceof Token) rebuildColumn = this.tokens[index].leftCol;
-        else rebuildColumn = (this.tokens[index] as Expression).leftCol;
+        const rebuildPos = this.tokens[index].left;
 
         // replace
         //TODO: Update focus here? It is good up until now. But once the new construct is inserted, it is not being focused.
@@ -299,7 +286,7 @@ export abstract class CodeConstruct extends Construct {
         this.tokens[index] = code;
 
         // if (rebuildColumn) this.rebuild(new Position(this.lineNumber, rebuildColumn), index);
-        if (rebuildColumn) ASTManupilation.rebuild(code, new Position(this.lineNumber, rebuildColumn));
+        if (rebuildPos) ASTManupilation.rebuild(code, rebuildPos);
 
         // this.updateHasEmptyToken(code);
 

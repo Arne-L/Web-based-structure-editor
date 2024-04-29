@@ -1,10 +1,10 @@
 import { Position, Range } from "monaco-editor";
-import { InsertionResult } from "../editor/action-filter";
 import { Context } from "../editor/focus";
-import { isImportable } from "../utilities/util";
 import {
+    CodeConstruct,
     CompoundConstruct,
     Construct,
+    GeneralExpression,
     // Expression,
     GeneralStatement,
     // EmptyOperatorTkn,
@@ -15,7 +15,6 @@ import {
 } from "./ast";
 import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
-import { InsertionType } from "./consts";
 import { Module } from "./module";
 
 export namespace ASTManupilation {
@@ -48,6 +47,8 @@ export namespace ASTManupilation {
                     `insertConstruct(${context}, ${construct}): When inserting a token in the AST, the context was not valid for insertion`
                 );
             }
+        } else if (construct instanceof GeneralExpression) {
+
         } else if (construct instanceof GeneralStatement) {
             // Currently for expressions and statements
 
@@ -157,6 +158,50 @@ export namespace ASTManupilation {
             // Add code construct to Monaco editor
             module.editor.insertAtCurPos([code]);
         }
+    }
+
+    function replaceWith(constructToReplace: Construct, newConstruct: Construct) {
+        const module = Module.instance;
+
+        // Removing draft mode message if there is one
+        // TODO: Will this still be the case in the future?
+        if (constructToReplace.message) {
+            // Original TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
+            module.messageController.removeMessageFromConstruct(constructToReplace);
+        }
+
+        // Optional
+        // if (!(context.token instanceof TypedEmptyExpr)) return;
+
+        const root = constructToReplace.rootNode as CodeConstruct;
+
+        // Set the same root node and indexInRoot as the construct that is being replaced
+        newConstruct.rootNode = root;
+        newConstruct.indexInRoot = constructToReplace.indexInRoot;
+        // Replace construct
+        root.tokens[constructToReplace.indexInRoot] = newConstruct;
+
+        // TODO: Scoping
+        // if (newConstruct.hasScope()) newConstruct.scope.parentScope = bodyContainer.scope;
+
+        // Rebuild everything that comes after the statement that is being replaced
+        const rebuildPos = constructToReplace.left;
+        if (rebuildPos) ASTManupilation.rebuild(newConstruct, rebuildPos);
+
+        // Notify the root that a replacement has taken place
+        root.notify(CallbackType.replace);
+
+        // Current range
+        const range = new Range(
+            constructToReplace.left.lineNumber,
+            constructToReplace.leftCol,
+            constructToReplace.right.lineNumber,
+            constructToReplace.rightCol
+        );
+
+        // Update the Monaco editor with the new statement
+        module.editor.executeEdits(range, newConstruct);
+        module.focus.updateContext(newConstruct.getInitialFocus());
     }
 
     function insertExpression(context: Context, code: Construct) {

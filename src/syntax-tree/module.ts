@@ -718,15 +718,12 @@ export class Module {
         // Current context
         const context = this.focus.getContext();
 
-        if (context.codeconstruct != null) {
-            // If we currently focussing an expression, replace it with the given expression
-            const root = context.codeconstruct.rootNode as GeneralStatement;
-            root.replace(construct, context.codeconstruct.indexInRoot);
-        } else if (context.token != null) {
-            // If we currently focussing a token, replace it with the given expression
-            const root = context.token.rootNode as GeneralStatement;
-            root.replace(construct, context.token.indexInRoot);
-        }
+        // The construct to replace the focussed construct with
+        // Try first to replace the focussed construct, then the focused token
+        let codeToReplace: Construct = /*context.codeconstruct ??*/ context.token; // Always deleting a EmptyTypedExpr token 
+
+        const root = codeToReplace.rootNode as CodeConstruct;
+        root.replace(construct, codeToReplace.indexInRoot);
     }
 
     closeConstructDraftRecord(code: Construct) {
