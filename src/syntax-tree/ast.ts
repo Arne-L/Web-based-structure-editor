@@ -373,42 +373,8 @@ export abstract class Statement extends CodeConstruct {
         return this.body.length > 0;
     }
 
-    getBoundaries({ selectIndent = false } = {}): Range {
-        // Linenumber of the given construct
-        const lineNumber = this.getFirstLineNumber();
-
-        // If the given construct has a body
-        if (this.hasBody()) {
-            const stmtStack = new Array<Statement>();
-            // Add all the body statements to the stack
-            stmtStack.unshift(...this.body);
-            // Initialize the end line number and column
-            let endLineNumber = 0;
-            let endColumn = 0;
-
-            while (stmtStack.length > 0) {
-                // Pop an element from the stack
-                const curStmt = stmtStack.pop();
-
-                // Add all its sub-statements to the stack
-                if (curStmt instanceof Statement && curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
-
-                // Update the line number and column if necessary
-                if (endLineNumber < curStmt.lineNumber) {
-                    endLineNumber = curStmt.lineNumber;
-                    endColumn = curStmt.rightCol;
-                }
-            }
-
-            // Return the range of the construct
-            return new Range(lineNumber, this.leftCol, endLineNumber, endColumn);
-            // } else if (this instanceof Statement || this instanceof Token) {
-        } else {
-            // If the indent (one indent) has to be included in the selection range
-            if (selectIndent) {
-                return new Range(this.left.lineNumber, this.leftCol - TAB_SPACES, this.right.lineNumber, this.rightCol);
-            } else return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
-        }
+    getBoundaries(): Range {
+        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
@@ -1103,14 +1069,9 @@ export abstract class Token extends Construct {
         this.text = text;
     }
 
-    getBoundaries({ selectIndent = false } = {}): Range {
-        // Linenumber of the given construct
-        const lineNumber = this.getFirstLineNumber();
-
+    getBoundaries(): Range {
         // If the indent (one indent) has to be included in the selection range
-        if (selectIndent) {
-            return new Range(lineNumber, this.leftCol - TAB_SPACES, lineNumber, this.rightCol);
-        } else return new Range(lineNumber, this.leftCol, lineNumber, this.rightCol);
+        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     getNearestScope(): Scope {
