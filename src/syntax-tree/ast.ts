@@ -2028,6 +2028,7 @@ export class CompoundConstruct extends CodeConstruct {
             const range = new Range(token.left.lineNumber, token.leftCol, token.left.lineNumber, token.leftCol);
             Module.instance.editor.executeEdits(range, token);
         });
+        Module.instance.focus.updateContext(this.getConstructsFocus(this.tokens.slice(initLength)));
     }
 
     getBoundaries(): Range {
@@ -2041,11 +2042,22 @@ export class CompoundConstruct extends CodeConstruct {
     getInitialFocus(): UpdatableContext {
         // Maybe rewrite such that if you don't need to check for empty tokens explicitly, but
         // by using the output of the getInitialFocus of the tokens
-        for (let token of this.tokens) {
+        // for (let token of this.tokens) {
+        //     if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
+        //     if (token instanceof CodeConstruct && token.hasEmptyToken) return token.getInitialFocus();
+        // }
+        // return { positionToMove: this.right };
+        return this.getConstructsFocus(this.tokens);
+    }
+
+    private getConstructsFocus(constructs: Construct[]): UpdatableContext { 
+        // Maybe generalise this to something in which you give a position and it
+        // searches for the first valid focus position after the given position?
+        for (let token of constructs) {
             if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
             if (token instanceof CodeConstruct && token.hasEmptyToken) return token.getInitialFocus();
         }
-        return { positionToMove: this.right };
+        return { positionToMove: constructs[constructs.length - 1].right };
     }
 
     getRenderText(): string {
