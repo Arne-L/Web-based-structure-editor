@@ -2105,8 +2105,7 @@ export class CompoundConstruct extends CodeConstruct {
         // rebuild siblings:
         for (let i = fromIndex; i < this.tokens.length; i++) {
             this.tokens[i].indexInRoot = i;
-            if (this.tokens[i] instanceof Token) curPos = this.tokens[i].build(curPos);
-            else curPos = (this.tokens[i] as Expression).build(curPos);
+            curPos = this.tokens[i].build(curPos);
         }
 
         // The right position of the last token is the right position of the construct
