@@ -1188,8 +1188,7 @@ export abstract class Token extends Construct {
     }
 
     getFirstLineNumber(): number {
-        if (this.rootNode instanceof Statement) return this.rootNode.getFirstLineNumber();
-        else return (this.rootNode as Expression).getFirstLineNumber();
+        return this.left.lineNumber;
     }
 
     getNearestCodeConstruct(): CodeConstruct {

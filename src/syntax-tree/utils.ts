@@ -2,7 +2,6 @@ import { Position, Range } from "monaco-editor";
 import { Context } from "../editor/focus";
 import {
     CodeConstruct,
-    CompoundConstruct,
     Construct,
     GeneralExpression,
     // Expression,
@@ -112,29 +111,28 @@ export namespace ASTManupilation {
     function insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
         const module = Module.instance;
 
+        // console.log("InsertToken", context.token, context)
+
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
         if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
-            if (context.codeconstruct != null) {
-                // Get the parent of the expression
-                const root = context.codeconstruct.rootNode as Statement; // Statement or any of its derived classes
-                // Replace in the parent the expression with the given token
-                root.replace(code, context.codeconstruct.indexInRoot);
-                // If there is not a focused expression but there is a focused token
-            } else if (context.token != null) {
-                // Get the parent of the token
-                const root = context.token.rootNode as Statement;
-                // Replace in the parent the token with the given token
-                root.replace(code, context.token.indexInRoot);
+            let focusedConstruct = context.codeconstruct ?? context.token; // Will it not always be context.token? As we are replacing the TypedEmptyExpr tkn?
+            
+            if (focusedConstruct) {
+                const root = focusedConstruct.rootNode;
+                root.replace(code, focusedConstruct.indexInRoot);
             }
 
             // Get the range of the focused token
             const range = new Range(
-                context.position.lineNumber,
-                context.token.leftCol,
-                context.position.lineNumber,
-                context.token.rightCol
+                focusedConstruct.left.lineNumber,
+                focusedConstruct.leftCol,
+                focusedConstruct.right.lineNumber,
+                focusedConstruct.rightCol
             );
+
+            console.log("Token range", range.toString());
+            console.log("Code boundaries", code.getSelection().toString(), code)
 
             // Update the Monaco editor with the given token
             module.editor.executeEdits(range, code);
@@ -283,7 +281,7 @@ export namespace ASTManupilation {
             leftPos = rebuild(construct.rootNode, leftPos, { rebuildConstruct: false });
             // If the parent is a module, rebuild all constructs following the given construct
             // But now looking in the body instead of the tokens, as this is currently programmed like that
-        } 
+        }
         // else {
         //     const rootTokens = construct.rootNode.body;
         //     for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {

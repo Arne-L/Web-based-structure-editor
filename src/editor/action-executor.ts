@@ -1166,6 +1166,7 @@ export class ActionExecutor {
         if (context.tokenToLeft instanceof AutocompleteTkn) token = context.tokenToLeft;
         if (context.tokenToRight instanceof AutocompleteTkn) token = context.tokenToRight;
 
+        console.log("DeleteAutoCompleteOnMatch", token, token.getBoundaries().toString())
         // If an autocomplete token is found
         if (token) {
             switch (token.autocompleteType) {
