@@ -22,10 +22,8 @@ import {
     TypedEmptyExpr,
 } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
-import { Reference } from "../syntax-tree/scope";
-import { VariableController } from "../syntax-tree/variable-controller";
 import { isImportable } from "../utilities/util";
-import { BinaryOperator, InsertionType, UnaryOperator } from "./../syntax-tree/consts";
+import { BinaryOperator, UnaryOperator } from "./../syntax-tree/consts";
 import { Context } from "./focus";
 
 /**
@@ -820,7 +818,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (context.lineStatement.lineNumber > 2) {
-            const lineAbove = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
+            const lineAbove = this.module.focus.getCodeConstructAtLineNumber(context.lineStatement.lineNumber - 1);
 
             return context.lineStatement.leftCol < lineAbove.leftCol;
         }
@@ -1029,7 +1027,7 @@ export class Validator {
     /**
      * Check if the current context is at a hole of the given type
      * This is an extension of {@link atEmptyHole} that also checks the type of the hole
-     * 
+     *
      * @param providedContext - The current context
      * @param type - The type of the construct to insert
      * @returns True if the current context is at a hole of the given type, false otherwise
@@ -1083,7 +1081,7 @@ export class Validator {
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
      */
-    getPrevSiblingOf(statement: Statement): Statement {
+    getPrevSiblingOf(statement: Statement): CodeConstruct {
         // Statement is the first statement in the root's body
         if (statement.indexInRoot == 0) return null;
         return this.getStatementInBody(statement.rootNode, statement.indexInRoot - 1);
@@ -1096,7 +1094,7 @@ export class Validator {
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
      */
-    getNextSiblingOf(statement: Statement): Statement {
+    getNextSiblingOf(statement: Statement): CodeConstruct {
         // Statement is the last statement in the root's body
         if (statement.indexInRoot == statement.rootNode.body.length - 1) return null;
         return this.getStatementInBody(statement.rootNode, statement.indexInRoot + 1);
@@ -1109,52 +1107,46 @@ export class Validator {
      * @returns - The parent of the given statement, or null if the given statement
      * is of the {@link Module} type
      */
-    getParentOf(statement: Statement): Statement {
+    getParentOf(statement: Statement): CodeConstruct {
         if (statement.rootNode instanceof Module) return null;
         return statement.rootNode;
     }
 
-    private getPrevSibling(providedContext?: Context): Statement {
+    private getPrevSibling(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.getStatementInBody(
-            context?.lineStatement?.rootNode as Statement | Module,
-            context?.lineStatement?.indexInRoot - 1
-        );
+        return this.getStatementInBody(context?.lineStatement?.rootNode, context?.lineStatement?.indexInRoot - 1);
     }
 
-    private getNextSibling(providedContext?: Context): Statement {
+    private getNextSibling(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.getStatementInBody(
-            context?.lineStatement?.rootNode as Statement | Module,
-            context?.lineStatement?.indexInRoot + 1
-        );
+        return this.getStatementInBody(context?.lineStatement?.rootNode, context?.lineStatement?.indexInRoot + 1);
     }
 
-    private getNextSiblingOfRoot(providedContext?: Context): Statement {
+    private getNextSiblingOfRoot(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const curRoot = context?.lineStatement?.rootNode;
 
-        if (curRoot instanceof Statement) {
-            return this.getStatementInBody(curRoot.rootNode as Statement | Module, curRoot.indexInRoot + 1);
+        if (curRoot instanceof CodeConstruct) {
+            return this.getStatementInBody(curRoot.rootNode, curRoot.indexInRoot + 1);
         }
 
         return null;
     }
 
-    private getPrevSiblingOfRoot(providedContext?: Context): Statement {
+    private getPrevSiblingOfRoot(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const curRoot = context?.lineStatement?.rootNode;
 
         if (curRoot instanceof Statement) {
-            return this.getStatementInBody(curRoot.rootNode as Statement | Module, curRoot.indexInRoot - 1);
+            return this.getStatementInBody(curRoot.rootNode, curRoot.indexInRoot - 1);
         }
 
         return null;
     }
 
-    private getStatementInBody(bodyContainer: Statement | Module, index: number): Statement {
+    private getStatementInBody(bodyContainer: CodeConstruct, index: number): CodeConstruct {
         if (index >= 0 && index < bodyContainer.body.length) {
             return bodyContainer.body[index];
         }
@@ -1163,18 +1155,18 @@ export class Validator {
     }
 
     // FFD
-    private getLineBelow(providedContext?: Context): Statement {
+    private getLineBelow(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.module.focus.getConstructAtLineNumber(context?.lineStatement?.lineNumber + 1);
+        return this.module.focus.getCodeConstructAtLineNumber(context?.lineStatement?.lineNumber + 1);
     }
 
-    private getLineAbove(providedContext?: Context): Statement {
+    private getLineAbove(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         const curLineNumber = context?.lineStatement?.lineNumber;
 
-        if (curLineNumber > 1) return this.module.focus.getConstructAtLineNumber(curLineNumber - 1);
+        if (curLineNumber > 1) return this.module.focus.getCodeConstructAtLineNumber(curLineNumber - 1);
 
         return null;
     }

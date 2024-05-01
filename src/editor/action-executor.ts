@@ -86,14 +86,14 @@ export class ActionExecutor {
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
                 const statement = createFinalConstruct(action);
-                console.log("Final construct: ", statement);
 
                 // Probably best to use this to get the final construct text to compare against
                 // in the suggestion controller
                 // statement.getRenderText()
 
                 // Will always be needed?
-                this.replaceEmptyStatement(context.lineStatement, statement);
+                // this.replaceEmptyStatement(context.lineStatement, statement);
+                ASTManupilation.insertConstruct(context, statement);
 
                 // Green background on insertion
                 if (flashGreen) this.flashGreen(action.data?.statement);
@@ -247,7 +247,9 @@ export class ActionExecutor {
                 let range: Range;
 
                 if (action.data?.pressedBackspace) {
-                    const lineAbove = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
+                    const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
+                        context.lineStatement.lineNumber - 1
+                    );
                     this.module.focus.updateContext({
                         positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
                     });
@@ -281,7 +283,7 @@ export class ActionExecutor {
 
             // Partly language independent
             case EditActionType.DeletePrevLine: {
-                const prevLine = this.module.focus.getConstructAtLineNumber(context.lineStatement.lineNumber - 1);
+                const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.lineStatement.lineNumber - 1);
 
                 if (prevLine.leftCol != context.lineStatement.leftCol) {
                     // Indent the current line
@@ -492,7 +494,10 @@ export class ActionExecutor {
                     let removableExpr: Construct = null;
 
                     // If the current expression is atomic (has no subexpressions or editable token)
-                    if (context.codeconstruct instanceof GeneralStatement && context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/) {
+                    if (
+                        context.codeconstruct instanceof GeneralStatement &&
+                        context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/
+                    ) {
                         removableExpr = context.codeconstruct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
@@ -989,7 +994,7 @@ export class ActionExecutor {
                         break;
                     }
                 }
-                
+
                 // Replace the expression with the replacement token
                 this.replaceCode(rootNode, replacementTkn);
                 break;
@@ -1434,7 +1439,7 @@ export class ActionExecutor {
      * @param emptyLine - The empty line statement to replace
      * @param statement - The statement to replace the empty line with
      */
-    private replaceEmptyStatement(emptyLine: Statement, statement: Statement) {
+    private replaceEmptyStatement(emptyLine: any /*Statement*/, statement: Statement) {
         // Get the root of the empty line
         const root = emptyLine.rootNode as Statement | Module;
 

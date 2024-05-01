@@ -1,5 +1,5 @@
 import { Context } from "../editor/focus";
-import { GeneralStatement, Statement } from "./ast";
+import { CodeConstruct, Construct, GeneralStatement, Statement } from "./ast";
 import { Module } from "./module";
 
 export namespace ValidatorNameSpace {
@@ -177,9 +177,9 @@ export namespace ValidatorNameSpace {
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
      */
-    function getNextSiblingOf(statement: Statement): Statement {
+    function getNextSiblingOf(statement: CodeConstruct): CodeConstruct {
         // Statement is the last statement in the root's body
-        if (statement.indexInRoot == statement.rootNode.body.length - 1) return null;
+        if (statement.indexInRoot === statement.rootNode?.tokens.length - 1) return null;
         return getStatementInBody(statement.rootNode, statement.indexInRoot + 1);
     }
 
@@ -190,9 +190,9 @@ export namespace ValidatorNameSpace {
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
      */
-    function getPrevSiblingOf(statement: Statement): Statement {
+    function getPrevSiblingOf(statement: CodeConstruct): CodeConstruct {
         // Statement is the first statement in the root's body
-        if (statement.indexInRoot == 0) return null;
+        if (statement.indexInRoot === 0) return null;
         return getStatementInBody(statement.rootNode, statement.indexInRoot - 1);
     }
 
@@ -203,14 +203,14 @@ export namespace ValidatorNameSpace {
      * @returns - The parent of the given statement, or null if the given statement
      * is of the {@link Module} type
      */
-    function getParentOf(statement: Statement): Statement {
+    function getParentOf(statement: CodeConstruct): CodeConstruct {
         if (statement.rootNode instanceof Module) return null;
         return statement.rootNode;
     }
 
-    function getStatementInBody(bodyContainer: Statement | Module, index: number): Statement {
-        if (index >= 0 && index < bodyContainer.body.length) {
-            return bodyContainer.body[index];
+    function getStatementInBody(bodyContainer: CodeConstruct, index: number): CodeConstruct {
+        if (index >= 0 && index < bodyContainer?.tokens.length) {
+            return bodyContainer.tokens[index] as CodeConstruct; // TODO: NOT OKAY
         }
 
         return null;

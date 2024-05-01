@@ -368,7 +368,7 @@ export class Editor {
      * @param statement - The statement to indent
      * @param param1 - { backward: boolean } - Whether to indent to the left or right
      */
-    indentRecursively(statement: Statement, { backward = false }) {
+    indentRecursively(statement: CodeConstruct, { backward = false }) {
         // Indent the given statement to the left or right
         this.module.editor.executeEdits(
             new Range(
@@ -383,7 +383,7 @@ export class Editor {
 
         // If the statement has a body, indent the body as well (recursively)
         if (statement.hasBody()) {
-            const stmtStack = new Array<Statement>();
+            const stmtStack = new Array<CodeConstruct>();
 
             stmtStack.unshift(...statement.body);
 
@@ -433,7 +433,7 @@ export class Editor {
         const x = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.startColumn);
         const y = this.monaco.getTopForLineNumber(selection.startLineNumber);
 
-        const width = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.endColumn) - x;
+        const width = this.monaco.getOffsetForColumn(selection.endLineNumber, selection.endColumn) - x;
         const height = this.computeCharHeight();
 
         return { x, y, width, height };

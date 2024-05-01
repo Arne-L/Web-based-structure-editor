@@ -11,6 +11,7 @@ import { Context, Focus } from "../editor/focus";
 import { Hole } from "../editor/hole";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
+import { initialConstructDef } from "../language-definition/parser";
 import { ERROR_HIGHLIGHT_COLOUR, TAB_SPACES } from "../language-definition/settings";
 import { MessageController } from "../messages/message-controller";
 import { NotificationManager } from "../messages/notifications";
@@ -34,6 +35,7 @@ import {
 } from "./ast";
 import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
+import { SyntaxConstructor } from "./constructor";
 import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";
 import { Language } from "./language";
 import { Scope } from "./scope";
@@ -45,6 +47,7 @@ import { VariableController } from "./variable-controller";
  */
 export class Module {
     body = new Array<Statement>();
+    compoundConstruct: Construct;
     focus: Focus;
     validator: Validator;
     executer: ActionExecutor;
@@ -102,6 +105,19 @@ export class Module {
 
         // Load the constructs and settings from JSON files
         this.toolboxController.loadToolboxFromJson();
+        // Initialise the editors starting construct
+        // The starting construct needs to be a CodeConstruct (needs to contain tokens)
+        this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON([initialConstructDef], null)[0];
+        this.compoundConstruct.build(new Position(1, 1));
+        const range = new Range(
+            this.compoundConstruct.left.lineNumber,
+            this.compoundConstruct.leftCol,
+            this.compoundConstruct.right.lineNumber,
+            this.compoundConstruct.rightCol
+        );
+        this.editor.executeEdits(range, this.compoundConstruct);
+        this.focus.updateContext(this.compoundConstruct.getInitialFocus());
+        
         // Add the tooltips to each of the toolbox buttons
         this.toolboxController.addTooltips();
 
@@ -147,13 +163,13 @@ export class Module {
         });
 
         // Add the starting empty line to the body
-        this.body.push(new EmptyLineStmt(this, 0));
-        this.scope = new Scope();
-        this.body[0].build(new Position(1, 1));
+        // this.body.push(new EmptyLineStmt(this, 0));
+        // this.scope = new Scope();
+        // this.body[0].build(new Position(1, 1));
 
         // Select the empty line as the current focus
-        this.focus.updateContext({ tokenToSelect: this.body[0] });
-        this.editor.monaco.focus();
+        // this.focus.updateContext({ tokenToSelect: this.body[0] });
+        // this.editor.monaco.focus();
 
         // Bunch of class instances being created
         this.eventRouter = new EventRouter(this);
@@ -208,7 +224,7 @@ export class Module {
      *
      * @param stmt - The statement to be indented back / to the left
      */
-    indentBackStatement(stmt: Statement) {
+    indentBackStatement(stmt: CodeConstruct) {
         // The parent statement
         const root = stmt.rootNode;
 
@@ -248,8 +264,8 @@ export class Module {
                 // outerRoot.scope.references.push(new Reference(stmt, outerRoot.scope));
 
                 // If the statement contains assignments, push them to their parent scope
-                if (stmt instanceof GeneralStatement && stmt.containsAssignments())
-                    root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
+                // if (stmt instanceof GeneralStatement && stmt.containsAssignments())
+                //     root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
             } else {
                 // The current statement has a body
 
@@ -268,7 +284,7 @@ export class Module {
                 }
 
                 // Set the parent scope of the current statement to the parent of the parent
-                removedItem[0].scope.parentScope = outerRoot.scope;
+                // removedItem[0].scope.parentScope = outerRoot.scope;
 
                 // Add the statement to the body of the parent of the parent
                 outerRoot.body.splice(root.indexInRoot + 1, 0, ...removedItem);
@@ -278,7 +294,7 @@ export class Module {
         }
     }
 
-    indentForwardStatement(stmt: Statement) {
+    indentForwardStatement(stmt: CodeConstruct) {
         // The parent statement
         const root = stmt.rootNode;
 
@@ -298,7 +314,7 @@ export class Module {
                 // If the current statement does not have a body
 
                 // Add current statement to the body of the statement above
-                aboveMultilineStmt.body.push(removedItem[0]);
+                // aboveMultilineStmt.body.push(removedItem[0]);
                 // Update the positions of the statements recursively
                 rebuildBody(this, 0, 1);
 
@@ -318,7 +334,7 @@ export class Module {
                 // All statements contained in the body of the current statement need to be indented
                 // as well
                 const stmtStack = new Array<Statement>();
-                stmtStack.unshift(...removedItem[0].body);
+                // stmtStack.unshift(...removedItem[0].body);
 
                 while (stmtStack.length > 0) {
                     const curStmt = stmtStack.pop();
@@ -330,12 +346,13 @@ export class Module {
                 }
 
                 // Add current statement to the body of the statement above
-                aboveMultilineStmt.body.push(removedItem[0]);
+                // aboveMultilineStmt.body.push(removedItem[0]);
                 rebuildBody(this, 0, 1);
 
                 // Set the parent scope of the current statement to the scope of the original
                 // previous statement
-                stmt.scope.parentScope = aboveMultilineStmt.scope;
+                // TODO: FIX LATER
+                // stmt.scope.parentScope = aboveMultilineStmt.scope;
             }
         }
     }
@@ -364,7 +381,7 @@ export class Module {
      * @param statement - The statement to be indented
      * @param backwards - Whether to indent backwards or forwards
      */
-    indentConstruct(statement: Statement, backwards: boolean) {
+    indentConstruct(statement: CodeConstruct, backwards: boolean) {
         // Performs the indentation of the last statement in the body
         this.editor.indentRecursively(statement, { backward: backwards });
         // Restructures the AST to following the new indentation
@@ -437,7 +454,7 @@ export class Module {
      *
      * @param line - The line to be removed without replacing it with an empty line
      */
-    deleteLine(line: Statement) {
+    deleteLine(line: Construct) {
         const root = line.rootNode;
 
         if (root instanceof Module || root instanceof GeneralStatement) {
@@ -467,7 +484,6 @@ export class Module {
         // If the construct to delete is a expression
         else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
 
-        console.log("DeleteCode", replacement);
         // Replace all characters in the Monaco editor with the replacement construct
         this.editor.executeEdits(replacementRange, replacement);
         // Update the focus context
@@ -509,7 +525,10 @@ export class Module {
         const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
         replacedItem = new TypedEmptyExpr(
-            replaceType !== null ? [replaceType] : [DataType.Any], root, item.indexInRoot, root.holeTypes.get(item.indexInRoot)
+            replaceType !== null ? [replaceType] : [DataType.Any],
+            root,
+            item.indexInRoot,
+            root.holeTypes.get(item.indexInRoot)
         );
 
         if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
@@ -605,10 +624,8 @@ export class Module {
     insertEmptyLine(): EmptyLineStmt {
         // Current cursor position
         const curPos = this.editor.monaco.getPosition();
-        console.log("Current position: ", curPos.lineNumber, curPos.column);
         // The statement in / at which the cursor is currently located
         const curStmt = this.focus.getFocusedStatement();
-        console.log("Current statement: ", curStmt);
         // Parent of the current statement
         const curRoot = curStmt.rootNode;
 
@@ -658,7 +675,8 @@ export class Module {
 
         if (curPos.column == leftPosToCheck) {
             // insert emptyStatement at this line, move other statements down
-            const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot);
+            // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot);
+            const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot);
 
             emptyLine.build(curStmt.getLeftPosition());
 
@@ -678,7 +696,8 @@ export class Module {
             return emptyLine;
         } else {
             // insert emptyStatement on next line, move other statements down
-            const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
+            // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
+            const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot + 1);
             emptyLine.build(new Position(curStmt.right.lineNumber + 1, leftPosToCheck));
 
             if (parentStmtHasBody && atCompoundStmt) {
@@ -720,7 +739,7 @@ export class Module {
 
         // The construct to replace the focussed construct with
         // Try first to replace the focussed construct, then the focused token
-        let codeToReplace: Construct = /*context.codeconstruct ??*/ context.token; // Always deleting a EmptyTypedExpr token 
+        let codeToReplace: Construct = /*context.codeconstruct ??*/ context.token; // Always deleting a EmptyTypedExpr token
 
         const root = codeToReplace.rootNode as CodeConstruct;
         root.replace(construct, codeToReplace.indexInRoot);

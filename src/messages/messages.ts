@@ -175,8 +175,6 @@ export class ConstructHighlight extends CodeHighlight {
         //instanceof Token does not have lineNumber
         let lineNumber = this.code.getFirstLineNumber();
 
-        console.log("Updating dimensions", this.domElement)
-
         let top = 0;
         let left = 0;
         let width = 0;
@@ -320,7 +318,7 @@ export class HoverMessage extends InlineMessage {
 
         //set the initial position
         const currentLinePosition = nova.focus
-            .getConstructAtLineNumber(this.code.getFirstLineNumber())
+            .getCodeConstructAtLineNumber(this.code.getFirstLineNumber())
             .getRightPosition();
         this.domElement.style.top = `${(this.selection.startLineNumber - 1) * this.editor.computeCharHeight()}px`; // 0 is the line below this.code, -1 is this.code's line, -2 is the line above this.code
         this.domElement.style.left = `${

@@ -19,7 +19,7 @@ export abstract class Construct {
     /**
      * The parent/root node for this code-construct. Statements are the only code construct that could have the Module as their root node.
      */
-    rootNode: Construct | Module;
+    rootNode: CodeConstruct;
 
     /**
      * The index this item has inside its root's body, or its tokens array.
@@ -156,15 +156,13 @@ export abstract class Construct {
      * Returns a `Selection` object for this particular code-construct when it is selected
      */
     getSelection(): Selection {
-        const line = this.getFirstLineNumber();
-
-        return new Selection(line, this.rightCol, line, this.leftCol);
+        return new Selection(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     /**
      * Returns the parent statement of this code-construct (an element of the Module.body array).
      */
-    abstract getNearestStatement(): Statement;
+    abstract getNearestCodeConstruct(): CodeConstruct;
 
     /**
      * Subscribes a callback to be fired when the this code-construct is changed (could be a change in its children tokens or the body)
@@ -262,6 +260,11 @@ export abstract class CodeConstruct extends Construct {
      */
     holeTypes: Map<number, string> = new Map<number, string>();
 
+    // TODO: TEMP - REMOVE IN THE FUTURE
+    body: Array<CodeConstruct> = new Array<CodeConstruct>();
+    // TODO: TEMP
+    hasBody() {return false;}
+
     /**
      * Replaces this node in its root, and then rebuilds the parent (recursively)
      * @param code the new code-construct to replace
@@ -304,13 +307,17 @@ export abstract class CodeConstruct extends Construct {
 
         return text;
     }
+
+    getModule(): Module {
+        return Module.instance;
+    }
 }
 
 /**
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
 export abstract class Statement extends CodeConstruct {
-    rootNode: Statement | Module = null;
+    rootNode: CodeConstruct = null;
     body = new Array<Statement>();
     scope: Scope = null;
     background: CodeBackground = null;
@@ -590,7 +597,7 @@ export abstract class Statement extends CodeConstruct {
      * could update the context to use a general construct and also update
      * this method!
      */
-    getNearestStatement(): Statement {
+    getNearestCodeConstruct(): CodeConstruct {
         return this;
     }
 
@@ -782,7 +789,7 @@ export class GeneralStatement extends Statement {
 
     constructor(
         construct: ConstructDefinition,
-        root?: Statement | Module,
+        root?: CodeConstruct,
         indexInRoot?: number,
         data?: { reference: string }
     ) {
@@ -973,7 +980,7 @@ export class GeneralExpression extends GeneralStatement {
 
     constructor(
         construct: ConstructDefinition,
-        root?: GeneralStatement | Module,
+        root?: CodeConstruct,
         indexInRoot?: number,
         data?: { reference: string }
     ) {
@@ -993,11 +1000,11 @@ export class GeneralExpression extends GeneralStatement {
      *
      * @returns The parent statement of the current expression
      */
-    getNearestStatement(): Statement {
+    getNearestCodeConstruct(): CodeConstruct {
         // Change to GeneralStatement in the future
         if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
         else {
-            return this.rootNode.getNearestStatement();
+            return this.rootNode.getNearestCodeConstruct();
         }
     }
 
@@ -1045,8 +1052,8 @@ export abstract class Expression extends Statement implements Construct {
          */
     }
 
-    getNearestStatement(): Statement {
-        return this.rootNode.getNearestStatement();
+    getNearestCodeConstruct(): CodeConstruct {
+        return this.rootNode.getNearestCodeConstruct();
         /**
          * Generalisatie:
          * if (this.returns) return this.rootNode.getParentStatement(); // If expression
@@ -1157,7 +1164,7 @@ export abstract class Token extends Construct {
         } else {
             const lines = this.text.split("\n");
             const lineDiff = lines.length - 1;
-            const rightCol = (lineDiff > 0 ? this.getNearestStatement().leftCol : pos.column) + lines.at(-1).length;
+            const rightCol = (lineDiff > 0 ? this.getNearestCodeConstruct().leftCol : pos.column) + lines.at(-1).length;
             this.right = new Position(pos.lineNumber + lineDiff, rightCol);
         }
 
@@ -1185,8 +1192,8 @@ export abstract class Token extends Construct {
         else return (this.rootNode as Expression).getFirstLineNumber();
     }
 
-    getNearestStatement(): Statement {
-        return this.rootNode.getNearestStatement();
+    getNearestCodeConstruct(): CodeConstruct {
+        return this.rootNode.getNearestCodeConstruct();
     }
 
     getKeyword(): string {
@@ -1293,7 +1300,7 @@ export class ImportStatement extends Statement {
  * empty intended light blue line. It is also used to represent a currently empty line.
  */
 export class EmptyLineStmt extends Statement {
-    constructor(root?: Statement | Module, indexInRoot?: number) {
+    constructor(root?: CodeConstruct, indexInRoot?: number) {
         super();
 
         this.rootNode = root;
@@ -1518,7 +1525,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
         // Get the parent statement
-        const parentStmt = this.getNearestStatement();
+        const parentStmt = this.getNearestCodeConstruct();
         // Get the nearest scope
         const stmtScope = parentStmt.getNearestScope();
 
@@ -1563,7 +1570,7 @@ export class AssignmentToken extends IdentifierTkn {
         // List of variable reference expressions refering to the current token
         const varRefs: GeneralStatement[] = [];
         // Get the statement containing the token
-        const parentStmt = this.getNearestStatement();
+        const parentStmt = this.getNearestCodeConstruct();
         // Current identifier
         const currentIdentifier = identifierName ?? this.getRenderText();
 
@@ -1612,7 +1619,7 @@ export class AssignmentToken extends IdentifierTkn {
      * assignments to the variable and update the variable references
      */
     onDelete(): void {
-        const parentStmt = this.getNearestStatement();
+        const parentStmt = this.getNearestCodeConstruct();
         const currentScope = parentStmt.getNearestScope();
 
         // Remove the assignment from the nearest scope
@@ -1870,10 +1877,10 @@ export abstract class HoleStructure extends Construct {
         return this.text;
     }
 
-    getNearestStatement(): Statement {
+    getNearestCodeConstruct(): CodeConstruct {
         // TODO: Remove Module check later on
         if (this.rootNode instanceof Module) return null;
-        return this.rootNode.getNearestStatement();
+        return this.rootNode.getNearestCodeConstruct();
     }
 
     /**
@@ -1933,7 +1940,7 @@ export class CompoundConstruct extends CodeConstruct {
     private compoundToken: CompoundFormatDefinition;
     // private nextFormatIndex: number;
 
-    constructor(compoundToken: CompoundFormatDefinition, root?: Construct, indexInRoot?: number) {
+    constructor(compoundToken: CompoundFormatDefinition, root?: CodeConstruct, indexInRoot?: number) {
         super();
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
@@ -1981,10 +1988,10 @@ export class CompoundConstruct extends CodeConstruct {
      * @returns Whether the cursor is at the right position within the compound
      * to continue the expansion of
      */
-    atRightPosition(context: Context): boolean {
+    atRightPosition(highestSubCompoundConsturct: Construct): boolean {
         const formatLength = this.compoundToken.format.length;
         return (
-            context.tokenToLeft.indexInRoot % formatLength === (this.nextFormatIndex - 1 + formatLength) % formatLength
+            highestSubCompoundConsturct.indexInRoot % formatLength === (this.nextFormatIndex - 1 + formatLength) % formatLength
         );
     }
 
@@ -2018,7 +2025,7 @@ export class CompoundConstruct extends CodeConstruct {
         // Execute edits in the monaco editor at the end, as the cursor position will be changed
         // and thus the constructs need to be (re)built first
         this.tokens.slice(initLength).forEach((token) => {
-            const range = new Range(token.lineNumber, token.leftCol, token.lineNumber, token.leftCol);
+            const range = new Range(token.left.lineNumber, token.leftCol, token.left.lineNumber, token.leftCol);
             Module.instance.editor.executeEdits(range, token);
         });
     }
@@ -2059,8 +2066,8 @@ export class CompoundConstruct extends CodeConstruct {
      *
      * @returns The nearest statement, or null if there is no statement
      */
-    getNearestStatement(): Statement {
-        if (this.rootNode instanceof Construct) return this.rootNode.getNearestStatement();
+    getNearestCodeConstruct(): CodeConstruct {
+        return this;
     }
 
     build(pos: Position): Position {

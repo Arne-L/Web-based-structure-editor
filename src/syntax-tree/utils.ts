@@ -23,7 +23,8 @@ export namespace ASTManupilation {
         if (construct instanceof Token) {
             // If on empty line, replace the empty line
             if (module.validator.onEmptyLine(context)) {
-                replaceEmptyStatement(context.lineStatement, new TemporaryStmt(construct));
+                // replaceEmptyStatement(context.lineStatement, new TemporaryStmt(construct));
+                replaceWith(context.lineStatement, new TemporaryStmt(construct));
             }
             // If at empty expression hole, insert the token
             else if (module.validator.atEmptyHole(context)) {
@@ -48,16 +49,21 @@ export namespace ASTManupilation {
                 );
             }
         } else if (construct instanceof GeneralExpression) {
-
+            if (module.validator.onEmptyLine(context)) {
+                replaceWith(context.lineStatement, construct);
+            } else if (module.validator.atEmptyHole(context)) {
+                replaceWith(context.token, construct);
+            }
         } else if (construct instanceof GeneralStatement) {
             // Currently for expressions and statements
 
             // If on empty line, replace the empty line
             if (module.validator.onEmptyLine(context)) {
-                replaceEmptyStatement(context.lineStatement, construct);
+                replaceWith(context.lineStatement, construct);
             }
             // If at empty expression hole, insert the token
             else if (module.validator.atEmptyHole(context)) {
+                replaceWith(context.token, construct);
             }
             // Generalise to anything that can be to the left of a token; MAYBE just say switch to autocomplete or something
             else if (
@@ -190,6 +196,8 @@ export namespace ASTManupilation {
 
         // Notify the root that a replacement has taken place
         root.notify(CallbackType.replace);
+        // Notify the old construct that it has been deleted
+        constructToReplace.notify(CallbackType.delete);
 
         // Current range
         const range = new Range(
@@ -259,9 +267,9 @@ export namespace ASTManupilation {
         if (options.rebuildConstruct) leftPos = construct.build(leftPos);
 
         // If the parent is not a module, rebuild all constructs following the given construct
-        if (!(construct.rootNode instanceof Module)) {
+        if (construct.rootNode) {
             // Get all tokens
-            const rootTokens = (construct.rootNode as GeneralStatement | CompoundConstruct).tokens;
+            const rootTokens = construct.rootNode.tokens;
             // For each of the following constructs, rebuild them
             for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
                 rootTokens[i].indexInRoot = i;
@@ -275,14 +283,15 @@ export namespace ASTManupilation {
             leftPos = rebuild(construct.rootNode, leftPos, { rebuildConstruct: false });
             // If the parent is a module, rebuild all constructs following the given construct
             // But now looking in the body instead of the tokens, as this is currently programmed like that
-        } else {
-            const rootTokens = construct.rootNode.body;
-            for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
-                rootTokens[i].indexInRoot = i;
-                leftPos = rootTokens[i].build(leftPos);
-                rootTokens[i].notify(CallbackType.change);
-            }
-        }
+        } 
+        // else {
+        //     const rootTokens = construct.rootNode.body;
+        //     for (let i = construct.indexInRoot + 1; i < rootTokens.length; i++) {
+        //         rootTokens[i].indexInRoot = i;
+        //         leftPos = rootTokens[i].build(leftPos);
+        //         rootTokens[i].notify(CallbackType.change);
+        //     }
+        // }
 
         // Return the final right position of the last construct built
         return leftPos;

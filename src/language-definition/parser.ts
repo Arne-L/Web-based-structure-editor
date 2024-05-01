@@ -19,6 +19,7 @@ if (languageConfig.recursiveFile)
     recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
 else throw new Error("No recursive file specified in the language configuration file");
 
+export const initialConstructDef = languageConfig.initialConstruct;
 export const globalFormats = new Map(recursiveFormats.map((format) => {
     const { name, ...formatData } = format;
     return [format.name, formatData];

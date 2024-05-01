@@ -19,6 +19,11 @@ export interface LanguageDefinition {
      */
     recursiveFile: string;
     /**
+     * The construct that will be inserted in the editor to start of from
+     * Usually this is some form of body or multi-hole construct.
+     */
+    initialConstruct: FormatDefType;
+    /**
      * A list of (key)words that can / should not be used as identifier names,
      * nested within the reason for which they are reserved. This allows for the
      * creation of multiple categories with a different reason. The reason is

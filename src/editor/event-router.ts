@@ -374,9 +374,9 @@ export class EventRouter {
                 // If the menu is open, select the current suggestion
                 if (this.module.menuController.isMenuOpen()) return new EditAction(EditActionType.SelectMenuSuggestion);
                 // If an empty line can be inserted, insert an empty line
-                else if (this.module.validator.canInsertEmptyLine()) {
-                    return new EditAction(EditActionType.InsertEmptyLine);
-                }
+                // else if (this.module.validator.canInsertEmptyLine()) {
+                //     return new EditAction(EditActionType.InsertEmptyLine);
+                // }
 
                 break;
             }
@@ -426,7 +426,6 @@ export class EventRouter {
 
             // NOT language independent
             default: {
-                console.log(context);
                 // Should be the printable characters (excluding things like arrow keys etc)
                 if (e.key.length !== 1) break;
 
@@ -489,11 +488,11 @@ export class EventRouter {
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
                     return new EditAction(EditActionType.InsertChar);
-                } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
-                    const compound = context.tokenToLeft?.rootNode;
-                    if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
-                        compound.continueExpansion();
-                    break;
+                    // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
+                    //     const compound = context.tokenToLeft?.rootNode;
+                    //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
+                    //         compound.continueExpansion();
+                    //     break;
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
                 } else if (this.module.validator.atEmptyOperatorTkn(context)) {
                     // Return the autocomplete menu for the operator token
@@ -566,6 +565,26 @@ export class EventRouter {
                 }
             }
         }
+
+        // We need to do the following check(s) independent of the case
+        // handled in the switch
+        // TODO: What if multiple compounds to the left? We need to keep checking
+        // until we are at the top of the file / at the root
+        let leftConstruct: ast.Construct = context.tokenToLeft;
+        while (
+            leftConstruct.rootNode.right.equals(this.curPosition) &&
+            !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
+        )
+            leftConstruct = leftConstruct.rootNode;
+        if (leftConstruct.rootNode instanceof ast.CompoundConstruct) {
+            const compound = leftConstruct.rootNode;
+            if (compound.getWaitOnKey() === e.key && compound.atRightPosition(leftConstruct)) compound.continueExpansion();
+        }
+        // if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
+        //     const compound = context.tokenToLeft?.rootNode;
+        //     console.log(compound.getWaitOnKey(), e.key);
+        //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context)) compound.continueExpansion();
+        // }
 
         // No edit action could be matched
         return new EditAction(EditActionType.None);
