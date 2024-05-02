@@ -579,7 +579,7 @@ export class EventRouter {
         if (leftConstruct.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
             if (compound.getWaitOnKey() === e.key && compound.atRightPosition(leftConstruct))
-                compound.continueExpansion();
+                compound.continueExpansion(leftConstruct);
         }
         // if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
         //     const compound = context.tokenToLeft?.rootNode;

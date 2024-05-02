@@ -21,17 +21,19 @@ export namespace SyntaxConstructor {
      *
      * @param formatTokens - The JSON specification of the constructs
      * @param rootConstruct - The parent construct of the new constructs
+     * @param indexInRoot - The index of the construct to create in the parent construct
      * @param data - Additional data that might be needed for the construct.
      * @returns An array of constructs that represent the JSON specification
      */
     export function constructTokensFromJSON(
         formatTokens: FormatDefType[],
         rootConstruct: CodeConstruct,
+        indexInRoot: number,
         data?: any
     ): Construct[] {
         const constructs: Construct[] = [];
         for (const token of formatTokens) {
-            addConstructToken(constructs, token, rootConstruct, data);
+            constructs.push(...constructToken(token, rootConstruct, indexInRoot + constructs.length, data));
         }
         return constructs;
     }
@@ -56,11 +58,13 @@ export namespace SyntaxConstructor {
         data?: any,
         startingConstructs?: Construct[],
         startingIndex?: number,
+        indexInRoot: number = 0,
         initialConstruction = false
     ): Construct[] {
-        const constructs: Construct[] = startingConstructs ?? [];
+        const constructs: Construct[] = [];
+        const finalConstructs = startingConstructs ?? [];
 
-        let i = startingIndex ?? 0;
+        let index = startingIndex ?? 0;
 
         // Stopconditions?
         // 1) Coming across a token with "waitOnUser" set to some input
@@ -72,21 +76,27 @@ export namespace SyntaxConstructor {
         // return the (empty) constructs array
         // Otherwise the loop will always run at least once (as the continue method on the compound
         // only gets called after the waitOnUser key has been pressed)
-        if (initialConstruction && stopCondition(jsonConstruct.format[i])) return constructs;
+        if (initialConstruction && stopCondition(jsonConstruct.format[index])) return constructs;
 
         do {
-            if (i === 0 && jsonConstruct.insertBefore)
+            if (index === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
-                constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, constructs.length));
+                constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, indexInRoot + constructs.length));
 
-            addConstructToken(constructs, jsonConstruct.format[i], rootConstruct, data);
+            constructs.push(...constructToken(jsonConstruct.format[index], rootConstruct, indexInRoot + constructs.length, data));
 
-            i = (i + 1) % jsonConstruct.format.length;
-        } while (!stopCondition(jsonConstruct.format[i])); // TODO: Does not work if the first construct has a waitOnUser
+            index = (index + 1) % jsonConstruct.format.length;
+        } while (!stopCondition(jsonConstruct.format[index])); // TODO: Does not work if the first construct has a waitOnUser
 
-        // rootConstruct.setElementToInsertNextIndex(i);
+        // If there is an array of constructs to build upon, insert the new constructs at the correct index
+        if (finalConstructs) finalConstructs.splice(indexInRoot, 0, ...constructs);
 
-        return constructs;
+        // Update the indexInRoot of the constructs that come after the newly constructed and inserted constructs
+        for (let i = indexInRoot + constructs.length; i < finalConstructs.length; i++) {
+            finalConstructs[i].indexInRoot += constructs.length;
+        }
+        console.log("Final constructs: ", finalConstructs, constructs, indexInRoot)
+        return finalConstructs;
     }
 
     /**
@@ -103,29 +113,29 @@ export namespace SyntaxConstructor {
     /**
      * Given the token specification, add the runtime construct to the constructs array
      *
-     * @param constructs - The array of constructs to which the new construct should be added.
-     * Often this is the array of constructs of the parent construct.
      * @param token - The token specification from the language definition
      * @param rootConstruct - The parent construct of the new construct
+     * @param indexInRoot - The index of the construct to create in the parent construct
      * @param data - Additional data that might be needed for the construct. Currently, this
      * is only used for the reference token to keep track of the precise variable to which it referes.
+     * @returns The constructed construct(s) from the token specification
      */
-    function addConstructToken(constructs: Construct[], token: FormatDefType, rootConstruct: CodeConstruct, data: any) {
+    function constructToken(token: FormatDefType, rootConstruct: CodeConstruct, indexInRoot: number, data: any): Construct[] {
         switch (token.type) {
             case "token":
-                constructs.push(new NonEditableTkn(token.value, rootConstruct, constructs.length));
-                break;
+                return [new NonEditableTkn(token.value, rootConstruct, indexInRoot)];
             case "hole":
+                const constructs: Construct[] = []
                 // DO we still want this or do we want it to be generalised?
                 for (let i = 0; i < token.elements.length; i++) {
                     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
-                    rootConstruct.holeTypes.set(constructs.length, token.elements[i].type);
-                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, constructs.length, token.elements[i].type));
+                    rootConstruct.holeTypes.set(indexInRoot + constructs.length, token.elements[i].type);
+                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, indexInRoot + constructs.length, token.elements[i].type));
 
                     if (i + 1 < token.elements.length)
-                        constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, constructs.length));
+                        constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, indexInRoot + constructs.length));
                 }
-                break;
+                return constructs;
             case "body":
                 let root = rootConstruct as GeneralStatement;
                 // FFD
@@ -135,27 +145,21 @@ export namespace SyntaxConstructor {
                 /**
                  * We still need to add scope for constructs without a body like else and elif
                  */
-                break;
+                return [];
             case "identifier":
-                constructs.push(new AssignmentToken(undefined, rootConstruct, constructs.length, RegExp(token.regex)));
-                break;
+                return [new AssignmentToken(undefined, rootConstruct, indexInRoot, RegExp(token.regex))];
             case "reference":
-                constructs.push(new ReferenceTkn(data?.reference ?? "", rootConstruct, constructs.length));
-                break;
+                return [new ReferenceTkn(data?.reference ?? "", rootConstruct, indexInRoot)];
             case "editable":
-                constructs.push(
-                    new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, constructs.length)
-                );
-                break;
+                return [
+                    new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, indexInRoot)];
             case "recursive":
                 const compositeContent = globalFormats.get(token.recursiveName);
-                const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, data);
-                constructs.push(...tokens);
+                const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, indexInRoot, data);
+                return tokens;
                 // constructs.push(new CompositeConstruct(token.recursiveName));
-                break;
             case "compound":
-                constructs.push(new CompoundConstruct(token, rootConstruct, constructs.length));
-                break;
+                return [new CompoundConstruct(token, rootConstruct, indexInRoot)];
             default:
                 // Invalid type => What to do about it?
                 console.warn("Invalid type for the given token: " + token);

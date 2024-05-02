@@ -824,7 +824,7 @@ export class GeneralStatement extends Statement {
 
         // Add all the elements to the end, even though the original array should be empty
         // Maybe change to an assignment in the future if that is more efficient
-        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct.format, this, data));
+        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct.format, this, this.tokens.length, data));
     }
 
     get hasEmptyToken(): boolean {
@@ -1910,7 +1910,7 @@ export class CompoundConstruct extends CodeConstruct {
 
         if (compoundToken.scope) this.scope = new Scope();
 
-        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, true);
+        this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, 0, true);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
     }
@@ -1955,18 +1955,21 @@ export class CompoundConstruct extends CodeConstruct {
         );
     }
 
-    continueExpansion() {
+    continueExpansion(leftConstruct: Construct) {
+        const startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
             this,
             null,
             this.tokens,
-            this.nextFormatIndex
+            this.nextFormatIndex, 
+            startingIndex + 1
         );
+        console.log(this.tokens, startingIndex, leftConstruct)
 
-        let leftpos = this.tokens[initLength - 1]?.right ?? this.right;
-        for (const token of this.tokens.slice(initLength)) {
+        let leftpos = this.tokens[startingIndex]?.right ?? this.right;
+        for (const token of this.tokens.slice(startingIndex + 1)) {
             leftpos = token.build(leftpos);
         }
         this.right = leftpos;
@@ -1984,11 +1987,11 @@ export class CompoundConstruct extends CodeConstruct {
 
         // Execute edits in the monaco editor at the end, as the cursor position will be changed
         // and thus the constructs need to be (re)built first
-        this.tokens.slice(initLength).forEach((token) => {
+        this.tokens.slice(startingIndex + 1, startingIndex + 1 + this.tokens.length - initLength).forEach((token) => {
             const range = new Range(token.left.lineNumber, token.leftCol, token.left.lineNumber, token.leftCol);
             Module.instance.editor.executeEdits(range, token);
         });
-        Module.instance.focus.updateContext(this.getConstructsFocus(this.tokens.slice(initLength)));
+        Module.instance.focus.updateContext(this.getConstructsFocus(this.tokens.slice(startingIndex + 1)));
     }
 
     getBoundaries(): Range {
@@ -2017,7 +2020,7 @@ export class CompoundConstruct extends CodeConstruct {
             if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
             if (token instanceof CodeConstruct && token.hasEmptyToken) return token.getInitialFocus();
         }
-        return { positionToMove: constructs[constructs.length - 1].right };
+        return { positionToMove: this.right };
     }
 
     getRenderText(): string {
