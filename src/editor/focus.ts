@@ -15,7 +15,6 @@ import {
     Statement,
     TextEditable,
     Token,
-    TypedEmptyExpr,
 } from "../syntax-tree/ast";
 import { CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
@@ -260,7 +259,7 @@ export class Focus {
             }
         }
 
-        const curPos = this.module.editor.monaco.getPosition()
+        const curPos = this.module.editor.monaco.getPosition();
         if (runNavOffCallbacks && this.prevPosition != null) {
             const prevConstr = this.getConstructAtPosition(this.prevPosition),
                 currConstr = this.getConstructAtPosition(curPos);
@@ -625,9 +624,6 @@ export class Focus {
     /**
      * Recursively searches through all code constructs and looks for the construct
      * at the given position
-     * TODO: currently returns the first construct, which will probably be the largest
-     * construct overlapping with the given position -> do we want this?
-     * TODO: currently build for statements, generalise to constructs
      *
      * If the position is on the border between two constructs, the construct on the
      * right side will be returned.
@@ -638,16 +634,18 @@ export class Focus {
     getConstructAtPosition(position: Position): CodeConstruct {
         const bodyStack = [this.module.compoundConstruct];
 
-        // bodyStack.unshift(...this.module.body);
-
         while (bodyStack.length > 0) {
+            // Take the next Construct from the stack
             const curStmt = bodyStack.pop();
 
-            if (!(curStmt instanceof CodeConstruct)) continue;
+            // If the current construct does not contain the given position, skip it
+            if (!doesConstructContainPos(curStmt, position)) continue;
 
-            if (doesConstructContainPos(curStmt, position)) return curStmt;
-            else bodyStack.unshift(...curStmt.tokens);
-            // else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
+            // If the current construct is a CodeConstruct, push its tokens to the stack
+            if (curStmt instanceof CodeConstruct) bodyStack.unshift(...curStmt.tokens);
+            // For everything else, primarily tokens, there are no subtokens left so we
+            // return the parent CodeConstruct
+            else return curStmt.rootNode;
         }
 
         return null;
@@ -659,13 +657,8 @@ export class Focus {
      */
     private selectCode(code: Construct) {
         if (code === null) return;
-        
-        const selection = new Selection(
-            code.right.lineNumber,
-            code.rightCol,
-            code.left.lineNumber,
-            code.leftCol
-        );
+
+        const selection = new Selection(code.right.lineNumber, code.rightCol, code.left.lineNumber, code.leftCol);
 
         this.module.editor.monaco.setSelection(selection);
         this.module.editor.cursor.setSelection(code);
