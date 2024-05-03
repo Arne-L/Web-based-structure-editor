@@ -95,7 +95,7 @@ export namespace SyntaxConstructor {
         for (let i = indexInRoot + constructs.length; i < finalConstructs.length; i++) {
             finalConstructs[i].indexInRoot += constructs.length;
         }
-        console.log("Final constructs: ", finalConstructs, constructs, indexInRoot)
+        
         return finalConstructs;
     }
 

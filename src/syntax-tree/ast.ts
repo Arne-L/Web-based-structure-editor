@@ -263,7 +263,9 @@ export abstract class CodeConstruct extends Construct {
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
     // TODO: TEMP
-    hasBody() {return false;}
+    hasBody() {
+        return false;
+    }
 
     /**
      * Replaces this node in its root, and then rebuilds the parent (recursively)
@@ -824,7 +826,9 @@ export class GeneralStatement extends Statement {
 
         // Add all the elements to the end, even though the original array should be empty
         // Maybe change to an assignment in the future if that is more efficient
-        this.tokens.push(...SyntaxConstructor.constructTokensFromJSON(construct.format, this, this.tokens.length, data));
+        this.tokens.push(
+            ...SyntaxConstructor.constructTokensFromJSON(construct.format, this, this.tokens.length, data)
+        );
     }
 
     get hasEmptyToken(): boolean {
@@ -932,7 +936,8 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return (context.lineStatement instanceof EmptyLineStmt || validator.atHoleWithType(context, this.constructType)) &&
+        return (context.lineStatement instanceof EmptyLineStmt ||
+            validator.atHoleWithType(context, this.constructType)) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
             ValidatorNameSpace.validateAncestors(context, this)
             ? InsertionType.Valid
@@ -975,7 +980,9 @@ export class GeneralExpression extends GeneralStatement {
     }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atHoleWithType(providedContext, this.constructType) ? InsertionType.Valid : InsertionType.Invalid;
+        return validator.atHoleWithType(providedContext, this.constructType)
+            ? InsertionType.Valid
+            : InsertionType.Invalid;
     }
 }
 
@@ -1898,6 +1905,7 @@ export class CompoundConstruct extends CodeConstruct {
     private scope: Scope;
     //
     private compoundToken: CompoundFormatDefinition;
+    private waitOnIndices: Map<number, string>;
     // private nextFormatIndex: number;
 
     constructor(compoundToken: CompoundFormatDefinition, root?: CodeConstruct, indexInRoot?: number) {
@@ -1905,6 +1913,12 @@ export class CompoundConstruct extends CodeConstruct {
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
         this.compoundToken = compoundToken;
+        this.waitOnIndices = new Map(
+            compoundToken.format
+                .filter((tkn) => "waitOnUser" in tkn)
+                // @ts-ignore
+                .map((tkn, idx) => [idx, tkn.waitOnUser] as [number, string])
+        );
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
@@ -1924,7 +1938,11 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     get nextFormatIndex(): number {
-        return this.tokens.length % this.compoundToken.format.length;
+        console.log(this.tokens.length, this.compoundToken.format.length, this.compoundToken.insertBefore ? 1 : 0);
+        return (
+            (this.tokens.length % (this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0))) -
+            (this.compoundToken.insertBefore ? 1 : 0)
+        );
     }
 
     // setElementToInsertNextIndex(idx: number) {
@@ -1937,6 +1955,7 @@ export class CompoundConstruct extends CodeConstruct {
      * @returns The key to wait on for the next token to be inserted
      */
     getWaitOnKey(): string {
+        console.log("WaitOnToken", this.compoundToken.format[this.nextFormatIndex], this.nextFormatIndex);
         const token = this.compoundToken.format[this.nextFormatIndex];
         return "waitOnUser" in token ? (token.waitOnUser as string) : null;
     }
@@ -1951,21 +1970,44 @@ export class CompoundConstruct extends CodeConstruct {
     atRightPosition(highestSubCompoundConsturct: Construct): boolean {
         const formatLength = this.compoundToken.format.length;
         return (
-            highestSubCompoundConsturct.indexInRoot % formatLength === (this.nextFormatIndex - 1 + formatLength) % formatLength
+            highestSubCompoundConsturct.indexInRoot % formatLength ===
+            (this.nextFormatIndex - 1 + formatLength) % formatLength
         );
+    }
+
+    /**
+     * Check if an expansion iteration can be executed
+     * 
+     * @param leftConstruct - The construct to the left of the cursor and a direct child of 
+     * a compound construct
+     * @param keyPressed - The key that was pressed by the user
+     * @returns True if the expansion can continue on the given location with the given key
+     */
+    canContinueExpansion(leftConstruct: Construct, keyPressed: string) {
+        // Get the index of the leftConstruct in the format specification
+        const repetitionLength = this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
+        const repetitionIndex = leftConstruct.indexInRoot % repetitionLength;
+        const formatIndex = (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + repetitionLength) % repetitionLength;
+
+        // Get the key which needs to be pressed to continue the expansion on the given location
+        const formatKey = this.waitOnIndices.get(formatIndex);
+        // True if 
+        return !!formatKey && formatKey === keyPressed
     }
 
     continueExpansion(leftConstruct: Construct) {
         const startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
+        console.log("Token length 1", this.tokens.length);
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
             this,
             null,
             this.tokens,
-            this.nextFormatIndex, 
+            this.nextFormatIndex,
             startingIndex + 1
         );
+        console.log("Token length 2", this.tokens.length);
         // TODO: Maybe use rebuild starting from token this.tokens[startingIndex + 1]
         // TODO: MAybe integrate this into the Syntax constructor such that
         // no building, rebuilding and indexInRoot reconstruction needs to happen here
@@ -2014,7 +2056,7 @@ export class CompoundConstruct extends CodeConstruct {
         return this.getConstructsFocus(this.tokens);
     }
 
-    private getConstructsFocus(constructs: Construct[]): UpdatableContext { 
+    private getConstructsFocus(constructs: Construct[]): UpdatableContext {
         // Maybe generalise this to something in which you give a position and it
         // searches for the first valid focus position after the given position?
         for (let token of constructs) {

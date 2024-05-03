@@ -576,16 +576,12 @@ export class EventRouter {
             !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
         )
             leftConstruct = leftConstruct.rootNode;
+        console.log("RootConstruct", leftConstruct.rootNode, leftConstruct.rootNode instanceof ast.CompoundConstruct);
         if (leftConstruct.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
-            if (compound.getWaitOnKey() === e.key && compound.atRightPosition(leftConstruct))
+            if (compound.canContinueExpansion(leftConstruct, e.key))
                 compound.continueExpansion(leftConstruct);
         }
-        // if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
-        //     const compound = context.tokenToLeft?.rootNode;
-        //     console.log(compound.getWaitOnKey(), e.key);
-        //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context)) compound.continueExpansion();
-        // }
 
         // No edit action could be matched
         return new EditAction(EditActionType.None);
