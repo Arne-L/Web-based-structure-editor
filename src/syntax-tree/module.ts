@@ -108,8 +108,6 @@ export class Module {
         // Initialise the editors starting construct
         // The starting construct needs to be a CodeConstruct (needs to contain tokens)
         this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON([initialConstructDef], null, 0)[0];
-        console.log(SyntaxConstructor.constructTokensFromJSON([initialConstructDef], null, 0)[0]);
-        console.log(this.compoundConstruct);
         this.compoundConstruct.build(new Position(1, 1));
         const range = new Range(
             this.compoundConstruct.left.lineNumber,

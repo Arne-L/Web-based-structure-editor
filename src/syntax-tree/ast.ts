@@ -1966,8 +1966,9 @@ export class CompoundConstruct extends CodeConstruct {
             this.nextFormatIndex, 
             startingIndex + 1
         );
-        console.log(this.tokens, startingIndex, leftConstruct)
-
+        // TODO: Maybe use rebuild starting from token this.tokens[startingIndex + 1]
+        // TODO: MAybe integrate this into the Syntax constructor such that
+        // no building, rebuilding and indexInRoot reconstruction needs to happen here
         let leftpos = this.tokens[startingIndex]?.right ?? this.right;
         for (const token of this.tokens.slice(startingIndex + 1)) {
             leftpos = token.build(leftpos);
@@ -1980,8 +1981,8 @@ export class CompoundConstruct extends CodeConstruct {
         // Module.instance.editor.executeEdits(range, statement);
         // this.module.focus.updateContext(statement.getInitialFocus());
 
-        let root = this.rootNode;
-        while (root instanceof Construct) root = root.rootNode;
+        // let root = this.rootNode;
+        // while (root instanceof Construct) root = root.rootNode;
 
         ASTManupilation.rebuild(this, this.right, { rebuildConstruct: false });
 
