@@ -42,8 +42,6 @@ export class EventRouter {
          */
         const inAutocompleteToken = contextAutocompleteTkn != null;
 
-        console.log("Current contenxt", context);
-
         switch (e.key) {
             // Language independent
             case KeyPress.ArrowUp: {

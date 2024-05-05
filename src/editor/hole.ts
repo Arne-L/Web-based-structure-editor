@@ -36,7 +36,6 @@ export class Hole {
     editor: Editor;
     code: Construct;
     container: HTMLElement;
-    first = true;
 
     constructor(editor: Editor, code: Construct) {
         this.editor = editor;
@@ -184,11 +183,6 @@ export class Hole {
                 transform.x -= 7;
                 transform.width = 14;
             }
-        }
-
-        if (this.first) {
-            this.first = false;
-            console.log("Hole", code, code.getSelection().toString(), this.editor.computeBoundingBox(code.getSelection()));
         }
 
         this.element.style.top = `${transform.y + 5}px`;

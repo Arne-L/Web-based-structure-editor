@@ -2022,7 +2022,6 @@ export class CompoundConstruct extends CodeConstruct {
     continueExpansion(leftConstruct: Construct) {
         const startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
-        console.log("Token length 1", this.tokens.length);
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
             this,
@@ -2031,7 +2030,6 @@ export class CompoundConstruct extends CodeConstruct {
             this.nextFormatIndex,
             startingIndex + 1
         );
-        console.log("Token length 2", this.tokens.length);
         // TODO: Maybe use rebuild starting from token this.tokens[startingIndex + 1]
         // TODO: MAybe integrate this into the Syntax constructor such that
         // no building, rebuilding and indexInRoot reconstruction needs to happen here
