@@ -42,6 +42,8 @@ export class EventRouter {
          */
         const inAutocompleteToken = contextAutocompleteTkn != null;
 
+        console.log("Current contenxt", context);
+
         switch (e.key) {
             // Language independent
             case KeyPress.ArrowUp: {
@@ -571,13 +573,14 @@ export class EventRouter {
         // TODO: What if multiple compounds to the left? We need to keep checking
         // until we are at the top of the file / at the root
         let leftConstruct: ast.Construct = context.tokenToLeft;
+        // console.log("LeftConstruct", leftConstruct, context);
         while (
-            leftConstruct.rootNode.right.equals(this.curPosition) &&
+            leftConstruct?.rootNode.right.equals(this.curPosition) &&
             !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
         )
             leftConstruct = leftConstruct.rootNode;
-        console.log("RootConstruct", leftConstruct.rootNode, leftConstruct.rootNode instanceof ast.CompoundConstruct);
-        if (leftConstruct.rootNode instanceof ast.CompoundConstruct) {
+
+        if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
             if (compound.canContinueExpansion(leftConstruct, e.key))
                 compound.continueExpansion(leftConstruct);

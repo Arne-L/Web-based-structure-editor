@@ -529,6 +529,7 @@ export abstract class Statement extends CodeConstruct {
 
         for (const token of this.tokens) txt += token.getRenderText();
 
+        // FFD
         if (this.hasBody()) {
             leftPosToCheck = this.leftCol + TAB_SPACES - 1;
 
@@ -1124,16 +1125,39 @@ export abstract class Token extends Construct {
     build(pos: Position): Position {
         this.left = pos;
 
+        // Guard
         if (this.text.length == 0) {
             console.warn(
                 "do not use any Tokens with no textual length (i.e. all tokens should take some space in the editor)."
             );
             this.right = pos;
+            return pos;
+        }
+
+        // Split in the different lines
+        const lines = this.text.split("\n");
+        // Line difference = last line number - first line number
+        const lineDiff = lines.length - 1;
+        // TODO: The way indentation is currently handled is not ideal. 
+        // If multiple indentations happened before the current indentation,
+        // they are simply bundled together. When deleting constructs, this could
+        // make it impossible to get to the correct indentation level.
+        if (lineDiff > 0) {
+            // Determine the last column of the last line
+            // If there are multiple lines, the last column is the length of the last line + its indentation
+            const rootConstructIndent = this.getNearestCodeConstruct().leftCol;
+            this.right = new Position(pos.lineNumber + lineDiff, rootConstructIndent + lines.at(-1).length);
+
+            // Indent all lines except the first one
+            for (let i = 1; i < lines.length; i++) {
+                // Add the indentation to the line
+                // One is subtracted from the rootConstructIndent because the columns start at 1
+                lines[i] = " ".repeat(rootConstructIndent - 1) + lines[i];
+            }
+            // Update the token's text to reflect the indentation
+            this.text = lines.join("\n");
         } else {
-            const lines = this.text.split("\n");
-            const lineDiff = lines.length - 1;
-            const rightCol = (lineDiff > 0 ? this.getNearestCodeConstruct().leftCol : pos.column) + lines.at(-1).length;
-            this.right = new Position(pos.lineNumber + lineDiff, rightCol);
+            this.right = new Position(pos.lineNumber, pos.column + this.text.length);
         }
 
         this.notify(CallbackType.change);
@@ -1938,7 +1962,6 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     get nextFormatIndex(): number {
-        console.log(this.tokens.length, this.compoundToken.format.length, this.compoundToken.insertBefore ? 1 : 0);
         return (
             (this.tokens.length % (this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0))) -
             (this.compoundToken.insertBefore ? 1 : 0)
@@ -1949,36 +1972,36 @@ export class CompoundConstruct extends CodeConstruct {
     //     this.nextFormatIndex = idx;
     // }
 
-    /**
-     * Get the key to wait on to continue the expansion of the compound
-     *
-     * @returns The key to wait on for the next token to be inserted
-     */
-    getWaitOnKey(): string {
-        console.log("WaitOnToken", this.compoundToken.format[this.nextFormatIndex], this.nextFormatIndex);
-        const token = this.compoundToken.format[this.nextFormatIndex];
-        return "waitOnUser" in token ? (token.waitOnUser as string) : null;
-    }
+    // /**
+    //  * Get the key to wait on to continue the expansion of the compound
+    //  *
+    //  * @returns The key to wait on for the next token to be inserted
+    //  */
+    // getWaitOnKey(): string {
+    //     console.log("WaitOnToken", this.compoundToken.format[this.nextFormatIndex], this.nextFormatIndex);
+    //     const token = this.compoundToken.format[this.nextFormatIndex];
+    //     return "waitOnUser" in token ? (token.waitOnUser as string) : null;
+    // }
 
-    /**
-     * Checks if the cursor is at the right position within the compound to continue the expansion
-     *
-     * @param context - The current context
-     * @returns Whether the cursor is at the right position within the compound
-     * to continue the expansion of
-     */
-    atRightPosition(highestSubCompoundConsturct: Construct): boolean {
-        const formatLength = this.compoundToken.format.length;
-        return (
-            highestSubCompoundConsturct.indexInRoot % formatLength ===
-            (this.nextFormatIndex - 1 + formatLength) % formatLength
-        );
-    }
+    // /**
+    //  * Checks if the cursor is at the right position within the compound to continue the expansion
+    //  *
+    //  * @param context - The current context
+    //  * @returns Whether the cursor is at the right position within the compound
+    //  * to continue the expansion of
+    //  */
+    // atRightPosition(highestSubCompoundConsturct: Construct): boolean {
+    //     const formatLength = this.compoundToken.format.length;
+    //     return (
+    //         highestSubCompoundConsturct.indexInRoot % formatLength ===
+    //         (this.nextFormatIndex - 1 + formatLength) % formatLength
+    //     );
+    // }
 
     /**
      * Check if an expansion iteration can be executed
-     * 
-     * @param leftConstruct - The construct to the left of the cursor and a direct child of 
+     *
+     * @param leftConstruct - The construct to the left of the cursor and a direct child of
      * a compound construct
      * @param keyPressed - The key that was pressed by the user
      * @returns True if the expansion can continue on the given location with the given key
@@ -1987,12 +2010,13 @@ export class CompoundConstruct extends CodeConstruct {
         // Get the index of the leftConstruct in the format specification
         const repetitionLength = this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
         const repetitionIndex = leftConstruct.indexInRoot % repetitionLength;
-        const formatIndex = (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + repetitionLength) % repetitionLength;
+        const formatIndex =
+            (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + repetitionLength) % repetitionLength;
 
         // Get the key which needs to be pressed to continue the expansion on the given location
         const formatKey = this.waitOnIndices.get(formatIndex);
-        // True if 
-        return !!formatKey && formatKey === keyPressed
+        // True if
+        return !!formatKey && formatKey === keyPressed;
     }
 
     continueExpansion(leftConstruct: Construct) {
@@ -2098,8 +2122,8 @@ export class CompoundConstruct extends CodeConstruct {
 
         this.right = curPos;
 
-        // Notify all (child)construct of the change => Is this necessary?
-        // this.notify(CallbackType.change);
+        // Notify all (child)constructs of the change => Is this necessary?
+        this.notify(CallbackType.change);
 
         return curPos;
     }

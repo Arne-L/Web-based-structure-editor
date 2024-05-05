@@ -2692,7 +2692,7 @@
             {
                 "type": "compound",
                 "scope": true,
-                "insertBefore": "\t",
+                "insertBefore": "    ",
                 "format": [
                     {
                         "type": "hole",

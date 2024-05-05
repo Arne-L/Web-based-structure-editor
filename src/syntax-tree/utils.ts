@@ -131,9 +131,6 @@ export namespace ASTManupilation {
                 focusedConstruct.rightCol
             );
 
-            console.log("Token range", range.toString());
-            console.log("Code boundaries", code.getSelection().toString(), code)
-
             // Update the Monaco editor with the given token
             module.editor.executeEdits(range, code);
             // Insert the given token to the right of an expression on the left

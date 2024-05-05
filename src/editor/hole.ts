@@ -9,12 +9,9 @@ import {
     // VarAssignmentStmt,
 } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
-import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
-import { Reference } from "../syntax-tree/scope";
 import { Editor } from "./editor";
 import { Context } from "./focus";
-import { Validator } from "./validator";
 
 export class Hole {
     /**
@@ -39,6 +36,7 @@ export class Hole {
     editor: Editor;
     code: Construct;
     container: HTMLElement;
+    first = true;
 
     constructor(editor: Editor, code: Construct) {
         this.editor = editor;
@@ -186,6 +184,11 @@ export class Hole {
                 transform.x -= 7;
                 transform.width = 14;
             }
+        }
+
+        if (this.first) {
+            this.first = false;
+            console.log("Hole", code, code.getSelection().toString(), this.editor.computeBoundingBox(code.getSelection()));
         }
 
         this.element.style.top = `${transform.y + 5}px`;

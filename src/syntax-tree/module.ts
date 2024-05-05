@@ -479,8 +479,6 @@ export class Module {
         // The construct to replace the deleted code with
         let replacement: Construct;
 
-        console.log("deleteCode range", replacementRange.toString(), code);
-
         // If the construct to delete is a statement
         if (statement) replacement = this.removeStatement(code as GeneralStatement);
         // If the construct to delete is a expression
