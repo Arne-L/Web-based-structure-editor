@@ -366,6 +366,7 @@ export class ActionExecutor {
                 const selectedText = this.module.editor.monaco.getSelection();
                 // Get the focused or adjacent editable
                 const editableToken = this.module.focus.getTextEditableItem(context);
+                console.log("EditableToken", editableToken);
                 // Get the editable text
                 const editableText = editableToken.getEditableText();
                 // Get the corresponding editable token
@@ -448,7 +449,10 @@ export class ActionExecutor {
                 }
 
                 // Add the text to the token and if it could be rebuild (it is in the editor), execute the edit
-                if (editableToken.setEditedText(newText)) this.module.editor.executeEdits(editRange, null, pressedKey);
+                if (editableToken.setEditedText(newText)) {
+                    console.log("Heeeey")
+                    this.module.editor.executeEdits(editRange, null, pressedKey);
+                }
 
                 break;
             }

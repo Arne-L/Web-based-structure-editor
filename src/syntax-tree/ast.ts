@@ -298,6 +298,54 @@ export abstract class CodeConstruct extends Construct {
         this.notify(CallbackType.replace);
     }
 
+    build(pos: Position): Position {
+        this.left = pos;
+
+        let curPos = pos;
+
+        // The left position of the first token is the left position of the expression
+        for (const token of this.tokens) curPos = token.build(curPos);
+
+        // After going through all tokens, the right position is the right position of the last token
+        this.right = curPos;
+
+        // Notify all (child)construct of the change
+        this.notify(CallbackType.change);
+
+        // Return the right position of the construct
+        return curPos;
+    }
+
+    /**
+     * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
+     *
+     * TODO: Rewrite / make more efficient (e.g. if only changing the current line, no need 
+     * to all following constructs on the next lines)
+     *
+     * @param pos - The left position to start building the nodes from
+     * @param fromIndex - The index of the node that was edited.
+     */
+    rebuild(pos: Position, fromIndex: number) {
+        // TODO: Check if this is correct and / or can be simplified and / or generalised
+        let curPos = pos;
+
+        // rebuild siblings:
+        for (let i = fromIndex; i < this.tokens.length; i++) {
+            this.tokens[i].indexInRoot = i;
+            curPos = this.tokens[i].build(curPos);
+        }
+
+        // The right position of the last token is the right position of the construct
+        this.right = curPos;
+
+        // If the construct has a root node, rebuild all constructs following this construct in the root node
+        if (this.rootNode != undefined && this.indexInRoot != undefined) {
+            ASTManupilation.rebuild(this, curPos, { rebuildConstruct: false });
+        } else console.warn("node did not have rootNode or indexInRoot: ", this.tokens);
+
+        this.notify(CallbackType.change);
+    }
+
     onReplaceToken(args: Object): void {
         return;
     }
@@ -437,60 +485,6 @@ export abstract class Statement extends CodeConstruct {
         for (let i = 0; i < this.body.length; i++)
             // The left position(s) for the children
             this.body[i].build(new Position(pos.lineNumber + i + 1, pos.column + TAB_SPACES));
-    }
-
-    build(pos: Position): Position {
-        // Set the linenumber and left position
-        // this.lineNumber = pos.lineNumber;
-        this.left = pos;
-
-        let curPos = pos;
-
-        // The left position of the first token is the left position of the expression
-        for (const token of this.tokens) curPos = token.build(curPos);
-
-        // After going through all tokens, the right position is the right position of the last token
-        this.right = curPos;
-
-        // Notify all (child)construct of the change
-        this.notify(CallbackType.change);
-
-        // Return the right position of the construct
-        return curPos;
-    }
-
-    /**
-     * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
-     *
-     * TODO: Rewrite
-     *
-     * @param pos - The left position to start building the nodes from
-     * @param fromIndex - The index of the node that was edited.
-     */
-    rebuild(pos: Position, fromIndex: number) {
-        let curPos = pos;
-
-        // rebuild siblings:
-        for (let i = fromIndex; i < this.tokens.length; i++) {
-            this.tokens[i].indexInRoot = i;
-            if (this.tokens[i] instanceof Token) curPos = this.tokens[i].build(curPos);
-            else curPos = (this.tokens[i] as Expression).build(curPos);
-        }
-
-        // The right position of the last token is the right position of the construct
-        this.right = curPos;
-
-        // If the construct has a root node, rebuild all constructs following this construct in the root node
-        if (this.rootNode != undefined && this.indexInRoot != undefined) {
-            if (
-                (this.rootNode instanceof Expression || this.rootNode instanceof Statement) &&
-                this.rootNode.lineNumber == this.lineNumber
-            ) {
-                this.rootNode.rebuild(curPos, this.indexInRoot + 1);
-            }
-        } else console.warn("node did not have rootNode or indexInRoot: ", this.tokens);
-
-        this.notify(CallbackType.change);
     }
 
     getInitialFocus(): UpdatableContext {
@@ -2108,43 +2102,6 @@ export class CompoundConstruct extends CodeConstruct {
      */
     getNearestCodeConstruct(): CodeConstruct {
         return this;
-    }
-
-    build(pos: Position): Position {
-        this.left = pos;
-
-        let curPos = pos;
-        for (const token of this.tokens) {
-            curPos = token.build(curPos);
-        }
-
-        this.right = curPos;
-
-        // Notify all (child)constructs of the change => Is this necessary?
-        this.notify(CallbackType.change);
-
-        return curPos;
-    }
-
-    rebuild(pos: Position, fromIndex: number) {
-        // TODO: Check if this is correct and / or can be simplified and / or generalised
-        let curPos = pos;
-
-        // rebuild siblings:
-        for (let i = fromIndex; i < this.tokens.length; i++) {
-            this.tokens[i].indexInRoot = i;
-            curPos = this.tokens[i].build(curPos);
-        }
-
-        // The right position of the last token is the right position of the construct
-        this.right = curPos;
-
-        // If the construct has a root node, rebuild all constructs following this construct in the root node
-        if (this.rootNode != undefined && this.indexInRoot != undefined) {
-            ASTManupilation.rebuild(this, curPos, { rebuildConstruct: false });
-        } else console.warn("node did not have rootNode or indexInRoot: ", this.tokens);
-
-        this.notify(CallbackType.change);
     }
 
     notify(type: CallbackType) {

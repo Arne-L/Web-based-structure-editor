@@ -427,6 +427,7 @@ export class EventRouter {
             // NOT language independent
             default: {
                 // Should be the printable characters (excluding things like arrow keys etc)
+                console.log("We are getting to the default")
                 if (e.key.length !== 1) break;
 
                 if (inTextEditMode) {
@@ -458,6 +459,7 @@ export class EventRouter {
                     // At least, I think ...
                     if (this.module.validator.canConvertAutocompleteToString(context)) {
                         // String literals
+                        console.log("CONVERT TO STRING")
                         return new EditAction(EditActionType.ConvertAutocompleteToString, {
                             token: context.tokenToRight,
                         });
@@ -487,6 +489,7 @@ export class EventRouter {
                     // } else
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
+                    console.log("INSERT CHAR")
                     return new EditAction(EditActionType.InsertChar);
                     // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     //     const compound = context.tokenToLeft?.rootNode;
@@ -495,6 +498,7 @@ export class EventRouter {
                     //     break;
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
                 } else if (this.module.validator.atEmptyOperatorTkn(context)) {
+                    console.log("AT EMPTY OPERATOR TOKEN")
                     // Return the autocomplete menu for the operator token
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
@@ -505,6 +509,7 @@ export class EventRouter {
                     });
                     // If at an expression hole, the "---" in the editor
                 } else if (this.module.validator.atEmptyHole(context)) {
+                    console.log("AT EMPTY HOLE")
                     // HEU IS THIS NECESSARY?
                     // [...Actions.instance().actionsMap.values()].filter(
                     //     (action) => !(action.getCode() as ast.GeneralStatement).hasSubValues
@@ -534,6 +539,7 @@ export class EventRouter {
                     // }
                     // If on an empty line and the identifier regex matches the pressed character
                 } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
+                    console.log("ON EMPTY LINE")
                     // Open the autocomplete menu
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.StartOfLine,
@@ -545,6 +551,7 @@ export class EventRouter {
                     });
                     // If at the right of an expresssion and a single character key is pressed
                 } else if (this.module.validator.atRightOfExpression(context)) {
+                    console.log("AT RIGHT OF EXPRESSION")
                     // Open the autocomplete menu starting from all possible matches
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.RightOfExpression,
@@ -555,6 +562,7 @@ export class EventRouter {
                     });
                     // Idem but now the cursor is at the left of an expression
                 } else if (this.module.validator.atLeftOfExpression(context)) {
+                    console.log("AT LEFT OF EXPRESSION")
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.LeftOfExpression,
                         firstChar: e.key,
@@ -583,6 +591,8 @@ export class EventRouter {
             if (compound.canContinueExpansion(leftConstruct, e.key))
                 compound.continueExpansion(leftConstruct);
         }
+
+        console.log("NO ACTION")
 
         // No edit action could be matched
         return new EditAction(EditActionType.None);

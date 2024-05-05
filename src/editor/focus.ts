@@ -637,6 +637,7 @@ export class Focus {
         while (bodyStack.length > 0) {
             // Take the next Construct from the stack
             const curStmt = bodyStack.pop();
+            // console.log(curStmt, this.module.editor.monaco.getPosition());
 
             // If the current construct does not contain the given position, skip it
             if (!doesConstructContainPos(curStmt, position)) continue;
