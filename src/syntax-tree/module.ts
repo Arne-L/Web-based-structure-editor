@@ -419,6 +419,35 @@ export class Module {
     }
 
     /**
+     * Remove the given construct from the editor
+     * 
+     * @param construct - The construct to be removed
+     * @param options - Options for the removal
+     * * executeEdit - Whether to execute the edit in the monaco editor or not. 
+     * Also creates a hole in the place of the removed construct and updates the focus.
+     * @returns - The construct that replaces the removed construct
+     */
+    private removeConstruct(construct: Construct, options: { executeEdit: boolean } = { executeEdit: true }): Construct {
+        const root = construct.rootNode;
+
+        if (!root) return;
+
+        const replacement = new TypedEmptyExpr([DataType.Any], root, construct.indexInRoot, root.holeTypes.get(construct.indexInRoot));
+        root.tokens.splice(construct.indexInRoot, 1, replacement);
+
+        ASTManupilation.rebuild(replacement, construct.getLeftPosition());
+
+        if (options.executeEdit) {
+            this.editor.executeEdits(construct.getBoundaries(), replacement);
+            this.focus.updateContext({ tokenToSelect: replacement });
+        }
+
+        construct.notify(CallbackType.delete);
+
+        return replacement;
+    }
+
+    /**
      * Remove the statement and replace it with an empty line
      *
      * @param line - The statement to be removed
@@ -479,15 +508,17 @@ export class Module {
         // The construct to replace the deleted code with
         let replacement: Construct;
 
-        // If the construct to delete is a statement
-        if (statement) replacement = this.removeStatement(code as GeneralStatement);
-        // If the construct to delete is a expression
-        else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
+        this.removeConstruct(code);
 
-        // Replace all characters in the Monaco editor with the replacement construct
-        this.editor.executeEdits(replacementRange, replacement);
-        // Update the focus context
-        this.focus.updateContext({ tokenToSelect: replacement });
+        // // If the construct to delete is a statement
+        // if (statement) replacement = this.removeStatement(code as GeneralStatement);
+        // // If the construct to delete is a expression
+        // else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
+
+        // // Replace all characters in the Monaco editor with the replacement construct
+        // this.editor.executeEdits(replacementRange, replacement);
+        // // Update the focus context
+        // this.focus.updateContext({ tokenToSelect: replacement });
     }
 
     /**
