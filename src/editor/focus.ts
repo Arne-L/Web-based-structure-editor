@@ -72,7 +72,7 @@ export class Focus {
      */
     getContainingDraftNode(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.getContext();
-        const focusedNode = context.token && context.selected ? context.token : context.lineStatement;
+        const focusedNode = context.token && context.selected ? context.token : context.codeConstruct;
 
         let node = null;
 
@@ -142,6 +142,8 @@ export class Focus {
         } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
+
+        console.log("Context", context)
 
         return context;
     }
@@ -511,7 +513,7 @@ export class Focus {
      * Returns true if focused within a line that is inside the body of another statement.
      */
     inTabbedLine(providedContext?: Context): boolean {
-        const curLine = providedContext ? providedContext.lineStatement : this.getFocusedStatement();
+        const curLine = providedContext ? providedContext.codeConstruct : this.getFocusedStatement();
 
         return curLine.getLeftPosition().column > 1;
     }
@@ -675,7 +677,7 @@ export class Focus {
      */
     private getContextFromSelection(statement: Statement, left: Position, right: Position): Context {
         const context = new Context();
-        context.lineStatement = statement;
+        context.codeConstruct = statement;
         const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
@@ -688,13 +690,13 @@ export class Focus {
                 context.selected = true;
 
                 if (curToken instanceof Token) context.token = curToken;
-                else if (curToken instanceof CodeConstruct) context.codeconstruct = curToken; // (1)
+                else if (curToken instanceof CodeConstruct) context.construct = curToken; // (1)
 
                 return context;
             } else if (curToken instanceof CodeConstruct) {
                 if (left.equals(curToken.left) && right.equals(curToken.right)) {
                     // Literally the same as (1) above
-                    context.codeconstruct = curToken;
+                    context.construct = curToken;
                     context.selected = true;
 
                     break;
@@ -737,8 +739,7 @@ export class Focus {
                 // if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
                 //     return curToken.tokens[0] as Token;
                 // else
-                if (curToken instanceof EditableTextTkn) return curToken;
-                else if (curToken instanceof IdentifierTkn) return curToken;
+                return curToken;
             }
 
             if (curToken instanceof GeneralExpression)
@@ -759,7 +760,7 @@ export class Focus {
         // PROBABLY REFORMAT IN THE FUTURE
         // NOW they search a lot of trees, while this could probably be minimised
         const context = new Context();
-        context.lineStatement = statement;
+        context.codeConstruct = statement;
         const tokensStack = new Array<Construct>();
 
         if (!statement) console.log("No statement");
@@ -793,7 +794,7 @@ export class Focus {
                         );
                     }
 
-                    context.lineStatement = context.tokenToRight.getNearestCodeConstruct();
+                    context.codeConstruct = context.tokenToRight.getNearestCodeConstruct();
 
                     break;
                 } else if (pos.equals(curToken.right)) {
@@ -815,13 +816,13 @@ export class Focus {
                             context.tokenToLeft.rootNode.right.equals(pos)
                         );
                     }
-                    context.lineStatement = context.tokenToLeft.getNearestCodeConstruct();
+                    context.codeConstruct = context.tokenToLeft.getNearestCodeConstruct();
 
                     break;
                 } else if (doesConstructContainPos(curToken, pos, { left: false, right: false })) {
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
-                    context.lineStatement = context.token.getNearestCodeConstruct();
+                    context.codeConstruct = context.token.getNearestCodeConstruct();
 
                     break;
                 }
@@ -880,11 +881,11 @@ export class Context {
      * Immediate items
      */
     // parentExpression?: Expression = null;
-    codeconstruct?: Construct = null;
+    construct?: Construct = null;
     expressionToLeft?: GeneralExpression = null;
     expressionToRight?: GeneralExpression = null;
 
-    lineStatement: CodeConstruct;
+    codeConstruct: CodeConstruct;
 
     selected?: boolean = false; //this should not be nullable
     position?: Position = null;

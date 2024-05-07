@@ -181,7 +181,7 @@ export class ActionExecutor {
 
             // NOT language independent => Try to remove as statements should not be hardcoded
             case EditActionType.DeleteStatement: {
-                this.module.deleteCode(context.lineStatement, { statement: true });
+                this.module.deleteCode(context.codeConstruct, { statement: true });
 
                 break;
             }
@@ -190,7 +190,7 @@ export class ActionExecutor {
                 // Remove the currently focused statement and update the body to
                 // reflect the new correct indentation
                 this.module.indentBodyConstructs(context, true);
-                this.module.deleteCode(context.lineStatement, { statement: true });
+                this.module.deleteCode(context.codeConstruct, { statement: true });
 
                 break;
             }
@@ -243,28 +243,28 @@ export class ActionExecutor {
             // NOT language independent
             // See before
             case EditActionType.DeleteEmptyLine: {
-                this.module.deleteLine(context.lineStatement);
+                this.module.deleteLine(context.codeConstruct);
                 let range: Range;
 
                 if (action.data?.pressedBackspace) {
                     const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
-                        context.lineStatement.lineNumber - 1
+                        context.codeConstruct.lineNumber - 1
                     );
                     this.module.focus.updateContext({
                         positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
                     });
                     range = new Range(
-                        context.lineStatement.lineNumber,
-                        context.lineStatement.leftCol,
+                        context.codeConstruct.lineNumber,
+                        context.codeConstruct.leftCol,
                         lineAbove.lineNumber,
                         lineAbove.rightCol
                     );
                 } else {
                     range = new Range(
-                        context.lineStatement.lineNumber,
-                        context.lineStatement.leftCol,
-                        context.lineStatement.lineNumber + 1,
-                        context.lineStatement.leftCol
+                        context.codeConstruct.lineNumber,
+                        context.codeConstruct.leftCol,
+                        context.codeConstruct.lineNumber + 1,
+                        context.codeConstruct.leftCol
                     );
                 }
 
@@ -283,11 +283,11 @@ export class ActionExecutor {
 
             // Partly language independent
             case EditActionType.DeletePrevLine: {
-                const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.lineStatement.lineNumber - 1);
+                const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
 
-                if (prevLine.leftCol != context.lineStatement.leftCol) {
+                if (prevLine.leftCol != context.codeConstruct.leftCol) {
                     // Indent the current line
-                    this.module.indentConstruct(context.lineStatement, false);
+                    this.module.indentConstruct(context.codeConstruct, false);
                 }
 
                 const deleteRange = new Range(
@@ -305,12 +305,12 @@ export class ActionExecutor {
             // Mostly language independent: except for "indentBackStatement"
             case EditActionType.DeleteBackMultiLines: {
                 for (
-                    let i = context.lineStatement.rootNode.body.length - 1;
-                    i >= context.lineStatement.indexInRoot;
+                    let i = context.codeConstruct.rootNode.body.length - 1;
+                    i >= context.codeConstruct.indexInRoot;
                     i--
                 ) {
-                    this.module.editor.indentRecursively(context.lineStatement.rootNode.body[i], { backward: true });
-                    this.module.indentBackStatement(context.lineStatement.rootNode.body[i]);
+                    this.module.editor.indentRecursively(context.codeConstruct.rootNode.body[i], { backward: true });
+                    this.module.indentBackStatement(context.codeConstruct.rootNode.body[i]);
                 }
 
                 this.module.focus.fireOnNavChangeCallbacks();
@@ -320,7 +320,7 @@ export class ActionExecutor {
 
             // Mostly language independent: except for "indentBackStatement"
             case EditActionType.IndentBackwards: {
-                this.module.indentConstruct(context.lineStatement, true);
+                this.module.indentConstruct(context.codeConstruct, true);
 
                 this.module.focus.fireOnNavChangeCallbacks();
 
@@ -329,8 +329,8 @@ export class ActionExecutor {
 
             // Mostly language independent: except for "indentForwardStatement"
             case EditActionType.IndentForwards: {
-                this.module.editor.indentRecursively(context.lineStatement, { backward: false });
-                this.module.indentForwardStatement(context.lineStatement);
+                this.module.editor.indentRecursively(context.codeConstruct, { backward: false });
+                this.module.indentForwardStatement(context.codeConstruct);
 
                 this.module.focus.fireOnNavChangeCallbacks();
 
@@ -340,7 +340,7 @@ export class ActionExecutor {
             // Language independent as we will likely keep the concept of an empty line
             case EditActionType.InsertEmptyLine: {
                 const newEmptyLine = this.module.insertEmptyLine();
-                this.module.focus.fireOnNavOffCallbacks(context.lineStatement, newEmptyLine);
+                this.module.focus.fireOnNavOffCallbacks(context.codeConstruct, newEmptyLine);
 
                 break;
             }
@@ -450,7 +450,7 @@ export class ActionExecutor {
 
                 // Add the text to the token and if it could be rebuild (it is in the editor), execute the edit
                 if (editableToken.setEditedText(newText)) {
-                    console.log("Heeeey")
+                    console.log("Heeeey");
                     this.module.editor.executeEdits(editRange, null, pressedKey);
                 }
 
@@ -499,10 +499,10 @@ export class ActionExecutor {
 
                     // If the current expression is atomic (has no subexpressions or editable token)
                     if (
-                        context.codeconstruct instanceof GeneralStatement &&
-                        context.codeconstruct?.isAtomic() /*context.expression instanceof LiteralValExpr*/
+                        context.construct instanceof GeneralStatement &&
+                        context.construct?.isAtomic() /*context.expression instanceof LiteralValExpr*/
                     ) {
-                        removableExpr = context.codeconstruct;
+                        removableExpr = context.construct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
                     } else if (context.expressionToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
@@ -574,7 +574,7 @@ export class ActionExecutor {
                         );
 
                         // rebuild ast
-                        context.lineStatement.build(context.lineStatement.getLeftPosition());
+                        context.codeConstruct.build(context.codeConstruct.getLeftPosition());
                         this.module.focus.updateContext({ tokenToSelect: identifier });
 
                         break;
@@ -1437,37 +1437,37 @@ export class ActionExecutor {
         } else this.module.menuController.removeMenus();
     }
 
-    /**
-     * Replace the empty line statement with the given statement
-     *
-     * @param emptyLine - The empty line statement to replace
-     * @param statement - The statement to replace the empty line with
-     */
-    private replaceEmptyStatement(emptyLine: any /*Statement*/, statement: Statement) {
-        // Get the root of the empty line
-        const root = emptyLine.rootNode as Statement | Module;
+    // /**
+    //  * Replace the empty line statement with the given statement
+    //  *
+    //  * @param emptyLine - The empty line statement to replace
+    //  * @param statement - The statement to replace the empty line with
+    //  */
+    // private replaceEmptyStatement(emptyLine: any /*Statement*/, statement: Statement) {
+    //     // Get the root of the empty line
+    //     const root = emptyLine.rootNode as Statement | Module;
 
-        // Replace the empty line with the given statement
-        replaceInBody(root, emptyLine.indexInRoot, statement);
+    //     // Replace the empty line with the given statement
+    //     replaceInBody(root, emptyLine.indexInRoot, statement);
 
-        // Notify the root that a replacement has taken place
-        if (root instanceof Statement) root.notify(CallbackType.replace);
+    //     // Notify the root that a replacement has taken place
+    //     if (root instanceof Statement) root.notify(CallbackType.replace);
 
-        // Get the range of the statement line
-        const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
+    //     // Get the range of the statement line
+    //     const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
 
-        // Remove messages from the empty line statement
-        if (emptyLine.message) this.module.messageController.removeMessageFromConstruct(emptyLine);
+    //     // Remove messages from the empty line statement
+    //     if (emptyLine.message) this.module.messageController.removeMessageFromConstruct(emptyLine);
 
-        // Check for imports for the given statement
-        if (isImportable(statement)) {
-            this.checkImports(statement, InsertionType.Valid);
-        }
+    //     // Check for imports for the given statement
+    //     if (isImportable(statement)) {
+    //         this.checkImports(statement, InsertionType.Valid);
+    //     }
 
-        // Update the Monaco editor with the new statement
-        this.module.editor.executeEdits(range, statement);
-        this.module.focus.updateContext(statement.getInitialFocus());
-    }
+    //     // Update the Monaco editor with the new statement
+    //     this.module.editor.executeEdits(range, statement);
+    //     this.module.focus.updateContext(statement.getInitialFocus());
+    // }
 
     // /**
     //  * Replace the given expression with a binary operator expression with the given

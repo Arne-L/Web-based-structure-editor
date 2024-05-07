@@ -12,7 +12,7 @@ import { SyntaxConstructor } from "./constructor";
 import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { ASTManupilation } from "./utils";
+import { ASTManupilation, DebugUtils } from "./utils";
 import { ValidatorNameSpace } from "./validator";
 
 export abstract class Construct {
@@ -319,7 +319,7 @@ export abstract class CodeConstruct extends Construct {
     /**
      * Rebuilds the left and right positions of this node recursively. Optimized to not rebuild untouched nodes.
      *
-     * TODO: Rewrite / make more efficient (e.g. if only changing the current line, no need 
+     * TODO: Rewrite / make more efficient (e.g. if only changing the current line, no need
      * to all following constructs on the next lines)
      *
      * @param pos - The left position to start building the nodes from
@@ -931,7 +931,7 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return (context.lineStatement instanceof EmptyLineStmt ||
+        return (context.codeConstruct instanceof EmptyLineStmt ||
             validator.atHoleWithType(context, this.constructType)) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
             ValidatorNameSpace.validateAncestors(context, this)
@@ -1132,7 +1132,7 @@ export abstract class Token extends Construct {
         const lines = this.text.split("\n");
         // Line difference = last line number - first line number
         const lineDiff = lines.length - 1;
-        // TODO: The way indentation is currently handled is not ideal. 
+        // TODO: The way indentation is currently handled is not ideal.
         // If multiple indentations happened before the current indentation,
         // they are simply bundled together. When deleting constructs, this could
         // make it impossible to get to the correct indentation level.
@@ -2051,6 +2051,49 @@ export class CompoundConstruct extends CodeConstruct {
             Module.instance.editor.executeEdits(range, token);
         });
         Module.instance.focus.updateContext(this.getConstructsFocus(this.tokens.slice(startingIndex + 1)));
+    }
+
+    removeExpansion(leftConstruct: Construct): boolean {
+        const currentIdx = leftConstruct.indexInRoot;
+        const cycleLength = this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
+        console.log("Remove expansion", currentIdx, cycleLength);
+        const startIdx = Math.max(currentIdx - cycleLength + 1, 0);
+
+        // All tokens can only be deleted if the first token can lead to an expansion
+        // otherwise it can never be expanded again
+        if (startIdx === 0 && !("waitOnUser" in this.compoundToken.format[0])) return false;
+
+        const deletable = this.tokens
+            .slice(startIdx, currentIdx + 1)
+            .every((token) => token instanceof NonEditableTkn || token instanceof TypedEmptyExpr);
+
+        const leftpos = this.tokens[startIdx].left;
+        if (deletable) {
+            const deleted = this.tokens.splice(startIdx, cycleLength);
+            for (let i = deleted.length - 1; i >= 0; i--) {
+                deleted[i].notify(CallbackType.delete);
+                // TODO: Very ugly and does not work
+            }
+
+            if (deleted.length > 0) {
+                // Remove from the monaco editor
+                const range = new Range(
+                    deleted[0].left.lineNumber,
+                    deleted[0].leftCol,
+                    deleted.at(-1).right.lineNumber,
+                    deleted.at(-1).rightCol
+                );
+
+                Module.instance.editor.monaco.executeEdits("module", [{ range: range, text: null }]);
+            }
+
+            // Rebuild the tokens
+            if (this.tokens[startIdx]) ASTManupilation.rebuild(this.tokens[startIdx], leftpos);
+            // TODO: Also very ugly and also does not work that well
+            Module.instance.focus.updateContext({ positionToMove: leftpos });
+        }
+
+        return deletable;
     }
 
     getBoundaries(): Range {

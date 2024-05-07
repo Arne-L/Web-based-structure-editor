@@ -164,7 +164,7 @@ export class Validator {
     onBeginningOfLine(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.position.column == context.lineStatement.leftCol;
+        return context.position.column == context.codeConstruct.leftCol;
     }
 
     // /**
@@ -298,7 +298,7 @@ export class Validator {
     onEmptyLine(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.lineStatement instanceof EmptyLineStmt;
+        return context.codeConstruct instanceof EmptyLineStmt;
     }
 
     /**
@@ -347,8 +347,8 @@ export class Validator {
 
         return (
             !context.selected &&
-            (curPosition.column == context.lineStatement.leftCol ||
-                curPosition.column == context.lineStatement.rightCol)
+            (curPosition.column == context.codeConstruct.leftCol ||
+                curPosition.column == context.codeConstruct.rightCol)
         );
     }
 
@@ -361,12 +361,12 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         // If on an empty line
-        if (context.lineStatement instanceof EmptyLineStmt) {
+        if (context.codeConstruct instanceof EmptyLineStmt) {
             return (
-                (context.lineStatement.rootNode instanceof Statement ||
-                    context.lineStatement.rootNode instanceof Module) &&
-                context.lineStatement.rootNode.body.length != 1 && // So rootNode.body.length > 1
-                context.lineStatement.indexInRoot != context.lineStatement.rootNode.body.length - 1 // Can not be the last line
+                (context.codeConstruct.rootNode instanceof Statement ||
+                    context.codeConstruct.rootNode instanceof Module) &&
+                context.codeConstruct.rootNode.body.length != 1 && // So rootNode.body.length > 1
+                context.codeConstruct.indexInRoot != context.codeConstruct.rootNode.body.length - 1 // Can not be the last line
             );
         }
 
@@ -383,12 +383,12 @@ export class Validator {
     canBackspaceCurEmptyLine(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (context.lineStatement instanceof EmptyLineStmt) {
+        if (context.codeConstruct instanceof EmptyLineStmt) {
             return (
-                (context.lineStatement.rootNode instanceof Statement ||
-                    context.lineStatement.rootNode instanceof Module) &&
-                context.lineStatement.rootNode.body.length != 1 &&
-                context.lineStatement.lineNumber != 1
+                (context.codeConstruct.rootNode instanceof Statement ||
+                    context.codeConstruct.rootNode instanceof Module) &&
+                context.codeConstruct.rootNode.body.length != 1 &&
+                context.codeConstruct.lineNumber != 1
             );
         }
 
@@ -405,7 +405,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
         const curPosition = this.module.editor.monaco.getPosition();
 
-        return curPosition.column == context.lineStatement.leftCol && this.getLineAbove() instanceof EmptyLineStmt;
+        return curPosition.column == context.codeConstruct.leftCol && this.getLineAbove() instanceof EmptyLineStmt;
     }
 
     /**
@@ -417,9 +417,9 @@ export class Validator {
 
         // Cursor position should be at the beginning of a non-empty line without a body
         if (
-            !(context.lineStatement instanceof EmptyLineStmt) &&
+            !(context.codeConstruct instanceof EmptyLineStmt) &&
             this.module.focus.onBeginningOfLine() &&
-            !context.lineStatement.hasBody()
+            !context.codeConstruct.hasBody()
         ) {
             // If the statement is text editable (e.g. autocomplete)
             if (this.module.focus.isTextEditable(providedContext)) {
@@ -443,9 +443,9 @@ export class Validator {
         // Idem to {@link canDeleteNextStatement} but with the third condition being that the statement has a body
         // instead of not having a condition
         if (
-            !(context.lineStatement instanceof EmptyLineStmt) &&
+            !(context.codeConstruct instanceof EmptyLineStmt) &&
             this.module.focus.onBeginningOfLine() &&
-            context.lineStatement.hasBody()
+            context.codeConstruct.hasBody()
         ) {
             if (this.module.focus.isTextEditable(providedContext)) {
                 if (context.tokenToRight.isEmpty) return true;
@@ -463,9 +463,9 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
-            context.lineStatement instanceof EmptyLineStmt &&
-            context.lineStatement.indexInRoot == 0 &&
-            context.lineStatement.rootNode instanceof Statement
+            context.codeConstruct instanceof EmptyLineStmt &&
+            context.codeConstruct.indexInRoot == 0 &&
+            context.codeConstruct.rootNode instanceof Statement
         );
     }
 
@@ -555,8 +555,8 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (
-            !(context.lineStatement instanceof EmptyLineStmt) &&
-            !context.lineStatement?.hasBody() &&
+            !(context.codeConstruct instanceof EmptyLineStmt) &&
+            !context.codeConstruct?.hasBody() &&
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
@@ -576,7 +576,7 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (
-            !(context.lineStatement instanceof EmptyLineStmt) &&
+            !(context.codeConstruct instanceof EmptyLineStmt) &&
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
@@ -590,7 +590,7 @@ export class Validator {
 
     canDeletePrevStmt(providedContext: Context): boolean {
         if (
-            !(providedContext.lineStatement instanceof EmptyLineStmt) &&
+            !(providedContext.codeConstruct instanceof EmptyLineStmt) &&
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
@@ -612,17 +612,17 @@ export class Validator {
      */
     canDeleteEmptyLine(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
         if (
-            providedContext.lineStatement instanceof EmptyLineStmt &&
-            providedContext.lineStatement.rootNode.body.length > 1
+            providedContext.codeConstruct instanceof EmptyLineStmt &&
+            providedContext.codeConstruct.rootNode.body.length > 1
         ) {
             // So rootNode.body.length > 1
             if (backwards) {
                 // Can no be the first line
-                return providedContext.lineStatement.lineNumber != 1;
+                return providedContext.codeConstruct.lineNumber != 1;
             } else {
                 // Can not be the last line
                 return (
-                    providedContext.lineStatement.indexInRoot != providedContext.lineStatement.rootNode.body.length - 1
+                    providedContext.codeConstruct.indexInRoot != providedContext.codeConstruct.rootNode.body.length - 1
                 );
             }
         }
@@ -641,7 +641,7 @@ export class Validator {
      */
     canDeleteNextStmt(providedContext?: Context): boolean {
         return (
-            !(providedContext.lineStatement instanceof EmptyLineStmt) &&
+            !(providedContext.codeConstruct instanceof EmptyLineStmt) &&
             this.module.focus.onBeginningOfLine() &&
             (!this.module.focus.isTextEditable(providedContext) || providedContext.tokenToRight.isEmpty)
         );
@@ -817,10 +817,10 @@ export class Validator {
     isAboveLineIndentedForward(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        if (context.lineStatement.lineNumber > 2) {
-            const lineAbove = this.module.focus.getCodeConstructAtLineNumber(context.lineStatement.lineNumber - 1);
+        if (context.codeConstruct.lineNumber > 2) {
+            const lineAbove = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
 
-            return context.lineStatement.leftCol < lineAbove.leftCol;
+            return context.codeConstruct.leftCol < lineAbove.leftCol;
         }
     }
 
@@ -847,20 +847,20 @@ export class Validator {
 
         if (
             this.module.focus.onBeginningOfLine() &&
-            context.lineStatement.rootNode instanceof Statement &&
+            context.codeConstruct.rootNode instanceof Statement &&
             // !(context.lineStatement instanceof ElseStatement) &&
             // !(context.lineStatement instanceof IfStatement) &&
             // !(this.getNextSiblingOfRoot(context) instanceof ElseStatement) &&
-            context.lineStatement.rootNode.hasBody()
+            context.codeConstruct.rootNode.hasBody()
         ) {
-            const rootsBody = context.lineStatement.rootNode.body;
+            const rootsBody = context.codeConstruct.rootNode.body;
 
             return (
                 !this.canDeletePrevLine(context) &&
                 // Can not be the only and direct child of the parent
                 rootsBody.length != 1 &&
                 // Needs to be the last construct in the body
-                context.lineStatement.indexInRoot == rootsBody.length - 1
+                context.codeConstruct.indexInRoot == rootsBody.length - 1
             );
         }
 
@@ -884,17 +884,17 @@ export class Validator {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         if (
-            context.lineStatement instanceof EmptyLineStmt &&
-            context.lineStatement.rootNode instanceof Statement &&
-            context.lineStatement.rootNode.hasBody() &&
-            !(context.lineStatement.rootNode as GeneralStatement).hasDependent(
+            context.codeConstruct instanceof EmptyLineStmt &&
+            context.codeConstruct.rootNode instanceof Statement &&
+            context.codeConstruct.rootNode.hasBody() &&
+            !(context.codeConstruct.rootNode as GeneralStatement).hasDependent(
                 this.getNextSiblingOfRoot(context) as GeneralStatement
             ) // NOT OK: Clean up types later
         ) {
-            const rootsBody = context.lineStatement.rootNode.body;
+            const rootsBody = context.codeConstruct.rootNode.body;
             let onlyEmptyLines = true;
 
-            for (let i = context.lineStatement.indexInRoot + 1; i < rootsBody.length; i++) {
+            for (let i = context.codeConstruct.indexInRoot + 1; i < rootsBody.length; i++) {
                 if (!(rootsBody[i] instanceof EmptyLineStmt)) {
                     onlyEmptyLines = false;
 
@@ -902,7 +902,7 @@ export class Validator {
                 }
             }
 
-            return onlyEmptyLines && context.lineStatement.indexInRoot != 0;
+            return onlyEmptyLines && context.codeConstruct.indexInRoot != 0;
         }
 
         return false;
@@ -1070,7 +1070,7 @@ export class Validator {
         // Check if the token is an autocomplete token and if it is not at the start of a line? (not sure about this)
         return (
             context.tokenToRight instanceof AutocompleteTkn &&
-            context.tokenToRight.leftCol != context.lineStatement.leftCol
+            context.tokenToRight.leftCol != context.codeConstruct.leftCol
         );
     }
 
@@ -1115,18 +1115,18 @@ export class Validator {
     private getPrevSibling(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.getStatementInBody(context?.lineStatement?.rootNode, context?.lineStatement?.indexInRoot - 1);
+        return this.getStatementInBody(context?.codeConstruct?.rootNode, context?.codeConstruct?.indexInRoot - 1);
     }
 
     private getNextSibling(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.getStatementInBody(context?.lineStatement?.rootNode, context?.lineStatement?.indexInRoot + 1);
+        return this.getStatementInBody(context?.codeConstruct?.rootNode, context?.codeConstruct?.indexInRoot + 1);
     }
 
     private getNextSiblingOfRoot(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
-        const curRoot = context?.lineStatement?.rootNode;
+        const curRoot = context?.codeConstruct?.rootNode;
 
         if (curRoot instanceof CodeConstruct) {
             return this.getStatementInBody(curRoot.rootNode, curRoot.indexInRoot + 1);
@@ -1137,7 +1137,7 @@ export class Validator {
 
     private getPrevSiblingOfRoot(providedContext?: Context): CodeConstruct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
-        const curRoot = context?.lineStatement?.rootNode;
+        const curRoot = context?.codeConstruct?.rootNode;
 
         if (curRoot instanceof Statement) {
             return this.getStatementInBody(curRoot.rootNode, curRoot.indexInRoot - 1);
@@ -1158,13 +1158,13 @@ export class Validator {
     private getLineBelow(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return this.module.focus.getCodeConstructAtLineNumber(context?.lineStatement?.lineNumber + 1);
+        return this.module.focus.getCodeConstructAtLineNumber(context?.codeConstruct?.lineNumber + 1);
     }
 
     private getLineAbove(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        const curLineNumber = context?.lineStatement?.lineNumber;
+        const curLineNumber = context?.codeConstruct?.lineNumber;
 
         if (curLineNumber > 1) return this.module.focus.getCodeConstructAtLineNumber(curLineNumber - 1);
 

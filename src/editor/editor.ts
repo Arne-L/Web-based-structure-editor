@@ -340,7 +340,7 @@ export class Editor {
     /**
      * Add the text to the monaco editor at the given range and add a hole to the editor
      *
-     * @param range - The range in which to insert in the monaco editor
+     * @param range - The range to replace in the monaco editor
      * @param code - The code to insert
      * @param overwrite - The text to overwrite the range with. If null, the code's render text is used.
      */

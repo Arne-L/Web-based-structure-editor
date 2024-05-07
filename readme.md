@@ -272,5 +272,8 @@ Imperatief:
 Kunnen beiden gecombineerd worden?
 Mogelijks ... Elk niveau van recursie een container geven waar ook een seperator token aan kan worden toegevoegd (= imperatief element)
 
-TODO: getRenderText aanpassen om rekening te houden met indentaties en gelijkaardige van eerdere (compound) structuren
+TODO: 
+* getRenderText aanpassen om rekening te houden met indentaties en gelijkaardige van eerdere (compound) structuren
 ==> bij getRenderText alle insertBefores invoegen behalve die van de direct parent
+* Probeer deleteCode als een methode op de constructs te implementeren en misschien één algemene functie te maken waar een lijst van constructs aan gegeven kan worden om te verwijderen
+==> Verwijderen van UniConstructs vervangen door een hole, lijsten van constructs door niets?

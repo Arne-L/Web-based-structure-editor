@@ -3,19 +3,11 @@ import {
     GeneralExpression,
     // ForStatement,
     GeneralStatement,
-    // ListComma,
-    Modifier,
     Statement,
-    // TypedEmptyExpr,
-    // ValueOperationExpr,
-    // VarAssignmentStmt,
-    // VariableReferenceExpr,
-    // VarOperationStmt,
 } from "../syntax-tree/ast";
-import { DataType, InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
+import { InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
-import { Reference } from "../syntax-tree/scope";
-import { createFinalConstruct, getHoleValues, getUserFriendlyType } from "../utilities/util";
+import { createFinalConstruct, getHoleValues } from "../utilities/util";
 import { ActionExecutor } from "./action-executor";
 import { Actions, EditActionType, InsertActionType } from "./consts";
 import { EditAction } from "./data-types";
@@ -51,7 +43,7 @@ export class ActionFilter {
         // on the current location) and add it to the valid map
         for (const action of Actions.instance().actionsList) {
             if (action.containsReference) {
-                const nearestStmt = context.lineStatement;
+                const nearestStmt = context.codeConstruct;
                 const scope = nearestStmt.getNearestScope();
                 const references = scope.getValidReferences(nearestStmt.getFirstLineNumber());
                 for (const reference of references) {

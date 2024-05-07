@@ -23,7 +23,7 @@ export namespace ASTManupilation {
             // If on empty line, replace the empty line
             if (module.validator.onEmptyLine(context)) {
                 // replaceEmptyStatement(context.lineStatement, new TemporaryStmt(construct));
-                replaceWith(context.lineStatement, new TemporaryStmt(construct));
+                replaceWith(context.codeConstruct, new TemporaryStmt(construct));
             }
             // If at empty expression hole, insert the token
             else if (module.validator.atEmptyHole(context)) {
@@ -49,7 +49,7 @@ export namespace ASTManupilation {
             }
         } else if (construct instanceof GeneralExpression) {
             if (module.validator.onEmptyLine(context)) {
-                replaceWith(context.lineStatement, construct);
+                replaceWith(context.codeConstruct, construct);
             } else if (module.validator.atEmptyHole(context)) {
                 replaceWith(context.token, construct);
             }
@@ -58,7 +58,7 @@ export namespace ASTManupilation {
 
             // If on empty line, replace the empty line
             if (module.validator.onEmptyLine(context)) {
-                replaceWith(context.lineStatement, construct);
+                replaceWith(context.codeConstruct, construct);
             }
             // If at empty expression hole, insert the token
             else if (module.validator.atEmptyHole(context)) {
@@ -116,8 +116,8 @@ export namespace ASTManupilation {
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
         if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
-            let focusedConstruct = context.codeconstruct ?? context.token; // Will it not always be context.token? As we are replacing the TypedEmptyExpr tkn?
-            
+            let focusedConstruct = context.construct ?? context.token; // Will it not always be context.token? As we are replacing the TypedEmptyExpr tkn?
+
             if (focusedConstruct) {
                 const root = focusedConstruct.rootNode;
                 root.replace(code, focusedConstruct.indexInRoot);
@@ -307,4 +307,29 @@ export namespace ASTManupilation {
         //     leftPos.lineNumber += construct.body[i].getHeight();
         // }
     }
+}
+
+export namespace DebugUtils {
+    /**
+     * Used to print special characters in a string to the console
+     * 
+     * @param str - The string to print
+     * @returns The string with special characters printed
+     */
+    export function escape(str) {
+        return str.replace(/[\b\f\n\r\t\v\0\'\"\\]/g, match => {
+          return {
+            '\b': '\\b',
+            '\f': '\\f',
+            '\n': '\\n',
+            '\r': '\\r',
+            '\t': '\\t',
+            '\v': '\\v',
+            '\0': '\\0',
+            '\'': '\\\'',
+            '\"': '\\\"',
+            '\\': '\\\\'
+          }[match]
+        })
+      }
 }

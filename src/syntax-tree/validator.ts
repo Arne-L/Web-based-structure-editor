@@ -1,5 +1,5 @@
 import { Context } from "../editor/focus";
-import { CodeConstruct, Construct, GeneralStatement, Statement } from "./ast";
+import { CodeConstruct, GeneralStatement } from "./ast";
 import { Module } from "./module";
 
 export namespace ValidatorNameSpace {
@@ -35,7 +35,7 @@ export namespace ValidatorNameSpace {
             if (dependingIndex === -1) continue;
 
             // Depending / requiring construct to start checking from
-            let currentConstruct = context.lineStatement;
+            let currentConstruct = context.codeConstruct;
 
             // There is no construct in front of the current one, so the insertion is invalid
             if (!currentConstruct) break;
@@ -82,7 +82,7 @@ export namespace ValidatorNameSpace {
             // TODO: Not completely correct: what if there are multiple of the first requiring construct?
             while (dependingIndex >= 0) {
                 const currentEditorConstruct = currentConstruct;
-                if (currentConstruct === context.lineStatement) {
+                if (currentConstruct === context.codeConstruct) {
                     prevConstruct = prevConstruct === currentConstruct ? invokedConstruct : prevConstruct;
                     currentConstruct = invokedConstruct;
                 }
@@ -150,7 +150,7 @@ export namespace ValidatorNameSpace {
         // in reality this would probably often be infinite.
 
         // If null, then we are at the top of the tree
-        let currentParent = getParentOf(context.lineStatement);
+        let currentParent = getParentOf(context.codeConstruct);
         let level = 0;
         while (currentParent) {
             const foundAncestor = invokedConstruct.requiredAncestorConstructs.find(

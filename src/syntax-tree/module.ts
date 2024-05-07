@@ -365,7 +365,7 @@ export class Module {
      */
     indentBodyConstructs(providedContext: Context, backwards: boolean) {
         // The parent statement
-        const parent = providedContext.lineStatement;
+        const parent = providedContext.codeConstruct;
 
         if (!parent.hasBody()) return;
 

@@ -7,6 +7,7 @@ import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
+import { DebugUtils } from "../syntax-tree/utils";
 
 /**
  * Handle incoming events and route them to the corresponding action.
@@ -282,6 +283,40 @@ export class EventRouter {
 
             // NOT language independent
             case KeyPress.Backspace: {
+                console.log("BACKSPACE")
+                const curTkn = context.token ?? context.tokenToLeft;
+                if (curTkn instanceof ast.Token) {
+                    if (
+                        curTkn instanceof ast.AutocompleteTkn ||
+                        curTkn instanceof ast.IdentifierTkn ||
+                        curTkn instanceof ast.EditableTextTkn
+                    ) {
+                        console.log("BACKSPACE editable");
+                        return new EditAction(EditActionType.DeletePrevChar);
+                    }
+                    if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                        console.log("BACKSPACE compound")
+                        const compound = curTkn.rootNode;
+                        compound.removeExpansion(curTkn);
+                        break;
+                        // compound.
+                        // Try to remove one cycle of the compound construct
+                        // Conditions: all constructs in the cycle are either empty or non-editable, no
+                        // GeneralStatements remain in the cycle
+                        // If it is not possible, do nothing
+                    } else {
+                        console.log("BACKSPACE root")
+                        // So root is a UniConstruct / GeneralStatement
+                        return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
+                    }
+                } else {
+                    // CodeConstruct
+                    // Do we even need something here? As the smallest element will always be a
+                }
+                break;
+
+                console.log("BACKSPACE END kinda")
+
                 if (this.module.validator.canDeleteAdjacentChar(context, { backwards: true })) {
                     // Delete char in front of the cursor in a text editable area
                     if (e.ctrlKey) return new EditAction(EditActionType.DeleteToStart);
@@ -580,8 +615,7 @@ export class EventRouter {
 
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
-            if (compound.canContinueExpansion(leftConstruct, e.key))
-                compound.continueExpansion(leftConstruct);
+            if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
         }
 
         // No edit action could be matched
