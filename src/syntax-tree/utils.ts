@@ -174,7 +174,7 @@ export namespace ASTManupilation {
         // Optional
         // if (!(context.token instanceof TypedEmptyExpr)) return;
 
-        const root = constructToReplace.rootNode as CodeConstruct;
+        const root = constructToReplace.rootNode;
 
         // Set the same root node and indexInRoot as the construct that is being replaced
         newConstruct.rootNode = root;

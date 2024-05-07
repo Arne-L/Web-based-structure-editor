@@ -144,13 +144,14 @@ export class Hole {
             })
         );
 
-        code.subscribe(
-            CallbackType.replace,
-            new Callback(() => {
-                hole.setTransform(null);
-                hole.remove();
-            })
-        );
+        // TODO: Is it sufficient to only keep the CallbackType.delete?
+        // code.subscribe(
+        //     CallbackType.replace,
+        //     new Callback(() => {
+        //         hole.setTransform(null);
+        //         hole.remove();
+        //     })
+        // );
 
         code.subscribe(
             CallbackType.fail,
