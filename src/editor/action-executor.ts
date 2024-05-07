@@ -5,6 +5,7 @@ import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
     // AssignmentModifier,
     AutocompleteTkn,
+    CodeConstruct,
     // BinaryOperatorExpr,
     Construct,
     // ElseStatement,
@@ -22,7 +23,6 @@ import {
     Token,
     TypedEmptyExpr,
 } from "../syntax-tree/ast";
-import { replaceInBody } from "../syntax-tree/body";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 import { AutoCompleteType, BuiltInFunctions, PythonKeywords } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
@@ -138,7 +138,8 @@ export class ActionExecutor {
                 // } else if (context.expressionToRight instanceof Modifier) {
                 //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 // } else
-                this.module.deleteCode(context.expressionToRight);
+                // this.module.deleteCode(context.expressionToRight);
+                this.module.deleteConstruct(context.expressionToRight);
 
                 break;
             }
@@ -158,30 +159,28 @@ export class ActionExecutor {
                 // }
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
                 // else
-                this.module.deleteCode(context.expressionToLeft);
+                // this.module.deleteCode(context.expressionToLeft);
+                this.module.deleteConstruct(context.expressionToLeft);
 
                 break;
             }
 
             case EditActionType.DeleteRootOfToken: {
-                if (action.data?.backwards) {
-                    const stmt =
-                        context.tokenToLeft.rootNode instanceof GeneralStatement &&
-                        !(context.tokenToLeft.rootNode instanceof GeneralExpression);
-                    this.module.deleteCode(context.tokenToLeft.rootNode, { statement: stmt });
-                } else {
-                    const stmt =
-                        context.tokenToRight.rootNode instanceof GeneralStatement &&
-                        !(context.tokenToRight.rootNode instanceof GeneralExpression);
-                    this.module.deleteCode(context.tokenToRight.rootNode, { statement: stmt });
-                }
+                let root: CodeConstruct;
+                if (action.data?.backwards) root = context.tokenToLeft.rootNode;
+                else context.tokenToRight.rootNode;
+
+                // const stmt = root instanceof GeneralStatement && !(root instanceof GeneralExpression);
+                // this.module.deleteCode(root, { statement: stmt });
+                this.module.deleteConstruct(root);
 
                 break;
             }
 
             // NOT language independent => Try to remove as statements should not be hardcoded
             case EditActionType.DeleteStatement: {
-                this.module.deleteCode(context.codeConstruct, { statement: true });
+                // this.module.deleteCode(context.codeConstruct, { statement: true });
+                this.module.deleteConstruct(context.codeConstruct);
 
                 break;
             }
@@ -190,7 +189,8 @@ export class ActionExecutor {
                 // Remove the currently focused statement and update the body to
                 // reflect the new correct indentation
                 this.module.indentBodyConstructs(context, true);
-                this.module.deleteCode(context.codeConstruct, { statement: true });
+                // this.module.deleteCode(context.codeConstruct, { statement: true });
+                this.module.deleteConstruct(context.codeConstruct);
 
                 break;
             }
@@ -338,12 +338,12 @@ export class ActionExecutor {
             }
 
             // Language independent as we will likely keep the concept of an empty line
-            case EditActionType.InsertEmptyLine: {
-                const newEmptyLine = this.module.insertEmptyLine();
-                this.module.focus.fireOnNavOffCallbacks(context.codeConstruct, newEmptyLine);
+            // case EditActionType.InsertEmptyLine: {
+            //     const newEmptyLine = this.module.insertEmptyLine();
+            //     this.module.focus.fireOnNavOffCallbacks(context.codeConstruct, newEmptyLine);
 
-                break;
-            }
+            //     break;
+            // }
 
             // Language independent
             case EditActionType.SelectPrevToken: {
@@ -366,7 +366,6 @@ export class ActionExecutor {
                 const selectedText = this.module.editor.monaco.getSelection();
                 // Get the focused or adjacent editable
                 const editableToken = this.module.focus.getTextEditableItem(context);
-                console.log("EditableToken", editableToken);
                 // Get the editable text
                 const editableText = editableToken.getEditableText();
                 // Get the corresponding editable token
@@ -522,7 +521,8 @@ export class ActionExecutor {
                             removableExpr.rootNode instanceof TemporaryStmt
                         ) {
                             // Remove the temporary statement encapsulating the autocomplete token
-                            this.module.deleteCode(removableExpr.rootNode, { statement: true });
+                            // this.module.deleteCode(removableExpr.rootNode, { statement: true });
+                            this.module.deleteConstruct(removableExpr.rootNode);
                             // } else if (
                             //     removableExpr instanceof AutocompleteTkn &&
                             //     removableExpr.autocompleteType == AutoCompleteType.AtEmptyOperatorHole
@@ -540,7 +540,7 @@ export class ActionExecutor {
                             // Remove the autocomplete token
                             this.deleteAutocompleteToken(removableExpr);
                             // Else just remove the expression
-                        } else this.module.deleteCode(removableExpr);
+                        } else this.module.deleteConstruct(removableExpr)//this.module.deleteCode(removableExpr);
 
                         break;
                     }
@@ -974,7 +974,8 @@ export class ActionExecutor {
 
             // Generalise in one single delete function
             case EditActionType.DeleteRootNode: {
-                this.module.deleteCode(context.token.rootNode);
+                // this.module.deleteCode(context.token.rootNode);
+                this.module.deleteConstruct(context.token.rootNode);
                 break;
             }
 
@@ -1098,7 +1099,8 @@ export class ActionExecutor {
                 break;
 
             case EditActionType.CloseDraftMode:
-                this.module.deleteCode(action.data.codeNode);
+                // this.module.deleteCode(action.data.codeNode);
+                this.module.deleteConstruct(action.data.codeNode);
 
                 break;
 
@@ -1185,19 +1187,22 @@ export class ActionExecutor {
                 case AutoCompleteType.StartOfLine:
                     // If the parent is a temporary statement, remove the entire statement
                     if (token.rootNode instanceof TemporaryStmt) {
-                        this.module.deleteCode(token.rootNode, {
-                            statement: true,
-                        });
+                        // this.module.deleteCode(token.rootNode, {
+                        //     statement: true,
+                        // });
+                        this.module.deleteConstruct(token.rootNode);
                         // Else just delete the token
                     } else {
-                        this.module.deleteCode(token);
+                        // this.module.deleteCode(token);
+                        this.module.deleteConstruct(token);
                     }
 
                     break;
 
                 // If at an expression hole, remove the token
                 case AutoCompleteType.AtExpressionHole:
-                    this.module.deleteCode(token, {});
+                    // this.module.deleteCode(token, {});
+                    this.module.deleteConstruct(token);
 
                     break;
             }

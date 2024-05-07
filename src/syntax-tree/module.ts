@@ -394,29 +394,29 @@ export class Module {
         }
     }
 
-    /**
-     * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
-     *
-     * @param code
-     * @param start
-     * @param count
-     * @returns
-     */
-    removeItems(code: Construct, start: number, count: number): Array<Construct> {
-        if (code instanceof Statement) {
-            const removedItems = code.tokens.splice(start, count);
+    // /**
+    //  * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
+    //  *
+    //  * @param code
+    //  * @param start
+    //  * @param count
+    //  * @returns
+    //  */
+    // removeItems(code: Construct, start: number, count: number): Array<Construct> {
+    //     if (code instanceof Statement) {
+    //         const removedItems = code.tokens.splice(start, count);
 
-            for (const item of removedItems) {
-                this.recursiveNotify(item, CallbackType.delete);
-            }
+    //         for (const item of removedItems) {
+    //             this.recursiveNotify(item, CallbackType.delete);
+    //         }
 
-            code.rebuild(code.getLeftPosition(), 0);
+    //         code.rebuild(code.getLeftPosition(), 0);
 
-            return removedItems;
-        }
+    //         return removedItems;
+    //     }
 
-        return [];
-    }
+    //     return [];
+    // }
 
     /**
      * Remove the given construct from the editor
@@ -427,55 +427,63 @@ export class Module {
      * Also creates a hole in the place of the removed construct and updates the focus.
      * @returns - The construct that replaces the removed construct
      */
-    private removeConstruct(construct: Construct, options: { executeEdit: boolean } = { executeEdit: true }): Construct {
+    deleteConstruct(construct: Construct, options: { executeEdit: boolean } = { executeEdit: true }): Construct {
         const root = construct.rootNode;
 
+        // In the absence of a root construct, return
         if (!root) return;
 
+        // Create the hole to replace the removed construct
         const replacement = new TypedEmptyExpr([DataType.Any], root, construct.indexInRoot, root.holeTypes.get(construct.indexInRoot));
+
+        // Remove the construct from the AST
         root.tokens.splice(construct.indexInRoot, 1, replacement);
 
+        // Rebuild everything following the removed construct
         ASTManupilation.rebuild(replacement, construct.getLeftPosition());
 
+        // If the monaco editor should be updated, replace the construct in the monaco
+        // editor and update focus
         if (options.executeEdit) {
             this.editor.executeEdits(construct.getBoundaries(), replacement);
             this.focus.updateContext({ tokenToSelect: replacement });
         }
 
+        // Notify all (sub)constructs that have been deleted
         construct.notify(CallbackType.delete);
 
         return replacement;
     }
 
-    /**
-     * Remove the statement and replace it with an empty line
-     *
-     * @param line - The statement to be removed
-     * @returns - The empty line that replaces the removed statement
-     */
-    private removeStatement(line: GeneralStatement): Construct {
-        // Get the root of the construct
-        const root = line.rootNode;
+    // /**
+    //  * Remove the statement and replace it with an empty line
+    //  *
+    //  * @param line - The statement to be removed
+    //  * @returns - The empty line that replaces the removed statement
+    //  */
+    // private removeStatement(line: GeneralStatement): Construct {
+    //     // Get the root of the construct
+    //     const root = line.rootNode;
 
-        if (root instanceof Module || root instanceof GeneralStatement) {
-            // Create empty line replacement
-            const replacement = new EmptyLineStmt(root, line.indexInRoot);
-            // Notify the construct that has been deleted
-            this.recursiveNotify(line, CallbackType.delete);
-            // Replace in the root the removed construct with the empty line
-            root.body.splice(line.indexInRoot, 1, replacement);
-            // Build the left and right positions and linenumber of the new construct
-            replacement.build(line.getLeftPosition());
+    //     if (root instanceof Module || root instanceof GeneralStatement) {
+    //         // Create empty line replacement
+    //         const replacement = new EmptyLineStmt(root, line.indexInRoot);
+    //         // Notify the construct that has been deleted
+    //         this.recursiveNotify(line, CallbackType.delete);
+    //         // Replace in the root the removed construct with the empty line
+    //         root.body.splice(line.indexInRoot, 1, replacement);
+    //         // Build the left and right positions and linenumber of the new construct
+    //         replacement.build(line.getLeftPosition());
 
-            // Rebuilds all linenumbers for the entire editor
-            // rebuildBody(this, 0, 1); // <--- THIS IS THE PROBLEM
-            ASTManupilation.rebuild(replacement, line.getLeftPosition());
+    //         // Rebuilds all linenumbers for the entire editor
+    //         // rebuildBody(this, 0, 1); // <--- THIS IS THE PROBLEM
+    //         ASTManupilation.rebuild(replacement, line.getLeftPosition());
 
-            return replacement;
-        }
+    //         return replacement;
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
     /**
      * Remove a statement without replacing
@@ -493,83 +501,81 @@ export class Module {
         }
     }
 
-    /**
-     * MAYBE PLACE THIS IN THE AST ASWELL?
-     *
-     * Remove the given Construct from the editor and update the focus context
-     * It also replaces the construct with the correct "placeholder" construct
-     *
-     * @param code
-     * @param param1
-     */
-    deleteCode(code: Construct, { statement = false, replaceType = null } = {}) {
-        // Get range of the construct to delete
-        const replacementRange = code.getBoundaries();
-        // The construct to replace the deleted code with
-        let replacement: Construct;
+    // /**
+    //  * MAYBE PLACE THIS IN THE AST ASWELL?
+    //  *
+    //  * Remove the given Construct from the editor and update the focus context
+    //  * It also replaces the construct with the correct "placeholder" construct
+    //  *
+    //  * @param code
+    //  * @param param1
+    //  */
+    // deleteCode(code: Construct, { statement = false, replaceType = null } = {}) {
+    //     // Get range of the construct to delete
+    //     const replacementRange = code.getBoundaries();
+    //     // The construct to replace the deleted code with
+    //     let replacement: Construct;
 
-        this.removeConstruct(code);
+    //     // If the construct to delete is a statement
+    //     if (statement) replacement = this.removeStatement(code as GeneralStatement);
+    //     // If the construct to delete is a expression
+    //     else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
 
-        // // If the construct to delete is a statement
-        // if (statement) replacement = this.removeStatement(code as GeneralStatement);
-        // // If the construct to delete is a expression
-        // else replacement = this.replaceItemWTypedEmptyExpr(code, replaceType);
+    //     // Replace all characters in the Monaco editor with the replacement construct
+    //     this.editor.executeEdits(replacementRange, replacement);
+    //     // Update the focus context
+    //     this.focus.updateContext({ tokenToSelect: replacement });
+    // }
 
-        // // Replace all characters in the Monaco editor with the replacement construct
-        // this.editor.executeEdits(replacementRange, replacement);
-        // // Update the focus context
-        // this.focus.updateContext({ tokenToSelect: replacement });
-    }
+    // /**
+    //  * Rebuild the root and all of its children after a child construct has
+    //  * been deleted. Includes updating the left and right positions and the
+    //  * linenumbers
+    //  *
+    //  * @param item - The construct that has been deleted
+    //  * @param root - The root of the construct
+    //  */
+    // private rebuildOnConstructDeletion(item: Construct, root: CodeConstruct) {
+    //     // Notify the construct that has been deleted
+    //     this.recursiveNotify(item, CallbackType.delete);
 
-    /**
-     * Rebuild the root and all of its children after a child construct has
-     * been deleted. Includes updating the left and right positions and the
-     * linenumbers
-     *
-     * @param item - The construct that has been deleted
-     * @param root - The root of the construct
-     */
-    private rebuildOnConstructDeletion(item: Construct, root: CodeConstruct) {
-        // Notify the construct that has been deleted
-        this.recursiveNotify(item, CallbackType.delete);
+    //     // Update indices and root nodes of all tokens of the root
+    //     for (let i = 0; i < root.tokens.length; i++) {
+    //         root.tokens[i].indexInRoot = i;
+    //         root.tokens[i].rootNode = root;
+    //     }
 
-        // Update indices and root nodes of all tokens of the root
-        for (let i = 0; i < root.tokens.length; i++) {
-            root.tokens[i].indexInRoot = i;
-            root.tokens[i].rootNode = root;
-        }
+    //     // Update left and right positions of the root
+    //     // root.rebuild(root.getLeftPosition(), 0);
+    //     ASTManupilation.rebuild(root, root.getLeftPosition());
+    // }
 
-        // Update left and right positions of the root
-        // root.rebuild(root.getLeftPosition(), 0);
-        ASTManupilation.rebuild(root, root.getLeftPosition());
-    }
+    // replaceItemWTypedEmptyExpr(item: Construct, replaceType: DataType): Construct {
+    //     const root = item.rootNode as CodeConstruct; // TODO: Not okay
 
-    replaceItemWTypedEmptyExpr(item: Construct, replaceType: DataType): Construct {
-        const root = item.rootNode as CodeConstruct; // TODO: Not okay
+    //     // if (!(root instanceof GeneralStatement)) return null; // TODO: Can this be deleted?
 
-        // if (!(root instanceof GeneralStatement)) return null; // TODO: Can this be deleted?
+    //     // if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
+    //     //     replaceType = DataType.Any;
 
-        // if (root instanceof ListLiteralExpression || root instanceof FormattedStringCurlyBracketsExpr)
-        //     replaceType = DataType.Any;
+    //     let replacedItem = null;
+    //     const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
 
-        let replacedItem = null;
-        const allowedTypes = DataType.Any; //root.getCurrentAllowedTypesOfHole(item.indexInRoot, true);
+    //     replacedItem = new TypedEmptyExpr(
+    //         replaceType !== null ? [replaceType] : [DataType.Any],
+    //         root,
+    //         item.indexInRoot,
+    //         root.holeTypes.get(item.indexInRoot)
+    //     );
 
-        replacedItem = new TypedEmptyExpr(
-            replaceType !== null ? [replaceType] : [DataType.Any],
-            root,
-            item.indexInRoot,
-            root.holeTypes.get(item.indexInRoot)
-        );
+    //     if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
 
-        if (allowedTypes.length > 0) replacedItem.type = allowedTypes;
+    //     // root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
+    //     root.tokens.splice(item.indexInRoot, 1, replacedItem);
+    //     this.rebuildOnConstructDeletion(item, root);
 
-        // root.onReplaceToken({ indexInRoot: item.indexInRoot, replaceWithEmptyExpr: true });
-        root.tokens.splice(item.indexInRoot, 1, replacedItem);
-        this.rebuildOnConstructDeletion(item, root);
-
-        return replacedItem;
-    }
+    //     return replacedItem;
+    // }
 
     // removeItem(item: CodeConstruct): void {
     //     const root = item.rootNode;
@@ -647,115 +653,115 @@ export class Module {
     // }
     // SUPERSEDED BY A METHOD ON THE SCOPE CLASS
 
-    /**
-     *
-     *
-     * @returns
-     */
-    insertEmptyLine(): EmptyLineStmt {
-        // Current cursor position
-        const curPos = this.editor.monaco.getPosition();
-        // The statement in / at which the cursor is currently located
-        const curStmt = this.focus.getFocusedStatement();
-        // Parent of the current statement
-        const curRoot = curStmt.rootNode;
+    // /**
+    //  *
+    //  *
+    //  * @returns
+    //  */
+    // insertEmptyLine(): EmptyLineStmt {
+    //     // Current cursor position
+    //     const curPos = this.editor.monaco.getPosition();
+    //     // The statement in / at which the cursor is currently located
+    //     const curStmt = this.focus.getFocusedStatement();
+    //     // Parent of the current statement
+    //     const curRoot = curStmt.rootNode;
 
-        // Column positions in the editor start at one
-        let leftPosToCheck = 1;
-        // Does the root statement have a body?
-        let parentStmtHasBody = false;
-        // String to add by default to start on the next line in the
-        // monaco editor
-        const textToAdd = "\n";
-        // Keeps track of the number of spaces to add
-        let spaces = "";
-        let atCompoundStmt = false;
+    //     // Column positions in the editor start at one
+    //     let leftPosToCheck = 1;
+    //     // Does the root statement have a body?
+    //     let parentStmtHasBody = false;
+    //     // String to add by default to start on the next line in the
+    //     // monaco editor
+    //     const textToAdd = "\n";
+    //     // Keeps track of the number of spaces to add
+    //     let spaces = "";
+    //     let atCompoundStmt = false;
 
-        // TODO: How to rewrite?
-        // If the current statement is inside the body of its root
-        if (curRoot instanceof GeneralStatement && curRoot.hasBody()) {
-            // The left editor position of the current statement
-            leftPosToCheck = curRoot.leftCol + TAB_SPACES;
-            // The parent statement has a body
-            parentStmtHasBody = true;
+    //     // TODO: How to rewrite?
+    //     // If the current statement is inside the body of its root
+    //     if (curRoot instanceof GeneralStatement && curRoot.hasBody()) {
+    //         // The left editor position of the current statement
+    //         leftPosToCheck = curRoot.leftCol + TAB_SPACES;
+    //         // The parent statement has a body
+    //         parentStmtHasBody = true;
 
-            // Add the required number of spaces to give a statement
-            // the required indentation
-            spaces += " ".repeat(leftPosToCheck - 1);
-        }
+    //         // Add the required number of spaces to give a statement
+    //         // the required indentation
+    //         spaces += " ".repeat(leftPosToCheck - 1);
+    //     }
 
-        // If the current statement has a body and the cursor is not at the start of the statement
-        // PROBABLY: if the cursor is not at the start of the statement, it is at the end
-        // meaning that the empty line should be inserted after the current statement in
-        // its body
-        if (curStmt instanceof GeneralStatement && curStmt.hasBody() && curPos.column != curStmt.leftCol) {
-            // is at the header / first body statement of a statement with body
-            // The left editor position of a body statement
-            leftPosToCheck = curStmt.leftCol + TAB_SPACES;
-            // The current statement has a body
-            parentStmtHasBody = true;
-            atCompoundStmt = true;
+    //     // If the current statement has a body and the cursor is not at the start of the statement
+    //     // PROBABLY: if the cursor is not at the start of the statement, it is at the end
+    //     // meaning that the empty line should be inserted after the current statement in
+    //     // its body
+    //     if (curStmt instanceof GeneralStatement && curStmt.hasBody() && curPos.column != curStmt.leftCol) {
+    //         // is at the header / first body statement of a statement with body
+    //         // The left editor position of a body statement
+    //         leftPosToCheck = curStmt.leftCol + TAB_SPACES;
+    //         // The current statement has a body
+    //         parentStmtHasBody = true;
+    //         atCompoundStmt = true;
 
-            // Add the required number of spaces to give a statement
-            // the required indentation
-            spaces += " ".repeat(leftPosToCheck - 1);
-        }
+    //         // Add the required number of spaces to give a statement
+    //         // the required indentation
+    //         spaces += " ".repeat(leftPosToCheck - 1);
+    //     }
 
-        // VERDER KIJKEN HOE DIT WERKT!
-        // VOORAL: hoe dat de eerste if + tweede if spaces samen nog steeds valid zijn
+    //     // VERDER KIJKEN HOE DIT WERKT!
+    //     // VOORAL: hoe dat de eerste if + tweede if spaces samen nog steeds valid zijn
 
-        if (curPos.column == leftPosToCheck) {
-            // insert emptyStatement at this line, move other statements down
-            // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot);
-            const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot);
+    //     if (curPos.column == leftPosToCheck) {
+    //         // insert emptyStatement at this line, move other statements down
+    //         // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot);
+    //         const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot);
 
-            emptyLine.build(curStmt.getLeftPosition());
+    //         emptyLine.build(curStmt.getLeftPosition());
 
-            if (parentStmtHasBody) {
-                this.addStatementToBody(
-                    curRoot as GeneralStatement,
-                    emptyLine,
-                    curStmt.indexInRoot,
-                    curStmt.lineNumber
-                );
-            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
+    //         if (parentStmtHasBody) {
+    //             this.addStatementToBody(
+    //                 curRoot as GeneralStatement,
+    //                 emptyLine,
+    //                 curStmt.indexInRoot,
+    //                 curStmt.lineNumber
+    //             );
+    //         } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot, curStmt.lineNumber);
 
-            const range = new Range(curStmt.lineNumber - 1, 1, curStmt.lineNumber - 1, 1);
-            this.editor.executeEdits(range, null, spaces + textToAdd);
+    //         const range = new Range(curStmt.lineNumber - 1, 1, curStmt.lineNumber - 1, 1);
+    //         this.editor.executeEdits(range, null, spaces + textToAdd);
 
-            // for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
-            return emptyLine;
-        } else {
-            // insert emptyStatement on next line, move other statements down
-            // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
-            const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot + 1);
-            emptyLine.build(new Position(curStmt.right.lineNumber + 1, leftPosToCheck));
+    //         // for (const stmt of this.body) console.log(stmt.getRenderText(), stmt.getRenderText().length);
+    //         return emptyLine;
+    //     } else {
+    //         // insert emptyStatement on next line, move other statements down
+    //         // const emptyLine = new EmptyLineStmt(parentStmtHasBody ? curRoot : this, curStmt.indexInRoot + 1);
+    //         const emptyLine = new EmptyLineStmt(curRoot, curStmt.indexInRoot + 1);
+    //         emptyLine.build(new Position(curStmt.right.lineNumber + 1, leftPosToCheck));
 
-            if (parentStmtHasBody && atCompoundStmt) {
-                emptyLine.indexInRoot = 0;
-                emptyLine.rootNode = curStmt;
-                this.addStatementToBody(curStmt as GeneralStatement, emptyLine, 0, curStmt.lineNumber + 1);
-            } else if (parentStmtHasBody) {
-                this.addStatementToBody(
-                    curRoot as GeneralStatement,
-                    emptyLine,
-                    curStmt.indexInRoot + 1,
-                    curStmt.lineNumber + 1
-                );
-            } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.right.lineNumber + 1);
+    //         if (parentStmtHasBody && atCompoundStmt) {
+    //             emptyLine.indexInRoot = 0;
+    //             emptyLine.rootNode = curStmt;
+    //             this.addStatementToBody(curStmt as GeneralStatement, emptyLine, 0, curStmt.lineNumber + 1);
+    //         } else if (parentStmtHasBody) {
+    //             this.addStatementToBody(
+    //                 curRoot as GeneralStatement,
+    //                 emptyLine,
+    //                 curStmt.indexInRoot + 1,
+    //                 curStmt.lineNumber + 1
+    //             );
+    //         } else this.addStatementToBody(this, emptyLine, curStmt.indexInRoot + 1, curStmt.right.lineNumber + 1);
 
-            const range = new Range(
-                curStmt.right.lineNumber,
-                curStmt.rightCol,
-                curStmt.right.lineNumber,
-                curStmt.rightCol
-            );
-            this.editor.executeEdits(range, null, textToAdd + spaces);
-            this.focus.updateContext({ tokenToSelect: emptyLine });
+    //         const range = new Range(
+    //             curStmt.right.lineNumber,
+    //             curStmt.rightCol,
+    //             curStmt.right.lineNumber,
+    //             curStmt.rightCol
+    //         );
+    //         this.editor.executeEdits(range, null, textToAdd + spaces);
+    //         this.focus.updateContext({ tokenToSelect: emptyLine });
 
-            return emptyLine;
-        }
-    }
+    //         return emptyLine;
+    //     }
+    // }
 
     /**
      * Replace the focussed expression with the given expression
