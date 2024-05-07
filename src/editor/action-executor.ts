@@ -166,13 +166,14 @@ export class ActionExecutor {
             }
 
             case EditActionType.DeleteRootOfToken: {
-                let root: CodeConstruct;
-                if (action.data?.backwards) root = context.tokenToLeft.rootNode;
-                else context.tokenToRight.rootNode;
+                let token: Construct;
+                if (action.data?.backwards) token = context.token ?? context.tokenToLeft;
+                else token = context.token ?? context.tokenToRight;
+                console.log(token, token.rootNode);
 
                 // const stmt = root instanceof GeneralStatement && !(root instanceof GeneralExpression);
                 // this.module.deleteCode(root, { statement: stmt });
-                this.module.deleteConstruct(root);
+                this.module.deleteConstruct(token.rootNode);
 
                 break;
             }

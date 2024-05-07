@@ -293,8 +293,7 @@ export class EventRouter {
                     ) {
                         console.log("BACKSPACE editable");
                         return new EditAction(EditActionType.DeletePrevChar);
-                    }
-                    if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                    } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
                         console.log("BACKSPACE compound")
                         const compound = curTkn.rootNode;
                         compound.removeExpansion(curTkn);
