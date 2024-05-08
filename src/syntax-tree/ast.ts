@@ -1481,6 +1481,12 @@ export class AssignmentToken extends IdentifierTkn {
      * changes in the identifier.
      */
     private oldIdentifier = EMPTYIDENTIFIER;
+    /**
+     * The type of the scope in which the variable is defined. The most frequent types 
+     * are "global" and "local". The scope type is used to determine to which scope the 
+     * variable belongs and what it's reach is. 
+     */
+    private scopeType: string = "global";
 
     /**
      * getIdentifier = getRenderText
@@ -1512,7 +1518,7 @@ export class AssignmentToken extends IdentifierTkn {
         // Get the parent statement
         const parentStmt = this.getNearestCodeConstruct();
         // Get the nearest scope
-        const stmtScope = parentStmt.getNearestScope();
+        const stmtScope = this.getNearestScope();
 
         if (currentIdentifier !== this.oldIdentifier) {
             // The identifier has changed
@@ -1528,76 +1534,77 @@ export class AssignmentToken extends IdentifierTkn {
                 }
 
                 // We now need to update all references to the new variable to remove fixed warnings
-                this.updateRefWarnings();
+                // this.updateRefWarnings();
             }
 
-            // An empty identifier is not a valid identifier and has thus no references pointing to it
-            if (this.oldIdentifier !== EMPTYIDENTIFIER) {
-                // We need to add warnings to all references to the old variable
-                this.updateRefWarnings(this.oldIdentifier);
-            }
+            // // An empty identifier is not a valid identifier and has thus no references pointing to it
+            // if (this.oldIdentifier !== EMPTYIDENTIFIER) {
+            //     // We need to add warnings to all references to the old variable
+            //     this.updateRefWarnings(this.oldIdentifier);
+            // }
         }
 
         // Update the old identifier
         this.oldIdentifier = currentIdentifier;
     }
 
-    /**
-     * Update the warnings of all references to the current token, either with
-     * the current identifier or with the given identifier. If an reference is
-     * covered by an assignment statement, the warning is removed. If not, a
-     * warning is added.
-     *
-     * @param identifierName - The identifier to which all references will be updated.
-     * If left empty, the current identifier will be used.
-     */
-    updateRefWarnings(identifierName?: string): void {
-        // List of variable reference expressions refering to the current token
-        const varRefs: GeneralStatement[] = [];
-        // Get the statement containing the token
-        const parentStmt = this.getNearestCodeConstruct();
-        // Current identifier
-        const currentIdentifier = identifierName ?? this.getRenderText();
+    // TODO: Temporary disabled as this does currently not work
+    // /**
+    //  * Update the warnings of all references to the current token, either with
+    //  * the current identifier or with the given identifier. If an reference is
+    //  * covered by an assignment statement, the warning is removed. If not, a
+    //  * warning is added.
+    //  *
+    //  * @param identifierName - The identifier to which all references will be updated.
+    //  * If left empty, the current identifier will be used.
+    //  */
+    // updateRefWarnings(identifierName?: string): void {
+    //     // List of variable reference expressions refering to the current token
+    //     const varRefs: GeneralStatement[] = [];
+    //     // Get the statement containing the token
+    //     const parentStmt = this.getNearestCodeConstruct();
+    //     // Current identifier
+    //     const currentIdentifier = identifierName ?? this.getRenderText();
 
-        // Go through all constructs and add the construct if it is a variable reference to the given assignment token
-        // and is in draft mode
-        parentStmt.getModule().performActionOnBFS((code) => {
-            // (code as GeneralStatement).tokens?.forEach((refTkn) => {
-            //     if (refTkn instanceof ReferenceTkn) console.log(refTkn.text, currentIdentifier);
-            // });
-            if (
-                code instanceof GeneralStatement &&
-                code.tokens.some((refTkn) => {
-                    return refTkn instanceof ReferenceTkn && refTkn.text === currentIdentifier;
-                })
-                // && code.draftModeEnabled
-            ) {
-                // varRefs.push(code); // TEMPORARY DISABLED BECAUSE THE MESSAGE FUNCTIONALITY RESULTS IN ERRORS
-            }
-        });
+    //     // Go through all constructs and add the construct if it is a variable reference to the given assignment token
+    //     // and is in draft mode
+    //     parentStmt.getModule().performActionOnBFS((code) => {
+    //         // (code as GeneralStatement).tokens?.forEach((refTkn) => {
+    //         //     if (refTkn instanceof ReferenceTkn) console.log(refTkn.text, currentIdentifier);
+    //         // });
+    //         if (
+    //             code instanceof GeneralStatement &&
+    //             code.tokens.some((refTkn) => {
+    //                 return refTkn instanceof ReferenceTkn && refTkn.text === currentIdentifier;
+    //             })
+    //             // && code.draftModeEnabled
+    //         ) {
+    //             // varRefs.push(code); // TEMPORARY DISABLED BECAUSE THE MESSAGE FUNCTIONALITY RESULTS IN ERRORS
+    //         }
+    //     });
 
-        // Go through all variable reference expressions in draft mode and remove the warning if the reference is
-        // covered by an assignment statement
-        for (const ref of varRefs) {
-            // Scope of the reference expression
-            const refScope = ref.getNearestScope();
+    //     // Go through all variable reference expressions in draft mode and remove the warning if the reference is
+    //     // covered by an assignment statement
+    //     for (const ref of varRefs) {
+    //         // Scope of the reference expression
+    //         const refScope = ref.getNearestScope();
 
-            // If the assignment statement covers the reference expression, then update the reference expression
-            if (refScope.covers(currentIdentifier, ref.getFirstLineNumber())) {
-                // A valid assignment found, thus remove the warning
-                parentStmt.getModule().closeConstructDraftRecord(ref);
-            } else {
-                // No valid assignment found, thus add the warning
-                parentStmt
-                    .getModule()
-                    .openDraftMode(
-                        ref,
-                        "This variable has been removed and cannot be referenced anymore. Consider deleting this reference.",
-                        []
-                    );
-            }
-        }
-    }
+    //         // If the assignment statement covers the reference expression, then update the reference expression
+    //         if (refScope.covers(currentIdentifier, ref.getFirstLineNumber())) {
+    //             // A valid assignment found, thus remove the warning
+    //             parentStmt.getModule().closeConstructDraftRecord(ref);
+    //         } else {
+    //             // No valid assignment found, thus add the warning
+    //             parentStmt
+    //                 .getModule()
+    //                 .openDraftMode(
+    //                     ref,
+    //                     "This variable has been removed and cannot be referenced anymore. Consider deleting this reference.",
+    //                     []
+    //                 );
+    //         }
+    //     }
+    // }
 
     /**
      * On deletion of the assignment, update the scope, check for other
@@ -1610,13 +1617,13 @@ export class AssignmentToken extends IdentifierTkn {
         // Remove the assignment from the nearest scope
         currentScope.removeAssignment(this);
 
-        // Check if a reference on the current location to the deleted assignment would
-        // be invalid
-        if (!currentScope.covers(this.getRenderText(), this.getFirstLineNumber())) {
-            // References to the deleted variable after this point could be invalid
-            // if there are no assignments between the deleted variable and the reference
-            this.updateRefWarnings();
-        }
+    //     // Check if a reference on the current location to the deleted assignment would
+    //     // be invalid
+    //     if (!currentScope.covers(this.getRenderText(), this.getFirstLineNumber())) {
+    //         // References to the deleted variable after this point could be invalid
+    //         // if there are no assignments between the deleted variable and the reference
+    //         this.updateRefWarnings();
+    //     }
     }
 }
 
@@ -1920,7 +1927,7 @@ export abstract class HoleStructure extends Construct {
 export class CompoundConstruct extends CodeConstruct {
     private recursiveName: string;
     // Hmmmm?
-    private scope: Scope;
+    scope: Scope;
     //
     private compoundToken: CompoundFormatDefinition;
     private waitOnIndices: Map<number, string>;

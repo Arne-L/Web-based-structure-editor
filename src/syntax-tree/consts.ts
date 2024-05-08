@@ -1,10 +1,15 @@
-import { EditActionType } from "../editor/consts";
-import { EditAction } from "../editor/data-types";
 import { CSSClasses, getStyledSpan } from "../utilities/text-enhance";
 import { getUserFriendlyType } from "../utilities/util";
 import { Construct, Expression, /*FunctionCallExpr,*/ Modifier } from "./ast";
-import { Callback, CallbackType } from "./callback";
-import { Module } from "./module";
+
+/**
+ *
+ */
+export enum ScopeType {
+    Global,
+    LocalParent,
+    LocalChild,
+}
 
 /**
  * The type of insertion that is possible:
@@ -476,49 +481,49 @@ export function addClassToDraftModeResolutionButton(button: HTMLDivElement, code
 
 //     protected abstract getConversionCode(itemToConvert: string): string;
 
-    // getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
-    //     let conversionText = itemToConvert;
-    //     if (codeToReplace instanceof FunctionCallExpr) {
-    //         conversionText = codeToReplace.getFullConstructText();
-    //     }
+// getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
+//     let conversionText = itemToConvert;
+//     if (codeToReplace instanceof FunctionCallExpr) {
+//         conversionText = codeToReplace.getFullConstructText();
+//     }
 
-    //     const text = this.getConversionCode(conversionText);
-    //     const button = document.createElement("div");
-    //     button.innerHTML = text.replace(/---/g, "<hole1></hole1>");
+//     const text = this.getConversionCode(conversionText);
+//     const button = document.createElement("div");
+//     button.innerHTML = text.replace(/---/g, "<hole1></hole1>");
 
-    //     const actionType = this.editActionType;
-    //     const conversionConstructId = this.conversionConstructId;
+//     const actionType = this.editActionType;
+//     const conversionConstructId = this.conversionConstructId;
 
-    //     addClassToDraftModeResolutionButton(button, codeToReplace);
+//     addClassToDraftModeResolutionButton(button, codeToReplace);
 
-    //     button.addEventListener("click", () => {
-    //         module.executer.execute(
-    //             new EditAction(actionType, {
-    //                 codeToReplace: codeToReplace,
-    //                 conversionConstructId: conversionConstructId,
-    //                 typeToConvertTo: this.convertTo,
-    //                 source: { type: "draft-mode" },
-    //             }),
-    //             module.focus.getContext()
-    //         );
-    //     });
+//     button.addEventListener("click", () => {
+//         module.executer.execute(
+//             new EditAction(actionType, {
+//                 codeToReplace: codeToReplace,
+//                 conversionConstructId: conversionConstructId,
+//                 typeToConvertTo: this.convertTo,
+//                 source: { type: "draft-mode" },
+//             }),
+//             module.focus.getContext()
+//         );
+//     });
 
-    //     codeToReplace.subscribe(
-    //         CallbackType.change,
-    //         new Callback(() => {
-    //             let newConversionText = itemToConvert;
-    //             if (codeToReplace instanceof FunctionCallExpr) {
-    //                 newConversionText = codeToReplace.getFullConstructText();
-    //             }
+//     codeToReplace.subscribe(
+//         CallbackType.change,
+//         new Callback(() => {
+//             let newConversionText = itemToConvert;
+//             if (codeToReplace instanceof FunctionCallExpr) {
+//                 newConversionText = codeToReplace.getFullConstructText();
+//             }
 
-    //             button.innerHTML = this.getConversionCode(
-    //                 codeToReplace instanceof FunctionCallExpr ? newConversionText : codeToReplace.getKeyword()
-    //             ).replace(/---/g, "<hole1></hole1>");
-    //         })
-    //     );
+//             button.innerHTML = this.getConversionCode(
+//                 codeToReplace instanceof FunctionCallExpr ? newConversionText : codeToReplace.getKeyword()
+//             ).replace(/---/g, "<hole1></hole1>");
+//         })
+//     );
 
-    //     return button;
-    // }
+//     return button;
+// }
 // }
 
 // export class IgnoreConversionRecord extends TypeConversionRecord {
@@ -541,19 +546,19 @@ export function addClassToDraftModeResolutionButton(button: HTMLDivElement, code
 //         return "";
 //     }
 
-    // getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
-    //     const text = this.warningText;
-    //     const button = document.createElement("div");
-    //     button.innerHTML = text.replace(/---/g, "<hole1></hole1>");
+// getConversionButton(itemToConvert: string, module: Module, codeToReplace: Construct): HTMLDivElement {
+//     const text = this.warningText;
+//     const button = document.createElement("div");
+//     button.innerHTML = text.replace(/---/g, "<hole1></hole1>");
 
-    //     addClassToDraftModeResolutionButton(button, codeToReplace);
+//     addClassToDraftModeResolutionButton(button, codeToReplace);
 
-    //     button.addEventListener("click", () => {
-    //         module.closeConstructDraftRecord(codeToReplace);
-    //     });
+//     button.addEventListener("click", () => {
+//         module.closeConstructDraftRecord(codeToReplace);
+//     });
 
-    //     return button;
-    // }
+//     return button;
+// }
 // }
 
 // export class CastConversionRecord extends TypeConversionRecord {

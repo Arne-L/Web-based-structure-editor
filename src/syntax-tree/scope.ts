@@ -1,5 +1,4 @@
-import { hasMatchWithIndex } from "../utilities/util";
-import { Construct, /*ForStatement,*/ Statement, /*VarAssignmentStmt,*/ AssignmentToken } from "./ast";
+import { /*VarAssignmentStmt,*/ AssignmentToken, /*ForStatement,*/ Statement } from "./ast";
 import { Module } from "./module";
 
 /**

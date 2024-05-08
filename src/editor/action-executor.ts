@@ -169,7 +169,6 @@ export class ActionExecutor {
                 let token: Construct;
                 if (action.data?.backwards) token = context.token ?? context.tokenToLeft;
                 else token = context.token ?? context.tokenToRight;
-                console.log(token, token.rootNode);
 
                 // const stmt = root instanceof GeneralStatement && !(root instanceof GeneralExpression);
                 // this.module.deleteCode(root, { statement: stmt });

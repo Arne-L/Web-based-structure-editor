@@ -71,7 +71,7 @@ export class Module {
     static instance: Module;
 
     /**
-     * The scope connected to the module
+     * The global scope connected to the module
      */
     scope: Scope;
     draftExpressions: DraftRecord[];
@@ -420,10 +420,10 @@ export class Module {
 
     /**
      * Remove the given construct from the editor
-     * 
+     *
      * @param construct - The construct to be removed
      * @param options - Options for the removal
-     * * executeEdit - Whether to execute the edit in the monaco editor or not. 
+     * * executeEdit - Whether to execute the edit in the monaco editor or not.
      * Also creates a hole in the place of the removed construct and updates the focus.
      * @returns - The construct that replaces the removed construct
      */
@@ -434,7 +434,12 @@ export class Module {
         if (!root) return;
 
         // Create the hole to replace the removed construct
-        const replacement = new TypedEmptyExpr([DataType.Any], root, construct.indexInRoot, root.holeTypes.get(construct.indexInRoot));
+        const replacement = new TypedEmptyExpr(
+            [DataType.Any],
+            root,
+            construct.indexInRoot,
+            root.holeTypes.get(construct.indexInRoot)
+        );
 
         // Remove the construct from the AST
         root.tokens.splice(construct.indexInRoot, 1, replacement);
