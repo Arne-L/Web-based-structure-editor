@@ -45,7 +45,7 @@ export class ActionFilter {
             if (action.containsReference) {
                 const nearestStmt = context.codeConstruct;
                 const scope = nearestStmt.getNearestScope();
-                const references = scope.getValidReferences(nearestStmt.getFirstLineNumber());
+                const references = scope.getValidReferences(nearestStmt.left);
                 for (const reference of references) {
                     // Update the match string and regex if the action contains a reference
                     let matchTxt = action.matchString;

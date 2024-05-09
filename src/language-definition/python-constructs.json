@@ -851,7 +851,8 @@
         "format": [
             {
                 "type": "identifier",
-                "regex": "^[^\\d\\W]\\w*$"
+                "regex": "^[^\\d\\W]\\w*$",
+                "scopeType": "localParent"
             },
             {
                 "type": "token",
@@ -2670,6 +2671,75 @@
             {
                 "type": "token",
                 "value": "iftest "
+            },
+            {
+                "type": "hole",
+                "delimiter": null,
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "token",
+                "value": "\n"
+            },
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "    ",
+                "format": [
+                    {
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": true
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n",
+                        "waitOnUser": "Enter"
+                    }
+                ]
+            }
+        ],
+        "match": "test: kok :test",
+        "matchRegex": "",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                }
+            ],
+            "search-queries": ["test", "try"]
+        }
+    },
+    {
+        "keyword": "alstest",
+        "constructType": "statement",
+        "editorName": "alstest --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "alstest "
             },
             {
                 "type": "hole",

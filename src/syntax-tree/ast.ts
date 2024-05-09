@@ -9,10 +9,11 @@ import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
-import { AutoCompleteType, DataType, InsertionType, Tooltip } from "./consts";
+import { AutoCompleteType, DataType, InsertionType, ScopeType, Tooltip } from "./consts";
+import { scopeHeuristic } from "./heuristics";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { ASTManupilation, DebugUtils } from "./utils";
+import { ASTManupilation } from "./utils";
 import { ValidatorNameSpace } from "./validator";
 
 export abstract class Construct {
@@ -260,11 +261,50 @@ export abstract class CodeConstruct extends Construct {
      */
     holeTypes: Map<number, string> = new Map<number, string>();
 
+    /**
+     * List of all assignments within the statement.
+     */
+    private assignmentIndices: number[] = [];
+
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
     // TODO: TEMP
     hasBody() {
         return false;
+    }
+
+    /**
+     * Get all AssignmentTokens within the statement which contain all identifier information.
+     *
+     * @returns All AssignmentTokens within the statement
+     */
+    getAssignments(): AssignmentToken[] {
+        return this.assignmentIndices.map((index) => {
+            if (this.tokens[index] instanceof AssignmentToken) return this.tokens[index] as AssignmentToken;
+            else console.error(`Token at index ${index} within ${this} is not an assignment token`);
+        });
+    }
+
+    addAssignmentIndex(index: number) {
+        this.assignmentIndices.push(index);
+    }
+
+    /**
+     * Set the identifier of the assignment token at the given index to the given identifier
+     */
+    setAssignmentIdentifier(identifier: string, index: number) {
+        if (this.tokens[index] instanceof AssignmentToken) {
+            (this.tokens[index] as AssignmentToken).setIdentifierText(identifier); // Should maybe be setEditedText
+        } else console.error(`Token at index ${index} within ${this} is not an assignment token`);
+    }
+
+    /**
+     * Whether the statement contains any assignments
+     *
+     * @returns true if the statement contains any assignments, false otherwise
+     */
+    containsAssignments(): boolean {
+        return this.assignmentIndices.length > 0;
     }
 
     /**
@@ -415,8 +455,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns the nearest scope if there is one, otherwise null
      */
     getNearestScope(): Scope {
-        if (this.hasScope()) return this.scope;
-        return this.rootNode.getNearestScope();
+        return this.scope ?? this.rootNode?.getNearestScope();
     }
 
     hasBody(): boolean {
@@ -736,11 +775,6 @@ export class GeneralStatement extends Statement {
     readonly requiredAncestorConstructs: AncestorConstruct[] = [];
 
     /**
-     * List of all assignments within the statement.
-     */
-    private assignmentIndices: number[] = [];
-
-    /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
     static constructs: Map<string, GeneralStatement>;
@@ -871,40 +905,6 @@ export class GeneralStatement extends Statement {
     hasDependent(construct: GeneralStatement): boolean {
         if (!construct) return false;
         return this.requiringConstructs.some((dependent) => dependent.getConstructName() === construct.getKeyword());
-    }
-
-    /**
-     * Get all AssignmentTokens within the statement which contain all identifier information.
-     *
-     * @returns All AssignmentTokens within the statement
-     */
-    getAssignments(): AssignmentToken[] {
-        return this.assignmentIndices.map((index) => {
-            if (this.tokens[index] instanceof AssignmentToken) return this.tokens[index] as AssignmentToken;
-            else console.error(`Token at index ${index} within ${this} is not an assignment token`);
-        });
-    }
-
-    addAssignmentIndex(index: number) {
-        this.assignmentIndices.push(index);
-    }
-
-    /**
-     * Set the identifier of the assignment token at the given index to the given identifier
-     */
-    setAssignmentIdentifier(identifier: string, index: number) {
-        if (this.tokens[index] instanceof AssignmentToken) {
-            (this.tokens[index] as AssignmentToken).setIdentifierText(identifier); // Should maybe be setEditedText
-        } else console.error(`Token at index ${index} within ${this} is not an assignment token`);
-    }
-
-    /**
-     * Whether the statement contains any assignments
-     *
-     * @returns true if the statement contains any assignments, false otherwise
-     */
-    containsAssignments(): boolean {
-        return this.assignmentIndices.length > 0;
     }
 
     getKeyword(): string {
@@ -1482,11 +1482,11 @@ export class AssignmentToken extends IdentifierTkn {
      */
     private oldIdentifier = EMPTYIDENTIFIER;
     /**
-     * The type of the scope in which the variable is defined. The most frequent types 
-     * are "global" and "local". The scope type is used to determine to which scope the 
-     * variable belongs and what it's reach is. 
+     * The type of the scope in which the variable is defined. The most frequent types
+     * are "global" and "local". The scope type is used to determine to which scope the
+     * variable belongs and what it's reach is.
      */
-    private scopeType: string = "global";
+    private scopeType: ScopeType;
 
     /**
      * getIdentifier = getRenderText
@@ -1498,10 +1498,23 @@ export class AssignmentToken extends IdentifierTkn {
      * uniqueId is possibly not necessary; above methods thus possibly unnecessary
      */
 
-    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, regex?: RegExp) {
+    /**
+     * Create an assignment token. This token encapsulates all functionality necessary to handle 
+     * the scoping of variables.
+     * 
+     * @param identifier - The identifier text, or variable
+     * @param root - The root of the assignment token
+     * @param indexInRoot - The index of the assignment token in the root's tokens
+     * @param regex - The regex used to validate the identifier text typed by the user
+     * @param scopeType - The type of the scope in which the variable is defined. Defaults to 
+     * ScopeType.Global if not specified
+     */
+    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, regex?: RegExp, scopeType?: ScopeType) {
         super(identifier, root, indexInRoot, regex);
 
-        (root as GeneralStatement).addAssignmentIndex(indexInRoot);
+        this.scopeType = scopeType ?? ScopeType.Global;
+
+        root.addAssignmentIndex(indexInRoot);
 
         this.subscribe(
             CallbackType.onFocusOff,
@@ -1515,10 +1528,12 @@ export class AssignmentToken extends IdentifierTkn {
     onFocusOff(): void {
         // Get the current identifier
         const currentIdentifier = this.getRenderText();
-        // Get the parent statement
-        const parentStmt = this.getNearestCodeConstruct();
-        // Get the nearest scope
-        const stmtScope = this.getNearestScope();
+        // // Get the parent statement
+        // const parentStmt = this.getNearestCodeConstruct();
+        // // Get the nearest scope
+        // const stmtScope = parentStmt.getNearestScope();
+        const currentScope = scopeHeuristic(this, this.scopeType);
+        console.log("Scope", currentScope)
 
         if (currentIdentifier !== this.oldIdentifier) {
             // The identifier has changed
@@ -1526,11 +1541,11 @@ export class AssignmentToken extends IdentifierTkn {
                 // The identifier has been emptied
 
                 // Remove the variable from the nearest scope
-                stmtScope.removeAssignment(this);
+                currentScope.removeAssignment(this);
             } else {
                 // If it goes from empty to non-empty, add the variable to the nearest scope
                 if (this.oldIdentifier === EMPTYIDENTIFIER && currentIdentifier !== EMPTYIDENTIFIER) {
-                    stmtScope.addAssignment(this);
+                    currentScope.addAssignment(this);
                 }
 
                 // We now need to update all references to the new variable to remove fixed warnings
@@ -1611,19 +1626,20 @@ export class AssignmentToken extends IdentifierTkn {
      * assignments to the variable and update the variable references
      */
     onDelete(): void {
-        const parentStmt = this.getNearestCodeConstruct();
-        const currentScope = parentStmt.getNearestScope();
+        // const parentStmt = this.getNearestCodeConstruct();
+        // const currentScope = parentStmt.getNearestScope();
+        const currentScope = scopeHeuristic(this, this.scopeType);
 
         // Remove the assignment from the nearest scope
         currentScope.removeAssignment(this);
 
-    //     // Check if a reference on the current location to the deleted assignment would
-    //     // be invalid
-    //     if (!currentScope.covers(this.getRenderText(), this.getFirstLineNumber())) {
-    //         // References to the deleted variable after this point could be invalid
-    //         // if there are no assignments between the deleted variable and the reference
-    //         this.updateRefWarnings();
-    //     }
+        //     // Check if a reference on the current location to the deleted assignment would
+        //     // be invalid
+        //     if (!currentScope.covers(this.getRenderText(), this.getFirstLineNumber())) {
+        //         // References to the deleted variable after this point could be invalid
+        //         // if there are no assignments between the deleted variable and the reference
+        //         this.updateRefWarnings();
+        //     }
     }
 }
 
@@ -1947,7 +1963,11 @@ export class CompoundConstruct extends CodeConstruct {
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
 
-        if (compoundToken.scope) this.scope = new Scope();
+        if (compoundToken.scope) {
+            this.scope = new Scope();
+            this.scope.parentScope = this.rootNode?.getNearestScope();
+            console.log("assinging Scope", this.scope, this, this.rootNode, this.rootNode ? this.rootNode.rootNode : null)
+        }
 
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, 0, true);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have

@@ -6,9 +6,9 @@ import { Construct, Expression, /*FunctionCallExpr,*/ Modifier } from "./ast";
  *
  */
 export enum ScopeType {
-    Global,
-    LocalParent,
-    LocalChild,
+    Global = "global",
+    LocalParent = "localParent",
+    LocalChild = "localChild",
 }
 
 /**

@@ -1,3 +1,4 @@
+import { Position } from "monaco-editor";
 import { /*VarAssignmentStmt,*/ AssignmentToken, /*ForStatement,*/ Statement } from "./ast";
 import { Module } from "./module";
 
@@ -49,18 +50,30 @@ export class Scope {
     // SUPERSEDED BY covers
 
     /**
+     * Get all references accessible at the given position. This includes all references in the current scope,
+     * parent scope and global scope.
+     * 
+     * @param pos - The current position to check from. Only references that appear before this position are returned,
+     * except for references in the global scope. 
+     * @returns All references that are accessible at the given position
+     */
+    getValidReferences(pos: Position): Reference[] {
+        return [...Module.instance.scope.references, ...this.getValidReferencesRecursive(pos)]
+    }
+
+    /**
      * Get all assignments in the current and all parent scopes that appear before the given line.
      *
-     * @param line - The current line number to check from
-     * @returns - An array of all the valid references
+     * @param pos - The current position to check from. Only references that appear before this position are returned.
+     * @returns - An array of all the valid references in this and all parent scopes
      */
-    getValidReferences(line: number): Array<Reference> {
+    private getValidReferencesRecursive(pos: Position): Reference[] {
         // All references that appear before the current line
-        let validReferences = this.references.filter((ref) => ref.getLineNumber() < line);
+        let validReferences = this.references.filter((ref) => ref.getPosition().isBeforeOrEqual(pos));
 
         // All references that appear before the current line in the parent scope
         if (this.parentScope) {
-            validReferences = validReferences.concat(this.parentScope.getValidReferences(line));
+            validReferences = validReferences.concat(this.parentScope.getValidReferencesRecursive(pos));
         }
 
         return validReferences;
@@ -148,11 +161,11 @@ export class Scope {
      * the assignments themselves.
      *
      * @param identifier - The identifier to find assignments to (e.g. 'x')
-     * @param lineNumber - The current line number
+     * @param pos - The current position
      * @returns All references to assignments with the given identifier that can be accessed from the current location
      */
-    getAccessableAssignments(identifier: string, lineNumber: number): Reference[] {
-        return this.getValidReferences(lineNumber).filter((ref) => ref.getAssignment().getRenderText() === identifier);
+    getAccessableAssignments(identifier: string, pos: Position): Reference[] {
+        return this.getValidReferences(pos).filter((ref) => ref.getAssignment().getRenderText() === identifier);
 
         // !!!EQUIVALENT!!!
 
@@ -171,11 +184,11 @@ export class Scope {
      * Check if an assignment with the given identifier is accessible from the current location
      *
      * @param identifier - The identifier to find assignments to (e.g. 'x')
-     * @param lineNumber - The current line number
+     * @param pos - The current line number
      * @returns true if an assignment with the given identifier is accessible from the current location, false otherwise
      */
-    covers(identifier: string, lineNumber: number): boolean {
-        return this.getAccessableAssignments(identifier, lineNumber).length > 0;
+    covers(identifier: string, pos: Position): boolean {
+        return this.getAccessableAssignments(identifier, pos).length > 0;
     }
 
     /**
@@ -466,6 +479,10 @@ export class Reference {
 
     getLineNumber(): number {
         return this.token.getFirstLineNumber();
+    }
+
+    getPosition(): Position {
+        return this.token.right;
     }
 
     getAssignment(): AssignmentToken {

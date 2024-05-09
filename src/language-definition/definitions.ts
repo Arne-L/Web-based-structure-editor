@@ -1,3 +1,5 @@
+import { ScopeType } from "../syntax-tree/consts";
+
 export interface ConfigDefinition {
     /**
      * The path to the language config file, relative to the language-definition folder
@@ -328,6 +330,10 @@ interface IdentifierFormatDefinition extends FormatDefinition {
      * as a string, so that it can be parsed and used in the editor.
      */
     regex: string;
+    /**
+     * The type indicates to which scope the identifier should be added.
+     */
+    scopeType: ScopeType;
 }
 interface EditableFormatDefinition extends FormatDefinition {
     /**

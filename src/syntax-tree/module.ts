@@ -118,6 +118,8 @@ export class Module {
         this.editor.executeEdits(range, this.compoundConstruct);
         this.focus.updateContext(this.compoundConstruct.getInitialFocus());
 
+        this.scope = new Scope();
+
         // Add the tooltips to each of the toolbox buttons
         this.toolboxController.addTooltips();
 
