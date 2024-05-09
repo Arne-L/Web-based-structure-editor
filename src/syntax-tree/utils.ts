@@ -181,7 +181,6 @@ export namespace ASTManupilation {
         newConstruct.indexInRoot = constructToReplace.indexInRoot;
         // Replace construct
         root.tokens[constructToReplace.indexInRoot] = newConstruct;
-        console.log("Root", root);
 
         // TODO: Scoping
         // if (newConstruct.hasScope()) newConstruct.scope.parentScope = bodyContainer.scope;

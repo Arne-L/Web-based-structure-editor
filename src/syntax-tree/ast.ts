@@ -20,7 +20,7 @@ export abstract class Construct {
     /**
      * The parent/root node for this code-construct. Statements are the only code construct that could have the Module as their root node.
      */
-    rootNode: CodeConstruct;
+    protected root: CodeConstruct;
 
     /**
      * The index this item has inside its root's body, or its tokens array.
@@ -88,6 +88,14 @@ export abstract class Construct {
 
     get hasEmptyToken(): boolean {
         return false;
+    }
+
+    get rootNode(): CodeConstruct {
+        return this.root;
+    }
+
+    set rootNode(root: CodeConstruct) {
+        this.root = root;
     }
 
     /**
@@ -407,7 +415,6 @@ export abstract class CodeConstruct extends Construct {
  * A complete code statement such as: variable assignment, function call, conditional, loop, function definition, and other statements.
  */
 export abstract class Statement extends CodeConstruct {
-    rootNode: CodeConstruct = null;
     body = new Array<Statement>();
     scope: Scope = null;
     background: CodeBackground = null;
@@ -883,6 +890,16 @@ export class GeneralStatement extends Statement {
         }, new Map());
     }
 
+    get rootNode(): CodeConstruct {
+        return this.root;
+    }
+
+    set rootNode(root: CodeConstruct) {
+        this.root = root;
+        // TODO: If compound constructs are nested, correct behaviour is not guaranteed. The nested compound construct's 
+        for (const tkn of this.tokens) if (tkn instanceof CompoundConstruct && tkn.scope) tkn.scope.parentScope = root.getNearestScope();
+    }
+
     /**
      * Check if the current construct is depending on / requires the given construct.
      * The given construct is required by the current construct.
@@ -941,8 +958,6 @@ export class GeneralStatement extends Statement {
 }
 
 export class GeneralExpression extends GeneralStatement {
-    // Overwrite types of the superclass
-    rootNode: GeneralExpression | GeneralStatement = null;
 
     constructor(
         construct: ConstructDefinition,
@@ -987,7 +1002,6 @@ export class GeneralExpression extends GeneralStatement {
  * FFD!!!
  */
 export abstract class Expression extends Statement implements Construct {
-    rootNode: Expression | Statement = null; // OVERBODIG? OVERGEERFT VAN STATEMENT;
     // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression
     // gefuseerd worden
 
@@ -1038,7 +1052,6 @@ export abstract class Expression extends Statement implements Construct {
 }
 
 export abstract class Modifier extends Expression {
-    declare rootNode: Expression | Statement; // Why? Already defined in Expression?
     leftExprTypes: Array<DataType>;
     simpleInvalidTooltip = Tooltip.InvalidInsertModifier;
 
@@ -1059,7 +1072,6 @@ export abstract class Modifier extends Expression {
  */
 export abstract class Token extends Construct {
     isTextEditable = false;
-    rootNode: CodeConstruct = null;
     text: string;
     isEmpty: boolean = false;
     message = null;
@@ -1951,7 +1963,7 @@ export class CompoundConstruct extends CodeConstruct {
 
     constructor(compoundToken: CompoundFormatDefinition, root?: CodeConstruct, indexInRoot?: number) {
         super();
-        this.rootNode = root;
+        this.root = root;
         this.indexInRoot = indexInRoot;
         this.compoundToken = compoundToken;
         this.waitOnIndices = new Map(
@@ -1965,8 +1977,6 @@ export class CompoundConstruct extends CodeConstruct {
 
         if (compoundToken.scope) {
             this.scope = new Scope();
-            this.scope.parentScope = this.rootNode?.getNearestScope();
-            console.log("assinging Scope", this.scope, this, this.rootNode, this.rootNode ? this.rootNode.rootNode : null)
         }
 
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, 0, true);
@@ -1987,6 +1997,16 @@ export class CompoundConstruct extends CodeConstruct {
             (this.tokens.length % (this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0))) -
             (this.compoundToken.insertBefore ? 1 : 0)
         );
+    }
+
+    get rootNode(): CodeConstruct {
+        return this.root;
+    }
+
+    set rootNode(root: CodeConstruct) {
+        this.root = root;
+        if (this.scope) this.scope.parentScope = root.getNearestScope();
+        if (this.scope) console.log("SetRoot", this.scope, root, root.getNearestScope());
     }
 
     // setElementToInsertNextIndex(idx: number) {
