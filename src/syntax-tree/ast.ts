@@ -99,6 +99,16 @@ export abstract class Construct {
     }
 
     /**
+     * Update the parent scope of the scope related to this construct.
+     * This can be used to update the hierarchy of scopes when the syntax
+     * tree is changed.
+     *
+     * It will update only the first layer of scopes it encounters, as the parent-child
+     * relationship of all further descending scopes remaines unchanges
+     */
+    abstract updateScope();
+
+    /**
      * Get the entire range of the construct, including potential child constructs.
      *
      * @param param0 - { selectIndent: boolean }: If the initial indent should be included in the selection range
@@ -610,6 +620,10 @@ export abstract class Statement extends CodeConstruct {
         return this;
     }
 
+    updateScope() {
+        for (const tkn of this.tokens) tkn.updateScope();
+    }
+
     /**
      * Returns the Module
      *
@@ -896,8 +910,8 @@ export class GeneralStatement extends Statement {
 
     set rootNode(root: CodeConstruct) {
         this.root = root;
-        // TODO: If compound constructs are nested, correct behaviour is not guaranteed. The nested compound construct's 
-        for (const tkn of this.tokens) if (tkn instanceof CompoundConstruct && tkn.scope) tkn.scope.parentScope = root.getNearestScope();
+        // Update the child-parent relation for scopes as well 
+        this.updateScope();
     }
 
     /**
@@ -958,7 +972,6 @@ export class GeneralStatement extends Statement {
 }
 
 export class GeneralExpression extends GeneralStatement {
-
     constructor(
         construct: ConstructDefinition,
         root?: CodeConstruct,
@@ -1191,6 +1204,10 @@ export abstract class Token extends Construct {
 
     getNearestCodeConstruct(): CodeConstruct {
         return this.rootNode.getNearestCodeConstruct();
+    }
+
+    updateScope() {
+        return;
     }
 
     getKeyword(): string {
@@ -1511,17 +1528,23 @@ export class AssignmentToken extends IdentifierTkn {
      */
 
     /**
-     * Create an assignment token. This token encapsulates all functionality necessary to handle 
+     * Create an assignment token. This token encapsulates all functionality necessary to handle
      * the scoping of variables.
-     * 
+     *
      * @param identifier - The identifier text, or variable
      * @param root - The root of the assignment token
      * @param indexInRoot - The index of the assignment token in the root's tokens
      * @param regex - The regex used to validate the identifier text typed by the user
-     * @param scopeType - The type of the scope in which the variable is defined. Defaults to 
+     * @param scopeType - The type of the scope in which the variable is defined. Defaults to
      * ScopeType.Global if not specified
      */
-    constructor(identifier?: string, root?: CodeConstruct, indexInRoot?: number, regex?: RegExp, scopeType?: ScopeType) {
+    constructor(
+        identifier?: string,
+        root?: CodeConstruct,
+        indexInRoot?: number,
+        regex?: RegExp,
+        scopeType?: ScopeType
+    ) {
         super(identifier, root, indexInRoot, regex);
 
         this.scopeType = scopeType ?? ScopeType.Global;
@@ -1545,7 +1568,7 @@ export class AssignmentToken extends IdentifierTkn {
         // // Get the nearest scope
         // const stmtScope = parentStmt.getNearestScope();
         const currentScope = scopeHeuristic(this, this.scopeType);
-        console.log("Scope", currentScope)
+        console.log("Scope", currentScope);
 
         if (currentIdentifier !== this.oldIdentifier) {
             // The identifier has changed
@@ -2005,8 +2028,8 @@ export class CompoundConstruct extends CodeConstruct {
 
     set rootNode(root: CodeConstruct) {
         this.root = root;
-        if (this.scope) this.scope.parentScope = root.getNearestScope();
-        if (this.scope) console.log("SetRoot", this.scope, root, root.getNearestScope());
+        // Update parent-child relationship of the scopes
+        this.updateScope();
     }
 
     // setElementToInsertNextIndex(idx: number) {
@@ -2149,6 +2172,11 @@ export class CompoundConstruct extends CodeConstruct {
 
     getNearestScope(): Scope {
         return this.scope ?? this.rootNode.getNearestScope();
+    }
+
+    updateScope() {
+        if (this.scope) this.scope.parentScope = this.rootNode.getNearestScope();
+        else for (const tkn of this.tokens) tkn.updateScope();
     }
 
     getInitialFocus(): UpdatableContext {
