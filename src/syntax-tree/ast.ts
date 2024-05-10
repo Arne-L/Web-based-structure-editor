@@ -910,7 +910,7 @@ export class GeneralStatement extends Statement {
 
     set rootNode(root: CodeConstruct) {
         this.root = root;
-        // Update the child-parent relation for scopes as well 
+        // Update the child-parent relation for scopes as well
         this.updateScope();
     }
 
@@ -1088,12 +1088,14 @@ export abstract class Token extends Construct {
     text: string;
     isEmpty: boolean = false;
     message = null;
+    originalText: string;
 
     constructor(text: string, root?: CodeConstruct) {
         super();
 
         this.rootNode = root;
         this.text = text;
+        this.originalText = text;
     }
 
     getBoundaries(): Range {
@@ -1154,7 +1156,7 @@ export abstract class Token extends Construct {
         }
 
         // Split in the different lines
-        const lines = this.text.split("\n");
+        const lines = this.originalText.split("\n");
         // Line difference = last line number - first line number
         const lineDiff = lines.length - 1;
         // TODO: The way indentation is currently handled is not ideal.
@@ -1167,14 +1169,17 @@ export abstract class Token extends Construct {
             const rootConstructIndent = this.getNearestCodeConstruct().leftCol;
             this.right = new Position(pos.lineNumber + lineDiff, rootConstructIndent + lines.at(-1).length);
 
-            // Indent all lines except the first one
-            for (let i = 1; i < lines.length; i++) {
-                // Add the indentation to the line
-                // One is subtracted from the rootConstructIndent because the columns start at 1
-                lines[i] = " ".repeat(rootConstructIndent - 1) + lines[i];
+            if (lines.at(-1).length + 1 !== this.rightCol) {
+                console.log(lines.at(-1).length + 1, this.rightCol);
+                // Indent all lines except the first one
+                for (let i = 1; i < lines.length; i++) {
+                    // Add the indentation to the line
+                    // One is subtracted from the rootConstructIndent because the columns start at 1
+                    lines[i] = " ".repeat(rootConstructIndent - 1) + lines[i];
+                }
+                // Update the token's text to reflect the indentation
+                this.text = lines.join("\n");
             }
-            // Update the token's text to reflect the indentation
-            this.text = lines.join("\n");
         } else {
             this.right = new Position(pos.lineNumber, pos.column + this.text.length);
         }

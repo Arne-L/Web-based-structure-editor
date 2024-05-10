@@ -6,7 +6,6 @@ import {
     IdentifierTkn,
     // OperatorTkn,
     TypedEmptyExpr,
-    // VarAssignmentStmt,
 } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
@@ -74,7 +73,7 @@ export class Hole {
                     this.element.classList.add(Hole.editableHoleClass);
                 })
             );
-        // } else if (code instanceof TypedEmptyExpr) {
+            // } else if (code instanceof TypedEmptyExpr) {
             // When focussing a hole with a TypedEmptyExpr, show the available variables
             // in the current location ... literally
             // This method will indicate visually all variable assignments that you can use

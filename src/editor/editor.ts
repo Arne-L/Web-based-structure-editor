@@ -433,7 +433,7 @@ export class Editor {
         const x = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.startColumn);
         const y = this.monaco.getTopForLineNumber(selection.startLineNumber);
 
-        const width = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.endColumn) - x;
+        const width = this.monaco.getOffsetForColumn(selection.endLineNumber, selection.endColumn) - x;
         const height = this.computeCharHeight();
 
         // if (selection.endLineNumber === 3) {

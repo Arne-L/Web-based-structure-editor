@@ -73,6 +73,7 @@ export class ActionExecutor {
         switch (action.type) {
             // KInda language independent
             case EditActionType.InsertGeneralStmt:
+            case EditActionType.InsertGeneralExpr:
                 /**
                  * Purpose is to try to
                  * 1) Include all statements under this type
@@ -85,7 +86,7 @@ export class ActionExecutor {
                  */
                 // Can maybe be made nicer, as in without requiring a action.data?.statement?
                 // This seems currently to be the only thing needed
-                const statement = createFinalConstruct(action);
+                const codeConstruct = createFinalConstruct(action);
 
                 // Probably best to use this to get the final construct text to compare against
                 // in the suggestion controller
@@ -93,14 +94,14 @@ export class ActionExecutor {
 
                 // Will always be needed?
                 // this.replaceEmptyStatement(context.lineStatement, statement);
-                ASTManupilation.insertConstruct(context, statement);
+                ASTManupilation.insertConstruct(context, codeConstruct);
 
                 // Green background on insertion
-                if (flashGreen) this.flashGreen(action.data?.statement);
+                if (flashGreen) this.flashGreen(/*action.data?.statement*/codeConstruct);
 
                 // Light blue background
-                if (statement.hasBody()) {
-                    let scopeHighlight = new ScopeHighlight(this.module.editor, statement);
+                if (codeConstruct.hasBody()) {
+                    let scopeHighlight = new ScopeHighlight(this.module.editor, codeConstruct);
                 }
 
                 // Used for logging => Keeping track of which statements are used
@@ -110,15 +111,16 @@ export class ActionExecutor {
 
             // TODO: Merge with InsertGeneralStmt
             // Kinda language independent
-            case EditActionType.InsertGeneralExpr:
-                const expression = createFinalConstruct(action);
+            // case EditActionType.InsertGeneralExpr:
+            //     console.log("InsertGeneralExpr");
+            //     const expression = createFinalConstruct(action);
 
-                // NOT OKAY!!!
-                this.insertExpression(context, expression);
+            //     // NOT OKAY!!!
+            //     this.insertExpression(context, expression);
 
-                if (flashGreen) this.flashGreen(expression);
+            //     if (flashGreen) this.flashGreen(expression);
 
-                break;
+            //     break;
 
             // NOT language independent
             case EditActionType.OpenAutocomplete: {
