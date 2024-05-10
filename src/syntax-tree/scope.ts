@@ -1,5 +1,5 @@
-import { hasMatchWithIndex } from "../utilities/util";
-import { CodeConstruct, /*ForStatement,*/ Statement, /*VarAssignmentStmt,*/ AssignmentToken } from "./ast";
+import { Position } from "monaco-editor";
+import { /*VarAssignmentStmt,*/ AssignmentToken, /*ForStatement,*/ Statement } from "./ast";
 import { Module } from "./module";
 
 /**
@@ -50,18 +50,30 @@ export class Scope {
     // SUPERSEDED BY covers
 
     /**
+     * Get all references accessible at the given position. This includes all references in the current scope,
+     * parent scope and global scope.
+     * 
+     * @param pos - The current position to check from. Only references that appear before this position are returned,
+     * except for references in the global scope. 
+     * @returns All references that are accessible at the given position
+     */
+    getValidReferences(pos: Position): Reference[] {
+        return [...Module.instance.scope.references, ...this.getValidReferencesRecursive(pos)]
+    }
+
+    /**
      * Get all assignments in the current and all parent scopes that appear before the given line.
      *
-     * @param line - The current line number to check from
-     * @returns - An array of all the valid references
+     * @param pos - The current position to check from. Only references that appear before this position are returned.
+     * @returns - An array of all the valid references in this and all parent scopes
      */
-    getValidReferences(line: number): Array<Reference> {
+    private getValidReferencesRecursive(pos: Position): Reference[] {
         // All references that appear before the current line
-        let validReferences = this.references.filter((ref) => ref.getLineNumber() < line);
+        let validReferences = this.references.filter((ref) => ref.getPosition().isBeforeOrEqual(pos));
 
         // All references that appear before the current line in the parent scope
         if (this.parentScope) {
-            validReferences = validReferences.concat(this.parentScope.getValidReferences(line));
+            validReferences = validReferences.concat(this.parentScope.getValidReferencesRecursive(pos));
         }
 
         return validReferences;
@@ -149,14 +161,14 @@ export class Scope {
      * the assignments themselves.
      *
      * @param identifier - The identifier to find assignments to (e.g. 'x')
-     * @param lineNumber - The current line number
+     * @param pos - The current position
      * @returns All references to assignments with the given identifier that can be accessed from the current location
      */
-    getAccessableAssignments(identifier: string, lineNumber: number): Reference[] {
-        return this.getValidReferences(lineNumber).filter((ref) => ref.getAssignment().getRenderText() === identifier);
+    getAccessableAssignments(identifier: string, pos: Position): Reference[] {
+        return this.getValidReferences(pos).filter((ref) => ref.getAssignment().getRenderText() === identifier);
 
         // !!!EQUIVALENT!!!
-        
+
         // const assignments = this.references.filter(
         //     (ref) => ref.getLineNumber() < lineNumber && ref.getAssignment().getRenderText() === identifier
         // );
@@ -172,11 +184,11 @@ export class Scope {
      * Check if an assignment with the given identifier is accessible from the current location
      *
      * @param identifier - The identifier to find assignments to (e.g. 'x')
-     * @param lineNumber - The current line number
+     * @param pos - The current line number
      * @returns true if an assignment with the given identifier is accessible from the current location, false otherwise
      */
-    covers(identifier: string, lineNumber: number): boolean {
-        return this.getAccessableAssignments(identifier, lineNumber).length > 0;
+    covers(identifier: string, pos: Position): boolean {
+        return this.getAccessableAssignments(identifier, pos).length > 0;
     }
 
     /**
@@ -386,7 +398,7 @@ export class Scope {
 
     /**
      * Remove the given reference from the current scope.
-     * 
+     *
      * @returns true if the reference was removed, false otherwise
      */
     removeAssignment(assigment: AssignmentToken): boolean {
@@ -397,7 +409,7 @@ export class Scope {
 
     /**
      * Add an assignment token to the current scope.
-     * 
+     *
      * @param assignment - The assignment token to add to the current scope
      */
     addAssignment(assignment: AssignmentToken) {
@@ -405,9 +417,9 @@ export class Scope {
     }
 
     /**
-     * Push all assignments tokens in the current scope to the given scope. If 
+     * Push all assignments tokens in the current scope to the given scope. If
      * a token is not in the current scope, it will not be added to the given scope.
-     * 
+     *
      * @param toScope - The scope to push the assignments to
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
@@ -424,13 +436,12 @@ export class Scope {
         }
 
         return total;
-
     }
 
     /**
-     * Push all assignments tokens in the current scope to the parent scope. If 
+     * Push all assignments tokens in the current scope to the parent scope. If
      * a token is not in the current scope, it will not be added to the parent scope.
-     * 
+     *
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
      */
@@ -444,7 +455,7 @@ export class Scope {
  */
 export class Reference {
     /**
-     * Token encapsulating the assignment. It has a place in the AST and 
+     * Token encapsulating the assignment. It has a place in the AST and
      * can be used for context information.
      */
     token: AssignmentToken;
@@ -467,7 +478,11 @@ export class Reference {
     }
 
     getLineNumber(): number {
-        return this.token.getLineNumber();
+        return this.token.getFirstLineNumber();
+    }
+
+    getPosition(): Position {
+        return this.token.right;
     }
 
     getAssignment(): AssignmentToken {

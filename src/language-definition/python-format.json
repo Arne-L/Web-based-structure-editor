@@ -1,6 +1,7 @@
 [
     {
         "name": "body",
+        "scope": true,
         "format": [
             {
                 "type": "token",
@@ -9,8 +10,8 @@
                 "max": null
             },
             {
-                "type": "reference",
-                "name": "body_helper"
+                "type": "recursive",
+                "recursiveName": "body_helper"
             }
         ]
     },
@@ -18,8 +19,8 @@
         "name": "body_helper",
         "format": [
             {
-                "type": "reference",
-                "name": "statement"
+                "type": "recursive",
+                "recursiveName": "statement"
             },
             {
                 "type": "token",
@@ -29,10 +30,32 @@
                 "max": null
             },
             {
-                "type": "reference",
-                "name": "body_helper",
+                "type": "recursive",
+                "recursiveName": "body_helper",
                 "min": 0,
                 "max": 1
+            }
+        ]
+    },
+    {
+        "name": "new_body",
+        "format": [
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "",
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "\n\t",
+                        "min": 1,
+                        "max": null
+                    },
+                    {
+                        "type": "recursive",
+                        "recursiveName": "statement"
+                    }
+                ]
             }
         ]
     }

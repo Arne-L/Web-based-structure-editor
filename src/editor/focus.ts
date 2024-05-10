@@ -2,21 +2,23 @@ import { Position, Selection } from "monaco-editor";
 import {
     AutocompleteTkn,
     CodeConstruct,
+    CompoundConstruct,
+    Construct,
     EditableTextTkn,
     EmptyLineStmt,
-    Expression,
     GeneralExpression,
+    GeneralStatement,
     IdentifierTkn,
-    LiteralValExpr,
+    // LiteralValExpr,
     NonEditableTkn,
-    OperatorTkn,
+    // OperatorTkn,
     Statement,
     TextEditable,
     Token,
 } from "../syntax-tree/ast";
 import { CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
-import { DataType } from "./../syntax-tree/consts";
+import { doesConstructContainPos } from "../utilities/util";
 import { ConstructName } from "./consts";
 
 export class Focus {
@@ -68,9 +70,9 @@ export class Focus {
      * @param providedContext - The context to search in. If not provided, the current context will be used.
      * @returns - The containing draft node, or null if not found.
      */
-    getContainingDraftNode(providedContext?: Context): CodeConstruct {
+    getContainingDraftNode(providedContext?: Context): Construct {
         const context = providedContext ? providedContext : this.getContext();
-        const focusedNode = context.token && context.selected ? context.token : context.lineStatement;
+        const focusedNode = context.token && context.selected ? context.token : context.codeConstruct;
 
         let node = null;
 
@@ -128,14 +130,20 @@ export class Focus {
     getContext(position?: Position): Context {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
-        const curLine = this.getStatementAtLineNumber(curPosition.lineNumber);
+        const curLine = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
 
-        if (curSelection.startColumn != curSelection.endColumn) {
-            context = this.getContextFromSelection(curLine, curSelection.startColumn, curSelection.endColumn);
-        } else context = this.getContextFromPosition(curLine, curPosition.column);
+        if (!curSelection.getStartPosition().equals(curSelection.getEndPosition())) {
+            context = this.getContextFromSelection(
+                curLine,
+                curSelection.getStartPosition(),
+                curSelection.getEndPosition()
+            );
+        } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
+
+        console.log("Context", context)
 
         return context;
     }
@@ -143,10 +151,10 @@ export class Focus {
     /**
      * Searches and returns the focused statement (line) in the editor.
      *
-     * @returns - The focused statement (line) in the editor.
+     * @returns The focused statement (line) in the editor.
      */
     getFocusedStatement(): Statement {
-        return this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
+        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement; //this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
     }
 
     /**
@@ -155,14 +163,14 @@ export class Focus {
      */
     updateContext(newContext: UpdatableContext) {
         // Update monaco selection and cursor position
-        const focusedLineStatement = this.getFocusedStatement()
+        const focusedLineStatement = this.getFocusedStatement();
 
         if (newContext.tokenToSelect != undefined) {
             const selection = new Selection(
-                newContext.tokenToSelect.getLineNumber(),
-                newContext.tokenToSelect.right,
-                newContext.tokenToSelect.getLineNumber(),
-                newContext.tokenToSelect.left
+                newContext.tokenToSelect.right.lineNumber,
+                newContext.tokenToSelect.rightCol,
+                newContext.tokenToSelect.left.lineNumber,
+                newContext.tokenToSelect.leftCol
             );
             this.module.editor.monaco.setSelection(selection);
             this.module.editor.cursor.setSelection(newContext.tokenToSelect);
@@ -171,10 +179,8 @@ export class Focus {
             this.module.editor.cursor.setSelection(null);
         }
 
-        this.fireOnNavOffCallbacks(
-            focusedLineStatement,
-            this.getFocusedStatement()
-        );
+        // TODO: Both arguments are the same?!
+        this.fireOnNavOffCallbacks(focusedLineStatement, this.getFocusedStatement());
         this.fireOnNavChangeCallbacks();
     }
 
@@ -185,27 +191,28 @@ export class Focus {
      * @param runNavOffCallbacks - If true, will run the onNavOff callbacks. Defaults to true.
      */
     navigatePos(pos: Position, runNavOffCallbacks: boolean = true) {
-        const focusedLineStatement = this.getStatementAtLineNumber(pos.lineNumber);
-
+        // TODO: This should return the closest construct to the given position if none is at the position, instead of
+        // just A construct at the given line
+        const focusedConstruct = this.getCodeConstructAtLineNumber(pos.lineNumber); //this.getStatementAtLineNumber(pos.lineNumber);
         // clicked at an empty statement => just update focusedStatement
-        if (focusedLineStatement instanceof EmptyLineStmt) {
-            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.left));
+        if (focusedConstruct instanceof EmptyLineStmt) {
+            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
         // clicked before a statement => navigate to the beginning of the statement
-        else if (pos.column <= focusedLineStatement.left) {
-            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.left));
+        else if (pos.isBeforeOrEqual(focusedConstruct.left) /*pos.column <= focusedLineStatement.leftCol*/) {
+            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.leftCol));
             this.module.editor.cursor.setSelection(null);
         }
 
-        // clicked before a statement => navigate to the end of the line
-        else if (pos.column >= focusedLineStatement.right) {
-            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedLineStatement.right));
+        // clicked after a statement => navigate to the end of the line
+        else if (focusedConstruct.right.isBeforeOrEqual(pos) /*pos.column >= focusedLineStatement.rightCol*/) {
+            this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedConstruct.rightCol));
             this.module.editor.cursor.setSelection(null);
         } else {
             // look into the tokens of the statement:
-            const focusedToken = this.getTokenAtStatementColumn(focusedLineStatement, pos.column);
+            const focusedToken = this.getTokenAtCodeConstructPos(focusedConstruct, pos);
 
             if (focusedToken instanceof Token && focusedToken.isEmpty) {
                 // if clicked on a hole => select the hole
@@ -218,31 +225,36 @@ export class Focus {
                     this.module.editor.cursor.setSelection(null);
                 } else this.selectCode(focusedToken);
             } else {
-                const hitDistance = pos.column - focusedToken.left;
-                const tokenLength = focusedToken.right - focusedToken.left + 1;
+                const hitDistance = pos.column - focusedToken.leftCol;
+                const tokenLength = focusedToken.rightCol - focusedToken.leftCol + 1;
 
                 if (hitDistance < tokenLength / 2) {
                     // go to the beginning (or the empty token before this)
 
                     // If there is still a token to the left of the current token
-                    if (focusedToken.left - 1 > focusedLineStatement.left) {
-                        const tokenBefore = this.getTokenAtStatementColumn(focusedLineStatement, focusedToken.left - 1);
+                    if (focusedConstruct.left.isBefore(focusedToken.left.delta(undefined, -1))) {
+                        const tokenBefore = this.getTokenAtCodeConstructPos(
+                            focusedConstruct,
+                            focusedToken.left.delta(undefined, -1)
+                        );
 
                         if (tokenBefore instanceof Token && tokenBefore.isEmpty) {
                             this.selectCode(tokenBefore);
                         }
                     }
 
-                    this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.left));
+                    this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.leftCol));
                     this.module.editor.cursor.setSelection(null);
                 } else {
                     // navigate to the end (or the empty token right after this token)
-                    const tokenAfter = this.getTokenAtStatementColumn(focusedLineStatement, focusedToken.right + 1);
-
+                    const tokenAfter = this.getTokenAtCodeConstructPos(
+                        focusedConstruct,
+                        focusedToken.right.delta(undefined, 1)
+                    );
                     if (tokenAfter instanceof Token && tokenAfter.isEmpty) {
                         this.selectCode(tokenAfter);
                     } else {
-                        this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.right));
+                        this.module.editor.monaco.setPosition(new Position(pos.lineNumber, focusedToken.rightCol));
                         this.module.editor.cursor.setSelection(null);
                     }
                 }
@@ -250,13 +262,18 @@ export class Focus {
         }
 
         const curPos = this.module.editor.monaco.getPosition();
+        if (runNavOffCallbacks && this.prevPosition != null) {
+            const prevConstr = this.getConstructAtPosition(this.prevPosition),
+                currConstr = this.getConstructAtPosition(curPos);
 
-        if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
-            this.fireOnNavOffCallbacks(
-                this.getStatementAtLineNumber(this.prevPosition.lineNumber),
-                this.getStatementAtLineNumber(curPos.lineNumber)
-            );
+            if (prevConstr !== currConstr) this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
         }
+        // if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
+        //     this.fireOnNavOffCallbacks(
+        //         this.getStatementAtLineNumber(this.prevPosition.lineNumber),
+        //         this.getStatementAtLineNumber(curPos.lineNumber)
+        //     );
+        // }
 
         this.prevPosition = curPos;
 
@@ -268,15 +285,14 @@ export class Focus {
      */
     navigateUp() {
         const curPosition = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
-        const lineAbove = this.getStatementAtLineNumber(curPosition.lineNumber - 1);
+        const focusedLineStatement = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
+        const lineAbove = this.getConstructAtPosition(curPosition.delta(-1)) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber - 1);
 
-        this.fireOnNavOffCallbacks(focusedLineStatement, lineAbove);
+        if (focusedLineStatement !== lineAbove) this.fireOnNavOffCallbacks(focusedLineStatement, lineAbove);
 
-        if (curPosition.lineNumber > 1)
-            this.navigatePos(new Position(curPosition.lineNumber - 1, curPosition.column), false);
+        if (curPosition.lineNumber > 1) this.navigatePos(curPosition.delta(-1), false);
         else {
-            this.module.editor.monaco.setPosition(new Position(curPosition.lineNumber, 1));
+            this.module.editor.monaco.setPosition(curPosition.with(undefined, 1));
             this.module.editor.cursor.setSelection(null);
 
             this.fireOnNavChangeCallbacks();
@@ -288,17 +304,16 @@ export class Focus {
      */
     navigateDown() {
         const curPosition = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
-        const lineBelow = this.getStatementAtLineNumber(curPosition.lineNumber + 1);
+        const focusedLineStatement = this.getConstructAtPosition(curPosition);
+        const lineBelow = this.getCodeConstructAtLineNumber(curPosition.lineNumber + 1);
 
-        this.fireOnNavOffCallbacks(focusedLineStatement, lineBelow);
+        if (focusedLineStatement !== lineBelow) this.fireOnNavOffCallbacks(focusedLineStatement, lineBelow);
 
-        if (lineBelow != null) {
-            this.navigatePos(new Position(curPosition.lineNumber + 1, curPosition.column), false);
-        } else {
+        if (lineBelow) this.navigatePos(curPosition.delta(1), false);
+        else {
             // navigate to the end of current line
-            const curLine = this.getStatementAtLineNumber(curPosition.lineNumber);
-            this.module.editor.monaco.setPosition(new Position(curPosition.lineNumber, curLine.right));
+            const curLine = this.getConstructAtPosition(curPosition);
+            this.module.editor.monaco.setPosition(new Position(curPosition.lineNumber, curLine.rightCol));
             this.module.editor.cursor.setSelection(null);
 
             this.fireOnNavChangeCallbacks();
@@ -310,49 +325,50 @@ export class Focus {
      */
     navigateRight() {
         const curPos = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber);
+        const focusedLineStatement = this.getConstructAtPosition(curPos);
 
         if (this.onEndOfLine()) {
-            const lineBelow = this.getStatementAtLineNumber(curPos.lineNumber + 1);
+            const lineBelow = this.getCodeConstructAtLineNumber(curPos.lineNumber + 1);
 
             if (lineBelow != null) {
-                this.module.editor.monaco.setPosition(new Position(lineBelow.lineNumber, lineBelow.left));
+                this.module.editor.monaco.setPosition(lineBelow.left);
                 this.module.editor.cursor.setSelection(null);
             }
         } else {
             const curSelection = this.module.editor.monaco.getSelection();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber); // Superfluous?
-            let nextColumn = curPos.column;
+            const focusedLineStatement = this.getConstructAtPosition(curPos); // Superfluous?
+            let nextPos = curPos;
 
-            if (curSelection.endColumn != curSelection.startColumn) nextColumn = curSelection.endColumn;
+            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()))
+                nextPos = curSelection.getEndPosition();
 
             if (
-                curSelection.startColumn != curSelection.endColumn &&
-                curSelection.endColumn == focusedLineStatement.right
+                !curSelection.getEndPosition().equals(curSelection.getStartPosition()) &&
+                curSelection.getEndPosition().equals(focusedLineStatement.right)
             ) {
                 // if selected a thing that is at the beginning of a line (usually an identifier) => nav to the beginning of the line
-                this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, focusedLineStatement.right));
+                this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, focusedLineStatement.rightCol));
                 this.module.editor.cursor.setSelection(null);
             } else {
-                const tokenAfter = this.getTokenAtStatementColumn(focusedLineStatement, nextColumn);
+                const tokenAfter = this.getTokenAtCodeConstructPos(focusedLineStatement, nextPos);
 
-                if (tokenAfter instanceof NonEditableTkn || tokenAfter instanceof OperatorTkn) {
+                if (tokenAfter instanceof NonEditableTkn /*|| tokenAfter instanceof OperatorTkn*/) {
                     // should skip this NonEditableTkn, and move to the next thing after it.
 
                     // getTokenAtStatementColumn for a token.right will return the next token (as left is inclusive)
-                    const tokenAfterAfter = this.getTokenAtStatementColumn(focusedLineStatement, tokenAfter.right);
+                    const tokenAfterAfter = this.getTokenAtCodeConstructPos(focusedLineStatement, tokenAfter.right);
 
                     if (tokenAfterAfter instanceof Token && tokenAfterAfter.isEmpty) {
                         this.selectCode(tokenAfterAfter);
                     } else if (tokenAfterAfter instanceof EditableTextTkn || tokenAfterAfter instanceof IdentifierTkn) {
-                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfterAfter.left));
+                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfterAfter.leftCol));
                         this.module.editor.cursor.setSelection(null);
                     } else if (tokenAfterAfter != null) {
                         // probably its another expression, but should go to the beginning of it
-                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfterAfter.left));
+                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfterAfter.leftCol));
                         this.module.editor.cursor.setSelection(null);
                     } else {
-                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfter.right));
+                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfter.rightCol));
                         this.module.editor.cursor.setSelection(null);
                     }
                 } else if (tokenAfter instanceof Token && tokenAfter.isEmpty) {
@@ -362,7 +378,7 @@ export class Focus {
                 } else if (tokenAfter instanceof EditableTextTkn || tokenAfter instanceof IdentifierTkn) {
                     // if char[col + 1] is a literal => go through it
 
-                    this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfter.left));
+                    this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenAfter.leftCol));
                     this.module.editor.cursor.setSelection(null);
                 }
             }
@@ -370,7 +386,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
+            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement
         );
         this.fireOnNavChangeCallbacks();
     }
@@ -380,37 +396,41 @@ export class Focus {
      */
     navigateLeft() {
         const curPos = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber);
+        const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
 
         if (this.onBeginningOfLine()) {
             if (curPos.lineNumber > 1) {
-                const lineBelow = this.getStatementAtLineNumber(curPos.lineNumber - 1);
+                const lineBelow = this.getConstructAtPosition(curPos.delta(-1));
 
                 if (lineBelow != null) {
-                    this.module.editor.monaco.setPosition(new Position(lineBelow.lineNumber, lineBelow.right));
+                    this.module.editor.monaco.setPosition(lineBelow.right);
                     this.module.editor.cursor.setSelection(null);
                 }
             }
         } else {
             const curSelection = this.module.editor.monaco.getSelection();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPos.lineNumber);
-            let prevColumn = this.module.editor.monaco.getPosition().column - 1;
+            const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
+            let prevPos = this.module.editor.monaco.getPosition().delta(undefined, -1);
 
-            if (curSelection.endColumn != curSelection.startColumn) prevColumn = curSelection.startColumn - 1;
+            if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()))
+                prevPos = curSelection.getStartPosition().delta(undefined, -1); //curSelection.startColumn - 1;
 
-            if (curSelection.startColumn != curSelection.endColumn && curPos.column == focusedLineStatement.left) {
+            if (
+                !curSelection.getEndPosition().equals(curSelection.getStartPosition()) &&
+                curPos.equals(focusedLineStatement.left)
+            ) {
                 // if selected a thing that is at the beginning of a line (usually an identifier) => nav to the beginning of the line
-                this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, focusedLineStatement.left));
+                this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, focusedLineStatement.leftCol));
                 this.module.editor.cursor.setSelection(null);
             } else {
-                const tokenBefore = this.getTokenAtStatementColumn(focusedLineStatement, prevColumn);
+                const tokenBefore = this.getTokenAtCodeConstructPos(focusedLineStatement, prevPos);
 
-                if (tokenBefore instanceof NonEditableTkn || tokenBefore instanceof OperatorTkn) {
+                if (tokenBefore instanceof NonEditableTkn /*|| tokenBefore instanceof OperatorTkn*/) {
                     // if char[col - 1] is N => just go to the beginning of N
 
-                    const tokenBeforeBefore = this.getTokenAtStatementColumn(
+                    const tokenBeforeBefore = this.getTokenAtCodeConstructPos(
                         focusedLineStatement,
-                        tokenBefore.left - 1
+                        tokenBefore.left.delta(undefined, -1)
                     );
 
                     if (tokenBeforeBefore instanceof Token && tokenBeforeBefore.isEmpty) {
@@ -419,10 +439,12 @@ export class Focus {
                         tokenBeforeBefore instanceof Token &&
                         (tokenBeforeBefore instanceof EditableTextTkn || tokenBeforeBefore instanceof IdentifierTkn)
                     ) {
-                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenBeforeBefore.right));
+                        this.module.editor.monaco.setPosition(
+                            new Position(curPos.lineNumber, tokenBeforeBefore.rightCol)
+                        );
                         this.module.editor.cursor.setSelection(null);
                     } else {
-                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenBefore.left));
+                        this.module.editor.monaco.setPosition(new Position(curPos.lineNumber, tokenBefore.leftCol));
                         this.module.editor.cursor.setSelection(null);
                     }
                 } else if (tokenBefore instanceof Token && tokenBefore.isEmpty) {
@@ -437,7 +459,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber)
+            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement
         );
         this.fireOnNavChangeCallbacks();
     }
@@ -463,9 +485,9 @@ export class Focus {
 
         if (curSelection.startColumn == curSelection.endColumn) {
             const curPosition = curSelection.getStartPosition();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
+            const focusedLineStatement = this.getConstructAtPosition(curPosition);
 
-            if (focusedLineStatement != null && curPosition.column == focusedLineStatement.right) return true;
+            if (focusedLineStatement != null && curPosition.column == focusedLineStatement.rightCol) return true;
         }
 
         return false;
@@ -479,9 +501,9 @@ export class Focus {
 
         if (curSelection.startColumn == curSelection.endColumn) {
             const curPosition = curSelection.getStartPosition();
-            const focusedLineStatement = this.getStatementAtLineNumber(curPosition.lineNumber);
+            const focusedLineStatement = this.getConstructAtPosition(curPosition);
 
-            if (focusedLineStatement != null && curPosition.column == focusedLineStatement.left) return true;
+            if (focusedLineStatement != null && curPosition.column == focusedLineStatement.leftCol) return true;
         }
 
         return false;
@@ -491,7 +513,7 @@ export class Focus {
      * Returns true if focused within a line that is inside the body of another statement.
      */
     inTabbedLine(providedContext?: Context): boolean {
-        const curLine = providedContext ? providedContext.lineStatement : this.getFocusedStatement();
+        const curLine = providedContext ? providedContext.codeConstruct : this.getFocusedStatement();
 
         return curLine.getLeftPosition().column > 1;
     }
@@ -502,7 +524,7 @@ export class Focus {
     existsLineBelow(): boolean {
         const curPos = this.module.editor.monaco.getPosition();
 
-        return this.getStatementAtLineNumber(curPos.lineNumber + 1) != null;
+        return this.getCodeConstructAtLineNumber(curPos.lineNumber + 1) != null;
     }
 
     /**
@@ -521,17 +543,17 @@ export class Focus {
      * @param column the given column to search with (usually from current position)
      * @returns the found Token at the given column in which the following condition holds true: token.left <= column < token.right
      */
-    private getTokenAtStatementColumn(statement: Statement, column: number): CodeConstruct {
-        const tokensStack = new Array<CodeConstruct>();
+    private getTokenAtCodeConstructPos(statement: CodeConstruct, pos: Position): Construct {
+        const tokensStack = new Array<Construct>();
 
-        tokensStack.unshift(...statement.tokens);
-
+        if (statement && statement instanceof CodeConstruct) tokensStack.unshift(...statement.tokens);
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (column >= curToken.left && column < curToken.right && curToken instanceof Token) return curToken;
+            if (curToken instanceof Token && doesConstructContainPos(curToken, pos, { left: true, right: false }))
+                return curToken;
 
-            if (curToken instanceof GeneralExpression)
+            if (curToken instanceof CodeConstruct)
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else return curToken;
         }
@@ -554,7 +576,7 @@ export class Focus {
      * This function will fire all of the subscribed before nav off variable assignment callbacks.
      * These will run for all statements that have a callback attached, not just for oldStatement.
      */
-    fireOnNavOffCallbacks(oldStatement: Statement, newStatement: Statement) {
+    fireOnNavOffCallbacks(oldStatement: Construct, newStatement: Construct) {
         const context = this.getContext();
 
         if (oldStatement && oldStatement !== newStatement) {
@@ -564,7 +586,8 @@ export class Focus {
             //if you want to run a callback only on oldStatement, use CallbackType.onFocusOff
             //Think of this array as the global list of functions that gets called when we navigate off of a certain statement type
             //and of CallbackType.onFocusOff as the callback called on a specific instance of  a code construct
-            const callbackArr = this.onNavOffCallbacks.get(oldStatement.codeConstructName) ?? [];
+            const callbackArr =
+                this.onNavOffCallbacks.get(ConstructName.Default /*oldStatement.codeConstructName*/) ?? [];
             for (const callback of callbackArr) {
                 callback(context);
             }
@@ -578,16 +601,54 @@ export class Focus {
      * @param line the given line number to search for.
      * @returns the Statement object of that line.
      */
-    getStatementAtLineNumber(line: number): Statement {
-        const bodyStack = new Array<Statement>();
+    getCodeConstructAtLineNumber(line: number): CodeConstruct {
+        const bodyStack = [this.module.compoundConstruct];
 
-        bodyStack.unshift(...this.module.body);
+        // bodyStack.unshift(...this.module.body);
+        // bodyStack.unshift(
+        //     ...(this.module.compoundConstruct instanceof CodeConstruct ? this.module.compoundConstruct.tokens : [])
+        // );
 
         while (bodyStack.length > 0) {
             const curStmt = bodyStack.pop();
 
-            if (line == curStmt.lineNumber) return curStmt;
-            else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
+            if (!(curStmt instanceof CodeConstruct)) continue;
+
+            // TODO: Could be multiple constructs on the same line, how to fix this?
+            if (curStmt.left.lineNumber <= line && line <= curStmt.right.lineNumber) return curStmt;
+            else bodyStack.unshift(...curStmt.tokens);
+            // else if (curStmt.hasBody()) bodyStack.unshift(...curStmt.body);
+        }
+
+        return null;
+    }
+
+    /**
+     * Recursively searches through all code constructs and looks for the construct
+     * at the given position
+     *
+     * If the position is on the border between two constructs, the construct on the
+     * right side will be returned.
+     *
+     * @param position the given line number to search for.
+     * @returns the Statement object of that line.
+     */
+    getConstructAtPosition(position: Position): CodeConstruct {
+        const bodyStack = [this.module.compoundConstruct];
+
+        while (bodyStack.length > 0) {
+            // Take the next Construct from the stack
+            const curStmt = bodyStack.pop();
+            // console.log(curStmt, this.module.editor.monaco.getPosition());
+
+            // If the current construct does not contain the given position, skip it
+            if (!doesConstructContainPos(curStmt, position)) continue;
+
+            // If the current construct is a CodeConstruct, push its tokens to the stack
+            if (curStmt instanceof CodeConstruct) bodyStack.unshift(...curStmt.tokens);
+            // For everything else, primarily tokens, there are no subtokens left so we
+            // return the parent CodeConstruct
+            else return curStmt.rootNode;
         }
 
         return null;
@@ -597,13 +658,13 @@ export class Focus {
      * Selects the given code construct.
      * @param code the editor will set its selection to the left and right of this given code.
      */
-    private selectCode(code: CodeConstruct) {
-        if (code != null) {
-            const selection = new Selection(code.getLineNumber(), code.right, code.getLineNumber(), code.left);
+    private selectCode(code: Construct) {
+        if (code === null) return;
 
-            this.module.editor.monaco.setSelection(selection);
-            this.module.editor.cursor.setSelection(code);
-        }
+        const selection = new Selection(code.right.lineNumber, code.rightCol, code.left.lineNumber, code.leftCol);
+
+        this.module.editor.monaco.setSelection(selection);
+        this.module.editor.cursor.setSelection(code);
     }
 
     /**
@@ -614,28 +675,28 @@ export class Focus {
      * @param right - The right position of the selection.
      * @returns - The context of the selection.
      */
-    private getContextFromSelection(statement: Statement, left: number, right: number): Context {
+    private getContextFromSelection(statement: Statement, left: Position, right: Position): Context {
         const context = new Context();
-        context.lineStatement = statement;
-        const tokensStack = new Array<CodeConstruct>();
+        context.codeConstruct = statement;
+        const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
-        tokensStack.unshift(...statement.tokens);
+        if (statement instanceof CodeConstruct) tokensStack.unshift(...statement.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken.left == left && curToken.right == right) {
+            if (curToken.left.equals(left) && curToken.right.equals(right)) {
                 context.selected = true;
 
                 if (curToken instanceof Token) context.token = curToken;
-                else if (curToken instanceof GeneralExpression) context.expression = curToken; // (1)
+                else if (curToken instanceof CodeConstruct) context.construct = curToken; // (1)
 
                 return context;
-            } else if (curToken instanceof GeneralExpression) {
-                if (left == curToken.left && right == curToken.right) {
+            } else if (curToken instanceof CodeConstruct) {
+                if (left.equals(curToken.left) && right.equals(curToken.right)) {
                     // Literally the same as (1) above
-                    context.expression = curToken;
+                    context.construct = curToken;
                     context.selected = true;
 
                     break;
@@ -657,11 +718,11 @@ export class Focus {
      * Finds the non-textual hole, read no string, at the given column in the given statement
      *
      * @param statement - Statement to search in
-     * @param column - Column to search for
+     * @param pos - Column to search for
      * @returns - The non-textual hole at the given column, or null if not found.
      */
-    private findNonTextualHole(statement: Statement, column: number): Token {
-        const tokensStack = new Array<CodeConstruct>();
+    private findNonTextualHole(statement: Statement, pos: Position): Token {
+        const tokensStack = new Array<Construct>();
 
         for (const token of statement.tokens) tokensStack.unshift(token); // One liner: tokensStack.unshift(...statement.tokens);?
 
@@ -669,16 +730,16 @@ export class Focus {
             const curToken = tokensStack.pop();
 
             if (
-                column == curToken.left &&
-                column == curToken.right &&
+                pos == curToken.left &&
+                pos == curToken.right &&
                 (curToken instanceof EditableTextTkn ||
-                    curToken instanceof LiteralValExpr ||
+                    // curToken instanceof LiteralValExpr ||
                     curToken instanceof IdentifierTkn)
             ) {
-                if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
-                    return curToken.tokens[0] as Token;
-                else if (curToken instanceof EditableTextTkn) return curToken;
-                else if (curToken instanceof IdentifierTkn) return curToken;
+                // if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
+                //     return curToken.tokens[0] as Token;
+                // else
+                return curToken;
             }
 
             if (curToken instanceof GeneralExpression)
@@ -689,19 +750,23 @@ export class Focus {
     }
 
     /**
-     * Finds the context of the given column in the given statement.
+     * Finds the context of the given position in the given statement.
      *
      * @param statement - The statement to search in.
-     * @param column - The column to search for.
-     * @returns - The context of the given column in the given statements.
+     * @param pos - The position to search for.
+     * @returns - The context of the given position in the given statements.
      */
-    private getContextFromPosition(statement: Statement, column: number): Context {
+    private getContextFromPosition(statement: Statement, pos: Position): Context {
+        // PROBABLY REFORMAT IN THE FUTURE
+        // NOW they search a lot of trees, while this could probably be minimised
         const context = new Context();
-        context.lineStatement = statement;
-        const tokensStack = new Array<CodeConstruct>();
+        context.codeConstruct = statement;
+        const tokensStack = new Array<Construct>();
+
+        if (!statement) console.log("No statement");
 
         // initialize tokensStack
-        for (const token of statement?.tokens) tokensStack.unshift(token);
+        if (statement instanceof CodeConstruct) tokensStack.unshift(...statement.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
@@ -709,65 +774,63 @@ export class Focus {
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text
 
-                if (column == curToken.left) {
-                    context.token = this.findNonTextualHole(statement, column);
+                if (pos.equals(curToken.left)) {
+                    context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToRight = curToken;
-                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(
-                        statement,
-                        (token) => token.right == column
+                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                        token.right.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(
                             context.tokenToRight,
-                            context.tokenToRight.rootNode.left == column
+                            context.tokenToRight.rootNode.left.equals(pos)
                         );
                     }
                     if (context.tokenToLeft) {
                         context.expressionToLeft = this.getExpression(
                             context.tokenToLeft,
-                            context.tokenToLeft.rootNode.right == column
+                            context.tokenToLeft.rootNode.right.equals(pos)
                         );
                     }
 
-                    context.lineStatement = context.tokenToRight.getParentStatement();
+                    context.codeConstruct = context.tokenToRight.getNearestCodeConstruct();
 
                     break;
-                } else if (column == curToken.right) {
-                    context.token = this.findNonTextualHole(statement, column);
+                } else if (pos.equals(curToken.right)) {
+                    context.token = this.findNonTextualHole(statement, pos);
                     context.tokenToLeft = curToken;
-                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(
-                        statement,
-                        (token) => token.left == column
+                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                        token.left.equals(pos)
                     );
 
                     if (context.tokenToRight != null) {
                         context.expressionToRight = this.getExpression(
                             context.tokenToRight,
-                            context.tokenToRight.rootNode.left == column
+                            context.tokenToRight.rootNode.left.equals(pos)
                         );
                     }
                     if (context.tokenToLeft) {
                         context.expressionToLeft = this.getExpression(
                             context.tokenToLeft,
-                            context.tokenToLeft.rootNode.right == column
+                            context.tokenToLeft.rootNode.right.equals(pos)
                         );
                     }
-                    context.lineStatement = context.tokenToLeft.getParentStatement();
+                    context.codeConstruct = context.tokenToLeft.getNearestCodeConstruct();
 
                     break;
-                } else if (column > curToken.left && column < curToken.right) {
+                } else if (doesConstructContainPos(curToken, pos, { left: false, right: false })) {
                     context.token = curToken;
                     // context.parentExpression = context.token.rootNode as Expression;
-                    context.lineStatement = context.token.getParentStatement();
+                    context.codeConstruct = context.token.getNearestCodeConstruct();
 
                     break;
                 }
-            } else if (curToken instanceof GeneralExpression) {
+            } else if (curToken instanceof CodeConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
-                        `getContextFromPosition(statement: ${statement}, column: ${column}) -> found expression with no child tokens.`
+                        `getContextFromPosition(statement: ${statement}, column: ${pos}) -> found expression with no child tokens.`
                     );
                 }
             }
@@ -789,16 +852,16 @@ export class Focus {
      * Searches the tokens tree for a token that matches the passed check() condition.
      */
     private searchNonEmptyTokenWithCheck(statement: Statement, check: (token: Token) => boolean): Token {
-        const tokensStack = new Array<CodeConstruct>();
+        const tokensStack = new Array<Construct>();
 
         tokensStack.unshift(...statement.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken instanceof Token && curToken.left != curToken.right && check(curToken)) return curToken;
+            if (curToken instanceof Token && !curToken.left.equals(curToken.right) && check(curToken)) return curToken;
 
-            if (curToken instanceof GeneralExpression) {
+            if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
             }
         }
@@ -818,11 +881,11 @@ export class Context {
      * Immediate items
      */
     // parentExpression?: Expression = null;
-    expression?: GeneralExpression = null;
+    construct?: Construct = null;
     expressionToLeft?: GeneralExpression = null;
     expressionToRight?: GeneralExpression = null;
 
-    lineStatement: Statement;
+    codeConstruct: CodeConstruct;
 
     selected?: boolean = false; //this should not be nullable
     position?: Position = null;
@@ -836,7 +899,7 @@ export class Context {
 }
 
 export class UpdatableContext {
-    tokenToSelect?: CodeConstruct;
+    tokenToSelect?: Construct;
     positionToMove?: Position;
 
     constructor(tokenToSelect?: Token, positionToMove?: Position) {

@@ -1,8 +1,8 @@
 import { Selection } from "monaco-editor";
 import { Editor } from "../editor/editor";
-import { EDITOR_DOM_ID } from "../editor/toolbox";
 import { nova } from "../index";
-import { CodeConstruct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
+import { Construct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 
 /**
@@ -35,7 +35,7 @@ abstract class CodeHighlight {
     /**
      * Code that this element is attached to.
      */
-    protected code: CodeConstruct;
+    protected code: Construct;
 
     /**
      * Current selection of the element. Used for calculating displacement during position changes.
@@ -57,7 +57,7 @@ abstract class CodeHighlight {
      */
     private callbacks: Map<string, CallbackType>;
 
-    constructor(editor: Editor, codeToHighlight: CodeConstruct) {
+    constructor(editor: Editor, codeToHighlight: Construct) {
         this.code = codeToHighlight;
         this.selection = this.code.getSelection();
         this.editor = editor;
@@ -124,7 +124,7 @@ abstract class CodeHighlight {
 }
 
 export class ConstructHighlight extends CodeHighlight {
-    constructor(editor: Editor, codeToHighlight: CodeConstruct, rgbColour: [number, number, number, number]) {
+    constructor(editor: Editor, codeToHighlight: Construct, rgbColour: [number, number, number, number]) {
         super(editor, codeToHighlight);
         this.changeHighlightColour(rgbColour);
     }
@@ -173,7 +173,7 @@ export class ConstructHighlight extends CodeHighlight {
 
     protected updateDimensions(firstInsertion: boolean = false) {
         //instanceof Token does not have lineNumber
-        let lineNumber = this.code.getLineNumber();
+        let lineNumber = this.code.getFirstLineNumber();
 
         let top = 0;
         let left = 0;
@@ -223,7 +223,7 @@ export class InlineMessage extends CodeHighlight {
 
     textElement: HTMLDivElement;
 
-    constructor(editor: Editor, code: CodeConstruct, warningTxt: string, index: number = -1) {
+    constructor(editor: Editor, code: Construct, warningTxt: string, index: number = -1) {
         super(editor, code);
 
         this.warningTxt = warningTxt;
@@ -264,7 +264,7 @@ export class HoverMessage extends InlineMessage {
 
     constructor(
         editor: Editor,
-        code: CodeConstruct,
+        code: Construct,
         warningText: string,
         highlightColour: [number, number, number, number],
         index: number = -1
@@ -317,7 +317,9 @@ export class HoverMessage extends InlineMessage {
         document.querySelector(editorDomElementClass).appendChild(this.domElement);
 
         //set the initial position
-        const currentLinePosition = nova.focus.getStatementAtLineNumber(this.code.getLineNumber()).getRightPosition();
+        const currentLinePosition = nova.focus
+            .getCodeConstructAtLineNumber(this.code.getFirstLineNumber())
+            .getRightPosition();
         this.domElement.style.top = `${(this.selection.startLineNumber - 1) * this.editor.computeCharHeight()}px`; // 0 is the line below this.code, -1 is this.code's line, -2 is the line above this.code
         this.domElement.style.left = `${
             (currentLinePosition.column + 2) * this.editor.computeCharWidthGlobal() + 10
@@ -435,7 +437,7 @@ export class HoverMessage extends InlineMessage {
 export class PopUpMessage extends InlineMessage {
     static warningTime: number = 5000;
 
-    constructor(editor: Editor, code: CodeConstruct, warningTxt: string, index: number = -1) {
+    constructor(editor: Editor, code: Construct, warningTxt: string, index: number = -1) {
         super(editor, code, warningTxt, index);
     }
 
@@ -446,7 +448,7 @@ export class PopUpMessage extends InlineMessage {
 
         //set position based on code
         this.domElement.style.left = `${
-            this.selection.startColumn * this.editor.computeCharWidth(this.code.getLineNumber())
+            this.selection.startColumn * this.editor.computeCharWidth(this.code.getFirstLineNumber())
         }px`;
         this.domElement.style.top = `${this.selection.startLineNumber * this.editor.computeCharHeight()}px`;
     }
@@ -801,13 +803,13 @@ export class LineDimension {
      * Return a LineDimension object that represents the bounding box of the given code.
      */
     static compute(code: Statement, editor: Editor): LineDimension {
-        let lineNumber = code.getLineNumber();
+        let lineNumber = code.getFirstLineNumber();
 
         const text = code.getLineText();
         const transform = editor.computeBoundingBox(code.getSelection());
 
         let top = (code.getSelection().startLineNumber - 1) * editor.computeCharHeight();
-        let left = (code.left - 1) * 10.5;
+        let left = (code.leftCol - 1) * 10.5;
         let height = Math.floor(editor.computeCharHeight());
         let width = text.length * editor.computeCharWidthInvisible(lineNumber);
         let right = left + width;

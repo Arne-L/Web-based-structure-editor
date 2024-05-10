@@ -1,18 +1,18 @@
 import { editor, KeyCode, KeyMod, languages, Range, Selection } from "monaco-editor";
 import {
     CodeConstruct,
+    Construct,
     EditableTextTkn,
-    EmptyOperatorTkn,
+    // EmptyOperatorTkn,
     IdentifierTkn,
     Statement,
     TypedEmptyExpr,
 } from "../syntax-tree/ast";
-import { TAB_SPACES } from "../syntax-tree/consts";
+import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "../syntax-tree/module";
 import { Cursor } from "./cursor";
 import { Hole } from "./hole";
-
-const FONT_SIZE = 20;
+import { FONT_SIZE } from "../language-definition/settings";
 
 export class Editor {
     module: Module;
@@ -321,30 +321,30 @@ export class Editor {
         return <HTMLElement>line?.children[0];
     }
 
-    addHoles(code: CodeConstruct) {
+    addHoles(code: Construct) {
+        // If hole already exists, return
         for (const hole of this.holes) if (hole.code == code) return;
 
         if (
             code instanceof EditableTextTkn ||
             code instanceof TypedEmptyExpr ||
-            code instanceof IdentifierTkn ||
-            code instanceof EmptyOperatorTkn
+            code instanceof IdentifierTkn
+            // || code instanceof EmptyOperatorTkn
         ) {
             this.holes.push(new Hole(this, code));
-        } else if (code instanceof Statement) {
-            const statement = <Statement>code;
-            statement.tokens.forEach((token) => this.addHoles(token));
+        } else if (code instanceof CodeConstruct) {
+            code.tokens.forEach((token) => this.addHoles(token));
         }
     }
 
     /**
      * Add the text to the monaco editor at the given range and add a hole to the editor
-     * 
-     * @param range - The range in which to insert in the monaco editor
+     *
+     * @param range - The range to replace in the monaco editor
      * @param code - The code to insert
      * @param overwrite - The text to overwrite the range with. If null, the code's render text is used.
      */
-    executeEdits(range: Range, code: CodeConstruct, overwrite: string = null) {
+    executeEdits(range: Range, code: Construct, overwrite: string = null) {
         // Text to use in the given range
         let text = overwrite;
 
@@ -362,20 +362,20 @@ export class Editor {
     }
 
     /**
-     * Recursively indent the given statement and its body to the left or right, 
+     * Recursively indent the given statement and its body to the left or right,
      * depending on the value of backward
-     * 
+     *
      * @param statement - The statement to indent
      * @param param1 - { backward: boolean } - Whether to indent to the left or right
      */
-    indentRecursively(statement: Statement, { backward = false }) {
+    indentRecursively(statement: CodeConstruct, { backward = false }) {
         // Indent the given statement to the left or right
         this.module.editor.executeEdits(
             new Range(
                 statement.lineNumber,
-                statement.left,
+                statement.leftCol,
                 statement.lineNumber,
-                statement.left - (backward ? TAB_SPACES : 0)
+                statement.leftCol - (backward ? TAB_SPACES : 0)
             ),
             null,
             backward ? "" : "    "
@@ -383,7 +383,7 @@ export class Editor {
 
         // If the statement has a body, indent the body as well (recursively)
         if (statement.hasBody()) {
-            const stmtStack = new Array<Statement>();
+            const stmtStack = new Array<CodeConstruct>();
 
             stmtStack.unshift(...statement.body);
 
@@ -403,9 +403,9 @@ export class Editor {
                 this.module.editor.executeEdits(
                     new Range(
                         curStmt.lineNumber,
-                        curStmt.left,
+                        curStmt.leftCol,
                         curStmt.lineNumber,
-                        curStmt.left - (backward ? TAB_SPACES : 0)
+                        curStmt.leftCol - (backward ? TAB_SPACES : 0)
                     ),
                     null,
                     backward ? "" : "    "
@@ -416,7 +416,7 @@ export class Editor {
         }
     }
 
-    insertAtCurPos(codeList: Array<CodeConstruct>) {
+    insertAtCurPos(codeList: Array<Construct>) {
         const curPos = this.monaco.getPosition();
         let text = "";
 
@@ -433,8 +433,14 @@ export class Editor {
         const x = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.startColumn);
         const y = this.monaco.getTopForLineNumber(selection.startLineNumber);
 
-        const width = this.monaco.getOffsetForColumn(selection.startLineNumber, selection.endColumn) - x;
+        const width = this.monaco.getOffsetForColumn(selection.endLineNumber, selection.endColumn) - x;
         const height = this.computeCharHeight();
+
+        // if (selection.endLineNumber === 3) {
+        //     console.log(this.monaco.getModel().getValue());
+        //     console.log(selection.startLineNumber, selection.endLineNumber, selection.startColumn, selection.endColumn);
+        //     console.log(this.monaco.getOffsetForColumn(selection.endLineNumber, selection.endColumn), x)
+        // }
 
         return { x, y, width, height };
     }

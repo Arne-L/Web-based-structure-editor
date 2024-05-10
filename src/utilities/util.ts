@@ -1,5 +1,6 @@
+import { Position } from "monaco-editor";
 import { EditAction } from "../editor/data-types";
-import { AssignmentToken, CodeConstruct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
+import { AssignmentToken, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { DataType, ListTypes, addClassToDraftModeResolutionButton } from "./../syntax-tree/consts";
 
@@ -201,7 +202,7 @@ export function getUserFriendlyType(type: DataType): string {
     }
 }
 
-export function createWarningButton(buttonTxt: string, warningCode: CodeConstruct, action: Function): HTMLDivElement {
+export function createWarningButton(buttonTxt: string, warningCode: Construct, action: Function): HTMLDivElement {
     const button = document.createElement("div");
     button.innerHTML = buttonTxt;
     button.classList.add("button");
@@ -257,4 +258,78 @@ export function getHoleValues(userInput: string, regex: RegExp): string[] {
     regex.lastIndex = 0;
     const matches = regex.exec(userInput);
     return matches instanceof Array ? matches.slice(1) : [];
+}
+
+/**
+ * Namespace containing supporting functions to create, edit and manipulate HTML elements.
+ */
+export namespace DOMManupulation {
+    /**
+     * Create an HTML element with the given tag, classes, style, attributes and children.
+     *
+     * @param tag - The tag of the HTML element, e.g. "div"
+     * @param classes - The class(es) to add to the HTML element
+     * @param style - The style properties to add to the HTML element as key value pairs
+     * @param attributes - The attributes to add to the HTML element as key value pairs
+     * @param children - The children to add to the HTML element, in order of appearance
+     * @returns - An HTML element with the given properties
+     */
+    export function createElement(
+        tag: "div",
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLDivElement;
+    export function createElement(
+        tag: string,
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLElement;
+    export function createElement(
+        tag: string,
+        classes?: string[] | string,
+        style?: { [key: string]: string },
+        innerHTML?: string,
+        attributes?: { [key: string]: string },
+        children?: HTMLElement[]
+    ): HTMLElement {
+        // Create the HTML element
+        const element = document.createElement(tag);
+        // Add the given classes
+        element.classList.add(...(classes instanceof Array ? classes : [classes]));
+        // Add the given style properties
+        if (style) Object.entries(style).forEach(([key, value]) => element.style.setProperty(key, value));
+        // Add the given attributes
+        if (attributes) Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        // Add the children to the element
+        if (children) for (const child of children) element.appendChild(child);
+
+        // Add the inner HTML if given
+        if (innerHTML) element.innerHTML = innerHTML;
+
+        return element;
+    }
+}
+
+/**
+ * Checks if the given position is contained within the given construct.
+ *
+ * @param construct - The construct to check
+ * @param pos - The position to check
+ * @returns True if the construct contains the position, false otherwise
+ */
+export function doesConstructContainPos(
+    construct: Construct,
+    pos: Position,
+    inclusive: { left: boolean; right: boolean } = { left: true, right: true }
+): boolean {
+    return (
+        (inclusive.left ? construct.left.isBeforeOrEqual(pos) : construct.left.isBefore(pos)) &&
+        (inclusive.right ? pos.isBeforeOrEqual(construct.right) : pos.isBefore(construct.right))
+    );
 }

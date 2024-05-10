@@ -1,6 +1,6 @@
 import { initLanguage } from "../language-definition/parser";
 import { ErrorMessage } from "../messages/error-msg-generator";
-import { CodeConstruct } from "./ast";
+import { Construct } from "./ast";
 import { Module } from "./module";
 
 type Reason = string;
@@ -13,7 +13,6 @@ export class Language {
 
     constructor(module: Module) {
         this.module = module;
-        console.log("We get here")
 
         // Load the language definition file
         const langConfig = initLanguage();
@@ -53,7 +52,7 @@ export class Language {
      * @param construct - The construct the word is part of and the message should be added to
      * @returns true if the word is reserved, false otherwise
      */
-    validateReservedWord(word: string, construct: CodeConstruct): boolean {
+    validateReservedWord(word: string, construct: Construct): boolean {
         for (let [reason, words] of this.reservedWords) {
             if (words.has(word)) {
                 this.module.messageController.addPopUpMessage(

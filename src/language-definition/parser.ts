@@ -1,8 +1,8 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
-import { ConstructDefinition, LanguageDefinition } from "./definitions";
 import config from "./config.json";
+import { ConstructDefinition, LanguageDefinition, RecursiveDefinition } from "./definitions";
 
 // Dynamically import the correct language and constructs
 let languageConfig: LanguageDefinition;
@@ -13,6 +13,17 @@ let constructs: ConstructDefinition[];
 if (languageConfig.constructFile)
     constructs = (await import(`../language-definition/${languageConfig.constructFile}`)).default;
 else throw new Error("No construct file specified in the language configuration file");
+
+let recursiveFormats: RecursiveDefinition[];
+if (languageConfig.recursiveFile)
+    recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
+else throw new Error("No recursive file specified in the language configuration file");
+
+export const initialConstructDef = languageConfig.initialConstruct;
+export const globalFormats = new Map(recursiveFormats.map((format) => {
+    const { name, ...formatData } = format;
+    return [format.name, formatData];
+}));
 
 /* EVERYTHING RELATED TO ACTIONS AND EDITCODEACTIONS AND AST */
 
@@ -61,12 +72,12 @@ export function getAllCodeActions(): EditCodeAction[] {
             construct.triggerInsertion, // EXTRACT: character which triggers the insertion in the editor
             // Automating? Maybe take last character before a hole or end of statement?
             construct.match ?? null, // Match when typing
-            construct.matchRegex !== undefined ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
+            construct.matchRegex !== undefined && construct.matchRegex !== null ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
             // identify what a valid identifier is
         );
 
         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-         action.containsReference = construct.format.some((struct) => struct.type === "reference");
+        action.containsReference = construct.format.some((struct) => struct.type === "reference");
 
         // Add the action to the list
 
@@ -104,7 +115,6 @@ export function addEditCodeActionsToCategories(
     editCodeActions: EditCodeAction[]
 ): void {
     for (const action of editCodeActions) {
-        // console.log(action);
         const currentCategory: string = action.documentation.category;
         if (toolboxCategories.some((category) => currentCategory === category.displayName)) {
             toolboxCategories.find((category) => currentCategory === category.displayName).addEditCodeAction(action);
@@ -125,7 +135,7 @@ export function addEditCodeActionsToCategories(
  * @param construct - An object containing the information to build the GeneralStatement
  * @returns - a function that returns a GeneralStatement
  */
-function getCodeFunction(construct): (data?: {"reference": string}) => Statement {
+function getCodeFunction(construct): (data?: { reference: string }) => Statement {
     // Currently handle expression and statement separately
     // Merge them into one in the future
     if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct, null, null, data);
@@ -135,6 +145,11 @@ function getCodeFunction(construct): (data?: {"reference": string}) => Statement
 export function initLanguage() {
     return {
         language: languageConfig.name,
-        reservedWords: new Map<string, Set<string>>(languageConfig.reservedWords.map((reservedCategory) => [reservedCategory.reason, new Set(reservedCategory.words)])),
+        reservedWords: new Map<string, Set<string>>(
+            languageConfig.reservedWords.map((reservedCategory) => [
+                reservedCategory.reason,
+                new Set(reservedCategory.words),
+            ])
+        ),
     };
 }

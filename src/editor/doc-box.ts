@@ -2,12 +2,12 @@ import { editor } from "monaco-editor";
 import { nova, runBtnToOutputWindow } from "../index";
 import { attachPyodideActions, codeString } from "../pyodide-js/pyodide-controller";
 import { addTextToConsole, clearConsole, CONSOLE_ERR_TXT_CLASS } from "../pyodide-ts/pyodide-ui";
-
-const INITIAL_Z_INDEX = 500;
+import { INITIAL_Z_INDEX } from "../language-definition/settings";
 
 export const docBoxRunButtons = new Map<string, string[]>(); // Can remove export?
 
-export class ExecutableCode { // Can remove export
+export class ExecutableCode {
+    // Can remove export
     private static exampleCounter = 0;
     private static openBoxes: DocBoxMeta[] = [];
     private static pressedEscape = false;

@@ -1,7 +1,6 @@
 import { editor, IKeyboardEvent, IScrollEvent } from "monaco-editor";
 import { Module } from "../syntax-tree/module";
-
-const navigationKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
+import { navigationKeys } from "../language-definition/settings";
 
 /**
  * Enumeration of all the external editor events that can be triggered.
@@ -127,7 +126,7 @@ export class EventStack {
 
     /**
      * Applies the given action to the module through the EventRouter
-     * 
+     *
      * @param action - The action to apply
      */
     apply(action: EventAction) {

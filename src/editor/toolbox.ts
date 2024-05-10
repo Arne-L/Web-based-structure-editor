@@ -4,7 +4,7 @@ import { Position } from "monaco-editor";
 import { nova, runBtnToOutputWindow } from "..";
 import { attachPyodideActions, codeString } from "../pyodide-js/pyodide-controller";
 import { CONSOLE_ERR_TXT_CLASS, addTextToConsole, clearConsole } from "../pyodide-ts/pyodide-ui";
-import { CodeConstruct, Expression, Modifier, Statement, VariableReferenceExpr } from "../syntax-tree/ast";
+import { Construct, Expression, Modifier, Statement /*VariableReferenceExpr*/ } from "../syntax-tree/ast";
 import { DataType, InsertionType, Tooltip } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getUserFriendlyType } from "../utilities/util";
@@ -16,7 +16,6 @@ import { createExample } from "./doc-box";
 import { EventAction, EventStack, EventType } from "./event-stack";
 import { Context } from "./focus";
 
-export const EDITOR_DOM_ID = "editor";
 export const docBoxRunButtons = new Map<string, string[]>(); // Can remove export
 
 /**
@@ -219,7 +218,7 @@ export class ToolboxController {
         const staticToolboxDiv = document.getElementById("static-toolbox");
         const toolboxDiv = document.getElementById("editor-toolbox");
         const toolboxMenu = document.getElementById("toolbox-menu");
-        // The dummy in the toolbox column for the CodeStructs that fills the remaining space after 
+        // The dummy in the toolbox column for the CodeStructs that fills the remaining space after
         // the last category to make it fit to the top of the toolbox when fully scrolled
         // to the bottom of the containing element.
         const staticDummySpace = document.getElementById("static-toolbox-dummy-space");
@@ -275,10 +274,11 @@ export class ToolboxController {
 /**
  * Class for creating toolbox buttons and adding them to the toolbox.
  */
-export class ToolboxButton { // Can remove export
+export class ToolboxButton {
+    // Can remove export
     container: HTMLDivElement;
 
-    constructor(text: string, domId?: string, code?: CodeConstruct) {
+    constructor(text: string, domId?: string, code?: Construct) {
         // Container for the button
         this.container = document.createElement("div");
         this.container.classList.add("var-button-container");
@@ -365,94 +365,94 @@ export class ToolboxButton { // Can remove export
     }
 }
 
-/**
- * Get the HTML element to create a variable reference button for the given variable. This can be
- * used to add a variable reference button to the toolbox.
- *
- * @param identifier - The name of the variable, e.g. "x".
- * @param buttonId - The id of the variable reference button.
- * @param events - The event stack to add the button's event to.
- * @param module - The module to add the variable reference button to.
- * @returns - The button element of the created variable reference button.
- */
-export function addVariableReferenceButton(
-    identifier: string,
-    buttonId: string,
-    events: EventStack,
-    module: Module
-): HTMLDivElement {
-    // Create the containing div for the "Defined Variables" section of the toolbox.
-    const container = document.createElement("div");
-    container.classList.add("var-button-container");
+// /**
+//  * Get the HTML element to create a variable reference button for the given variable. This can be
+//  * used to add a variable reference button to the toolbox.
+//  *
+//  * @param identifier - The name of the variable, e.g. "x".
+//  * @param buttonId - The id of the variable reference button.
+//  * @param events - The event stack to add the button's event to.
+//  * @param module - The module to add the variable reference button to.
+//  * @returns - The button element of the created variable reference button.
+//  */
+// export function addVariableReferenceButton(
+//     identifier: string,
+//     buttonId: string,
+//     events: EventStack,
+//     module: Module
+// ): HTMLDivElement {
+//     // Create the containing div for the "Defined Variables" section of the toolbox.
+//     const container = document.createElement("div");
+//     container.classList.add("var-button-container");
 
-    // Create the div for the identifier and type definitions.
-    const varContainer = document.createElement("div");
-    varContainer.classList.add("var-container-wrapper");
-    // Identifier
-    const button = document.createElement("div");
-    button.classList.add("var-button");
-    button.id = buttonId;
+//     // Create the div for the identifier and type definitions.
+//     const varContainer = document.createElement("div");
+//     varContainer.classList.add("var-container-wrapper");
+//     // Identifier
+//     const button = document.createElement("div");
+//     button.classList.add("var-button");
+//     button.id = buttonId;
 
-    varContainer.appendChild(button);
+//     varContainer.appendChild(button);
 
-    // Text for the type of the variable.
-    const typeText = document.createElement("div");
-    typeText.classList.add("var-type-text");
-    varContainer.appendChild(typeText);
+//     // Text for the type of the variable.
+//     const typeText = document.createElement("div");
+//     typeText.classList.add("var-type-text");
+//     varContainer.appendChild(typeText);
 
-    container.appendChild(varContainer);
+//     container.appendChild(varContainer);
 
-    // Actions button
-    const moreActionsButton = document.createElement("div");
-    moreActionsButton.classList.add("var-more-actions-button");
-    moreActionsButton.innerText = "actions >";
-    container.appendChild(moreActionsButton);
+//     // Actions button
+//     const moreActionsButton = document.createElement("div");
+//     moreActionsButton.classList.add("var-more-actions-button");
+//     moreActionsButton.innerText = "actions >";
+//     container.appendChild(moreActionsButton);
 
-    // Possible actions for the variable reference button: changing the assignment modifier (e.g =, +=,
-    // -=, etc.) and converting the variable to a different type (e.g. string to number).
-    moreActionsButton.addEventListener("mouseover", () => {
-        const [options, type] = getVarOptions(identifier, buttonId, module);
+//     // Possible actions for the variable reference button: changing the assignment modifier (e.g =, +=,
+//     // -=, etc.) and converting the variable to a different type (e.g. string to number).
+//     moreActionsButton.addEventListener("mouseover", () => {
+//         const [options, type] = getVarOptions(identifier, buttonId, module);
 
-        //it is important that these options are regenerated on each mouseover
-        createAndAttachCascadedMenu(moreActionsButton, buttonId, options, module, identifier, type);
-    });
+//         //it is important that these options are regenerated on each mouseover
+//         createAndAttachCascadedMenu(moreActionsButton, buttonId, options, module, identifier, type);
+//     });
 
-    button.textContent = identifier;
+//     button.textContent = identifier;
 
-    // Insert the identifier into the editor when the button is clicked.
-    button.addEventListener("click", () => {
-        const action = new EventAction(EventType.OnButtonDown, button.id);
-        events.stack.push(action);
-        events.apply(action);
-    });
+//     // Insert the identifier into the editor when the button is clicked.
+//     button.addEventListener("click", () => {
+//         const action = new EventAction(EventType.OnButtonDown, button.id);
+//         events.stack.push(action);
+//         events.apply(action);
+//     });
 
-    // When a new variable is created, mark the button as (green) glowing for 5 seconds.
-    setTimeout(() => {
-        container.classList.add("glowing");
+//     // When a new variable is created, mark the button as (green) glowing for 5 seconds.
+//     setTimeout(() => {
+//         container.classList.add("glowing");
 
-        setTimeout(() => {
-            container.classList.remove("glowing");
-        }, 5000);
-    }, 1);
+//         setTimeout(() => {
+//             container.classList.remove("glowing");
+//         }, 5000);
+//     }, 1);
 
-    document.getElementById("vars-button-grid").appendChild(container);
+//     document.getElementById("vars-button-grid").appendChild(container);
 
-    return button;
-}
+//     return button;
+// }
 
-/**
- * Removes a variable reference from the "Defined Variables" section of the toolbox.
- *
- * @param buttonId - The id of the variable reference button to remove.
- */
-export function removeVariableReferenceButton(buttonId: string): void {
-    const button = document.getElementById(buttonId);
-    // Button is the identifer div, var-container-wrapper is the div containing the identifier
-    // and type text (=parent)
-    const parent = button.parentElement;
-    // var-button-container is the div containing the grandparent (a row in the "Defined Variables")
-    document.getElementById("vars-button-grid").removeChild(parent.parentElement);
-}
+// /**
+//  * Removes a variable reference from the "Defined Variables" section of the toolbox.
+//  *
+//  * @param buttonId - The id of the variable reference button to remove.
+//  */
+// export function removeVariableReferenceButton(buttonId: string): void {
+//     const button = document.getElementById(buttonId);
+//     // Button is the identifer div, var-container-wrapper is the div containing the identifier
+//     // and type text (=parent)
+//     const parent = button.parentElement;
+//     // var-button-container is the div containing the grandparent (a row in the "Defined Variables")
+//     document.getElementById("vars-button-grid").removeChild(parent.parentElement);
+// }
 
 /**
  * Create the cascaded menu div object and its options along with their action handlers.
@@ -644,29 +644,29 @@ function createAndAttachCascadedMenu(
 }
 
 // helper for creating options for a variable's cascaded menu
-/**
- * Helper for creating options for a variable's cascaded menu.
- * 
- * @param identifier - The name of the variable, e.g. "x".
- * @param buttonId - The id of the variable reference button.
- * @param module - The module to add the cascaded menu to.
- * @returns - The options for the variable's cascaded menu.
- */
-function getVarOptions(identifier: string, buttonId: string, module: Module): [Map<string, EditCodeAction>, DataType] {
-    const dataType = module.variableController.getVariableTypeNearLine(
-        module.focus.getFocusedStatement().scope ??
-            (
-                module.focus.getStatementAtLineNumber(module.editor.monaco.getPosition().lineNumber).rootNode as
-                    | Statement
-                    | Module
-            ).scope,
-        module.editor.monaco.getPosition().lineNumber,
-        identifier,
-        false
-    );
-    const varRef = new VariableReferenceExpr(identifier, dataType, buttonId);
-    return [module.actionFilter.validateVariableOperations(varRef), dataType];
-}
+// /**
+//  * Helper for creating options for a variable's cascaded menu.
+//  *
+//  * @param identifier - The name of the variable, e.g. "x".
+//  * @param buttonId - The id of the variable reference button.
+//  * @param module - The module to add the cascaded menu to.
+//  * @returns - The options for the variable's cascaded menu.
+//  */
+// function getVarOptions(identifier: string, buttonId: string, module: Module): [Map<string, EditCodeAction>, DataType] {
+//     const dataType = module.variableController.getVariableTypeNearLine(
+//         module.focus.getFocusedStatement().scope ??
+//             (
+//                 module.focus.getStatementAtLineNumber(module.editor.monaco.getPosition().lineNumber).rootNode as
+//                     | Statement
+//                     | Module
+//             ).scope,
+//         module.editor.monaco.getPosition().lineNumber,
+//         identifier,
+//         false
+//     );
+//     const varRef = new VariableReferenceExpr(identifier, dataType, buttonId);
+//     return [module.actionFilter.validateVariableOperations(varRef), dataType];
+// }
 
 /**
  * Resize the filler dummy for the toolbox when the window is resized.
@@ -683,7 +683,7 @@ window.onresize = () => {
 
 /**
  * Removes the given class from the given button.
- * 
+ *
  * @param buttonId - The id of the button to remove the class from.
  * @param className - The class to remove from the button.
  */
@@ -697,7 +697,7 @@ function removeClassFromButton(buttonId: string, className: string) {
 
 /**
  * Adds the given class to the given button.
- * 
+ *
  * @param buttonId - The id of the button to add the class to.
  * @param className - The class to add to the button.
  */
@@ -731,7 +731,7 @@ class UseCaseSliderComponent {
 
     /**
      * Create the step-by-step example slider.
-     * 
+     *
      * @param path - The path to the images of the slider.
      * @param max - The maximum number of slides.
      * @param extension - The extension of the images.
@@ -891,7 +891,8 @@ class UseCaseSliderComponent {
 /**
  * Class for creating the tooltips for the toolbox buttons.
  */
-export class TooltipComponent { // Can remove export
+export class TooltipComponent {
+    // Can remove export
     onRemoveCallbacks: Array<() => void> = [];
     element: HTMLDivElement;
     startTime: number;
@@ -909,7 +910,7 @@ export class TooltipComponent { // Can remove export
             }
         }
 
-        const returnType = code.getUserFriendlyReturnType();
+        const returnType = null; //code.getUserFriendlyReturnType();
 
         const tooltipContainer = document.createElement("div");
         tooltipContainer.classList.add("tooltip-container");
@@ -940,8 +941,7 @@ export class TooltipComponent { // Can remove export
             useCasesContainer.classList.add("use-cases-container");
 
             const accordion = new Accordion(code.documentation.title.replace(" ", "-"));
-            this.onRemoveCallbacks.push(accordion.onRemove);
-            tooltipContainer.appendChild(accordion.container);
+            tooltipContainer.appendChild(accordion.HTMLElement);
 
             for (const tip of code.documentation.tips) {
                 // create a new div with icon + type + title (step-by-step, run example, usage tip)
@@ -1016,7 +1016,7 @@ export class TooltipComponent { // Can remove export
         }
 
         if (codeAction?.insertionResult?.insertionType === InsertionType.Invalid) {
-            const code = codeAction.getCode() as CodeConstruct;
+            const code = codeAction.getCode() as Construct;
             const errorMessage = document.createElement("div");
             errorMessage.classList.add("error-text");
 

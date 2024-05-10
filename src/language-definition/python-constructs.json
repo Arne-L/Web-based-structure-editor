@@ -1,10 +1,208 @@
 [
     {
-        "internalName": "standard_method",
+        "keyword": "while",
+        "editorName": "while --- :",
         "format": [
             {
-                "type": "implementation",
-                "anchor": "method_name"
+                "type": "token",
+                "value": "while "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "body"
+            }
+        ],
+        "match": "while",
+        "constructType": "statement",
+        "triggerInsertion": [" ", "("],
+        "toolbox": {
+            "category": "Loops",
+            "title": "while loop",
+            "tooltip": {
+                "title": "repeatedly execute code while true",
+                "body": "repeatedly executes the code block inside the while loop as long as the condition remains `True`."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "title": "infinite loop",
+                    "id": "ex-while-1",
+                    "example": "while True :\n\tprint(\"an infinite loop\")"
+                },
+                {
+                    "type": "executable",
+                    "title": "count from 0 to 10",
+                    "id": "ex-while-2",
+                    "example": "i = 0\nwhile i < 10:\n\tprint(i)\n\ti = i + 1"
+                },
+                {
+                    "type": "quick",
+                    "title": "compare to scratch's repeat until block",
+                    "text": "the `while` loop in Python compared to the `repeat until` block in Scratch: the `while` loop in Python repeats code as long as the condition is `True`, and stops when the condition becomes `False`. However, the `repeat until` block in Scratch repeats code as long as the condition is `False`, and stops when the condition becomes `True`."
+                },
+                {
+                    "type": "use-case",
+                    "title": "repeatedly increment a variable",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/1-while-counter/",
+                    "max": 30,
+                    "prefix": "Slide",
+                    "extension": "PNG",
+                    "id": "while-increment-var",
+                    "explanations": [
+                        {
+                            "slide": 7,
+                            "text": "i is less than 3 so the condition holds true"
+                        },
+                        {
+                            "slide": 28,
+                            "text": "i is no longer less than 3 so the condition is false"
+                        },
+                        {
+                            "slide": 29,
+                            "text": "should execute the next line after the while loop"
+                        }
+                    ]
+                }
+            ],
+            "search-queries": [
+                "while",
+                "repeat",
+                "repeat while",
+                "repeat until",
+                "loop",
+                "condition",
+                "conditional",
+                "repeat condition"
+            ]
+        }
+    },
+    {
+        "keyword": "for",
+        "constructType": "statement",
+        "editorName": "for -- in --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "for "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " in "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "body"
+            }
+        ],
+        "match": "for",
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Loops",
+            "title": "for loop",
+            "tooltip": {
+                "title": "loop through a sequence of elements",
+                "body": "executes a set of statements for each element in a sequence (like a `range`, a `list`, or a `string`). "
+            },
+            "tips": [
+                {
+                    "type": "quick",
+                    "title": "for loop inputs",
+                    "text": "for loops have two inputs: a variable name, and a sequence of items. the created variable is used to hold the current item, and the sequence is the list of items to go through."
+                },
+                {
+                    "type": "quick",
+                    "title": "for loop as a counter",
+                    "text": "for loops can be used with the `range` function to work like a counter"
+                },
+                {
+                    "type": "executable",
+                    "title": "using a for loop to go through a list",
+                    "id": "ex-for-list-items",
+                    "example": "lst = [\"cat\", \"dog\", \"mouse\", \"parrot\"]\nfor animal in lst:\n\tprint(animal)"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a list of items",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/2-for-loop-list/",
+                    "max": 25,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-list-items"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a sequence of numbers",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/3-for-loop-range/",
+                    "max": 21,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-sequence-nums"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through a list of items using indices",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/4-for-loop-range-list/",
+                    "max": 30,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-list-items-using-indices"
+                },
+                {
+                    "type": "use-case",
+                    "title": "go through every character of a string",
+                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/5-for-loop-string/",
+                    "max": 21,
+                    "extension": "PNG",
+                    "prefix": "Slide",
+                    "id": "loop-chars-of-str"
+                }
+            ],
+            "search-queries": ["for", "loop", "repeat", "go through", "iterate", "list"]
+        }
+    },
+    {
+        "keyword": "range",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "range"
             },
             {
                 "type": "token",
@@ -12,102 +210,332 @@
             },
             {
                 "type": "hole",
-                "delimiter": ", "
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": ")"
             }
         ],
-        "triggerInsertion": [
-            "("
-        ],
-        "implementations": [
-            {
-                "keyword": "print",
-                "method_name": "print",
-                "holes": [
-                    [
-                        {
-                            "name": "text",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "print(---)",
-                "match": "print",
-                "toolbox": {
-                    "category": "Tests",
-                    "title": "print(message: any)",
-                    "tooltip": {
-                        "title": "Display Text in Console",
-                        "body": "Displays the textual value of its input in the console."
-                    },
-                    "invalidTooltip": "Can only be inserted on an empty line within a loop.",
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-print-num-str",
-                            "example": "print(123)\nprint(\"Hello World!\")"
-                        },
-                        {
-                            "type": "executable",
-                            "id": "ex-print-var",
-                            "example": "a = \"abc\"\nprint(a)"
-                        }
-                    ],
-                    "search-queries": [
-                        "output",
-                        "say",
-                        "print",
-                        "print output",
-                        "console",
-                        "write",
-                        "see output"
-                    ]
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "number",
+                    "optional": false
                 }
+            ]
+        ],
+        "editorName": "range(---)",
+        "match": "range",
+        "toolbox": {
+            "category": "Loops",
+            "title": "range(end: number)",
+            "tooltip": {
+                "title": "Create Iterable Sequence",
+                "body": "Generates a sequence of numbers from 0 to the provided input. Usually used with a for loop."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-range",
+                    "example": "for i in range(10):\n\tprint(i)"
+                }
+            ],
+            "search-queries": ["range", "sequence", "iterate", "for loop"]
+        }
+    },
+    {
+        "keyword": "print",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "print"
             },
             {
-                "keyword": "input",
-                "method_name": "input",
-                "holes": [
-                    [
-                        {
-                            "name": "text",
-                            "optional": false
-                        }
-                    ]
-                ],
-                "editorName": "input(---)",
-                "match": "input",
-                "toolbox": {
-                    "category": "Tests",
-                    "title": "input(prompt: text)",
-                    "tooltip": {
-                        "title": "Ask User for Textual Input",
-                        "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
-                    },
-                    "tips": [
-                        {
-                            "type": "executable",
-                            "id": "ex-input-1",
-                            "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
-                        }
-                    ],
-                    "search-queries": [
-                        "input",
-                        "prompt",
-                        "text",
-                        "user",
-                        "ask input",
-                        "ask user"
-                    ]
-                }
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
             }
-        ]
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "text",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "print(---)",
+        "match": "print",
+        "toolbox": {
+            "category": "Functions",
+            "title": "print(message: any)",
+            "tooltip": {
+                "title": "Display Text in Console",
+                "body": "Displays the textual value of its input in the console."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line within a loop.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-print-num-str",
+                    "example": "print(123)\nprint(\"Hello World!\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-print-var",
+                    "example": "a = \"abc\"\nprint(a)"
+                }
+            ],
+            "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
+        }
+    },
+    {
+        "keyword": "input",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "input"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "text",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "input(---)",
+        "match": "input",
+        "toolbox": {
+            "category": "Functions",
+            "title": "input(prompt: text)",
+            "tooltip": {
+                "title": "Ask User for Textual Input",
+                "body": "Displays a message that prompts the user to enter some text. The entered text will be returned."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-input-1",
+                    "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
+                }
+            ],
+            "search-queries": ["input", "prompt", "text", "user", "ask input", "ask user"]
+        }
+    },
+    {
+        "keyword": "len",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "len"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "collection",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "len(---)",
+        "match": "len",
+        "toolbox": {
+            "category": "Functions",
+            "title": "len(iterable: list/text)",
+            "tooltip": {
+                "title": "Get Length of List or Text",
+                "body": "Returns the number of items in an object, or the number of characters in a text."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-len-1",
+                    "example": "greeting = \"Hello World!\"\na = len(greeting)\nprint(a)"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-len-2",
+                    "example": "items = [1, 2, 3]\na = len(items)\nprint(a)"
+                }
+            ],
+            "search-queries": ["length of list", "length of string", "length of text"]
+        }
+    },
+    {
+        "keyword": "choice",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "choice"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "holes": [
+            [
+                {
+                    "name": "collection",
+                    "optional": false
+                }
+            ]
+        ],
+        "editorName": "choice(---)",
+        "match": "choice",
+        "toolbox": {
+            "category": "Random",
+            "title": "choice(choices: list[any])",
+            "tooltip": {
+                "title": "Insert Choice from List",
+                "body": "Randomly selects and returns an item from the given list. Needs to be imported from the random module."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-choice",
+                    "example": "from random import choice\n\nif choice([1, 2, 3, 4, 5, 6]) == 6:\n\tprint(\"Rolled Six!\")"
+                }
+            ],
+            "search-queries": ["choice", "random choice", "choose randomly from list", "select randomly from array"]
+        }
+    },
+    {
+        "keyword": "randint",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "randint"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    },
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "editorName": "randint(---, ---)",
+        "match": "randint",
+        "toolbox": {
+            "category": "Random",
+            "title": "randint(min: number, max: number)",
+            "tooltip": {
+                "title": "Generate a Random Number",
+                "body": "Returns a randomly generated number from the given range. Needs to be imported from the random module."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-randint",
+                    "example": "a = randint(0, 10)\nprint(a)"
+                }
+            ],
+            "search-queries": ["random number", "random integer", "randint", "random between"]
+        }
     },
     {
         "keyword": "break",
+        "constructType": "statement",
         "editorName": "break",
         "requiresAncestor": [
             {
@@ -115,7 +543,11 @@
                 "min_level": 0,
                 "max_level": null
             },
-            "for"
+            {
+                "ref": "for",
+                "min_level": 0,
+                "max_level": null
+            }
         ],
         "format": [
             {
@@ -124,11 +556,9 @@
             }
         ],
         "match": "brea",
-        "triggerInsertion": [
-            "k"
-        ],
+        "triggerInsertion": ["k"],
         "toolbox": {
-            "category": "Tests",
+            "category": "Loops",
             "title": "Break out of loops",
             "tooltip": {
                 "title": "Insert Break inside Loop",
@@ -224,108 +654,12 @@
                     ]
                 }
             ],
-            "search-queries": [
-                "exit",
-                "loop",
-                "break"
-            ]
-        }
-    },
-    {
-        "keyword": "while",
-        "editorName": "while --- :",
-        "format": [
-            {
-                "type": "token",
-                "value": "while "
-            },
-            {
-                "type": "hole"
-            },
-            {
-                "type": "token",
-                "value": " :"
-            },
-            {
-                "type": "body"
-            }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "while",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
-        "toolbox": {
-            "category": "Tests",
-            "title": "while loop",
-            "tooltip": {
-                "title": "repeatedly execute code while true",
-                "body": "repeatedly executes the code block inside the while loop as long as the condition remains `True`."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "title": "infinite loop",
-                    "id": "ex-while-1",
-                    "example": "while True :\n\tprint(\"an infinite loop\")"
-                },
-                {
-                    "type": "executable",
-                    "title": "count from 0 to 10",
-                    "id": "ex-while-2",
-                    "example": "i = 0\nwhile i < 10:\n\tprint(i)\n\ti = i + 1"
-                },
-                {
-                    "type": "quick",
-                    "title": "compare to scratch's repeat until block",
-                    "text": "the `while` loop in Python compared to the `repeat until` block in Scratch: the `while` loop in Python repeats code as long as the condition is `True`, and stops when the condition becomes `False`. However, the `repeat until` block in Scratch repeats code as long as the condition is `False`, and stops when the condition becomes `True`."
-                },
-                {
-                    "type": "use-case",
-                    "title": "repeatedly increment a variable",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/1-while-counter/",
-                    "max": 30,
-                    "prefix": "Slide",
-                    "extension": "PNG",
-                    "id": "while-increment-var",
-                    "explanations": [
-                        {
-                            "slide": 7,
-                            "text": "i is less than 3 so the condition holds true"
-                        },
-                        {
-                            "slide": 28,
-                            "text": "i is no longer less than 3 so the condition is false"
-                        },
-                        {
-                            "slide": 29,
-                            "text": "should execute the next line after the while loop"
-                        }
-                    ]
-                }
-            ],
-            "search-queries": [
-                "while",
-                "repeat",
-                "repeat while",
-                "repeat until",
-                "loop",
-                "condition",
-                "conditional",
-                "repeat condition"
-            ]
+            "search-queries": ["exit", "loop", "break"]
         }
     },
     {
         "keyword": "if",
+        "constructType": "statement",
         "editorName": "if --- :",
         "format": [
             {
@@ -333,7 +667,14 @@
                 "value": "if "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -341,37 +682,26 @@
             },
             {
                 "type": "body"
-            },
+            }
+        ],
+        "requiringConstructs": [
             {
-                "type": "construct",
                 "ref": "elif",
                 "optional": true,
                 "min_repeat": 0,
                 "max_repeat": null
             },
             {
-                "type": "construct",
                 "ref": "else",
                 "optional": true,
                 "min_repeat": 0,
                 "max_repeat": 1
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "if",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
+        "triggerInsertion": [" ", "("],
         "toolbox": {
-            "category": "Tests",
+            "category": "Conditionals",
             "title": "if statement",
             "tooltip": {
                 "title": "Insert If Statement",
@@ -398,17 +728,12 @@
                     "id": "check-val-variable"
                 }
             ],
-            "search-queries": [
-                "if",
-                "condition",
-                "conditional",
-                "choose",
-                "path"
-            ]
+            "search-queries": ["if", "condition", "conditional", "choose", "path"]
         }
     },
     {
         "keyword": "else",
+        "constructType": "statement",
         "editorName": "else :",
         "requiresConstruct": "if",
         "format": [
@@ -421,11 +746,9 @@
             }
         ],
         "match": "else",
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
-            "category": "Tests",
+            "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if or elif statement.",
             "title": "else statement",
             "tooltip": {
@@ -439,15 +762,12 @@
                     "example": "a = 2\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)\nelse:\n\tprint(\"None of the above are true.\")"
                 }
             ],
-            "search-queries": [
-                "else",
-                "otherwise",
-                "if"
-            ]
+            "search-queries": ["else", "otherwise", "if"]
         }
     },
     {
         "keyword": "elif",
+        "constructType": "statement",
         "editorName": "elif --- :",
         "requiresConstruct": "if",
         "format": [
@@ -456,7 +776,14 @@
                 "value": "elif "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
@@ -475,12 +802,9 @@
             ]
         ],
         "match": "elif",
-        "triggerInsertion": [
-            " ",
-            "("
-        ],
+        "triggerInsertion": [" ", "("],
         "toolbox": {
-            "category": "Tests",
+            "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if statement.",
             "title": "elif statement",
             "tooltip": {
@@ -517,145 +841,32 @@
                     "id": "elif-after-elif"
                 }
             ],
-            "search-queries": [
-                "else if",
-                "else",
-                "else condition",
-                "choose",
-                "path",
-                "elif"
-            ]
-        }
-    },
-    {
-        "keyword": "for",
-        "editorName": "for -- in --- :",
-        "format": [
-            {
-                "type": "token",
-                "value": "for "
-            },
-            {
-                "type": "hole"
-            },
-            {
-                "type": "token",
-                "value": " in "
-            },
-            {
-                "type": "hole"
-            },
-            {
-                "type": "token",
-                "value": " :"
-            },
-            {
-                "type": "body"
-            }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "iterable",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "for",
-        "triggerInsertion": [
-            " "
-        ],
-        "toolbox": {
-            "category": "Tests",
-            "title": "for loop",
-            "tooltip": {
-                "title": "loop through a sequence of elements",
-                "body": "executes a set of statements for each element in a sequence (like a `range`, a `list`, or a `string`). "
-            },
-            "tips": [
-                {
-                    "type": "quick",
-                    "title": "for loop inputs",
-                    "text": "for loops have two inputs: a variable name, and a sequence of items. the created variable is used to hold the current item, and the sequence is the list of items to go through."
-                },
-                {
-                    "type": "quick",
-                    "title": "for loop as a counter",
-                    "text": "for loops can be used with the `range` function to work like a counter"
-                },
-                {
-                    "type": "executable",
-                    "title": "using a for loop to go through a list",
-                    "id": "ex-for-list-items",
-                    "example": "lst = [\"cat\", \"dog\", \"mouse\", \"parrot\"]\nfor animal in lst:\n\tprint(animal)"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a list of items",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/2-for-loop-list/",
-                    "max": 25,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-list-items"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a sequence of numbers",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/3-for-loop-range/",
-                    "max": 21,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-sequence-nums"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a list of items using indices",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/4-for-loop-range-list/",
-                    "max": 30,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-list-items-using-indices"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through every character of a string",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/5-for-loop-string/",
-                    "max": 21,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-chars-of-str"
-                }
-            ],
-            "search-queries": [
-                "for",
-                "loop",
-                "repeat",
-                "go through",
-                "iterate",
-                "list"
-            ]
+            "search-queries": ["else if", "else", "else condition", "choose", "path", "elif"]
         }
     },
     {
         "keyword": "varAssign",
+        "constructType": "statement",
         "editorName": "-- = ---",
         "format": [
             {
                 "type": "identifier",
-                "regex": "^[^\\d\\W]\\w*$"
+                "regex": "^[^\\d\\W]\\w*$",
+                "scopeType": "localParent"
             },
             {
                 "type": "token",
                 "value": " = "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -668,11 +879,9 @@
         ],
         "match": null,
         "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": [
-            "="
-        ],
+        "triggerInsertion": ["=", " "],
         "toolbox": {
-            "category": "Tests2",
+            "category": "Variables",
             "title": "Create/Reassign Variable",
             "tooltip": {
                 "title": "Create Variable Assignment",
@@ -699,10 +908,283 @@
                     ]
                 }
             ],
-            "search-queries": [
-                "create new variable",
-                "variable",
-                "var"
+            "search-queries": ["create new variable", "variable", "var"]
+        }
+    },
+    {
+        "keyword": "varReference",
+        "constructType": "expression",
+        "editorName": "x",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            }
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Reference Variable",
+            "tooltip": {
+                "title": "Reference Variable",
+                "body": "Refers to the value stored in the specified variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-declare-print-var",
+                    "example": "name = \"John\"\nprint(name)"
+                },
+                {
+                    "type": "quick",
+                    "text": "References only exist for variables that have been created or assigned a value."
+                },
+                {
+                    "type": "quick",
+                    "text": "Reference names follow the same rules as variable names."
+                }
+            ],
+            "search-queries": ["reference variable", "variable", "var"]
+        }
+    },
+    {
+        "keyword": "addAssign",
+        "constructType": "statement",
+        "editorName": "x += ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " += "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": ["+"],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Add to Variable",
+            "tooltip": {
+                "title": "Add Value to Variable",
+                "body": "Adds the value on the right-hand side of the += sign to the specified variable and stores the result in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-sum-by-val",
+                    "example": "a = 2\na += 2\nprint(a)"
+                }
+            ],
+            "search-queries": ["add to variable"]
+        }
+    },
+    {
+        "keyword": "subAssign",
+        "constructType": "statement",
+        "editorName": "x -= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " -= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "-",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Subtract from Variable",
+            "tooltip": {
+                "title": "Subtract Value from Variable",
+                "body": "Subtracts the value on the right-hand side of the -= sign from the specified variable and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-sub-by-val",
+                    "example": "a = 5\na -= 2\nprint(a)"
+                }
+            ],
+            "search-queries": ["subtract from variable", "deduct from variable"]
+        }
+    },
+    {
+        "keyword": "multAssign",
+        "constructType": "statement",
+        "editorName": "x *= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " *= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": ["*"],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Multiply a Variable",
+            "tooltip": {
+                "title": "Multiply Variable by Value",
+                "body": "Multiplies the variable by the value on the right-hand side of the *= sign and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-mul-by-val",
+                    "example": "a = 5\na *= 2\nprint(a)"
+                }
+            ],
+            "search-queries": ["multiply variable"]
+        }
+    },
+    {
+        "keyword": "divAssign",
+        "constructType": "statement",
+        "editorName": "x /= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " /= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "expression",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "--",
+        "matchRegex": null,
+        "triggerInsertion": ["/"],
+        "toolbox": {
+            "category": "Variables",
+            "title": "Divide a Variable",
+            "tooltip": {
+                "title": "Divide Variable by Value",
+                "body": "Divides the variable by the value given on the right-hand side of the /= sign and stores the result back in the variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-divide-by-value",
+                    "example": "a = 10\na /= 2\nprint(a)"
+                }
+            ],
+            "search-queries": ["divide variable"]
+        }
+    },
+    {
+        "keyword": "numberLit",
+        "constructType": "expression",
+        "editorName": "0",
+        "format": [
+            {
+                "type": "editable",
+                "value": "0",
+                "regex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$"
+            }
+        ],
+        "holes": [],
+        "match": "",
+        "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Numbers",
+            "title": "123",
+            "tooltip": {
+                "title": "Insert a Number",
+                "body": "Inserts a number and edit its value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-num",
+                    "example": "age = 21\nprint(age)\nprint(21)"
+                }
             ]
         }
     },
@@ -727,11 +1209,9 @@
         "holes": [],
         "match": "",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": [
-            "'"
-        ],
+        "triggerInsertion": ["'"],
         "toolbox": {
-            "category": "Tests",
+            "category": "Text",
             "title": "text",
             "tooltip": {
                 "title": "Insert a Text",
@@ -744,103 +1224,103 @@
                     "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
                 }
             ],
-            "search-queries": [
-                "create text",
-                "create string",
-                "empty string",
-                "empty text"
-            ]
+            "search-queries": ["create text", "create string", "empty string", "empty text"]
         }
     },
     {
-        "keyword": "numberLit",
+        "keyword": "fstringLit",
         "constructType": "expression",
-        "editorName": "0",
+        "editorName": "f''",
         "format": [
+            {
+                "type": "token",
+                "value": "f'"
+            },
             {
                 "type": "editable",
-                "value": "0",
-                "regex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$"
+                "regex": "^([^\\r\\n\\\"]*)$"
+            },
+            {
+                "type": "token",
+                "value": "'"
             }
         ],
         "holes": [],
+        "match": "f",
+        "matchRegex": "^([^\\r\\n\\\"]*)$",
+        "triggerInsertion": ["'"],
+        "toolbox": {
+            "category": "Text",
+            "title": "formatted text",
+            "tooltip": {
+                "title": "Insert Formattable Text",
+                "body": "Inserts an editable, formattable text; used along with the {} operator to include non-static values and variables inside the text."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-f-str-1",
+                    "example": "age = 16\nname = \"Alex\"\nprint(f'My name is {name} and I am {age} years old')"
+                }
+            ],
+            "search-queries": ["formatted string", "formatted text"]
+        }
+    },
+    {
+        "keyword": "list",
+        "constructType": "expression",
+        "editorName": "[---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand",
+                    "optional": false
+                }
+            ]
+        ],
         "match": "",
-        "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "123",
-            "tooltip": {
-                "title": "Insert a Number",
-                "body": "Inserts a number and edit its value."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-num",
-                    "example": "age = 21\nprint(age)\nprint(21)"
-                }
-            ]
-        }
-    },
-    {
-        "keyword": "False",
-        "constructType": "expression",
-        "editorName": "False",
-        "format": [
-            {
-                "type": "token",
-                "value": "False"
-            }
-        ],
-        "holes": [],
-        "match": "False",
         "matchRegex": null,
-        "triggerInsertion": [],
+        "triggerInsertion": ["["],
         "toolbox": {
-            "category": "Tests",
-            "title": "123",
+            "category": "Lists",
+            "title": "List",
             "tooltip": {
-                "title": "Insert a Number",
-                "body": "Inserts a number and edit its value."
+                "title": "Insert Editable List",
+                "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-num",
-                    "example": "age = 21\nprint(age)\nprint(21)"
-                }
-            ]
-        }
-    },
-    {
-        "keyword": "True",
-        "constructType": "expression",
-        "editorName": "True",
-        "format": [
-            {
-                "type": "token",
-                "value": "True"
-            }
-        ],
-        "holes": [],
-        "match": "True",
-        "matchRegex": null,
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "123",
-            "tooltip": {
-                "title": "Insert a Number",
-                "body": "Inserts a number and edit its value."
-            },
-            "tips": [
+                    "id": "ex-list-1",
+                    "example": "a = []\nprint(a) # a is an empty list\na = [1, 2, 3]\nprint(a) # a is a list with three items"
+                },
                 {
                     "type": "executable",
-                    "id": "ex-num",
-                    "example": "age = 21\nprint(age)\nprint(21)"
+                    "id": "ex-list-1",
+                    "example": "a = [\"cat\", \"dog\", \"parrot\"]\nb = [1, \"cat\", true]\nc = [1, [1, \"dog\"], \"cat\", [true]]"
                 }
-            ]
+            ],
+            "search-queries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     },
     {
@@ -849,14 +1329,209 @@
         "editorName": "--- + ---",
         "format": [
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "token",
                 "value": " + "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": null,
+        "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
+        "triggerInsertion": ["+"],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-sum-strings",
+                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                }
+            ],
+            "search-queries": ["add", "sum"]
+        }
+    },
+    {
+        "keyword": "subBinExpr",
+        "constructType": "expression",
+        "editorName": "--- - ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " - "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "-",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "subtract",
+            "tooltip": {
+                "title": "Insert Subtraction",
+                "body": "Subtracts the value to the right of the operator from the value to the left."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sub-vars",
+                    "example": "a = 20\nb = 10\nprint((a - b))"
+                }
+            ],
+            "search-queries": ["subtract numbers", "subtraction", "deduct"]
+        }
+    },
+    {
+        "keyword": "minUnExpr",
+        "constructType": "expression",
+        "editorName": "- ---",
+        "format": [
+            {
+                "type": "token",
+                "value": "-"
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "-",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "subtract",
+            "tooltip": {
+                "title": "Insert Negative Number",
+                "body": "Negates the value to the right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-negate-number",
+                    "example": "a = -2\nb = -5\nprint((a + b))"
+                }
+            ],
+            "search-queries": ["substract", "negate", "negative"]
+        }
+    },
+    {
+        "keyword": "multBinExpr",
+        "constructType": "expression",
+        "editorName": "--- * ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " * "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -875,45 +1550,914 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": [
-            "+"
-        ],
+        "triggerInsertion": ["*"],
         "toolbox": {
-            "category": "Tests",
-            "title": "add",
+            "category": "Arithmetics",
+            "title": "multiply",
             "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
+                "title": "Insert Multiplication",
+                "body": "Multiplies the values to the left and right of the operator."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                    "id": "ex-mul-vars",
+                    "example": "a = 2\nb = 5\nprint((b * a))"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["multiply numbers", "multiply"]
         }
     },
     {
-        "keyword": "minUnExpr",
+        "keyword": "divBinExpr",
         "constructType": "expression",
-        "editorName": "- ---",
+        "editorName": "--- / ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " / "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": ["/"],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "divide",
+            "tooltip": {
+                "title": "Insert Division",
+                "body": "Divides the values to the left of the operator by the right value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-div-two-vars",
+                    "example": "a = 2\nb = 10\nprint((b / a))"
+                }
+            ],
+            "search-queries": ["divide", "division", "divide numbers"]
+        }
+    },
+    {
+        "keyword": "floorBinExpr",
+        "constructType": "expression",
+        "editorName": "--- // ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " // "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "/",
+        "matchRegex": null,
+        "triggerInsertion": ["/"],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "floor division",
+            "tooltip": {
+                "title": "Insert Floor Division",
+                "body": "Performs integer division (remainder is discarded and always result is always rounded down) between the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-floor-div",
+                    "example": "a = 2\nb = 7\nprint((b / a))"
+                }
+            ],
+            "search-queries": ["divide numbers", "divide integer", "divide floor"]
+        }
+    },
+    {
+        "keyword": "modBinExpr",
+        "constructType": "expression",
+        "editorName": "--- % ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " % "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": ["%"],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "modulo",
+            "tooltip": {
+                "title": "Insert Modulo",
+                "body": "Calculates the remainder of the division between the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-modulo",
+                    "example": "print((29 % 5)) # prints 4\nprint((28 % 5)) # prints 3\nprint((27 % 5)) # prints 2\nprint((26 % 5)) # prints 1\nprint((25 % 5)) # prints 0"
+                }
+            ],
+            "search-queries": ["modulo", "remainder"]
+        }
+    },
+    {
+        "keyword": "equalBinExpr",
+        "constructType": "expression",
+        "editorName": "--- == ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " == "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "=",
+        "matchRegex": null,
+        "triggerInsertion": ["="],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Is Equal?",
+            "tooltip": {
+                "title": "Is Equal?",
+                "body": "Compares two values. Returns True if they are equal; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-is-eq-1",
+                    "example": "a = 2\nb = 3\nif a == c:\n\tprint(\"a is equal to c\")\n\nif b == a:\n\tprint(\"This will not print because the condition is false.\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-is-eq-2",
+                    "example": "a = 5\nb = 5\nwhile a == b:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["compare equal", "check equal", "are equal"]
+        }
+    },
+    {
+        "keyword": "notEqualBinExpr",
+        "constructType": "expression",
+        "editorName": "--- != ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " != "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "!",
+        "matchRegex": null,
+        "triggerInsertion": ["="],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Is Not Equal?",
+            "tooltip": {
+                "title": "Is Not Equal?",
+                "body": "Compares two values. Returns True if they are not equal; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-not-equal-1",
+                    "example": "a = 2\nb = 3\nif a != b:\n\tprint(\"a is not equal to b\")\n\nif c != a:\n\tprint(\"This will not print because the condition is false.\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-not-equal-2",
+                    "example": "a = 1\nb = 5\nwhile a != b:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["not equal", "compare not equal", "not equal to", "are not equal"]
+        }
+    },
+    {
+        "keyword": "lessBinExpr",
+        "constructType": "expression",
+        "editorName": "--- < ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " < "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "<",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Is Less Than?",
+            "tooltip": {
+                "title": "Is Less Than?",
+                "body": "Compares two values. Returns True if the left value is less than the right value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-lt-1",
+                    "example": "a = 2\nb = 3\nif a < b:\n\tprint(\"a is less than b\")\n\nif c < a:\n\tprint(\"This will not print because the condition is false.\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-lt-2",
+                    "example": "a = 1\nb = 5\nwhile a < b:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["compare", "compare less than", "check less than"]
+        }
+    },
+    {
+        "keyword": "lessEqBinExpr",
+        "constructType": "expression",
+        "editorName": "--- <= ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " <= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "<",
+        "matchRegex": null,
+        "triggerInsertion": ["="],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "is less than or equal?",
+            "tooltip": {
+                "title": "Is Less Than or Equal?",
+                "body": "Compares two values. Returns True if the left value is less than or equal to the right value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-leq-1",
+                    "example": "a = 2\nb = 3\n c = 2\n if a <= b:\n\tprint(\"a is less than b\")\n\nif c <= a:\n\tprint(\"c is equal to a\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-leq-2",
+                    "example": "a = 1\nb = 5\nwhile a <= b:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["less than or equal", "compare", "compare less than or equal", "check"]
+        }
+    },
+    {
+        "keyword": "greaterBinExpr",
+        "constructType": "expression",
+        "editorName": "--- > ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " > "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": ">",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Is Greater Than?",
+            "tooltip": {
+                "title": "Is Greater Than?",
+                "body": "Compares two values. Returns True if the left value is greater than the right value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-gt-1",
+                    "example": "a = 2\nb = 3\nif b > a:\n\tprint(\"b is greater than a\")\n\nif a > b:\n\tprint(\"a is greater to b\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-gt-2",
+                    "example": "a = 1\nb = 5\nwhile b > a:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["compare greater than", "compare", "check greater than"]
+        }
+    },
+    {
+        "keyword": "greaterEqBinExpr",
+        "constructType": "expression",
+        "editorName": "--- >= ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " >= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": ">",
+        "matchRegex": null,
+        "triggerInsertion": ["="],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "is greater than or equal?",
+            "tooltip": {
+                "title": "Is Greater Than or Equal?",
+                "body": "Compares two values. Returns True if the left value is greater than or equal to the right value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-gte-1",
+                    "example": "a = 2\nb = 3\n c = 2\n if b >= a:\n\tprint(\"b is greater than a\")\n\nif c >= a:\n\tprint(\"c is equal to a\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-gt-1",
+                    "example": "a = 1\nb = 5\nwhile b >= a:\n\ta += 1\nprint(a)\nprint(a)"
+                }
+            ],
+            "search-queries": ["compare greater than or equal", "compare", "check greater than or equal"]
+        }
+    },
+    {
+        "keyword": "inExpr",
+        "constructType": "expression",
+        "editorName": "--- in ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " in "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "in",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Inside?",
+            "tooltip": {
+                "title": "Inside?",
+                "body": "Returns True if the left item is inside the right item; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-in-list",
+                    "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
+                }
+            ],
+            "search-queries": ["in list", "inside list", "is inside list", "check inside list", "check list includes"]
+        }
+    },
+    {
+        "keyword": "notInExpr",
+        "constructType": "expression",
+        "editorName": "--- not in ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " not in "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "not in",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Comparisons",
+            "title": "Not Inside?",
+            "tooltip": {
+                "title": "Not Inside?",
+                "body": "Returns True if the left item is not inside the right item; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-not-inside-rand-list",
+                    "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
+                }
+            ],
+            "search-queries": ["not in", "not inside list", "not within list", "does not include"]
+        }
+    },
+    {
+        "keyword": "andExpr",
+        "constructType": "expression",
+        "editorName": "--- and ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " and "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "and",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Booleans",
+            "title": "and",
+            "tooltip": {
+                "title": "And Operator",
+                "body": "Used to combine conditional expressions. Results in True if both the left and right expressions are True; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-and-four-cases",
+                    "example": "if (true and true):\n\tprint(true)\n\nif (true and false):\n\tprint(\"not true\")\n\nif (false and true):\n\tprint(\"still not true\")\n\nif (false and false):\n\tprint(\"also false\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-gt-and-gt",
+                    "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b > c)):\n\tprint(\"Both expressions are true.\")"
+                }
+            ],
+            "search-queries": ["and", "both", "and operator"]
+        }
+    },
+    {
+        "keyword": "orExpr",
+        "constructType": "expression",
+        "editorName": "--- or ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " or "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "holes": [
+            [
+                {
+                    "name": "operand1",
+                    "optional": false
+                }
+            ],
+            [
+                {
+                    "name": "operand2",
+                    "optional": false
+                }
+            ]
+        ],
+        "match": "or",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Booleans",
+            "title": "or",
+            "tooltip": {
+                "title": "Or Operator",
+                "body": "Used to combine conditional expressions. Results in True as long as at least one of the left and right expressions is True; returns False otherwise."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-or-1",
+                    "example": "if (true or true):\n\tprint(true)\n\nif (true or false):\n\tprint(\"true\")\n\nif (false or true):\n\tprint(\"still true\")\n\nif (false or false):\n\tprint(\"false\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-or-2",
+                    "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b < c)):\n\tprint(\"Only the first expression is true.\")"
+                }
+            ],
+            "search-queries": ["conditional", "or", "logical", "boolean", "one of"]
+        }
+    },
+    {
+        "keyword": "notExpr",
+        "constructType": "expression",
+        "editorName": "not ---",
         "format": [
             {
                 "type": "token",
-                "value": "-"
+                "value": "not "
             },
             {
-                "type": "hole"
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "holes": [
@@ -924,140 +2468,86 @@
                 }
             ]
         ],
-        "match": "",
+        "match": "not",
         "matchRegex": null,
-        "triggerInsertion": [
-            "-"
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
-            "category": "Tests",
-            "title": "add",
+            "category": "Booleans",
+            "title": "not",
             "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
+                "title": "Not Operator",
+                "body": "Flips the truth value of an expression. True becomes False, and False becomes True."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                    "id": "ex-not",
+                    "example": "a = 2\nb = 2\nif not (a == b):\n\tprint(\"Will not print.\")\n\nif not (b != a):\n\tprint(\"b is equal to a\")"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["negate", "not", "logical", "boolean", "opposite"]
         }
     },
     {
-        "keyword": "list",
+        "keyword": "True",
         "constructType": "expression",
-        "editorName": "[---]",
+        "editorName": "True",
         "format": [
             {
                 "type": "token",
-                "value": "["
-            },
-            {
-                "type": "hole"
-            },
-            {
-                "type": "token",
-                "value": "]"
+                "value": "True"
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "",
+        "holes": [],
+        "match": "True",
         "matchRegex": null,
-        "triggerInsertion": [
-            "["
-        ],
+        "triggerInsertion": [],
         "toolbox": {
-            "category": "Tests",
-            "title": "add",
+            "category": "Booleans",
+            "title": "true",
             "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
+                "title": "Insert True",
+                "body": "Inserts a True boolean value."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                    "id": "ex-true",
+                    "example": "if True :\n\tprint(\"will print\")\n\nif False :\n\tprint(\"will not print\")"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["true", "boolean"]
         }
     },
     {
-        "keyword": "listitem",
+        "keyword": "False",
         "constructType": "expression",
-        "editorName": ", ---",
+        "editorName": "False",
         "format": [
             {
                 "type": "token",
-                "value": ", "
-            },
-            {
-                "type": "hole"
+                "value": "False"
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
-        ],
-        "match": "",
+        "holes": [],
+        "match": "False",
         "matchRegex": null,
-        "triggerInsertion": [
-            ","
-        ],
+        "triggerInsertion": [],
         "toolbox": {
-            "category": "Tests",
-            "title": "add",
+            "category": "Booleans",
+            "title": "false",
             "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
+                "title": "Insert False",
+                "body": "Inserts a False boolean value."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
+                    "id": "ex-false",
+                    "example": "if False :\n\tprint(\"will not print\")\n\nif True :\n\tprint(\"will print\")"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["false", "boolean"]
         }
     },
     {
@@ -1100,60 +2590,366 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": [
-                "add",
-                "sum"
-            ]
+            "search-queries": ["add", "sum"]
         }
     },
     {
-        "keyword": "varReference",
-        "constructType": "expression",
-        "editorName": "x",
+        "keyword": "test",
+        "constructType": "statement",
+        "editorName": "test: kok :test",
         "format": [
             {
-                "type": "reference",
-                "to": "variable"
+                "type": "token",
+                "value": "test: "
+            },
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": "so...",
+                        "min": 1,
+                        "max": null
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n"
+                    },
+                    {
+                        "type": "token",
+                        "value": "hello again",
+                        "waitOnUser": "h"
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "kok"
+            },
+            {
+                "type": "token",
+                "value": " :test"
             }
         ],
-        "match": "--",
-        "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "match": "test: kok :test",
+        "matchRegex": "",
+        "triggerInsertion": [],
         "toolbox": {
-            "category": "Tests2",
-            "title": "Create/Reassign Variable",
+            "category": "Tests",
+            "title": "add",
             "tooltip": {
-                "title": "Create Variable Assignment",
-                "body": "Allows to store a value and give it a name to reference it by later."
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
             },
             "tips": [
                 {
                     "type": "executable",
-                    "id": "ex-declare-print-var",
-                    "example": "name = \"John\"\nprint(name)"
-                },
-                {
-                    "type": "quick",
-                    "text": "A variable is created the moment you first assign a value to it."
-                },
-                {
-                    "type": "bullet-point",
-                    "title": "variable naming",
-                    "bullets": [
-                        "Variable names can only contain letters, numbers, and underscores",
-                        "Variable names are case-sensitive (\"x\" and \"X\" are different)",
-                        "A variable name must start with a letter or the underscore character",
-                        "A variable name cannot start with a number"
-                    ]
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
                 }
             ],
-            "search-queries": [
-                "create new variable",
-                "variable",
-                "var"
-            ]
+            "search-queries": ["test", "try"]
+        }
+    },
+    {
+        "keyword": "iftest",
+        "constructType": "statement",
+        "editorName": "iftest --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "iftest "
+            },
+            {
+                "type": "hole",
+                "delimiter": null,
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "token",
+                "value": "\n"
+            },
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "    ",
+                "format": [
+                    {
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": true
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n",
+                        "waitOnUser": "Enter"
+                    }
+                ]
+            }
+        ],
+        "match": "test: kok :test",
+        "matchRegex": "",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                }
+            ],
+            "search-queries": ["test", "try"]
+        }
+    },
+    {
+        "keyword": "alstest",
+        "constructType": "statement",
+        "editorName": "alstest --- :",
+        "format": [
+            {
+                "type": "token",
+                "value": "alstest "
+            },
+            {
+                "type": "hole",
+                "delimiter": null,
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " :"
+            },
+            {
+                "type": "token",
+                "value": "\n"
+            },
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "    ",
+                "format": [
+                    {
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": true
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n",
+                        "waitOnUser": "Enter"
+                    }
+                ]
+            }
+        ],
+        "match": "test: kok :test",
+        "matchRegex": "",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tests",
+            "title": "add",
+            "tooltip": {
+                "title": "Insert Addition",
+                "body": "Adds the values to the left and right of the operator."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-sum-numbers",
+                    "example": "a = 2\nb = 5\nprint((a + b))"
+                }
+            ],
+            "search-queries": ["test", "try"]
+        }
+    },
+    {
+        "keyword": "str",
+        "constructType": "expression",
+        "editorName": "str(---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "str"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "match": "str",
+        "toolbox": {
+            "category": "Converts",
+            "title": "str(object: any)",
+            "body": [
+                {
+                    "paragraph": "Converts the passed object to a text object. Useful when comparing values of different types and one of them is a text value. This type of conversion is called a <span class\"bold\">cast</span> because it is temporary."
+                },
+                {
+                    "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
+                },
+                {
+                    "paragraph": "In the above example you would not be able to compare <span class\"italics\">a</span> to <span class\"italics\">c</span> before performing the conversion."
+                }
+            ],
+            "tooltip": {
+                "title": "Converts Anything to Text",
+                "body": "Converts the passed object to its textual representation."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-str-cast",
+                    "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
+                }
+            ],
+            "search-queries": ["string cast", "text convert", "convert to string", "convert to text"]
+        }
+    },
+    {
+        "keyword": "int",
+        "constructType": "expression",
+        "editorName": "int(---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "int"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "match": "int",
+        "toolbox": {
+            "category": "Converts",
+            "title": "int(object: string)",
+            "tooltip": {
+                "title": "Converts Text to Number",
+                "body": "Converts a number text to an actual number. Extremely useful when trying to input numbers from the user."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-int-cast",
+                    "example": "a = \"2\"\nb = \"5\"\ntext_add = a + b\nnumber_add = int(a) + int(b)"
+                }
+            ],
+            "search-queries": ["integer cast", "number convert", "convert to number", "convert to integer"]
+        }
+    },
+    {
+        "keyword": "import",
+        "constructType": "statement",
+        "editorName": "from -- import --",
+        "format": [
+            {
+                "type": "token",
+                "value": "from "
+            },
+            {
+                "type": "editable",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_\\.]*$"
+            },
+            {
+                "type": "token",
+                "value": " import "
+            },
+            {
+                "type": "editable",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_\\.]*$"
+            }
+        ],
+        "match": "from",
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Imports",
+            "title": "Import Module",
+            "tooltip": {
+                "title": "Imports A Function",
+                "body": "Loads a particular function from a module."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-import-randint-and-choice",
+                    "example": "from random import randint\nfrom random import choice"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-import-randint-use",
+                    "example": "from random import randint\nprint(randint(1, 6))"
+                }
+            ],
+            "search-queries": ["import module", "import random"]
         }
     }
 ]

@@ -3,8 +3,8 @@ import { EditCodeAction } from "../editor/action-filter";
 import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
-import { EDITOR_DOM_ID } from "../editor/toolbox";
-import { CodeConstruct, GeneralStatement } from "../syntax-tree/ast";
+import { EDITOR_DOM_ID } from "../language-definition/settings";
+import { Construct, GeneralStatement } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
@@ -262,7 +262,7 @@ class Menu {
 
     /**
      * Add the option as a child to the menu
-     * 
+     *
      * @param option - The option to insert into the menu.
      */
     insertOption(option: MenuOption) {
@@ -272,17 +272,18 @@ class Menu {
 
     /**
      * Get all EditCodeActions that match the given user input.
-     * 
+     *
      * @param userInput - The user's input.
      * @returns EditCodeActions matching the given user input
      */
-    getPossibleEditCodeActions(userInput: string) {
+    getPossibleEditCodeActions(userInput: string): EditCodeAction[] {
+        const lowUserInput = userInput.toLowerCase();
+
         // Get all EditCodeActions that match the user input, either based on the exact string or the regex
         const actionsToKeep = this.editCodeActionsOptions.filter((editAction) => {
             if (editAction.matchString) {
                 const actionLowerCase = editAction.matchString.toLowerCase();
-                const optionTextLowerCase = userInput.toLowerCase();
-                return actionLowerCase.includes(optionTextLowerCase) || optionTextLowerCase.includes(actionLowerCase);
+                return actionLowerCase.includes(lowUserInput) || lowUserInput.includes(actionLowerCase);
             } else if (editAction.matchRegex) {
                 return editAction.matchRegex.test(userInput);
             } else {
@@ -298,18 +299,18 @@ class Menu {
             if (a.matchRegex && b.matchString) return 1;
 
             // Get the final rendered text, as a string, for both options
-            const aText = a.getConstructText(userInput),
-                bText = b.getConstructText(userInput);
+            const aText = a.getConstructText(userInput).toLowerCase(),
+                bText = b.getConstructText(userInput).toLowerCase();
             // Get the position of the current text in both options, as well as the
             // difference in length between the current text and both options
-            const aStart = aText.indexOf(userInput),
-                bStart = bText.indexOf(userInput),
+            const aStart = aText.indexOf(lowUserInput),
+                bStart = bText.indexOf(lowUserInput),
                 aDiff = aText.length - userInput.length,
                 bDiff = bText.length - userInput.length;
 
-            // Give preference to the option that has the current text the closest 
+            // Give preference to the option that has the current text the closest
             // to the front
-            if (bStart - bStart !== 0) return aStart - bStart;
+            if (aStart - bStart !== 0) return aStart - bStart;
 
             // Give preference to the option that differs the least from the current
             // text in terms of length
@@ -915,9 +916,7 @@ export class MenuController {
                         {
                             type: "autocomplete-menu",
                             precision: this.calculateAutocompleteMatchPrecision(optionText, editAction.matchString),
-                            length: editAction.matchRegex
-                                ? optionText.length + 1
-                                : editAction.matchString.length + 1,
+                            length: editAction.matchRegex ? optionText.length + 1 : editAction.matchString.length + 1,
                         },
                         {
                             // Capture all the groups for regex (sub)constructs that appear in the construct so that
@@ -984,7 +983,7 @@ export class MenuController {
         return pos;
     }
 
-    getNewMenuPositionFromCode(code: CodeConstruct): { left: number; top: number } {
+    getNewMenuPositionFromCode(code: Construct): { left: number; top: number } {
         const pos = { left: 0, top: 0 };
         pos.left =
             document.getElementById(EDITOR_DOM_ID).offsetLeft +

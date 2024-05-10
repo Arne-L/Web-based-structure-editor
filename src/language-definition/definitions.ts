@@ -1,3 +1,5 @@
+import { ScopeType } from "../syntax-tree/consts";
+
 export interface ConfigDefinition {
     /**
      * The path to the language config file, relative to the language-definition folder
@@ -15,6 +17,15 @@ export interface LanguageDefinition {
      */
     constructFile: string;
     /**
+     * The path to the file containing the recursive format definitions.
+     */
+    recursiveFile: string;
+    /**
+     * The construct that will be inserted in the editor to start of from
+     * Usually this is some form of body or multi-hole construct.
+     */
+    initialConstruct: FormatDefType;
+    /**
      * A list of (key)words that can / should not be used as identifier names,
      * nested within the reason for which they are reserved. This allows for the
      * creation of multiple categories with a different reason. The reason is
@@ -28,7 +39,7 @@ export interface LanguageDefinition {
 export interface ConstructDefinition {
     /**
      * Name identifying the construct to the designer. This name is not used in the editor
-     * and can thus be changed to anything reconisable.
+     * and can thus be changed to anything recognisable.
      *
      * Optional.
      */
@@ -78,7 +89,50 @@ export interface ConstructDefinition {
      * Optional, but has to match the number of holes in the format field. If the holes and nesting
      * does not match, an error will be thrown on startup.
      */
-    holes?: HoleDefinition[];
+    holes?: HoleDefinition[][];
+    /**
+     * Constructs that require this construct to be valid.
+     * 
+     * Fields:
+     * * ref: The keyword of the construct that requires this construct
+     * * optional: Whether the construct is optional or not
+     * * min_repeat: The minimum number of times the construct has to be repeated. Defaults to 0.
+     * * max_repeat: The maximum number of times the construct can be repeated. Defaults to infinity.
+     */
+    requiringConstructs: {
+        ref: "string";
+        optional?: boolean;
+        min_repeat?: number;
+        max_repeat?: number;
+    }[];
+    /**
+     * The construct that has to appear before this construct in the editor. If multiple
+     * are given, at least one of them has to be present.
+     */
+    requiresConstruct: string | string[];
+    /**
+     * The ancestor that has to appear before this construct in the editor.
+     * 
+     * Fields:
+     * * ref: The keyword of the construct that has to be the ancestor
+     * * min_level: The minimum level of the ancestor. Defaults to 0.
+     * * max_level: The maximum level of the ancestor. Defaults to infinity.
+     * 
+     * Levels indicate the depth of the ancestor relative to the construct. Level 0
+     * indicates that the ancestor is the direct parent of the construct, level 1 
+     * the grandparent, etc.
+     */
+    requiresAncestor:
+        | {
+              ref: string;
+              min_level: number;
+              max_level: number;
+          }[]
+        | {
+              ref: string;
+              min_level: number;
+              max_level: number;
+          };
     /**
      * String against which the user's input is matched when typing. Valid / matching options
      * are shown in the autocompletion menu.
@@ -89,14 +143,14 @@ export interface ConstructDefinition {
     match?: string;
     /**
      * Regex against which the user's input is matched when typing. Valid / matching options
-     * are shown in the autocompletion menu. 
-     * 
+     * are shown in the autocompletion menu.
+     *
      * Capturing groups can be used to identify parts of the regex that need to be used to fill
-     * different editable / assignment tokens. Most often this will only be one, in which case 
+     * different editable / assignment tokens. Most often this will only be one, in which case
      * no capturing group is required. When there is the need to fill multiple tokens, each
-     * capturing group will be used in order, e.g. 
+     * capturing group will be used in order, e.g.
      * "{capturing group 1 regex} IN {capturing group 2 regex} FOR SOME SYNTAX". If the user thus types
-     * until the second capturing group, its input will be used in the final insertion so that no 
+     * until the second capturing group, its input will be used in the final insertion so that no
      * user input is lost.
      *
      * Mutually exclusive with matchRegex, but one of the two has to be defined. Defining both
@@ -106,7 +160,7 @@ export interface ConstructDefinition {
     /**
      * List of strings that trigger the insertion of the construct in the editor. When this / one of
      * these character(s) is typed, while the construct is valid according to the match, the construct
-     * is inserted in the editor. As these characters are supposed to be the first character after 
+     * is inserted in the editor. As these characters are supposed to be the first character after
      * the matchRegex or matchString, there are often also referred to as terminating characters.
      *
      * Optional. When left empty, the construct can only be inserted by selecting it in the toolbox,
@@ -139,11 +193,72 @@ export interface ConstructDefinition {
      */
     toolbox: ToolboxDefinition;
 }
+export interface RecursiveDefinition {
+    /**
+     * The name of the format definition. This name is used call / inject the format definition
+     *
+     * Required.
+     */
+    name: string;
+    /**
+     * Indicates whether the encapsulation represents a scope or not.
+     *
+     * Optional, defaults to false.
+     */
+    scope?: boolean;
+    /**
+     * The token that should be inserted before each iteration of the recursion.
+     * This allows for example easy definitions of indented body structures like
+     * in Python.
+     *
+     * Optional, defaults to null.
+     *
+     * TODO: Maybe add an insertAfter as well?
+     * TODO: Maybe a list of tokens?
+     */
+    insertBefore?: TokenFormatDefinition;
+    /**
+     * Definition of the format that should be repeated in the recursion.
+     *
+     * Required.
+     */
+    format: FormatDefType[];
+}
+export interface RecursiveRedefinedDefinition {
+    /**
+     * Indicates whether the encapsulation represents a scope or not.
+     *
+     * Optional, defaults to false.
+     */
+    scope?: boolean;
+    /**
+     * The token that should be inserted before each iteration of the recursion.
+     * This allows for example easy definitions of indented body structures like
+     * in Python.
+     *
+     * Optional, defaults to null.
+     *
+     * TODO: Maybe add an insertAfter as well?
+     * TODO: Maybe a list of tokens?
+     */
+    insertBefore?: TokenFormatDefinition;
+    /**
+     * Definition of the format that should be repeated in the recursion.
+     *
+     * Required.
+     */
+    format: FormatDefType[];
+}
 
 /**
  * Abstract interface defining the overlapping fields of all format definitions.
  */
-interface FormatDefinition {}
+interface FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: string;
+}
 /**
  * Structure of a token format definition
  */
@@ -163,6 +278,19 @@ interface HoleFormatDefinition extends FormatDefinition {
      * The type of the token. This field determines which of the other fields can be used / are required.
      */
     type: "hole";
+    /**
+     * Seperator between the different holes in the nested list of the "holes" field.
+     * When multiple holes are defined in a nested list, this key is obligatory. Otherwise
+     * it is optional but highly recommended to avoid confusion and future errors.
+     */
+    delimiter?: string;
+    /**
+     * Array defining each of the individual elements that can be represented as a hole
+     * Each element has the following fields:
+     * * type: The type of the expected element in the hole, most often "expression" or "statement"
+     * * optional: Whether the element is optional or not.
+     */
+    elements: { type: string; optional: boolean }[];
 }
 interface BodyFormatDefinition extends FormatDefinition {
     /**
@@ -179,6 +307,67 @@ interface ReferenceFormatDefinition extends FormatDefinition {
      * The name of the structure to which it refers. WHAT NAME PRECISELY? KEYWORD? EDITNAME? etc
      */
     to: string;
+}
+interface ImplementationFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "implementation";
+    /**
+     * Links the implementation to an object / structure in the implementations
+     * array with the given "method_name". All fields of the implementation will be added
+     * to the construct definition.
+     */
+    anchor: string;
+}
+interface IdentifierFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "identifier";
+    /**
+     * The regex that should be used to validate the input of the user. The regex should be written
+     * as a string, so that it can be parsed and used in the editor.
+     */
+    regex: string;
+    /**
+     * The type indicates to which scope the identifier should be added.
+     */
+    scopeType: ScopeType;
+}
+interface EditableFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "editable";
+    /**
+     * The default value that should be inserted in the editor when the construct is inserted.
+     *
+     * Optional, defaults to an empty string.
+     */
+    value?: string;
+    /**
+     * The regex that should be used to validate the input of the user. The regex should be written
+     * as a string, so that it can be parsed and used in the editor.
+     */
+    regex: string;
+}
+interface RecursiveFormatDefinition extends FormatDefinition {
+    /**
+     * The type of the token. This field determines which of the other fields can be used / are required.
+     */
+    type: "recursive";
+    /**
+     * The name of the recursive format definition to be used in the recursion.
+     * These definitions are defined in a different file containing all recursive definitions.
+     */
+    recursiveName: string;
+}
+export interface CompoundFormatDefinition extends FormatDefinition {
+    type: "compound";
+    scope: boolean;
+    insertBefore: string; // Maybe change to token if we want to accept multiple (different) tokens
+    format: FormatDefType[];
 }
 
 /**
@@ -216,6 +405,7 @@ interface ToolboxDefinition {
         title: string;
         body: string;
     };
+    invalidTooltip: string;
     /**
      * The list of all tips to be shown in the toolbox.
      */
@@ -281,7 +471,16 @@ interface UseCaseTip extends ToolboxTipDefinition {
 /**
  * Type aggregating all possible format definitions.
  */
-type FormatDefType = TokenFormatDefinition | HoleFormatDefinition | BodyFormatDefinition | ReferenceFormatDefinition;
+export type FormatDefType =
+    | TokenFormatDefinition
+    | HoleFormatDefinition
+    | BodyFormatDefinition
+    | ReferenceFormatDefinition
+    | ImplementationFormatDefinition
+    | IdentifierFormatDefinition
+    | EditableFormatDefinition
+    | RecursiveFormatDefinition
+    | CompoundFormatDefinition;
 /**
  * Type aggregating all possible toolbox tip definitions.
  */
