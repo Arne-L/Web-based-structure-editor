@@ -143,7 +143,7 @@ export class Focus {
 
         context.position = curPosition;
 
-        console.log("Context", context)
+        console.log("Context", context);
 
         return context;
     }
@@ -396,7 +396,7 @@ export class Focus {
      */
     navigateLeft() {
         const curPos = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
+        const focusedLineStatement = this.getConstructAtPosition(curPos);
 
         if (this.onBeginningOfLine()) {
             if (curPos.lineNumber > 1) {
@@ -409,7 +409,6 @@ export class Focus {
             }
         } else {
             const curSelection = this.module.editor.monaco.getSelection();
-            const focusedLineStatement = this.getConstructAtPosition(curPos) as Statement;
             let prevPos = this.module.editor.monaco.getPosition().delta(undefined, -1);
 
             if (!curSelection.getEndPosition().equals(curSelection.getStartPosition()))
@@ -550,12 +549,11 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken instanceof Token && doesConstructContainPos(curToken, pos, { left: true, right: false }))
-                return curToken;
+            if (!doesConstructContainPos(curToken, pos, { left: true, right: false })) continue;
 
-            if (curToken instanceof CodeConstruct)
-                if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
-                else return curToken;
+            if (curToken instanceof Token) return curToken;
+
+            if (curToken instanceof CodeConstruct) tokensStack.unshift(...curToken.tokens);
         }
 
         return null;

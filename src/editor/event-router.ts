@@ -93,7 +93,8 @@ export class EventRouter {
                         return new EditAction(EditActionType.MoveCursorLeft);
                     }
                     // Not in text edit mode -> simply select the previous token
-                } else return new EditAction(EditActionType.SelectPrevToken);
+                } else {
+                    return new EditAction(EditActionType.SelectPrevToken);}
             }
 
             // Simplify if the nested if does not work
