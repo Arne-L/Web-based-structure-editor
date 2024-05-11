@@ -51,7 +51,7 @@ export class ActionFilter {
                 // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere 
                 // else than the beginning, the token range will not match with the selection range and thus result in
                 // no valid token (for the context)
-                const references = scope.getValidReferences(currentTkn.left ?? nearestStmt.left, action.referenceType);
+                const references = scope.getValidReferences(currentTkn?.left ?? nearestStmt.left, action.referenceType);
 
                 for (const reference of references) {
                     // Update the match string and regex if the action contains a reference
