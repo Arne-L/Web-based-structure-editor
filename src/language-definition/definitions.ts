@@ -298,7 +298,7 @@ interface BodyFormatDefinition extends FormatDefinition {
      */
     type: "body";
 }
-interface ReferenceFormatDefinition extends FormatDefinition {
+export interface ReferenceFormatDefinition extends FormatDefinition {
     /**
      * The type of the token. This field determines which of the other fields can be used / are required.
      */
@@ -334,6 +334,11 @@ interface IdentifierFormatDefinition extends FormatDefinition {
      * The type indicates to which scope the identifier should be added.
      */
     scopeType: ScopeType;
+    /**
+     * The categorisation of the assignment. Used to divide the possible reference and 
+     * suggest only the most relevant ones to the user.
+     */
+    reference: string;
 }
 interface EditableFormatDefinition extends FormatDefinition {
     /**

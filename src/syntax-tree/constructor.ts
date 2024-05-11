@@ -147,7 +147,7 @@ export namespace SyntaxConstructor {
                  */
                 return [];
             case "identifier":
-                return [new AssignmentToken(undefined, rootConstruct, indexInRoot, RegExp(token.regex), token.scopeType)];
+                return [new AssignmentToken(undefined, rootConstruct, indexInRoot, RegExp(token.regex), token.scopeType, token.reference)];
             case "reference":
                 return [new ReferenceTkn(data?.reference ?? "", rootConstruct, indexInRoot)];
             case "editable":

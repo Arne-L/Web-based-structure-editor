@@ -1,6 +1,6 @@
 [
     {
-        "name": "body",
+        "name": "body2",
         "scope": true,
         "format": [
             {
@@ -54,6 +54,32 @@
                     {
                         "type": "recursive",
                         "recursiveName": "statement"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "body",
+        "format": [
+            {
+                "type": "compound",
+                "scope": true,
+                "insertBefore": "    ",
+                "format": [
+                    {
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": true
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": "\n",
+                        "waitOnUser": "Enter"
                     }
                 ]
             }

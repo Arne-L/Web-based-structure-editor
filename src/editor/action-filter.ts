@@ -42,10 +42,17 @@ export class ActionFilter {
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
         for (const action of Actions.instance().actionsList) {
-            if (action.containsReference) {
+            if (action.referenceType) {
                 const nearestStmt = context.codeConstruct;
                 const scope = nearestStmt.getNearestScope();
-                const references = scope.getValidReferences(nearestStmt.left);
+                const currentTkn = context.token ?? context.tokenToLeft ?? context.tokenToRight;
+                // TODO: Check why currentTkn is null when you click on a hole (for the first of many iterations atleast)
+                // Current hypthesis: getContextFromSelection() tries to build the context from the selection, but initially, this
+                // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere 
+                // else than the beginning, the token range will not match with the selection range and thus result in
+                // no valid token (for the context)
+                const references = scope.getValidReferences(currentTkn.left ?? nearestStmt.left, action.referenceType);
+
                 for (const reference of references) {
                     // Update the match string and regex if the action contains a reference
                     let matchTxt = action.matchString;
@@ -56,8 +63,6 @@ export class ActionFilter {
                         const tmpRegexTxt = String(regexTxt).replace("--", reference.getAssignment().getRenderText());
                         new RegExp(tmpRegexTxt.substring(1, tmpRegexTxt.length - 1));
                     }
-
-                    // if (!action.matchRegex) console.error("Match regex is not defined for action: ", action.optionName);
 
                     validOptionMap.set(
                         Math.random().toString(36).substring(8), // Key is useless, thus should simply be unique
@@ -364,7 +369,7 @@ export class EditCodeAction extends UserAction {
     trimSpacesBeforeTermChar: boolean;
     documentation: any;
     shortDescription?: string;
-    containsReference: boolean = false;
+    referenceType: string = null;
 
     /**
      * Handles the code action from the toolbox / suggestion menu to the eventual insertion in the editor

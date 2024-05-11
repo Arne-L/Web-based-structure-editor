@@ -1,5 +1,5 @@
 import { Position } from "monaco-editor";
-import { AssignmentToken, Statement } from "./ast";
+import { AssignmentToken } from "./ast";
 import { Module } from "./module";
 
 /**
@@ -19,18 +19,23 @@ export class Scope {
      * A reference is only added once, so that no duplicates to the same assignment statement
      * appear in the list.
      */
-    references = new Array<Reference>();
+    references = new Map<string, Reference[]>();
 
     /**
      * Get all references accessible at the given position. This includes all references in the current scope,
      * parent scope and global scope.
-     * 
+     *
      * @param pos - The current position to check from. Only references that appear before this position are returned,
-     * except for references in the global scope. 
+     * except for references in the global scope.
      * @returns All references that are accessible at the given position
      */
-    getValidReferences(pos: Position): Reference[] {
-        return [...Module.instance.scope.references, ...this.getValidReferencesRecursive(pos)]
+    getValidReferences(pos: Position, referenceType?: string): Reference[] {
+        return [
+            ...(referenceType
+                ? (Module.instance.scope.references.get(referenceType) ?? [])
+                : [...Module.instance.scope.references.values()].flat()),
+            ...this.getValidReferencesRecursive(pos, referenceType),
+        ];
     }
 
     /**
@@ -39,9 +44,10 @@ export class Scope {
      * @param pos - The current position to check from. Only references that appear before this position are returned.
      * @returns - An array of all the valid references in this and all parent scopes
      */
-    private getValidReferencesRecursive(pos: Position): Reference[] {
+    private getValidReferencesRecursive(pos: Position, referenceType?: string): Reference[] {
+        const references = referenceType ? (this.references.get(referenceType) ?? []) : [...this.references.values()].flat();
         // All references that appear before the current line
-        let validReferences = this.references.filter((ref) => ref.getPosition().isBeforeOrEqual(pos));
+        let validReferences = references.filter((ref) => ref.getPosition().isBeforeOrEqual(pos));
 
         // All references that appear before the current line in the parent scope
         if (this.parentScope) {
@@ -105,10 +111,14 @@ export class Scope {
      *
      * @returns true if the reference was removed, false otherwise
      */
-    removeAssignment(assigment: AssignmentToken): boolean {
-        const initialLength = this.references.length;
-        this.references = this.references.filter((ref) => ref.getAssignment() !== assigment);
-        return initialLength !== this.references.length;
+    removeAssignment(assignment: AssignmentToken): boolean {
+        const references = this.references.get(assignment.referenceType) ?? [];
+        const initialLength = references.length;
+        this.references.set(
+            assignment.referenceType,
+            references.filter((ref) => ref.getAssignment() !== assignment)
+        );
+        return initialLength !== this.references.get(assignment.referenceType).length;
     }
 
     /**
@@ -117,7 +127,9 @@ export class Scope {
      * @param assignment - The assignment token to add to the current scope
      */
     addAssignment(assignment: AssignmentToken) {
-        this.references.push(new Reference(assignment, this));
+        const references = this.references.get(assignment.referenceType);
+        if (references) references.push(new Reference(assignment, this));
+        else this.references.set(assignment.referenceType, [new Reference(assignment, this)]);
     }
 
     /**
@@ -179,10 +191,6 @@ export class Reference {
     constructor(token: AssignmentToken, scope: Scope) {
         this.token = token;
         this.scope = scope;
-    }
-
-    getLineNumber(): number {
-        return this.token.getFirstLineNumber();
     }
 
     getPosition(): Position {

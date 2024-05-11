@@ -1521,6 +1521,10 @@ export class AssignmentToken extends IdentifierTkn {
      * variable belongs and what it's reach is.
      */
     private scopeType: ScopeType;
+    /**
+     * Specification definied categories for the assignments. 
+     */
+    referenceType: string;
 
     /**
      * getIdentifier = getRenderText
@@ -1548,11 +1552,13 @@ export class AssignmentToken extends IdentifierTkn {
         root?: CodeConstruct,
         indexInRoot?: number,
         regex?: RegExp,
-        scopeType?: ScopeType
+        scopeType?: ScopeType,
+        referenceType?: string
     ) {
         super(identifier, root, indexInRoot, regex);
 
         this.scopeType = scopeType ?? ScopeType.Global;
+        this.referenceType = referenceType;
 
         root.addAssignmentIndex(indexInRoot);
 

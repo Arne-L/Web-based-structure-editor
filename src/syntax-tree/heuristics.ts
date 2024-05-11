@@ -4,7 +4,7 @@ import { Module } from "./module";
 
 /**
  * Get the scope corresponding to the given scope type.
- * 
+ *
  * @param construct - The construct for which to get the scope
  * @param scopeType - Determines the scope that will be returned relative to the given construct
  * @returns The scope corresponding to the given scope type and construct
@@ -21,8 +21,10 @@ export function scopeHeuristic(construct: Construct, scopeType: ScopeType) {
             // Searches for the first compound construct appearing after the given construct
             // that is a direct child of the root
             // If none is found, or the one found does not have a scope, null is returned
-            for (const tkn of construct.rootNode.tokens) {
-                if (tkn.indexInRoot > construct.indexInRoot && tkn instanceof CompoundConstruct) {
+            // TODO: Increase the search depth to find a scope? Depends on what users expect ...
+            const tokens = construct.rootNode.tokens.slice(construct.indexInRoot + 1);
+            for (const tkn of tokens) {
+                if (tkn instanceof CompoundConstruct && tkn.scope) {
                     return tkn.scope;
                 }
             }
