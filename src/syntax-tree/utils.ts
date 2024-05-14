@@ -161,7 +161,7 @@ export namespace ASTManupilation {
         }
     }
 
-    function replaceWith(constructToReplace: Construct, newConstruct: Construct) {
+    export function replaceWith(constructToReplace: Construct, newConstruct: Construct) {
         const module = Module.instance;
 
         // Removing draft mode message if there is one
@@ -306,6 +306,63 @@ export namespace ASTManupilation {
         //     else construct.body[i].init(leftPos);
         //     leftPos.lineNumber += construct.body[i].getHeight();
         // }
+    }
+
+    export function getPrevSiblingOfRoot(construct: Construct): Construct {
+        if (construct.indexInRoot === 0) return null;
+        // Go to the previous sibling of the current construct
+        return construct.rootNode.tokens[construct.indexInRoot - 1];
+    }
+
+    export function getNextSiblingOfRoot(construct: Construct): Construct {
+        if (construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
+        // Go to the previous sibling of the current construct
+        return construct.rootNode.tokens[construct.indexInRoot + 1];
+    }
+
+    export function getPrevSibling(construct: Construct): Construct {
+        // Keep track of how many levels up the current construct is
+        let depth = 0;
+        // If the construct is the first in the root, go to the root
+        // Keep going up until the construct is not the first in the root
+        while (construct.indexInRoot === 0) {
+            construct = construct.rootNode;
+            if (!construct) return null;
+            depth++;
+        }
+        // Go to the previous sibling of the current construct
+        construct = construct.rootNode.tokens[construct.indexInRoot - 1];
+        // Try to go back to the original depth by going down the tree again
+        while (depth > 0 && construct instanceof CodeConstruct) {
+            if (construct.tokens.at(-1)) construct = construct.tokens.at(-1);
+            else break;
+            depth--;
+        }
+        // Return the previous sibling
+        return construct;
+    }
+
+
+    export function getNextSibling(construct: Construct): Construct {
+        // Keep track of how many levels up the current construct is
+        let depth = 0;
+        // If the construct is the first in the root, go to the root
+        // Keep going up until the construct is not the first in the root
+        while (construct.indexInRoot === construct.rootNode.tokens.length - 1) {
+            construct = construct.rootNode;
+            if (!construct) return null;
+            depth++;
+        }
+        // Go to the previous sibling of the current construct
+        construct = construct.rootNode.tokens[construct.indexInRoot + 1];
+        // Try to go back to the original depth by going down the tree again
+        while (depth > 0 && construct instanceof CodeConstruct) {
+            if (construct.tokens.at(1)) construct = construct.tokens.at(1);
+            else break;
+            depth--;
+        }
+        // Return the previous sibling
+        return construct;
     }
 }
 

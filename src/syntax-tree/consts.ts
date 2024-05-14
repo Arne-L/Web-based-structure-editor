@@ -11,6 +11,12 @@ export enum ScopeType {
     LocalChild = "localChild",
 }
 
+export enum CodeConstructType { 
+    UniConstruct = "UniConstruct",
+    CompoundConstruct = "CompoundConstruct" 
+}
+
+
 /**
  * The type of insertion that is possible:
  * * Valid: insertion can be made

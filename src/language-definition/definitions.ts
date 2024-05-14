@@ -21,6 +21,11 @@ export interface LanguageDefinition {
      */
     recursiveFile: string;
     /**
+     * The indentation to use when inserting tabs in the editor. It is also frequently used
+     * to indent body constructs. 
+     */
+    indent: string;
+    /**
      * The construct that will be inserted in the editor to start of from
      * Usually this is some form of body or multi-hole construct.
      */

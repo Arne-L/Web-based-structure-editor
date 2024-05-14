@@ -628,7 +628,6 @@ export abstract class Statement extends CodeConstruct {
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct | Statement | CompoundConstruct {
         if (!type || type === CodeConstructType.UniConstruct) return this;
-        console.log("Statement getNearestCodeConstruct", type, this);
         return this.rootNode?.getNearestCodeConstruct(type);
     }
 
@@ -1220,7 +1219,6 @@ export abstract class Token extends Construct {
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // This is weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
         if (type === CodeConstructType.CompoundConstruct) return this.rootNode?.getNearestCodeConstruct(type);
-        console.log("Token getNearestCodeConstruct", type)
         return this.rootNode?.getNearestCodeConstruct(type);
     }
 
@@ -2198,7 +2196,12 @@ export class CompoundConstruct extends CodeConstruct {
         }
 
         // Rebuild the tokens
+        // If there are still tokens after the removed section, rebuild these and all following tokens
         if (this.tokens[startIdx]) ASTManupilation.rebuild(this.tokens[startIdx], leftpos);
+        // If there are no tokens after the removed section, but there are tokens before, start rebuilding all following tokens / constructs
+        else if (startIdx > 0) ASTManupilation.rebuild(this.tokens[startIdx - 1], this.tokens[startIdx - 1].right, { rebuildConstruct: false });
+        // Otherwise the construct has a zero width (which should be impossible) and thus rebuild from there
+        else ASTManupilation.rebuild(this, leftpos);
         // TODO: Also very ugly and also does not work that well
         Module.instance.focus.updateContext({ positionToMove: leftpos });
 
@@ -2257,7 +2260,6 @@ export class CompoundConstruct extends CodeConstruct {
     getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
-        console.log("Compound getNearestCodeConstruct", type, this);
         if (!type || type === CodeConstructType.CompoundConstruct) return this;
         return this.rootNode?.getNearestCodeConstruct(type);
     }

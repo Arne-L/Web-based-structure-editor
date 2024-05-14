@@ -1420,7 +1420,29 @@
                 "elements": [
                     {
                         "type": "expression",
-                        "optional": false
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
                     }
                 ]
             },
@@ -1428,14 +1450,6 @@
                 "type": "token",
                 "value": "]"
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
         ],
         "match": "",
         "matchRegex": null,

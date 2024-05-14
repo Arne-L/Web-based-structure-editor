@@ -1,13 +1,14 @@
 import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
 
+import { INDENT } from "../language-definition/parser";
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
+import { ASTManupilation } from "../syntax-tree/utils";
 import { AutoCompleteType, IdentifierRegex, InsertionType } from "./../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
-import { DebugUtils } from "../syntax-tree/utils";
 
 /**
  * Handle incoming events and route them to the corresponding action.
@@ -94,7 +95,8 @@ export class EventRouter {
                     }
                     // Not in text edit mode -> simply select the previous token
                 } else {
-                    return new EditAction(EditActionType.SelectPrevToken);}
+                    return new EditAction(EditActionType.SelectPrevToken);
+                }
             }
 
             // Simplify if the nested if does not work
@@ -284,7 +286,9 @@ export class EventRouter {
 
             // NOT language independent
             case KeyPress.Backspace: {
-                console.log("BACKSPACE")
+                console.log("BACKSPACE");
+                // Token directly to the left of the cursor is either the current
+                // token or the token to the left (if between two tokens)
                 const curTkn = context.token ?? context.tokenToLeft;
                 if (curTkn instanceof ast.Token) {
                     if (
@@ -295,17 +299,69 @@ export class EventRouter {
                         console.log("BACKSPACE editable");
                         return new EditAction(EditActionType.DeletePrevChar);
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
-                        console.log("BACKSPACE compound")
-                        const compound = curTkn.rootNode;
-                        compound.removeExpansion(curTkn);
-                        break;
+                        // // If directly between the indent and the construct to indent
+                        // const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn)
+                        // if (curTkn.getRenderText() === INDENT) {
+                        //     const construct = ASTManupilation.getNextSiblingOfRoot(curTkn);
+                        // } else if (curTkn instanceof ast.TypedEmptyExpr && prevTkn.getRenderText() === INDENT) {
+                        const nearestCompound = curTkn.rootNode;
+                        if (curTkn.indexInRoot + nearestCompound.cycleLength >= nearestCompound.tokens.length) {
+                            console.log("BACKSPACE indent")
+                            // Get the next compound construct in the tree
+                            let underNextCompound: ast.CodeConstruct = curTkn.rootNode;
+                            while (!(underNextCompound.rootNode instanceof ast.CompoundConstruct)) {
+                                underNextCompound = underNextCompound.rootNode;
+                                if (!underNextCompound.rootNode) break;}
+
+                            const nextCompound = underNextCompound.rootNode as ast.CompoundConstruct;
+
+                            // If they have the same compound token, we can be sure that constructs can be copied from one to the other
+                            if (underNextCompound &&
+                                nearestCompound.compoundToken.toString() ===
+                                nextCompound.compoundToken.toString()
+                            ) {
+                                const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
+                                // Find out where to insert this in the parent compound and whether we need to add some additional structures
+                                // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
+                                if (
+                                    curTkn instanceof ast.TypedEmptyExpr &&
+                                    prevTkn.getRenderText() === INDENT
+                                ) {
+                                    if (nearestCompound.removeExpansion(curTkn)) {
+                                        console.log("Tokens1", nextCompound.tokens);
+                                        nextCompound.continueExpansion(underNextCompound);
+                                    }
+                                    console.log("Tokens1.5", nextCompound.tokens);
+                                } else if (prevTkn.getRenderText() === INDENT) {
+                                    console.log("Tokens2", nextCompound.tokens);
+                                    const rightConstruct = ASTManupilation.getNextSiblingOfRoot(curTkn);
+                                    const tempTkn = new ast.NonEditableTkn("a", rightConstruct.rootNode, rightConstruct.indexInRoot);
+                                    ASTManupilation.replaceWith(rightConstruct, tempTkn);
+                                    if (nearestCompound.removeExpansion(rightConstruct)) {
+                                        nextCompound.continueExpansion(underNextCompound/*ASTManupilation.getPrevSiblingOfRoot(underNextCompound)*/);
+                                        const toReplace = nextCompound.tokens
+                                            .slice(underNextCompound.indexInRoot, nextCompound.cycleLength)
+                                            .find((tkn) => tkn instanceof ast.TypedEmptyExpr);
+                                        ASTManupilation.replaceWith(toReplace, rightConstruct);
+                                    } else {
+                                        // Undo the replacement
+                                        ASTManupilation.replaceWith(tempTkn, rightConstruct);
+                                    }
+                                    console.log("Tokens2.5", nextCompound.tokens);
+                                }
+                            }
+                        } else {
+                            console.log("BACKSPACE compound");
+                            const compound = curTkn.rootNode;
+                            compound.removeExpansion(curTkn);
+                        }
                         // compound.
                         // Try to remove one cycle of the compound construct
                         // Conditions: all constructs in the cycle are either empty or non-editable, no
                         // GeneralStatements remain in the cycle
                         // If it is not possible, do nothing
                     } else {
-                        console.log("BACKSPACE root")
+                        console.log("BACKSPACE root");
                         // So root is a UniConstruct / GeneralStatement
                         return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                     }
@@ -315,7 +371,7 @@ export class EventRouter {
                 }
                 break;
 
-                console.log("BACKSPACE END kinda")
+                console.log("BACKSPACE END kinda");
 
                 if (this.module.validator.canDeleteAdjacentChar(context, { backwards: true })) {
                     // Delete char in front of the cursor in a text editable area
