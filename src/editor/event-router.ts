@@ -297,7 +297,12 @@ export class EventRouter {
                         curTkn instanceof ast.EditableTextTkn
                     ) {
                         console.log("BACKSPACE editable");
-                        return new EditAction(EditActionType.DeletePrevChar);
+                        if (!curTkn.isEmpty) return new EditAction(EditActionType.DeletePrevChar);
+                        else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                            curTkn.rootNode.removeExpansion(curTkn);
+                        } else {
+                            return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
+                        }
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
                         const nearestCompound = curTkn.rootNode;
                         // The cycle to remove is the last compound cycle and the current compound is not the top most compound
@@ -698,9 +703,9 @@ export class EventRouter {
             leftConstruct?.right.equals(this.curPosition) &&
             !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
         ) {
-            // Also look at the right construct; if this is a compound, we need to check if it's 
+            // Also look at the right construct; if this is a compound, we need to check if it's
             // first token has a waitOnUser field that matches the pressed key
-            rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct)
+            rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
             if (
                 rightConstruct instanceof ast.CompoundConstruct &&
                 rightConstruct.canContinueExpansion(leftConstruct, e.key)

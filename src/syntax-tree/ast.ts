@@ -2114,9 +2114,9 @@ export class CompoundConstruct extends CodeConstruct {
      * @returns True if the expansion can continue on the given location with the given key
      */
     canContinueExpansion(leftConstruct: Construct, keyPressed: string) {
-        // If the left construct is not a direct child of this compound, 
+        // If the left construct is not a direct child of this compound,
         // the expansion can then only happen if the compound is directly adjacent
-        // to the leftConstruct and the starting construct's waitOnUser key equals the 
+        // to the leftConstruct and the starting construct's waitOnUser key equals the
         // current key pressed
         if (leftConstruct.left.isBefore(this.left))
             return (
@@ -2137,7 +2137,7 @@ export class CompoundConstruct extends CodeConstruct {
     continueExpansion(leftConstruct: Construct) {
         // Get the index of the leftConstruct in the format specification
         // If the leftConstruct is to the left of this compound, the index is -1
-        let startingIndex ;
+        let startingIndex;
         if (leftConstruct.left.isBefore(this.left)) startingIndex = -1;
         else startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
@@ -2189,7 +2189,12 @@ export class CompoundConstruct extends CodeConstruct {
 
         const deletable = this.tokens
             .slice(startIdx, currentIdx + 1)
-            .every((token) => token instanceof NonEditableTkn || token instanceof TypedEmptyExpr);
+            .every(
+                (token) =>
+                    token instanceof NonEditableTkn ||
+                    token instanceof TypedEmptyExpr ||
+                    (token instanceof Token && token.isEmpty)
+            );
 
         if (!deletable) return false;
 
