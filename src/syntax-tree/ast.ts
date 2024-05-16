@@ -180,10 +180,10 @@ export abstract class Construct {
 
     /**
      * Returns the parent statement of this CodeConstruct (an element of the Module.body array).
-     * 
+     *
      * @param type - The type of the CodeConstruct to return; if none is given, the nearest CodeConstruct
      * will be returned
-     * @returns The nearest (itself or an ancestor) CodeConstruct of the given 
+     * @returns The nearest (itself or an ancestor) CodeConstruct of the given
      * CodeConstruct type if given, otherwise the nearest CodeConstruct
      */
     abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
@@ -1486,7 +1486,7 @@ export class IdentifierTkn extends Token implements TextEditable {
     setEditedText(text: string): boolean {
         if (this.validatorRegex.test(text)) {
             this.setIdentifierText(text);
-            (this.rootNode as Statement).rebuild(this.getLeftPosition(), this.indexInRoot);
+            this.rootNode.rebuild(this.getLeftPosition(), this.indexInRoot);
 
             if (this.text.length > 0) this.isEmpty = false;
             if (this.text.length == 0) this.isEmpty = true;
@@ -2015,10 +2015,12 @@ export class CompoundConstruct extends CodeConstruct {
         this.indexInRoot = indexInRoot;
         this.compoundToken = compoundToken;
         this.waitOnIndices = new Map(
-            compoundToken.format
-                .filter((tkn) => "waitOnUser" in tkn)
-                // @ts-ignore
-                .map((tkn, idx) => [idx, tkn.waitOnUser] as [number, string])
+            compoundToken.format.flatMap((tkn, idx) =>
+                "waitOnUser" in tkn ? [[idx, tkn.waitOnUser] as [number, string]] : []
+            )
+            // .filter((tkn) => "waitOnUser" in tkn)
+            // // @ts-ignore
+            // .map((tkn, idx) => [idx, tkn.waitOnUser] as [number, string])
         );
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
@@ -2094,10 +2096,10 @@ export class CompoundConstruct extends CodeConstruct {
     //     );
     // }
 
-    private getFormatIndex(leftConstruct: Construct): number {
+    private getFormatIndex(leftConstruct: Construct, delta: number = 0): number {
         const repetitionLength = this.cycleLength;
         // Get the index of the current token in the root, modulo the cycle length
-        const repetitionIndex = leftConstruct.indexInRoot % repetitionLength;
+        const repetitionIndex = leftConstruct.indexInRoot + (delta % repetitionLength);
 
         // Get the index of the current token in the compound specification
         return (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + this.cycleLength) % repetitionLength;
@@ -2112,17 +2114,32 @@ export class CompoundConstruct extends CodeConstruct {
      * @returns True if the expansion can continue on the given location with the given key
      */
     canContinueExpansion(leftConstruct: Construct, keyPressed: string) {
+        // If the left construct is not a direct child of this compound, 
+        // the expansion can then only happen if the compound is directly adjacent
+        // to the leftConstruct and the starting construct's waitOnUser key equals the 
+        // current key pressed
+        if (leftConstruct.left.isBefore(this.left))
+            return (
+                leftConstruct.right.equals(this.left) &&
+                this.waitOnIndices.get(0) === keyPressed &&
+                !this.compoundToken.insertBefore
+            );
         // Get the index of the leftConstruct in the format specification
-        const formatIndex = this.getFormatIndex(leftConstruct)
+        const formatIndex = this.getFormatIndex(leftConstruct, 1);
 
         // Get the key which needs to be pressed to continue the expansion on the given location
         const formatKey = this.waitOnIndices.get(formatIndex);
+        console.log(leftConstruct, this.getFormatIndex(leftConstruct, 1), this.waitOnIndices);
         // True if
         return !!formatKey && formatKey === keyPressed;
     }
 
     continueExpansion(leftConstruct: Construct) {
-        const startingIndex = leftConstruct.indexInRoot;
+        // Get the index of the leftConstruct in the format specification
+        // If the leftConstruct is to the left of this compound, the index is -1
+        let startingIndex ;
+        if (leftConstruct.left.isBefore(this.left)) startingIndex = -1;
+        else startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
@@ -2199,7 +2216,10 @@ export class CompoundConstruct extends CodeConstruct {
         // If there are still tokens after the removed section, rebuild these and all following tokens
         if (this.tokens[startIdx]) ASTManupilation.rebuild(this.tokens[startIdx], leftpos);
         // If there are no tokens after the removed section, but there are tokens before, start rebuilding all following tokens / constructs
-        else if (startIdx > 0) ASTManupilation.rebuild(this.tokens[startIdx - 1], this.tokens[startIdx - 1].right, { rebuildConstruct: false });
+        else if (startIdx > 0)
+            ASTManupilation.rebuild(this.tokens[startIdx - 1], this.tokens[startIdx - 1].right, {
+                rebuildConstruct: false,
+            });
         // Otherwise the construct has a zero width (which should be impossible) and thus rebuild from there
         else ASTManupilation.rebuild(this, leftpos);
         // TODO: Also very ugly and also does not work that well

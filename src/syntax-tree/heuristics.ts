@@ -1,5 +1,5 @@
 import { CompoundConstruct, Construct } from "./ast";
-import { ScopeType } from "./consts";
+import { CodeConstructType, ScopeType } from "./consts";
 import { Module } from "./module";
 
 /**
@@ -22,7 +22,9 @@ export function scopeHeuristic(construct: Construct, scopeType: ScopeType) {
             // that is a direct child of the root
             // If none is found, or the one found does not have a scope, null is returned
             // TODO: Increase the search depth to find a scope? Depends on what users expect ...
-            const tokens = construct.rootNode.tokens.slice(construct.indexInRoot + 1);
+            const tokens = construct.rootNode
+                .getNearestCodeConstruct(CodeConstructType.UniConstruct)
+                .tokens.slice(construct.indexInRoot + 1);
             for (const tkn of tokens) {
                 if (tkn instanceof CompoundConstruct && tkn.scope) {
                     return tkn.scope;

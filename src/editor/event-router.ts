@@ -550,7 +550,7 @@ export class EventRouter {
                             break;
                     }
 
-                    // Check if a sequence of sequence of characters, e.g. abc, can be converted to a string
+                    // Check if a sequence of characters, e.g. abc, can be converted to a string
                     // At least, I think ...
                     if (this.module.validator.canConvertAutocompleteToString(context)) {
                         // String literals
@@ -583,7 +583,32 @@ export class EventRouter {
                     // } else
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
-                    return new EditAction(EditActionType.InsertChar);
+                    const editableTkn = this.module.focus.getTextEditableItem(context);
+                    const token = editableTkn.getToken();
+                    const selectedText = this.module.editor.monaco.getSelection();
+                    let newText = "";
+                    if (token instanceof ast.IdentifierTkn && token.isEmptyIdentifier()) {
+                        const curText = "";
+                        newText = curText + e.key;
+                    } else {
+                        const curText = editableTkn.getEditableText().split("");
+                        curText.splice(
+                            this.curPosition.column - token.leftCol,
+                            Math.abs(selectedText.startColumn - selectedText.endColumn),
+                            e.key
+                        );
+
+                        newText = curText.join("");
+                    }
+                    if (
+                        !(
+                            (editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) &&
+                            !editableTkn.validatorRegex.test(newText)
+                        )
+                    ) {
+                        return new EditAction(EditActionType.InsertChar);
+                    }
+                    break;
                     // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     //     const compound = context.tokenToLeft?.rootNode;
                     //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
@@ -668,11 +693,25 @@ export class EventRouter {
         // until we are at the top of the file / at the root
         let leftConstruct: ast.Construct = context.tokenToLeft;
         // console.log("LeftConstruct", leftConstruct, context);
+        let rightConstruct: ast.Construct = null;
         while (
-            leftConstruct?.rootNode.right.equals(this.curPosition) &&
+            leftConstruct?.right.equals(this.curPosition) &&
             !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
-        )
+        ) {
+            // Also look at the right construct; if this is a compound, we need to check if it's 
+            // first token has a waitOnUser field that matches the pressed key
+            rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct)
+            if (
+                rightConstruct instanceof ast.CompoundConstruct &&
+                rightConstruct.canContinueExpansion(leftConstruct, e.key)
+            ) {
+                console.log("Should be getting here");
+                rightConstruct.continueExpansion(leftConstruct);
+                break;
+            }
+            // Otherwise we keep on going up in search of a parent compound
             leftConstruct = leftConstruct.rootNode;
+        }
 
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
