@@ -41,11 +41,11 @@ export class ActionFilter {
 
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
+        const nearestStmt = context.codeConstruct;
+        const scope = nearestStmt.getNearestScope();
+        const currentTkn = context.token ?? context.tokenToLeft ?? context.tokenToRight;
         for (const action of Actions.instance().actionsList) {
             if (action.referenceType) {
-                const nearestStmt = context.codeConstruct;
-                const scope = nearestStmt.getNearestScope();
-                const currentTkn = context.token ?? context.tokenToLeft ?? context.tokenToRight;
                 // TODO: Check why currentTkn is null when you click on a hole (for the first of many iterations atleast)
                 // Current hypthesis: getContextFromSelection() tries to build the context from the selection, but initially, this
                 // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere 
