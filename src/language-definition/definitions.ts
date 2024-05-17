@@ -375,8 +375,25 @@ interface RecursiveFormatDefinition extends FormatDefinition {
 }
 export interface CompoundFormatDefinition extends FormatDefinition {
     type: "compound";
+    /**
+     * Indicates whether the encapsulation represents a scope or not.
+     */
     scope: boolean;
+    /**
+     * Insert this token before each iteration of the compound.
+     */
     insertBefore: string; // Maybe change to token if we want to accept multiple (different) tokens
+    /**
+     * Setting this to true will make it possible to delete an iteration from the compound and add
+     * it to the parent compound. In practice, this often means removing the indentation in front
+     * of the cursor position. 
+     * 
+     * Defaults to false.
+     */
+    enableIndentation: boolean;
+    /**
+     * The list of format definitions that should be repeated in the compound.
+     */
     format: FormatDefType[];
 }
 

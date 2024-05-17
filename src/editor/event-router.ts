@@ -307,9 +307,13 @@ export class EventRouter {
                         const nearestCompound = curTkn.rootNode;
                         // The cycle to remove is the last compound cycle and the current compound is not the top most compound
                         // Otherwise, it would not be possible to jump to next compound up in the tree
+
+                        // TODO: When deleting an interation, check that the last remaining token before the
+                        // deleted section has a waitOnUser field such that it can continue on!
                         if (
                             curTkn.indexInRoot + nearestCompound.cycleLength >= nearestCompound.tokens.length &&
-                            nearestCompound.rootNode?.getNearestCodeConstruct(CodeConstructType.CompoundConstruct)
+                            nearestCompound.rootNode?.getNearestCodeConstruct(CodeConstructType.CompoundConstruct) &&
+                            nearestCompound.compoundToken.enableIndentation
                         ) {
                             console.log("BACKSPACE indent");
                             // Get the next compound construct in the tree
