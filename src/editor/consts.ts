@@ -68,17 +68,8 @@ import {
     // MethodCallModifier,
     // OperatorTkn,
     Statement,
-    // UnaryOperatorExpr,
-    // WhileStatement,
 } from "../syntax-tree/ast";
-import {
-    AugmentedAssignmentOperator,
-    BinaryOperator,
-    DataType,
-    IdentifierRegex,
-    NumberRegex,
-    UnaryOperator,
-} from "../syntax-tree/consts";
+import { DataType } from "../syntax-tree/consts";
 import { EditCodeAction } from "./action-filter";
 
 /**
