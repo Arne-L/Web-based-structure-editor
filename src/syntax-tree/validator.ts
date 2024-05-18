@@ -184,6 +184,11 @@ export namespace ValidatorNameSpace {
      * given statement is the last statement in the root's body
      */
     function getNextSiblingOf(construct: Construct): GeneralStatement | TypedEmptyExpr {
+        // TODO: Currently both the getNextSiblingOf & getPrevSiblingOf functions
+        // only check for a possible sibling in the same root construct. Maybe we want
+        // to traverse further if the rootNode is a CompoundConstruct? This might be useful,
+        // but could also undesirable in some case...
+
         // Construct is the last construct in the root's tokens
         if (!construct.rootNode || construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
         console.log("fdfsfd", construct.rootNode, construct.rootNode?.tokens.length - 1);
