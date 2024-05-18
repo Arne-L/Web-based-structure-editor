@@ -1,5 +1,5 @@
 import { Context } from "../editor/focus";
-import { CodeConstruct, GeneralStatement } from "./ast";
+import { CodeConstruct, CompoundConstruct, Construct, GeneralStatement, TypedEmptyExpr } from "./ast";
 import { Module } from "./module";
 
 export namespace ValidatorNameSpace {
@@ -35,7 +35,12 @@ export namespace ValidatorNameSpace {
             if (dependingIndex === -1) continue;
 
             // Depending / requiring construct to start checking from
-            let currentConstruct = context.codeConstruct;
+            let currentConstruct: Construct = context.codeConstruct;
+            if (currentConstruct instanceof CompoundConstruct) {
+                const replacement = context.token ?? context.tokenToLeft ?? context.tokenToRight;
+                if (replacement instanceof TypedEmptyExpr) currentConstruct = replacement;
+            }
+            const startingConstruct = currentConstruct;
 
             // There is no construct in front of the current one, so the insertion is invalid
             if (!currentConstruct) break;
@@ -77,12 +82,12 @@ export namespace ValidatorNameSpace {
             // check the constraints
             // dependingVisited[dependingIndex] = 1;
 
-            let prevConstruct = currentConstruct; // NOT OKAY
+            let prevConstruct = currentConstruct;
 
             // TODO: Not completely correct: what if there are multiple of the first requiring construct?
             while (dependingIndex >= 0) {
                 const currentEditorConstruct = currentConstruct;
-                if (currentConstruct === context.codeConstruct) {
+                if (currentConstruct === startingConstruct) {
                     prevConstruct = prevConstruct === currentConstruct ? invokedConstruct : prevConstruct;
                     currentConstruct = invokedConstruct;
                 }
@@ -120,7 +125,7 @@ export namespace ValidatorNameSpace {
                 // Else the current construct is the required construct
                 if (dependingIndex >= 0) {
                     prevConstruct = currentConstruct;
-                    currentConstruct = getPrevSiblingOf(currentEditorConstruct) as GeneralStatement; // NOT OKAY
+                    currentConstruct = getPrevSiblingOf(currentEditorConstruct);
 
                     // In case there are not yet any constructs in front of the current position
                     if (!currentConstruct) {
@@ -171,29 +176,42 @@ export namespace ValidatorNameSpace {
     }
 
     /**
-     * Returns the next sibling of the given statement
+     * Returns the next sibling of the given construct that is either a UniConstruct 
+     * or a Hole
      *
-     * @param statement - Statement to get the next sibling of
+     * @param construct - Statement to get the next sibling of
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
      */
-    function getNextSiblingOf(statement: CodeConstruct): CodeConstruct {
-        // Statement is the last statement in the root's body
-        if (statement.indexInRoot === statement.rootNode?.tokens.length - 1) return null;
-        return getStatementInBody(statement.rootNode, statement.indexInRoot + 1);
+    function getNextSiblingOf(construct: Construct): GeneralStatement | TypedEmptyExpr {
+        // Construct is the last construct in the root's tokens
+        if (!construct.rootNode || construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
+        console.log("fdfsfd", construct.rootNode, construct.rootNode?.tokens.length - 1);
+        // Get the next construct
+        const nextConstruct = construct.rootNode.tokens[construct.indexInRoot + 1];
+        // If the next construct is a UniConstruct or a Hole, return it
+        if (nextConstruct instanceof GeneralStatement || nextConstruct instanceof TypedEmptyExpr) return nextConstruct;
+        // Otherwise, keep searching
+        else return getNextSiblingOf(nextConstruct);
     }
 
     /**
-     * Returns the previous sibling of the given statement
+     * Returns the previous sibling of the given construct that is either a UniConstruct 
+     * or a Hole
      *
-     * @param statement - Statement to get the previous sibling of
+     * @param construct - Statement to get the previous sibling of
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
      */
-    function getPrevSiblingOf(statement: CodeConstruct): CodeConstruct {
-        // Statement is the first statement in the root's body
-        if (statement.indexInRoot === 0) return null;
-        return getStatementInBody(statement.rootNode, statement.indexInRoot - 1);
+    function getPrevSiblingOf(construct: Construct): GeneralStatement | TypedEmptyExpr {
+        // Construct is the first construct in the root's tokens
+        if (!construct?.rootNode || construct.indexInRoot === 0) return null;
+        // Get the previous construct
+        const prevConstruct = construct.rootNode.tokens[construct.indexInRoot - 1];
+        // If the prev construct is a UniConstruct or a Hole, return it
+        if (prevConstruct instanceof GeneralStatement || prevConstruct instanceof TypedEmptyExpr) return prevConstruct;
+        // Otherwise, keep searching
+        else return getPrevSiblingOf(prevConstruct);
     }
 
     /**
@@ -206,13 +224,5 @@ export namespace ValidatorNameSpace {
     function getParentOf(statement: CodeConstruct): CodeConstruct {
         if (statement.rootNode instanceof Module) return null;
         return statement.rootNode;
-    }
-
-    function getStatementInBody(bodyContainer: CodeConstruct, index: number): CodeConstruct {
-        if (index >= 0 && index < bodyContainer?.tokens.length) {
-            return bodyContainer.tokens[index] as CodeConstruct; // TODO: NOT OKAY
-        }
-
-        return null;
     }
 }
