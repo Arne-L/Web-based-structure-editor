@@ -9,7 +9,7 @@ import { EMPTYIDENTIFIER, TAB_SPACES } from "../language-definition/settings";
 import { CodeBackground, ConstructHighlight, HoverMessage, InlineMessage } from "../messages/messages";
 import { Callback, CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
-import { AutoCompleteType, DataType, InsertionType, ScopeType, Tooltip } from "./consts";
+import { AutoCompleteType, CodeConstructType, DataType, InsertionType, ScopeType, Tooltip } from "./consts";
 import { scopeHeuristic } from "./heuristics";
 import { Module } from "./module";
 import { Scope } from "./scope";
@@ -179,8 +179,15 @@ export abstract class Construct {
     }
 
     /**
-     * Returns the parent statement of this code-construct (an element of the Module.body array).
+     * Returns the parent statement of this CodeConstruct (an element of the Module.body array).
+     *
+     * @param type - The type of the CodeConstruct to return; if none is given, the nearest CodeConstruct
+     * will be returned
+     * @returns The nearest (itself or an ancestor) CodeConstruct of the given
+     * CodeConstruct type if given, otherwise the nearest CodeConstruct
      */
+    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    abstract getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     abstract getNearestCodeConstruct(): CodeConstruct;
 
     /**
@@ -616,8 +623,12 @@ export abstract class Statement extends CodeConstruct {
      * could update the context to use a general construct and also update
      * this method!
      */
-    getNearestCodeConstruct(): CodeConstruct {
-        return this;
+    getNearestCodeConstruct(): CodeConstruct;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
+    getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct | Statement | CompoundConstruct {
+        if (!type || type === CodeConstructType.UniConstruct) return this;
+        return this.rootNode?.getNearestCodeConstruct(type);
     }
 
     updateScope() {
@@ -989,18 +1000,13 @@ export class GeneralExpression extends GeneralStatement {
         return new Selection(this.left.lineNumber, this.rightCol, this.right.lineNumber, this.leftCol);
     }
 
-    /**
-     * Get the parent statement of the current expression
-     *
-     * @returns The parent statement of the current expression
-     */
-    getNearestCodeConstruct(): CodeConstruct {
-        // Change to GeneralStatement in the future
-        if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
-        else {
-            return this.rootNode.getNearestCodeConstruct();
-        }
-    }
+    // getNearestCodeConstruct(): CodeConstruct {
+    //     // Change to GeneralStatement in the future
+    //     if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
+    //     else {
+    //         return this.rootNode.getNearestCodeConstruct();
+    //     }
+    // }
 
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         return validator.atHoleWithType(providedContext, this.constructType)
@@ -1047,14 +1053,14 @@ export abstract class Expression extends Statement implements Construct {
          */
     }
 
-    getNearestCodeConstruct(): CodeConstruct {
-        return this.rootNode.getNearestCodeConstruct();
-        /**
-         * Generalisatie:
-         * if (this.returns) return this.rootNode.getParentStatement(); // If expression
-         * else return this; // If statement
-         */
-    }
+    // getNearestCodeConstruct(): CodeConstruct {
+    //     return this.rootNode.getNearestCodeConstruct();
+    //     /**
+    //      * Generalisatie:
+    //      * if (this.returns) return this.rootNode.getParentStatement(); // If expression
+    //      * else return this; // If statement
+    //      */
+    // }
 
     onDelete(): void {
         return;
@@ -1207,8 +1213,13 @@ export abstract class Token extends Construct {
         return this.left.lineNumber;
     }
 
-    getNearestCodeConstruct(): CodeConstruct {
-        return this.rootNode.getNearestCodeConstruct();
+    getNearestCodeConstruct(): CodeConstruct;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
+    getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
+        // This is weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
+        if (type === CodeConstructType.CompoundConstruct) return this.rootNode?.getNearestCodeConstruct(type);
+        return this.rootNode?.getNearestCodeConstruct(type);
     }
 
     updateScope() {
@@ -1475,7 +1486,7 @@ export class IdentifierTkn extends Token implements TextEditable {
     setEditedText(text: string): boolean {
         if (this.validatorRegex.test(text)) {
             this.setIdentifierText(text);
-            (this.rootNode as Statement).rebuild(this.getLeftPosition(), this.indexInRoot);
+            this.rootNode.rebuild(this.getLeftPosition(), this.indexInRoot);
 
             if (this.text.length > 0) this.isEmpty = false;
             if (this.text.length == 0) this.isEmpty = true;
@@ -1521,6 +1532,10 @@ export class AssignmentToken extends IdentifierTkn {
      * variable belongs and what it's reach is.
      */
     private scopeType: ScopeType;
+    /**
+     * Specification definied categories for the assignments.
+     */
+    referenceType: string;
 
     /**
      * getIdentifier = getRenderText
@@ -1548,11 +1563,13 @@ export class AssignmentToken extends IdentifierTkn {
         root?: CodeConstruct,
         indexInRoot?: number,
         regex?: RegExp,
-        scopeType?: ScopeType
+        scopeType?: ScopeType,
+        referenceType?: string
     ) {
         super(identifier, root, indexInRoot, regex);
 
         this.scopeType = scopeType ?? ScopeType.Global;
+        this.referenceType = referenceType;
 
         root.addAssignmentIndex(indexInRoot);
 
@@ -1925,10 +1942,13 @@ export abstract class HoleStructure extends Construct {
         return this.text;
     }
 
-    getNearestCodeConstruct(): CodeConstruct {
-        // TODO: Remove Module check later on
-        if (this.rootNode instanceof Module) return null;
-        return this.rootNode.getNearestCodeConstruct();
+    getNearestCodeConstruct(): CodeConstruct;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
+    getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
+        // Weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
+        if (type === CodeConstructType.CompoundConstruct) return this.rootNode?.getNearestCodeConstruct(type);
+        return this.rootNode?.getNearestCodeConstruct(type);
     }
 
     /**
@@ -1985,7 +2005,7 @@ export class CompoundConstruct extends CodeConstruct {
     // Hmmmm?
     scope: Scope;
     //
-    private compoundToken: CompoundFormatDefinition;
+    compoundToken: CompoundFormatDefinition;
     private waitOnIndices: Map<number, string>;
     // private nextFormatIndex: number;
 
@@ -1995,10 +2015,12 @@ export class CompoundConstruct extends CodeConstruct {
         this.indexInRoot = indexInRoot;
         this.compoundToken = compoundToken;
         this.waitOnIndices = new Map(
-            compoundToken.format
-                .filter((tkn) => "waitOnUser" in tkn)
-                // @ts-ignore
-                .map((tkn, idx) => [idx, tkn.waitOnUser] as [number, string])
+            compoundToken.format.flatMap((tkn, idx) =>
+                "waitOnUser" in tkn ? [[idx, tkn.waitOnUser] as [number, string]] : []
+            )
+            // .filter((tkn) => "waitOnUser" in tkn)
+            // // @ts-ignore
+            // .map((tkn, idx) => [idx, tkn.waitOnUser] as [number, string])
         );
         // Could be split in two different constructors if we want to allow json as well
         // by using the factory method
@@ -2037,6 +2059,13 @@ export class CompoundConstruct extends CodeConstruct {
         this.updateScope();
     }
 
+    /**
+     * Get the length, in tokens, of a single expansion cycle
+     */
+    get cycleLength(): number {
+        return this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
+    }
+
     // setElementToInsertNextIndex(idx: number) {
     //     this.nextFormatIndex = idx;
     // }
@@ -2067,6 +2096,15 @@ export class CompoundConstruct extends CodeConstruct {
     //     );
     // }
 
+    private getFormatIndex(leftConstruct: Construct, delta: number = 0): number {
+        const repetitionLength = this.cycleLength;
+        // Get the index of the current token in the root, modulo the cycle length
+        const repetitionIndex = leftConstruct.indexInRoot + (delta % repetitionLength);
+
+        // Get the index of the current token in the compound specification
+        return (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + this.cycleLength) % repetitionLength;
+    }
+
     /**
      * Check if an expansion iteration can be executed
      *
@@ -2076,20 +2114,32 @@ export class CompoundConstruct extends CodeConstruct {
      * @returns True if the expansion can continue on the given location with the given key
      */
     canContinueExpansion(leftConstruct: Construct, keyPressed: string) {
+        // If the left construct is not a direct child of this compound,
+        // the expansion can then only happen if the compound is directly adjacent
+        // to the leftConstruct and the starting construct's waitOnUser key equals the
+        // current key pressed
+        if (leftConstruct.left.isBefore(this.left))
+            return (
+                leftConstruct.right.equals(this.left) &&
+                this.waitOnIndices.get(0) === keyPressed &&
+                !this.compoundToken.insertBefore
+            );
         // Get the index of the leftConstruct in the format specification
-        const repetitionLength = this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
-        const repetitionIndex = leftConstruct.indexInRoot % repetitionLength;
-        const formatIndex =
-            (repetitionIndex - (this.compoundToken.insertBefore ? 1 : 0) + repetitionLength) % repetitionLength;
+        const formatIndex = this.getFormatIndex(leftConstruct, 1);
 
         // Get the key which needs to be pressed to continue the expansion on the given location
         const formatKey = this.waitOnIndices.get(formatIndex);
+        console.log(leftConstruct, this.getFormatIndex(leftConstruct, 1), this.waitOnIndices);
         // True if
         return !!formatKey && formatKey === keyPressed;
     }
 
     continueExpansion(leftConstruct: Construct) {
-        const startingIndex = leftConstruct.indexInRoot;
+        // Get the index of the leftConstruct in the format specification
+        // If the leftConstruct is to the left of this compound, the index is -1
+        let startingIndex;
+        if (leftConstruct.left.isBefore(this.left)) startingIndex = -1;
+        else startingIndex = leftConstruct.indexInRoot;
         const initLength = this.tokens.length;
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(
             this.compoundToken,
@@ -2130,8 +2180,7 @@ export class CompoundConstruct extends CodeConstruct {
 
     removeExpansion(leftConstruct: Construct): boolean {
         const currentIdx = leftConstruct.indexInRoot;
-        const cycleLength = this.compoundToken.format.length + (this.compoundToken.insertBefore ? 1 : 0);
-        console.log("Remove expansion", currentIdx, cycleLength);
+        const cycleLength = this.cycleLength;
         const startIdx = Math.max(currentIdx - cycleLength + 1, 0);
 
         // All tokens can only be deleted if the first token can lead to an expansion
@@ -2140,34 +2189,48 @@ export class CompoundConstruct extends CodeConstruct {
 
         const deletable = this.tokens
             .slice(startIdx, currentIdx + 1)
-            .every((token) => token instanceof NonEditableTkn || token instanceof TypedEmptyExpr);
+            .every(
+                (token) =>
+                    token instanceof NonEditableTkn ||
+                    token instanceof TypedEmptyExpr ||
+                    (token instanceof Token && token.isEmpty)
+            );
+
+        if (!deletable) return false;
 
         const leftpos = this.tokens[startIdx].left;
-        if (deletable) {
-            const deleted = this.tokens.splice(startIdx, cycleLength);
-            for (let i = deleted.length - 1; i >= 0; i--) {
-                deleted[i].notify(CallbackType.delete);
-                // TODO: Very ugly and does not work
-            }
-
-            if (deleted.length > 0) {
-                // Remove from the monaco editor
-                const range = new Range(
-                    deleted[0].left.lineNumber,
-                    deleted[0].leftCol,
-                    deleted.at(-1).right.lineNumber,
-                    deleted.at(-1).rightCol
-                );
-
-                Module.instance.editor.monaco.executeEdits("module", [{ range: range, text: null }]);
-            }
-
-            // Rebuild the tokens
-            if (this.tokens[startIdx]) ASTManupilation.rebuild(this.tokens[startIdx], leftpos);
-            // TODO: Also very ugly and also does not work that well
-            Module.instance.focus.updateContext({ positionToMove: leftpos });
+        const deleted = this.tokens.splice(startIdx, cycleLength);
+        for (let i = deleted.length - 1; i >= 0; i--) {
+            deleted[i].notify(CallbackType.delete);
+            // TODO: Very ugly and does not work
         }
 
+        if (deleted.length > 0) {
+            // Remove from the monaco editor
+            const range = new Range(
+                deleted[0].left.lineNumber,
+                deleted[0].leftCol,
+                deleted.at(-1).right.lineNumber,
+                deleted.at(-1).rightCol
+            );
+
+            Module.instance.editor.monaco.executeEdits("module", [{ range: range, text: null }]);
+        }
+
+        // Rebuild the tokens
+        // If there are still tokens after the removed section, rebuild these and all following tokens
+        if (this.tokens[startIdx]) ASTManupilation.rebuild(this.tokens[startIdx], leftpos);
+        // If there are no tokens after the removed section, but there are tokens before, start rebuilding all following tokens / constructs
+        else if (startIdx > 0)
+            ASTManupilation.rebuild(this.tokens[startIdx - 1], this.tokens[startIdx - 1].right, {
+                rebuildConstruct: false,
+            });
+        // Otherwise the construct has a zero width (which should be impossible) and thus rebuild from there
+        else ASTManupilation.rebuild(this, leftpos);
+        // TODO: Also very ugly and also does not work that well
+        Module.instance.focus.updateContext({ positionToMove: leftpos });
+
+        // Here deletable is always true
         return deletable;
     }
 
@@ -2218,13 +2281,12 @@ export class CompoundConstruct extends CodeConstruct {
         return this.recursiveName;
     }
 
-    /**
-     * Returns the nearest statement, either itself or one of its ancestors
-     *
-     * @returns The nearest statement, or null if there is no statement
-     */
-    getNearestCodeConstruct(): CodeConstruct {
-        return this;
+    getNearestCodeConstruct(): CodeConstruct;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
+    getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
+        if (!type || type === CodeConstructType.CompoundConstruct) return this;
+        return this.rootNode?.getNearestCodeConstruct(type);
     }
 
     notify(type: CallbackType) {

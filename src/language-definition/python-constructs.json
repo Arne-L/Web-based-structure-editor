@@ -22,7 +22,8 @@
                 "value": " :"
             },
             {
-                "type": "body"
+                "type": "recursive",
+                "recursiveName": "body"
             }
         ],
         "match": "while",
@@ -99,14 +100,10 @@
                 "value": "for "
             },
             {
-                "type": "hole",
-                "delimiter": ", ",
-                "elements": [
-                    {
-                        "type": "expression",
-                        "optional": false
-                    }
-                ]
+                "type": "identifier",
+                "regex": "^[^\\d\\W]\\w*$",
+                "scopeType": "localChild",
+                "reference": "variable"
             },
             {
                 "type": "token",
@@ -127,7 +124,8 @@
                 "value": " :"
             },
             {
-                "type": "body"
+                "type": "recursive",
+                "recursiveName": "body"
             }
         ],
         "match": "for",
@@ -252,6 +250,164 @@
         }
     },
     {
+        "keyword": "def",
+        "constructType": "statement",
+        "editorName": "def -- (---) :",
+        "format": [
+            {
+                "type": "token",
+                "value": "def "
+            },
+            {
+                "type": "identifier",
+                "regex": "^[^\\d\\W]\\w*$",
+                "scopeType": "localParent",
+                "reference": "function"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "identifier",
+                "regex": "^[^\\d\\W]\\w*$",
+                "scopeType": "localChild",
+                "reference": "variable"
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "identifier",
+                        "regex": "^[^\\d\\W]\\w*$",
+                        "scopeType": "localChild",
+                        "reference": "variable"
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ") :"
+            },
+            {
+                "type": "recursive",
+                "recursiveName": "body"
+            }
+        ],
+        "match": "def",
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Functions",
+            "title": "define function",
+            "tooltip": {
+                "title": "Define a Function",
+                "body": "Creates a reusable block of code that can be called by its name. Functions can take inputs and return outputs."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-def-1",
+                    "example": "def greet(name):\n\tprint(\"Hello, \" + name)\n\ngreet(\"Alice\")"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-def-2",
+                    "example": "def add(a, b):\n\treturn a + b\n\nresult = add(3, 5)\nprint(result)"
+                },
+                {
+                    "type": "quick",
+                    "text": "Functions are like mini-programs that can be called from anywhere in the code."
+                }
+            ],
+            "search-queries": ["define function", "function", "def", "create function"]
+        }
+    },
+    {
+        "keyword": "functionCall",
+        "constructType": "expression",
+        "editorName": "function(---)",
+        "format": [
+            {
+                "type": "reference",
+                "to": "function"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "match": "--(",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Functions",
+            "title": "Reference Variable",
+            "tooltip": {
+                "title": "Reference Variable",
+                "body": "Refers to the value stored in the specified variable."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-declare-print-var",
+                    "example": "name = \"John\"\nprint(name)"
+                },
+                {
+                    "type": "quick",
+                    "text": "References only exist for variables that have been created or assigned a value."
+                },
+                {
+                    "type": "quick",
+                    "text": "Reference names follow the same rules as variable names."
+                }
+            ],
+            "search-queries": ["reference variable", "variable", "var"]
+        }
+    },
+    {
         "keyword": "print",
         "constructType": "statement",
         "format": [
@@ -279,14 +435,6 @@
             }
         ],
         "triggerInsertion": ["("],
-        "holes": [
-            [
-                {
-                    "name": "text",
-                    "optional": false
-                }
-            ]
-        ],
         "editorName": "print(---)",
         "match": "print",
         "toolbox": {
@@ -340,14 +488,6 @@
             }
         ],
         "triggerInsertion": ["("],
-        "holes": [
-            [
-                {
-                    "name": "text",
-                    "optional": false
-                }
-            ]
-        ],
         "editorName": "input(---)",
         "match": "input",
         "toolbox": {
@@ -395,14 +535,6 @@
             }
         ],
         "triggerInsertion": ["("],
-        "holes": [
-            [
-                {
-                    "name": "collection",
-                    "optional": false
-                }
-            ]
-        ],
         "editorName": "len(---)",
         "match": "len",
         "toolbox": {
@@ -455,14 +587,6 @@
             }
         ],
         "triggerInsertion": ["("],
-        "holes": [
-            [
-                {
-                    "name": "collection",
-                    "optional": false
-                }
-            ]
-        ],
         "editorName": "choice(---)",
         "match": "choice",
         "toolbox": {
@@ -681,7 +805,8 @@
                 "value": " :"
             },
             {
-                "type": "body"
+                "type": "recursive",
+                "recursiveName": "body"
             }
         ],
         "requiringConstructs": [
@@ -742,7 +867,8 @@
                 "value": "else:"
             },
             {
-                "type": "body"
+                "type": "recursive",
+                "recursiveName": "body"
             }
         ],
         "match": "else",
@@ -790,7 +916,8 @@
                 "value": " :"
             },
             {
-                "type": "body"
+                "type": "recursive",
+                "recursiveName": "body"
             }
         ],
         "holes": [
@@ -852,7 +979,8 @@
             {
                 "type": "identifier",
                 "regex": "^[^\\d\\W]\\w*$",
-                "scopeType": "localParent"
+                "scopeType": "localParent",
+                "reference": "variable"
             },
             {
                 "type": "token",
@@ -868,14 +996,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
         ],
         "match": null,
         "matchRegex": "^([^\\d\\W]\\w*)$",
@@ -973,14 +1093,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "--",
         "matchRegex": null,
         "triggerInsertion": ["+"],
@@ -1024,14 +1136,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
         ],
         "match": "-",
         "matchRegex": null,
@@ -1077,14 +1181,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "--",
         "matchRegex": null,
         "triggerInsertion": ["*"],
@@ -1128,14 +1224,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "expression",
-                    "optional": false
-                }
-            ]
         ],
         "match": "--",
         "matchRegex": null,
@@ -1281,7 +1369,29 @@
                 "elements": [
                     {
                         "type": "expression",
-                        "optional": false
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
                     }
                 ]
             },
@@ -1289,14 +1399,6 @@
                 "type": "token",
                 "value": "]"
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
         ],
         "match": "",
         "matchRegex": null,
@@ -1353,20 +1455,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": null,
         "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
         "triggerInsertion": ["+"],
@@ -1422,20 +1510,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "-",
         "matchRegex": null,
         "triggerInsertion": [],
@@ -1475,14 +1549,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
         ],
         "match": "-",
         "matchRegex": null,
@@ -1534,20 +1600,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "",
         "matchRegex": null,
         "triggerInsertion": ["*"],
@@ -1597,20 +1649,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
         ],
         "match": "",
         "matchRegex": null,
@@ -1662,20 +1700,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "/",
         "matchRegex": null,
         "triggerInsertion": ["/"],
@@ -1726,20 +1750,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "",
         "matchRegex": null,
         "triggerInsertion": ["%"],
@@ -1789,20 +1799,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
         ],
         "match": "=",
         "matchRegex": null,
@@ -1859,20 +1855,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "!",
         "matchRegex": null,
         "triggerInsertion": ["="],
@@ -1927,20 +1909,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
         ],
         "match": "<",
         "matchRegex": null,
@@ -1997,20 +1965,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "<",
         "matchRegex": null,
         "triggerInsertion": ["="],
@@ -2065,20 +2019,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
         ],
         "match": ">",
         "matchRegex": null,
@@ -2135,20 +2075,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": ">",
         "matchRegex": null,
         "triggerInsertion": ["="],
@@ -2204,20 +2130,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "in",
         "matchRegex": null,
         "triggerInsertion": [" "],
@@ -2268,20 +2180,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "not in",
         "matchRegex": null,
         "triggerInsertion": [" "],
@@ -2331,20 +2229,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
         ],
         "match": "and",
         "matchRegex": null,
@@ -2401,20 +2285,6 @@
                 ]
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "operand1",
-                    "optional": false
-                }
-            ],
-            [
-                {
-                    "name": "operand2",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "or",
         "matchRegex": null,
         "triggerInsertion": [" "],
@@ -2459,14 +2329,6 @@
                     }
                 ]
             }
-        ],
-        "holes": [
-            [
-                {
-                    "name": "operand",
-                    "optional": false
-                }
-            ]
         ],
         "match": "not",
         "matchRegex": null,
@@ -2548,257 +2410,6 @@
                 }
             ],
             "search-queries": ["false", "boolean"]
-        }
-    },
-    {
-        "keyword": "test",
-        "constructType": "expression",
-        "editorName": "-- k --",
-        "format": [
-            {
-                "type": "identifier",
-                "regex": "^w*$"
-            },
-            {
-                "type": "token",
-                "value": " k "
-            },
-            {
-                "type": "identifier",
-                "regex": "^v*$"
-            }
-        ],
-        "match": "",
-        "matchRegex": "^(w*)(?: k (v*))?$",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                },
-                {
-                    "type": "executable",
-                    "id": "ex-sum-strings",
-                    "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
-                }
-            ],
-            "search-queries": ["add", "sum"]
-        }
-    },
-    {
-        "keyword": "test",
-        "constructType": "statement",
-        "editorName": "test: kok :test",
-        "format": [
-            {
-                "type": "token",
-                "value": "test: "
-            },
-            {
-                "type": "compound",
-                "scope": true,
-                "insertBefore": null,
-                "format": [
-                    {
-                        "type": "token",
-                        "value": "so...",
-                        "min": 1,
-                        "max": null
-                    },
-                    {
-                        "type": "hole",
-                        "delimiter": ", ",
-                        "elements": [
-                            {
-                                "type": "statement",
-                                "optional": false
-                            }
-                        ]
-                    },
-                    {
-                        "type": "token",
-                        "value": "\n"
-                    },
-                    {
-                        "type": "token",
-                        "value": "hello again",
-                        "waitOnUser": "h"
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": "kok"
-            },
-            {
-                "type": "token",
-                "value": " :test"
-            }
-        ],
-        "match": "test: kok :test",
-        "matchRegex": "",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                }
-            ],
-            "search-queries": ["test", "try"]
-        }
-    },
-    {
-        "keyword": "iftest",
-        "constructType": "statement",
-        "editorName": "iftest --- :",
-        "format": [
-            {
-                "type": "token",
-                "value": "iftest "
-            },
-            {
-                "type": "hole",
-                "delimiter": null,
-                "elements": [
-                    {
-                        "type": "expression",
-                        "optional": false
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": " :"
-            },
-            {
-                "type": "token",
-                "value": "\n"
-            },
-            {
-                "type": "compound",
-                "scope": true,
-                "insertBefore": "    ",
-                "format": [
-                    {
-                        "type": "hole",
-                        "elements": [
-                            {
-                                "type": "statement",
-                                "optional": true
-                            }
-                        ]
-                    },
-                    {
-                        "type": "token",
-                        "value": "\n",
-                        "waitOnUser": "Enter"
-                    }
-                ]
-            }
-        ],
-        "match": "test: kok :test",
-        "matchRegex": "",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                }
-            ],
-            "search-queries": ["test", "try"]
-        }
-    },
-    {
-        "keyword": "alstest",
-        "constructType": "statement",
-        "editorName": "alstest --- :",
-        "format": [
-            {
-                "type": "token",
-                "value": "alstest "
-            },
-            {
-                "type": "hole",
-                "delimiter": null,
-                "elements": [
-                    {
-                        "type": "expression",
-                        "optional": false
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": " :"
-            },
-            {
-                "type": "token",
-                "value": "\n"
-            },
-            {
-                "type": "compound",
-                "scope": true,
-                "insertBefore": "    ",
-                "format": [
-                    {
-                        "type": "hole",
-                        "elements": [
-                            {
-                                "type": "statement",
-                                "optional": true
-                            }
-                        ]
-                    },
-                    {
-                        "type": "token",
-                        "value": "\n",
-                        "waitOnUser": "Enter"
-                    }
-                ]
-            }
-        ],
-        "match": "test: kok :test",
-        "matchRegex": "",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Tests",
-            "title": "add",
-            "tooltip": {
-                "title": "Insert Addition",
-                "body": "Adds the values to the left and right of the operator."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-sum-numbers",
-                    "example": "a = 2\nb = 5\nprint((a + b))"
-                }
-            ],
-            "search-queries": ["test", "try"]
         }
     },
     {

@@ -2,7 +2,7 @@ import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
 import config from "./config.json";
-import { ConstructDefinition, LanguageDefinition, RecursiveDefinition } from "./definitions";
+import { ConstructDefinition, LanguageDefinition, RecursiveDefinition, ReferenceFormatDefinition } from "./definitions";
 
 // Dynamically import the correct language and constructs
 let languageConfig: LanguageDefinition;
@@ -19,11 +19,14 @@ if (languageConfig.recursiveFile)
     recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
 else throw new Error("No recursive file specified in the language configuration file");
 
-export const initialConstructDef = languageConfig.initialConstruct;
-export const globalFormats = new Map(recursiveFormats.map((format) => {
-    const { name, ...formatData } = format;
-    return [format.name, formatData];
-}));
+export const INITIALCONSTRUCTDEF = languageConfig.initialConstruct;
+export const globalFormats = new Map(
+    recursiveFormats.map((format) => {
+        const { name, ...formatData } = format;
+        return [format.name, formatData];
+    })
+);
+export const INDENT = languageConfig.indent;
 
 /* EVERYTHING RELATED TO ACTIONS AND EDITCODEACTIONS AND AST */
 
@@ -77,7 +80,7 @@ export function getAllCodeActions(): EditCodeAction[] {
         );
 
         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-        action.containsReference = construct.format.some((struct) => struct.type === "reference");
+        action.referenceType = (construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition)?.to;
 
         // Add the action to the list
 

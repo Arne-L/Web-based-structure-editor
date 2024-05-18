@@ -363,7 +363,7 @@ export class ActionExecutor {
 
             //
             case EditActionType.InsertChar: {
-                // Current caret position and current seelection
+                // Current caret position and current selection
                 const cursorPos = this.module.editor.monaco.getPosition();
                 const selectedText = this.module.editor.monaco.getSelection();
                 // Get the focused or adjacent editable
@@ -451,7 +451,6 @@ export class ActionExecutor {
 
                 // Add the text to the token and if it could be rebuild (it is in the editor), execute the edit
                 if (editableToken.setEditedText(newText)) {
-                    console.log("Heeeey");
                     this.module.editor.executeEdits(editRange, null, pressedKey);
                 }
 

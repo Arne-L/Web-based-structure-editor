@@ -21,6 +21,11 @@ export interface LanguageDefinition {
      */
     recursiveFile: string;
     /**
+     * The indentation to use when inserting tabs in the editor. It is also frequently used
+     * to indent body constructs. 
+     */
+    indent: string;
+    /**
      * The construct that will be inserted in the editor to start of from
      * Usually this is some form of body or multi-hole construct.
      */
@@ -298,7 +303,7 @@ interface BodyFormatDefinition extends FormatDefinition {
      */
     type: "body";
 }
-interface ReferenceFormatDefinition extends FormatDefinition {
+export interface ReferenceFormatDefinition extends FormatDefinition {
     /**
      * The type of the token. This field determines which of the other fields can be used / are required.
      */
@@ -334,6 +339,11 @@ interface IdentifierFormatDefinition extends FormatDefinition {
      * The type indicates to which scope the identifier should be added.
      */
     scopeType: ScopeType;
+    /**
+     * The categorisation of the assignment. Used to divide the possible reference and 
+     * suggest only the most relevant ones to the user.
+     */
+    reference: string;
 }
 interface EditableFormatDefinition extends FormatDefinition {
     /**
@@ -365,8 +375,25 @@ interface RecursiveFormatDefinition extends FormatDefinition {
 }
 export interface CompoundFormatDefinition extends FormatDefinition {
     type: "compound";
+    /**
+     * Indicates whether the encapsulation represents a scope or not.
+     */
     scope: boolean;
+    /**
+     * Insert this token before each iteration of the compound.
+     */
     insertBefore: string; // Maybe change to token if we want to accept multiple (different) tokens
+    /**
+     * Setting this to true will make it possible to delete an iteration from the compound and add
+     * it to the parent compound. In practice, this often means removing the indentation in front
+     * of the cursor position. 
+     * 
+     * Defaults to false.
+     */
+    enableIndentation: boolean;
+    /**
+     * The list of format definitions that should be repeated in the compound.
+     */
     format: FormatDefType[];
 }
 

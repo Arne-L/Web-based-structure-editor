@@ -1,59 +1,30 @@
 [
     {
         "name": "body",
-        "scope": true,
         "format": [
             {
                 "type": "token",
-                "value": "\n\t",
-                "min": 1,
-                "max": null
+                "value": "\n"
             },
-            {
-                "type": "recursive",
-                "recursiveName": "body_helper"
-            }
-        ]
-    },
-    {
-        "name": "body_helper",
-        "format": [
-            {
-                "type": "recursive",
-                "recursiveName": "statement"
-            },
-            {
-                "type": "token",
-                "waitOnUser": "\n",
-                "value": "\n\t",
-                "min": 1,
-                "max": null
-            },
-            {
-                "type": "recursive",
-                "recursiveName": "body_helper",
-                "min": 0,
-                "max": 1
-            }
-        ]
-    },
-    {
-        "name": "new_body",
-        "format": [
             {
                 "type": "compound",
                 "scope": true,
-                "insertBefore": "",
+                "insertBefore": "    ",
+                "enableIndentation": true,
                 "format": [
                     {
-                        "type": "token",
-                        "value": "\n\t",
-                        "min": 1,
-                        "max": null
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "statement",
+                                "optional": true
+                            }
+                        ]
                     },
                     {
-                        "type": "recursive",
-                        "recursiveName": "statement"
+                        "type": "token",
+                        "value": "\n",
+                        "waitOnUser": "Enter"
                     }
                 ]
             }

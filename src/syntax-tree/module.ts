@@ -11,7 +11,7 @@ import { Context, Focus } from "../editor/focus";
 import { Hole } from "../editor/hole";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
-import { initialConstructDef } from "../language-definition/parser";
+import { INITIALCONSTRUCTDEF } from "../language-definition/parser";
 import { ERROR_HIGHLIGHT_COLOUR, TAB_SPACES } from "../language-definition/settings";
 import { MessageController } from "../messages/message-controller";
 import { NotificationManager } from "../messages/notifications";
@@ -107,7 +107,7 @@ export class Module {
         this.toolboxController.loadToolboxFromJson();
         // Initialise the editors starting construct
         // The starting construct needs to be a CodeConstruct (needs to contain tokens)
-        this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON([initialConstructDef], null, 0)[0];
+        this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON([INITIALCONSTRUCTDEF], null, 0)[0];
         this.compoundConstruct.build(new Position(1, 1));
         const range = new Range(
             this.compoundConstruct.left.lineNumber,
