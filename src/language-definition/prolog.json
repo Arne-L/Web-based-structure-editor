@@ -1,0 +1,38 @@
+{
+    "name": "Prolog",
+    "constructFile": "prolog-constructs.json",
+    "recursiveFile": "prolog-format.json",
+    "indent": "    ",
+    "initialConstruct": {
+        "type": "compound",
+        "scope": true,
+        "insertBefore": null,
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "clause",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "\n",
+                "waitOnUser": "Enter"
+            }
+        ]
+    },
+    "reservedWords": [
+        {
+            "reason": "The current identifier is a reserved keyword. Please use a different one.",
+            "words": []
+        },
+        {
+            "reason": "The identifier is the name of a built-in function or variable. Please use a different one.",
+            "words": []
+        }
+    ]
+}
