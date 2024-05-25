@@ -11,5 +11,9 @@
             "example": "name = \"Zimmer\"\nindexOfE = name.find(\"e\")\nprint(indexOfE)"
         }
     ],
-    "search-queries": ["search text", "find text", "find string"]
+    "searchQueries": [
+        "search text",
+        "find text",
+        "find string"
+    ]
 }

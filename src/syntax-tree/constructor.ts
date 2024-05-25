@@ -136,16 +136,6 @@ export namespace SyntaxConstructor {
                         constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, indexInRoot + constructs.length));
                 }
                 return constructs;
-            case "body":
-                let root = rootConstruct as GeneralStatement;
-                // FFD
-                root.body.push(new EmptyLineStmt(root, root.body.length));
-                root.scope = new Scope();
-                // rootConstruct.hasSubValues = true;
-                /**
-                 * We still need to add scope for constructs without a body like else and elif
-                 */
-                return [];
             case "identifier":
                 return [new AssignmentToken(undefined, rootConstruct, indexInRoot, RegExp(token.regex), token.scopeType, token.reference)];
             case "reference":

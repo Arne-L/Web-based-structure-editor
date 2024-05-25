@@ -58,5 +58,12 @@
             "id": "loop-chars-of-str"
         }
     ],
-    "search-queries": ["for", "loop", "repeat", "go through", "iterate", "list"]
+    "searchQueries": [
+        "for",
+        "loop",
+        "repeat",
+        "go through",
+        "iterate",
+        "list"
+    ]
 }

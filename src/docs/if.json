@@ -25,5 +25,11 @@
             "id": "check-val-variable"
         }
     ],
-    "search-queries": ["if", "condition", "conditional", "choose", "path"]
+    "searchQueries": [
+        "if",
+        "condition",
+        "conditional",
+        "choose",
+        "path"
+    ]
 }

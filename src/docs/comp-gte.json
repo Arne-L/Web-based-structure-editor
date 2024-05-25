@@ -16,5 +16,9 @@
             "example": "a = 1\nb = 5\nwhile b >= a:\n\ta += 1\nprint(a)\nprint(a)"
         }
     ],
-    "search-queries": ["compare greater than or equal", "compare", "check greater than or equal"]
+    "searchQueries": [
+        "compare greater than or equal",
+        "compare",
+        "check greater than or equal"
+    ]
 }

@@ -149,7 +149,7 @@ export function initLanguage() {
     return {
         language: languageConfig.name,
         reservedWords: new Map<string, Set<string>>(
-            languageConfig.reservedWords.map((reservedCategory) => [
+            (languageConfig.reservedWords ?? []).map((reservedCategory) => [
                 reservedCategory.reason,
                 new Set(reservedCategory.words),
             ])

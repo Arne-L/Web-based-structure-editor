@@ -11,5 +11,8 @@
             "example": "if False :\n\tprint(\"will not print\")\n\nif True :\n\tprint(\"will print\")"
         }
     ],
-    "search-queries": ["false", "boolean"]
+    "searchQueries": [
+        "false",
+        "boolean"
+    ]
 }

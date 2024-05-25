@@ -28,7 +28,10 @@
         ],
         "match": "while",
         "constructType": "statement",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Loops",
             "title": "while loop",
@@ -78,7 +81,7 @@
                     ]
                 }
             ],
-            "search-queries": [
+            "searchQueries": [
                 "while",
                 "repeat",
                 "repeat while",
@@ -129,7 +132,9 @@
             }
         ],
         "match": "for",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Loops",
             "title": "for loop",
@@ -191,7 +196,14 @@
                     "id": "loop-chars-of-str"
                 }
             ],
-            "search-queries": ["for", "loop", "repeat", "go through", "iterate", "list"]
+            "searchQueries": [
+                "for",
+                "loop",
+                "repeat",
+                "go through",
+                "iterate",
+                "list"
+            ]
         }
     },
     {
@@ -221,7 +233,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "holes": [
             [
                 {
@@ -246,7 +260,12 @@
                     "example": "for i in range(10):\n\tprint(i)"
                 }
             ],
-            "search-queries": ["range", "sequence", "iterate", "for loop"]
+            "searchQueries": [
+                "range",
+                "sequence",
+                "iterate",
+                "for loop"
+            ]
         }
     },
     {
@@ -302,7 +321,9 @@
             }
         ],
         "match": "def",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Functions",
             "title": "define function",
@@ -326,7 +347,12 @@
                     "text": "Functions are like mini-programs that can be called from anywhere in the code."
                 }
             ],
-            "search-queries": ["define function", "function", "def", "create function"]
+            "searchQueries": [
+                "define function",
+                "function",
+                "def",
+                "create function"
+            ]
         }
     },
     {
@@ -381,7 +407,9 @@
         ],
         "match": "--(",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Functions",
             "title": "Reference Variable",
@@ -404,7 +432,11 @@
                     "text": "Reference names follow the same rules as variable names."
                 }
             ],
-            "search-queries": ["reference variable", "variable", "var"]
+            "searchQueries": [
+                "reference variable",
+                "variable",
+                "var"
+            ]
         }
     },
     {
@@ -434,7 +466,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "editorName": "print(---)",
         "match": "print",
         "toolbox": {
@@ -457,7 +491,15 @@
                     "example": "a = \"abc\"\nprint(a)"
                 }
             ],
-            "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
+            "searchQueries": [
+                "output",
+                "say",
+                "print",
+                "print output",
+                "console",
+                "write",
+                "see output"
+            ]
         }
     },
     {
@@ -487,7 +529,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "editorName": "input(---)",
         "match": "input",
         "toolbox": {
@@ -504,7 +548,14 @@
                     "example": "name = input(\"Hi! What’s your name?\")\nprint(name)"
                 }
             ],
-            "search-queries": ["input", "prompt", "text", "user", "ask input", "ask user"]
+            "searchQueries": [
+                "input",
+                "prompt",
+                "text",
+                "user",
+                "ask input",
+                "ask user"
+            ]
         }
     },
     {
@@ -534,7 +585,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "editorName": "len(---)",
         "match": "len",
         "toolbox": {
@@ -556,7 +609,11 @@
                     "example": "items = [1, 2, 3]\na = len(items)\nprint(a)"
                 }
             ],
-            "search-queries": ["length of list", "length of string", "length of text"]
+            "searchQueries": [
+                "length of list",
+                "length of string",
+                "length of text"
+            ]
         }
     },
     {
@@ -586,7 +643,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "editorName": "choice(---)",
         "match": "choice",
         "toolbox": {
@@ -603,7 +662,12 @@
                     "example": "from random import choice\n\nif choice([1, 2, 3, 4, 5, 6]) == 6:\n\tprint(\"Rolled Six!\")"
                 }
             ],
-            "search-queries": ["choice", "random choice", "choose randomly from list", "select randomly from array"]
+            "searchQueries": [
+                "choice",
+                "random choice",
+                "choose randomly from list",
+                "select randomly from array"
+            ]
         }
     },
     {
@@ -637,7 +701,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "editorName": "randint(---, ---)",
         "match": "randint",
         "toolbox": {
@@ -654,7 +720,12 @@
                     "example": "a = randint(0, 10)\nprint(a)"
                 }
             ],
-            "search-queries": ["random number", "random integer", "randint", "random between"]
+            "searchQueries": [
+                "random number",
+                "random integer",
+                "randint",
+                "random between"
+            ]
         }
     },
     {
@@ -680,7 +751,9 @@
             }
         ],
         "match": "brea",
-        "triggerInsertion": ["k"],
+        "triggerInsertion": [
+            "k"
+        ],
         "toolbox": {
             "category": "Loops",
             "title": "Break out of loops",
@@ -778,7 +851,11 @@
                     ]
                 }
             ],
-            "search-queries": ["exit", "loop", "break"]
+            "searchQueries": [
+                "exit",
+                "loop",
+                "break"
+            ]
         }
     },
     {
@@ -824,7 +901,10 @@
             }
         ],
         "match": "if",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Conditionals",
             "title": "if statement",
@@ -853,7 +933,13 @@
                     "id": "check-val-variable"
                 }
             ],
-            "search-queries": ["if", "condition", "conditional", "choose", "path"]
+            "searchQueries": [
+                "if",
+                "condition",
+                "conditional",
+                "choose",
+                "path"
+            ]
         }
     },
     {
@@ -872,7 +958,9 @@
             }
         ],
         "match": "else",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if or elif statement.",
@@ -888,7 +976,11 @@
                     "example": "a = 2\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)\nelse:\n\tprint(\"None of the above are true.\")"
                 }
             ],
-            "search-queries": ["else", "otherwise", "if"]
+            "searchQueries": [
+                "else",
+                "otherwise",
+                "if"
+            ]
         }
     },
     {
@@ -920,16 +1012,11 @@
                 "recursiveName": "body"
             }
         ],
-        "holes": [
-            [
-                {
-                    "name": "condition",
-                    "optional": false
-                }
-            ]
-        ],
         "match": "elif",
-        "triggerInsertion": [" ", "("],
+        "triggerInsertion": [
+            " ",
+            "("
+        ],
         "toolbox": {
             "category": "Conditionals",
             "invalidTooltip": "Can only be inserted directly below an if statement.",
@@ -968,7 +1055,14 @@
                     "id": "elif-after-elif"
                 }
             ],
-            "search-queries": ["else if", "else", "else condition", "choose", "path", "elif"]
+            "searchQueries": [
+                "else if",
+                "else",
+                "else condition",
+                "choose",
+                "path",
+                "elif"
+            ]
         }
     },
     {
@@ -999,7 +1093,10 @@
         ],
         "match": null,
         "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": ["=", " "],
+        "triggerInsertion": [
+            "=",
+            " "
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Create/Reassign Variable",
@@ -1028,7 +1125,11 @@
                     ]
                 }
             ],
-            "search-queries": ["create new variable", "variable", "var"]
+            "searchQueries": [
+                "create new variable",
+                "variable",
+                "var"
+            ]
         }
     },
     {
@@ -1043,7 +1144,9 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Reference Variable",
@@ -1066,7 +1169,11 @@
                     "text": "Reference names follow the same rules as variable names."
                 }
             ],
-            "search-queries": ["reference variable", "variable", "var"]
+            "searchQueries": [
+                "reference variable",
+                "variable",
+                "var"
+            ]
         }
     },
     {
@@ -1095,7 +1202,9 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": ["+"],
+        "triggerInsertion": [
+            "+"
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Add to Variable",
@@ -1110,7 +1219,9 @@
                     "example": "a = 2\na += 2\nprint(a)"
                 }
             ],
-            "search-queries": ["add to variable"]
+            "searchQueries": [
+                "add to variable"
+            ]
         }
     },
     {
@@ -1154,7 +1265,10 @@
                     "example": "a = 5\na -= 2\nprint(a)"
                 }
             ],
-            "search-queries": ["subtract from variable", "deduct from variable"]
+            "searchQueries": [
+                "subtract from variable",
+                "deduct from variable"
+            ]
         }
     },
     {
@@ -1183,7 +1297,9 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": ["*"],
+        "triggerInsertion": [
+            "*"
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Multiply a Variable",
@@ -1198,7 +1314,9 @@
                     "example": "a = 5\na *= 2\nprint(a)"
                 }
             ],
-            "search-queries": ["multiply variable"]
+            "searchQueries": [
+                "multiply variable"
+            ]
         }
     },
     {
@@ -1227,7 +1345,9 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": ["/"],
+        "triggerInsertion": [
+            "/"
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Divide a Variable",
@@ -1242,7 +1362,9 @@
                     "example": "a = 10\na /= 2\nprint(a)"
                 }
             ],
-            "search-queries": ["divide variable"]
+            "searchQueries": [
+                "divide variable"
+            ]
         }
     },
     {
@@ -1296,7 +1418,9 @@
         ],
         "match": "",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": ["'"],
+        "triggerInsertion": [
+            "'"
+        ],
         "toolbox": {
             "category": "Text",
             "title": "text",
@@ -1311,7 +1435,12 @@
                     "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
                 }
             ],
-            "search-queries": ["create text", "create string", "empty string", "empty text"]
+            "searchQueries": [
+                "create text",
+                "create string",
+                "empty string",
+                "empty text"
+            ]
         }
     },
     {
@@ -1335,7 +1464,9 @@
         "holes": [],
         "match": "f",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
-        "triggerInsertion": ["'"],
+        "triggerInsertion": [
+            "'"
+        ],
         "toolbox": {
             "category": "Text",
             "title": "formatted text",
@@ -1350,7 +1481,10 @@
                     "example": "age = 16\nname = \"Alex\"\nprint(f'My name is {name} and I am {age} years old')"
                 }
             ],
-            "search-queries": ["formatted string", "formatted text"]
+            "searchQueries": [
+                "formatted string",
+                "formatted text"
+            ]
         }
     },
     {
@@ -1401,7 +1535,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["["],
+        "triggerInsertion": [
+            "["
+        ],
         "toolbox": {
             "category": "Lists",
             "title": "List",
@@ -1421,7 +1557,13 @@
                     "example": "a = [\"cat\", \"dog\", \"parrot\"]\nb = [1, \"cat\", true]\nc = [1, [1, \"dog\"], \"cat\", [true]]"
                 }
             ],
-            "search-queries": ["empty list", "create empty list", "create list", "array", "create empty array"]
+            "searchQueries": [
+                "empty list",
+                "create empty list",
+                "create list",
+                "array",
+                "create empty array"
+            ]
         }
     },
     {
@@ -1456,7 +1598,9 @@
         ],
         "match": null,
         "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
-        "triggerInsertion": ["+"],
+        "triggerInsertion": [
+            "+"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "add",
@@ -1476,7 +1620,10 @@
                     "example": "a = \"hello\"\nb = \"world\"\nprint((a + \" \" + b))"
                 }
             ],
-            "search-queries": ["add", "sum"]
+            "searchQueries": [
+                "add",
+                "sum"
+            ]
         }
     },
     {
@@ -1526,7 +1673,11 @@
                     "example": "a = 20\nb = 10\nprint((a - b))"
                 }
             ],
-            "search-queries": ["subtract numbers", "subtraction", "deduct"]
+            "searchQueries": [
+                "subtract numbers",
+                "subtraction",
+                "deduct"
+            ]
         }
     },
     {
@@ -1566,7 +1717,11 @@
                     "example": "a = -2\nb = -5\nprint((a + b))"
                 }
             ],
-            "search-queries": ["substract", "negate", "negative"]
+            "searchQueries": [
+                "substract",
+                "negate",
+                "negative"
+            ]
         }
     },
     {
@@ -1601,7 +1756,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["*"],
+        "triggerInsertion": [
+            "*"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "multiply",
@@ -1616,7 +1773,10 @@
                     "example": "a = 2\nb = 5\nprint((b * a))"
                 }
             ],
-            "search-queries": ["multiply numbers", "multiply"]
+            "searchQueries": [
+                "multiply numbers",
+                "multiply"
+            ]
         }
     },
     {
@@ -1651,7 +1811,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["/"],
+        "triggerInsertion": [
+            "/"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "divide",
@@ -1666,7 +1828,11 @@
                     "example": "a = 2\nb = 10\nprint((b / a))"
                 }
             ],
-            "search-queries": ["divide", "division", "divide numbers"]
+            "searchQueries": [
+                "divide",
+                "division",
+                "divide numbers"
+            ]
         }
     },
     {
@@ -1701,7 +1867,9 @@
         ],
         "match": "/",
         "matchRegex": null,
-        "triggerInsertion": ["/"],
+        "triggerInsertion": [
+            "/"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "floor division",
@@ -1716,7 +1884,11 @@
                     "example": "a = 2\nb = 7\nprint((b / a))"
                 }
             ],
-            "search-queries": ["divide numbers", "divide integer", "divide floor"]
+            "searchQueries": [
+                "divide numbers",
+                "divide integer",
+                "divide floor"
+            ]
         }
     },
     {
@@ -1751,7 +1923,9 @@
         ],
         "match": "",
         "matchRegex": null,
-        "triggerInsertion": ["%"],
+        "triggerInsertion": [
+            "%"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "modulo",
@@ -1766,7 +1940,10 @@
                     "example": "print((29 % 5)) # prints 4\nprint((28 % 5)) # prints 3\nprint((27 % 5)) # prints 2\nprint((26 % 5)) # prints 1\nprint((25 % 5)) # prints 0"
                 }
             ],
-            "search-queries": ["modulo", "remainder"]
+            "searchQueries": [
+                "modulo",
+                "remainder"
+            ]
         }
     },
     {
@@ -1801,7 +1978,9 @@
         ],
         "match": "=",
         "matchRegex": null,
-        "triggerInsertion": ["="],
+        "triggerInsertion": [
+            "="
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "Is Equal?",
@@ -1821,7 +2000,11 @@
                     "example": "a = 5\nb = 5\nwhile a == b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["compare equal", "check equal", "are equal"]
+            "searchQueries": [
+                "compare equal",
+                "check equal",
+                "are equal"
+            ]
         }
     },
     {
@@ -1856,7 +2039,9 @@
         ],
         "match": "!",
         "matchRegex": null,
-        "triggerInsertion": ["="],
+        "triggerInsertion": [
+            "="
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "Is Not Equal?",
@@ -1876,7 +2061,12 @@
                     "example": "a = 1\nb = 5\nwhile a != b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["not equal", "compare not equal", "not equal to", "are not equal"]
+            "searchQueries": [
+                "not equal",
+                "compare not equal",
+                "not equal to",
+                "are not equal"
+            ]
         }
     },
     {
@@ -1931,7 +2121,11 @@
                     "example": "a = 1\nb = 5\nwhile a < b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["compare", "compare less than", "check less than"]
+            "searchQueries": [
+                "compare",
+                "compare less than",
+                "check less than"
+            ]
         }
     },
     {
@@ -1966,7 +2160,9 @@
         ],
         "match": "<",
         "matchRegex": null,
-        "triggerInsertion": ["="],
+        "triggerInsertion": [
+            "="
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "is less than or equal?",
@@ -1986,7 +2182,12 @@
                     "example": "a = 1\nb = 5\nwhile a <= b:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["less than or equal", "compare", "compare less than or equal", "check"]
+            "searchQueries": [
+                "less than or equal",
+                "compare",
+                "compare less than or equal",
+                "check"
+            ]
         }
     },
     {
@@ -2041,7 +2242,11 @@
                     "example": "a = 1\nb = 5\nwhile b > a:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["compare greater than", "compare", "check greater than"]
+            "searchQueries": [
+                "compare greater than",
+                "compare",
+                "check greater than"
+            ]
         }
     },
     {
@@ -2076,7 +2281,9 @@
         ],
         "match": ">",
         "matchRegex": null,
-        "triggerInsertion": ["="],
+        "triggerInsertion": [
+            "="
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "is greater than or equal?",
@@ -2096,7 +2303,11 @@
                     "example": "a = 1\nb = 5\nwhile b >= a:\n\ta += 1\nprint(a)\nprint(a)"
                 }
             ],
-            "search-queries": ["compare greater than or equal", "compare", "check greater than or equal"]
+            "searchQueries": [
+                "compare greater than or equal",
+                "compare",
+                "check greater than or equal"
+            ]
         }
     },
     {
@@ -2131,7 +2342,9 @@
         ],
         "match": "in",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "Inside?",
@@ -2146,7 +2359,13 @@
                     "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
                 }
             ],
-            "search-queries": ["in list", "inside list", "is inside list", "check inside list", "check list includes"]
+            "searchQueries": [
+                "in list",
+                "inside list",
+                "is inside list",
+                "check inside list",
+                "check list includes"
+            ]
         }
     },
     {
@@ -2181,7 +2400,9 @@
         ],
         "match": "not in",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Comparisons",
             "title": "Not Inside?",
@@ -2196,7 +2417,12 @@
                     "example": "from random import randint\na = randint(1, 10)\nb = [1, 2, 3, 4, 5]\nif a in b:\n\tprint(\"a is inside b\")\n\nif a not in b:\n\tprint(\"a is not inside b\")"
                 }
             ],
-            "search-queries": ["not in", "not inside list", "not within list", "does not include"]
+            "searchQueries": [
+                "not in",
+                "not inside list",
+                "not within list",
+                "does not include"
+            ]
         }
     },
     {
@@ -2231,7 +2457,9 @@
         ],
         "match": "and",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Booleans",
             "title": "and",
@@ -2251,7 +2479,11 @@
                     "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b > c)):\n\tprint(\"Both expressions are true.\")"
                 }
             ],
-            "search-queries": ["and", "both", "and operator"]
+            "searchQueries": [
+                "and",
+                "both",
+                "and operator"
+            ]
         }
     },
     {
@@ -2286,7 +2518,9 @@
         ],
         "match": "or",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Booleans",
             "title": "or",
@@ -2306,7 +2540,13 @@
                     "example": "a = 5\nb = 7\nc=2\n\nif ((a > c) and (b < c)):\n\tprint(\"Only the first expression is true.\")"
                 }
             ],
-            "search-queries": ["conditional", "or", "logical", "boolean", "one of"]
+            "searchQueries": [
+                "conditional",
+                "or",
+                "logical",
+                "boolean",
+                "one of"
+            ]
         }
     },
     {
@@ -2331,7 +2571,9 @@
         ],
         "match": "not",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Booleans",
             "title": "not",
@@ -2346,7 +2588,13 @@
                     "example": "a = 2\nb = 2\nif not (a == b):\n\tprint(\"Will not print.\")\n\nif not (b != a):\n\tprint(\"b is equal to a\")"
                 }
             ],
-            "search-queries": ["negate", "not", "logical", "boolean", "opposite"]
+            "searchQueries": [
+                "negate",
+                "not",
+                "logical",
+                "boolean",
+                "opposite"
+            ]
         }
     },
     {
@@ -2377,7 +2625,10 @@
                     "example": "if True :\n\tprint(\"will print\")\n\nif False :\n\tprint(\"will not print\")"
                 }
             ],
-            "search-queries": ["true", "boolean"]
+            "searchQueries": [
+                "true",
+                "boolean"
+            ]
         }
     },
     {
@@ -2408,7 +2659,10 @@
                     "example": "if False :\n\tprint(\"will not print\")\n\nif True :\n\tprint(\"will print\")"
                 }
             ],
-            "search-queries": ["false", "boolean"]
+            "searchQueries": [
+                "false",
+                "boolean"
+            ]
         }
     },
     {
@@ -2439,7 +2693,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "match": "str",
         "toolbox": {
             "category": "Converts",
@@ -2466,7 +2722,12 @@
                     "example": "a = 2\nc = \"2\"\nprint(str(a) == c)"
                 }
             ],
-            "search-queries": ["string cast", "text convert", "convert to string", "convert to text"]
+            "searchQueries": [
+                "string cast",
+                "text convert",
+                "convert to string",
+                "convert to text"
+            ]
         }
     },
     {
@@ -2497,7 +2758,9 @@
                 "value": ")"
             }
         ],
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "match": "int",
         "toolbox": {
             "category": "Converts",
@@ -2513,7 +2776,12 @@
                     "example": "a = \"2\"\nb = \"5\"\ntext_add = a + b\nnumber_add = int(a) + int(b)"
                 }
             ],
-            "search-queries": ["integer cast", "number convert", "convert to number", "convert to integer"]
+            "searchQueries": [
+                "integer cast",
+                "number convert",
+                "convert to number",
+                "convert to integer"
+            ]
         }
     },
     {
@@ -2539,7 +2807,9 @@
             }
         ],
         "match": "from",
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Imports",
             "title": "Import Module",
@@ -2559,7 +2829,10 @@
                     "example": "from random import randint\nprint(randint(1, 6))"
                 }
             ],
-            "search-queries": ["import module", "import random"]
+            "searchQueries": [
+                "import module",
+                "import random"
+            ]
         }
     }
 ]

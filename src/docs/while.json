@@ -31,13 +31,22 @@
             "extension": "PNG",
             "id": "while-increment-var",
             "explanations": [
-                { "slide": 7, "text": "i is less than 3 so the condition holds true" },
-                { "slide": 28, "text": "i is no longer less than 3 so the condition is false" },
-                { "slide": 29, "text": "should execute the next line after the while loop" }
+                {
+                    "slide": 7,
+                    "text": "i is less than 3 so the condition holds true"
+                },
+                {
+                    "slide": 28,
+                    "text": "i is no longer less than 3 so the condition is false"
+                },
+                {
+                    "slide": 29,
+                    "text": "should execute the next line after the while loop"
+                }
             ]
         }
     ],
-    "search-queries": [
+    "searchQueries": [
         "while",
         "repeat",
         "repeat while",

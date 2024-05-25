@@ -3,40 +3,68 @@ import { ScopeType } from "../syntax-tree/consts";
 export interface ConfigDefinition {
     /**
      * The path to the language config file, relative to the language-definition folder
+     *
+     * Required.
      */
     languageFile: string;
 }
 export interface LanguageDefinition {
     /**
      * The name of the language.
+     *
+     * Required.
      */
     name: string;
     /**
      * The path to the language file containing each of the constructs.
      * This should be relative to the language-definition folder
+     *
+     * The constructs file contains an array of all construct specifications in the editor.
+     * Only the recusive or named construct definitions are not included in this file.
+     *
+     * Required.
      */
     constructFile: string;
     /**
-     * The path to the file containing the recursive format definitions.
+     * The path to the file containing the recursive format definitions. This is
+     * useful for constructs, or concepts, that are used in multiple other constructs,
+     * e.g. the body concept.
+     *
+     * WARNING: These definitions could call themselves recursively, but without a proper
+     * way of stopping the recursion, this will result in an infinite loop. Currently
+     * it is only possible to break the loop by using the "waitOnUser" field on a token
+     * contained within a compound construct. Use recursion with caution!
+     *
+     * Required.
      */
     recursiveFile: string;
     /**
      * The indentation to use when inserting tabs in the editor. It is also frequently used
-     * to indent body constructs. 
+     * to indent body constructs.
+     *
+     * It is used to identify indentations when pressing the backspace key on an indented line.
+     * To make the indentation work, the compound construct representing the body should have
+     * a field "insertBefore" with an identical value.
+     *
+     * Required.
      */
     indent: string;
     /**
-     * The construct that will be inserted in the editor to start of from
+     * The construct that will be inserted in the editor to start of from.
      * Usually this is some form of body or multi-hole construct.
+     *
+     * Required.
      */
     initialConstruct: FormatDefType;
     /**
      * A list of (key)words that can / should not be used as identifier names,
-     * nested within the reason for which they are reserved. This allows for the
-     * creation of multiple categories with a different reason. The reason is
+     * accompanied by the reason why they are reserved. Multiple "categories"
+     * can be created, each having their own reason and list of (key)word. The reason is
      * shown in the editor as an error when one of the accompanying words is detected.
+     *
+     * Optional.
      */
-    reservedWords: { reason: string; words: string[] }[];
+    reservedWords?: { reason: string; words: string[] }[];
 }
 /**
  * Structure of a single construct definition
@@ -50,7 +78,8 @@ export interface ConstructDefinition {
      */
     internalName?: string;
     /**
-     * Used internally to identify and link the construct. It is not visible to the user.
+     * Used internally to identify and link the construct. It is not visible to the user, but
+     * should be unique for each construct.
      *
      * Required.
      */
@@ -59,73 +88,73 @@ export interface ConstructDefinition {
      * The name used in the toolbox and autocomplete menu to represent the construct.
      *
      * Options:
-     * * '--' represents an identifier hole
+     * * '--' represents an identifier / text hole
      * * '---' represents a general hole
      *
      * Required.
      */
     editorName: string;
     /**
-     * TEMPORARY
+     * The type of the construct. It is used to determine in which holes the construct can be inserted.
+     * Most common values are "expression" and "statement".
+     *
+     * Required.
      */
-    constructType: "expression" | "statement";
+    constructType: string;
     /**
      * The sequence of substructures and tokens that make up the construct. This field
      * determines the structure of the construct and the editor's behaviour.
-     * Each of the elements are concatenated in orde to form the eventual construct.
+     * Each of the elements are concatenated in order to form the eventual construct.
      *
-     * Different types of formattings can be used:
+     * Different types of formattings can be used, of which the most common are:
      * * token: Literal string that should be displayed in the editor for the token.
-     * * hole: A hole that can be filled with any construct.
-     * *
-     *
-     * See the different formatting descriptions for more information.
+     * * hole: A hole that can be filled with any construct of the matching constructType.
+     * See the {@link FormatDefType} for all possible format definitions.
      *
      * Required. Empty constructs are not allowed.
      */
     format: FormatDefType[];
     /**
-     * A list of lists in which each element represents a hole in the construct. The inner list
-     * represents all the holes for one single formatting hole. The outer list maps the holes in
-     * the format field in order to the inner lists in this holes field.
-     *
-     * See the {@link HoleDefinition} for more information.
-     *
-     * Optional, but has to match the number of holes in the format field. If the holes and nesting
-     * does not match, an error will be thrown on startup.
-     */
-    holes?: HoleDefinition[][];
-    /**
      * Constructs that require this construct to be valid.
-     * 
+     *
      * Fields:
      * * ref: The keyword of the construct that requires this construct
-     * * optional: Whether the construct is optional or not
-     * * min_repeat: The minimum number of times the construct has to be repeated. Defaults to 0.
+     * * min_repeat: The minimum number of times the construct has to be repeated. Defaults to 0, making
+     * the construct optional.
      * * max_repeat: The maximum number of times the construct can be repeated. Defaults to infinity.
+     *
+     * Optional.
      */
-    requiringConstructs: {
+    requiringConstructs?: {
         ref: "string";
-        optional?: boolean;
         min_repeat?: number;
         max_repeat?: number;
     }[];
     /**
      * The construct that has to appear before this construct in the editor. If multiple
      * are given, at least one of them has to be present.
+     *
+     * NOTE: Will be removed in the future, as all necessary information is already available through
+     * the {@link requiringConstructs} field. HOWEVER, currently this field still needs to be in sync with
+     * the {@link requiringConstructs} field.
+     *
+     * Optional.
      */
-    requiresConstruct: string | string[];
+    requiresConstruct?: string | string[];
     /**
      * The ancestor that has to appear before this construct in the editor.
-     * 
+     *
      * Fields:
      * * ref: The keyword of the construct that has to be the ancestor
      * * min_level: The minimum level of the ancestor. Defaults to 0.
      * * max_level: The maximum level of the ancestor. Defaults to infinity.
-     * 
+     *
      * Levels indicate the depth of the ancestor relative to the construct. Level 0
-     * indicates that the ancestor is the direct parent of the construct, level 1 
+     * indicates that the ancestor is the direct parent of the construct, level 1
      * the grandparent, etc.
+     *
+     * Keep in mind that all CodeConstructs count as a level, even if they are not visible.
+     * This is especially the case for Compound constructs, which group multiple constructs.
      */
     requiresAncestor:
         | {
@@ -198,57 +227,22 @@ export interface ConstructDefinition {
      */
     toolbox: ToolboxDefinition;
 }
+/**
+ * Callable format definition that can be injected in other format definitions.
+ * Tokens defined by the type "recursive" will be replaced by the (list of) format definitions
+ * of the recursive definition with the given name. This allows for easy reuse of lists of format
+ * definitions.
+ */
 export interface RecursiveDefinition {
     /**
-     * The name of the format definition. This name is used call / inject the format definition
+     * The name of the format definition. This name is used to call / inject the format definition
      *
      * Required.
      */
     name: string;
     /**
-     * Indicates whether the encapsulation represents a scope or not.
-     *
-     * Optional, defaults to false.
-     */
-    scope?: boolean;
-    /**
-     * The token that should be inserted before each iteration of the recursion.
-     * This allows for example easy definitions of indented body structures like
-     * in Python.
-     *
-     * Optional, defaults to null.
-     *
-     * TODO: Maybe add an insertAfter as well?
-     * TODO: Maybe a list of tokens?
-     */
-    insertBefore?: TokenFormatDefinition;
-    /**
-     * Definition of the format that should be repeated in the recursion.
-     *
-     * Required.
-     */
-    format: FormatDefType[];
-}
-export interface RecursiveRedefinedDefinition {
-    /**
-     * Indicates whether the encapsulation represents a scope or not.
-     *
-     * Optional, defaults to false.
-     */
-    scope?: boolean;
-    /**
-     * The token that should be inserted before each iteration of the recursion.
-     * This allows for example easy definitions of indented body structures like
-     * in Python.
-     *
-     * Optional, defaults to null.
-     *
-     * TODO: Maybe add an insertAfter as well?
-     * TODO: Maybe a list of tokens?
-     */
-    insertBefore?: TokenFormatDefinition;
-    /**
-     * Definition of the format that should be repeated in the recursion.
+     * Format definitions that should be injected in the format array at the location
+     * of a recursive format definition with the given name.
      *
      * Required.
      */
@@ -268,9 +262,6 @@ interface FormatDefinition {
  * Structure of a token format definition
  */
 interface TokenFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "token";
     /**
      * The text that should be displayed in the editor for the token. The string is
@@ -278,35 +269,33 @@ interface TokenFormatDefinition extends FormatDefinition {
      */
     value: string;
 }
+/**
+ * Format definition representing a hole.
+ */
 interface HoleFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "hole";
     /**
      * Seperator between the different holes in the nested list of the "holes" field.
      * When multiple holes are defined in a nested list, this key is obligatory. Otherwise
      * it is optional but highly recommended to avoid confusion and future errors.
+     *
+     * Optional if only one hole is defined in the nested list, otherwise required.
      */
     delimiter?: string;
     /**
      * Array defining each of the individual elements that can be represented as a hole
      * Each element has the following fields:
-     * * type: The type of the expected element in the hole, most often "expression" or "statement"
+     * * type: The type of the expected element in the hole, most often "expression" or "statement".
+     * Matches with the constructType of the {@link ConstructDefinition}.
      * * optional: Whether the element is optional or not.
      */
     elements: { type: string; optional: boolean }[];
 }
-interface BodyFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
-    type: "body";
-}
+/**
+ * Format definition representing a reference. These can be split into categories similar to
+ * the {@link IdentifierFormatDefinition} to suggest only the most relevant references to the user.
+ */
 export interface ReferenceFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "reference";
     /**
      * The name of the structure to which it refers. WHAT NAME PRECISELY? KEYWORD? EDITNAME? etc
@@ -325,30 +314,36 @@ interface ImplementationFormatDefinition extends FormatDefinition {
      */
     anchor: string;
 }
+/**
+ * Format definition representing an assignment. Most commonly, these are variables, function names, class
+ * names etc.
+ */
 interface IdentifierFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "identifier";
     /**
      * The regex that should be used to validate the input of the user. The regex should be written
      * as a string, so that it can be parsed and used in the editor.
+     *
+     * Required.
      */
     regex: string;
     /**
-     * The type indicates to which scope the identifier should be added.
+     * The type indicates to which scope the identifier should be added. It selects the heuristic that is
+     * most relevant.
+     *
+     * Required.
      */
     scopeType: ScopeType;
     /**
-     * The categorisation of the assignment. Used to divide the possible reference and 
-     * suggest only the most relevant ones to the user.
+     * The categorisation of the assignment. Used to divide the possible assignment and
+     * suggest only the most relevant ones to the user. The {@link ReferenceFormatDefinition} uses
+     * the same categorisation to filter the assignments.
+     *
+     * Required.
      */
     reference: string;
 }
 interface EditableFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "editable";
     /**
      * The default value that should be inserted in the editor when the construct is inserted.
@@ -359,17 +354,18 @@ interface EditableFormatDefinition extends FormatDefinition {
     /**
      * The regex that should be used to validate the input of the user. The regex should be written
      * as a string, so that it can be parsed and used in the editor.
+     *
+     * Required.
      */
     regex: string;
 }
 interface RecursiveFormatDefinition extends FormatDefinition {
-    /**
-     * The type of the token. This field determines which of the other fields can be used / are required.
-     */
     type: "recursive";
     /**
      * The name of the recursive format definition to be used in the recursion.
      * These definitions are defined in a different file containing all recursive definitions.
+     *
+     * Required.
      */
     recursiveName: string;
 }
@@ -381,35 +377,28 @@ export interface CompoundFormatDefinition extends FormatDefinition {
     scope: boolean;
     /**
      * Insert this token before each iteration of the compound.
+     *
+     * Note that insertBefore is inserted, each iteration, before the first token of the compound,
+     * not with each new line. If you want to insert a token after each new line, you should write
+     * the specification to reflect this.
+     *
+     * Required.
      */
     insertBefore: string; // Maybe change to token if we want to accept multiple (different) tokens
     /**
      * Setting this to true will make it possible to delete an iteration from the compound and add
      * it to the parent compound. In practice, this often means removing the indentation in front
-     * of the cursor position. 
-     * 
-     * Defaults to false.
+     * of the cursor position.
+     *
+     * Optional, defaults to false.
      */
-    enableIndentation: boolean;
+    enableIndentation?: boolean;
     /**
      * The list of format definitions that should be repeated in the compound.
+     *
+     * Required.
      */
     format: FormatDefType[];
-}
-
-/**
- * Structure of a single hole definition
- */
-interface HoleDefinition {
-    /**
-     * The name of the hole. Currently this does not have any effect and can thus be used freely (or
-     * left empty)
-     */
-    name: string;
-    /**
-     * Indicates whether this hole has to be filled in order for the construct to be valid.
-     */
-    optional: boolean;
 }
 
 /**
@@ -419,29 +408,44 @@ interface HoleDefinition {
 interface ToolboxDefinition {
     /**
      * The title of the category in which the construct should be displayed in the toolbox.
+     *
+     * Required.
      */
     category: string;
     /**
      * The title of the pop-up, but this is not shown in the editor.
+     *
+     * Required.
      */
     title: string;
     /**
      * The header of the pop-up, with the title and the description that is being shown.
+     *
+     * Required.
      */
     tooltip: {
         title: string;
         body: string;
     };
+    /**
+     * Tooltip to show when the construct can not be inserted.
+     *
+     * Optional.
+     */
     invalidTooltip: string;
     /**
      * The list of all tips to be shown in the toolbox.
+     *
+     * Required.
      */
     tips: ToolboxTip[];
     /**
      * A list of strings against which the user's input is matched when typing in the
      * toolbox's search bar.
+     * 
+     * Required.
      */
-    "search-queries": string[];
+    searchQueries: string[];
 }
 /**
  * Structure of a toolbox tip definition, which are the different subsections offering more
@@ -501,7 +505,6 @@ interface UseCaseTip extends ToolboxTipDefinition {
 export type FormatDefType =
     | TokenFormatDefinition
     | HoleFormatDefinition
-    | BodyFormatDefinition
     | ReferenceFormatDefinition
     | ImplementationFormatDefinition
     | IdentifierFormatDefinition
