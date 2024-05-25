@@ -305,20 +305,20 @@ export class ActionExecutor {
             }
 
             // Mostly language independent: except for "indentBackStatement"
-            case EditActionType.DeleteBackMultiLines: {
-                for (
-                    let i = context.codeConstruct.rootNode.body.length - 1;
-                    i >= context.codeConstruct.indexInRoot;
-                    i--
-                ) {
-                    this.module.editor.indentRecursively(context.codeConstruct.rootNode.body[i], { backward: true });
-                    this.module.indentBackStatement(context.codeConstruct.rootNode.body[i]);
-                }
+            // case EditActionType.DeleteBackMultiLines: {
+            //     for (
+            //         let i = context.codeConstruct.rootNode.body.length - 1;
+            //         i >= context.codeConstruct.indexInRoot;
+            //         i--
+            //     ) {
+            //         this.module.editor.indentRecursively(context.codeConstruct.rootNode.body[i], { backward: true });
+            //         this.module.indentBackStatement(context.codeConstruct.rootNode.body[i]);
+            //     }
 
-                this.module.focus.fireOnNavChangeCallbacks();
+            //     this.module.focus.fireOnNavChangeCallbacks();
 
-                break;
-            }
+            //     break;
+            // }
 
             // Mostly language independent: except for "indentBackStatement"
             case EditActionType.IndentBackwards: {

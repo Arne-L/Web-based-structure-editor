@@ -1,23 +1,13 @@
 import {
-    // AssignmentModifier,
-    // AugmentedAssignmentModifier,
     AutocompleteTkn,
     CodeConstruct,
-    // BinaryOperatorExpr,
     Construct,
     EditableTextTkn,
-    // ElseStatement,
     EmptyLineStmt,
-    // EmptyOperatorTkn,
-    // Expression,
-    // FormattedStringCurlyBracketsExpr,
-    // FormattedStringExpr,
     GeneralStatement,
     IdentifierTkn,
-    // IfStatement,
     ImportStatement,
     NonEditableTkn,
-    // OperatorTkn,
     Statement,
     TypedEmptyExpr,
 } from "../syntax-tree/ast";
@@ -74,87 +64,6 @@ export class Validator {
         return true;
     }
 
-    // /**
-    //  * Determines if the left literal has ended and if the new character will thus open a new autocomplete
-    //  * Works specifically for the number literal: checks if the last pressed key is still part of the number
-    //  * or if a new autocomplete should be opened
-    //  *
-    //  * @param pressedKey - The key that was pressed as an additional character to the left operand
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if left can be switched to autocomplete, false otherwise
-    //  */
-    // canSwitchLeftNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.expressionToLeft instanceof LiteralValExpr &&
-    //         !(context.tokenToRight instanceof AutocompleteTkn) &&
-    //         !NumberRegex.test(context.expressionToLeft.getValue() + pressedKey)
-    //     );
-    // }
-
-    // canAddLeftToAutocomplete(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.expressionToLeft &&
-    //         !(context.tokenToRight instanceof AutocompleteTkn) &&
-    //         !NumberRegex.test(context.expressionToLeft.getValue() + pressedKey)
-    //     );
-    // }
-
-    // /**
-    //  * Determines if the right operand can open an autocomplete menu / switch to autocomplete
-    //  *
-    //  * @param pressedKey - The key that was pressed as an additional character to the right operand
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if right can be switched to autocomplete, false otherwise
-    //  */
-    // canSwitchRightNumToAutocomplete(pressedKey: string, providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.expressionToRight instanceof LiteralValExpr &&
-    //         !(context.tokenToLeft instanceof AutocompleteTkn) &&
-    //         !NumberRegex.test(context.expressionToRight.getValue() + pressedKey)
-    //     );
-    // }
-
-    // /**
-    //  * Determines if the cursor is at the beginning of a value operation (e.g. "var = |", "| + |", "var += |")
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if the cursor is at the beginning of a value operation, false otherwise
-    //  */
-    // atBeginningOfValOperation(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     const isCorrectExprType =
-    //         context.expressionToRight instanceof VariableReferenceExpr
-    //         // || context.expressionToRight instanceof LiteralValExpr;
-
-    //     const hasCorrectRootType =
-    //         context.expressionToRight.rootNode instanceof Modifier ||
-    //         // Updated to work with the new general assignment statement
-    //         (context.expressionToRight.rootNode instanceof GeneralStatement &&
-    //             context.expressionToRight.rootNode.containsAssignments())
-    //         // || context.expressionToRight.rootNode instanceof ValueOperationExpr;
-
-    //     return isCorrectExprType && hasCorrectRootType;
-    // }
-
-    // /**
-    //  * Checks if the current position is above an else statement
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if the current position is above an else statement, false otherwise
-    //  */
-    // isAboveElseStatement(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return this.getNextSibling(context) instanceof ElseStatement;
-    // }
-
     /**
      * Checks if the current position is at the start of a linestatement
      *
@@ -166,125 +75,6 @@ export class Validator {
 
         return context.position.column == context.codeConstruct.leftCol;
     }
-
-    // /**
-    //  * logic: if next statement is either else or elif => false
-    //  * if prev is either if or elif => return true
-    //  */
-    // /**
-    //  * Determines if an else statement can be inserted at the current indent by checking if the previous statement is either and if or elif and checking that the next statement is not an else/elif statement
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if an else statement can be inserted at the current indent, false otherwise
-    //  */
-    // canInsertElseStmtAtCurIndent(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     const prevStmt = this.getPrevSibling(context);
-    //     const nextStmt = this.getNextSibling(context);
-
-    //     if (nextStmt instanceof ElseStatement) return false; // either else or elif
-
-    //     if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
-    //         return true;
-
-    //     return false;
-    // }
-
-    // /**
-    //  * logic: if next statement is either else => false
-    //  * if prev is either if or elif => return true
-    //  */
-    // /**
-    //  * Determines if an elif statement can be inserted at the current indent by checking if the previous statement is either and if or elif
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if an elif statement can be inserted at the current indent, false otherwise
-    //  */
-    // canInsertElifStmtAtCurIndent(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-    //     const prevStmt = this.getPrevSibling(context);
-
-    //     // Previous statement can not be a normal else statement => DOES FOLLOW AUTOMATICALLY FROM NEXT STATEMENT
-    //     if (prevStmt instanceof ElseStatement && !prevStmt.hasCondition) return false;
-
-    //     // Previous statement needs to be an if or elif statement
-    //     if (prevStmt instanceof IfStatement || (prevStmt instanceof ElseStatement && prevStmt.hasCondition))
-    //         return true;
-
-    //     return false;
-    // }
-
-    // /**
-    //  * This function expects that we've tried inserting the else at the current indent
-    //  * before calling this function.
-    //  *
-    //  * logic: returns false if inside else, or the item's root has a sibling before it which was an else,
-    //  * or the item's root has a sibling after it which is either an if or an elif.
-    //  * returns true => within if AND the current body does not have a else/elif sibling afterwards
-    //  * returns true => within elif AND the current body does not have an else sibling afterwards
-    //  */
-    // canInsertElseStmtAtPrevIndent(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
-    //     const nextStmtOfRoot = this.getNextSiblingOfRoot(context);
-    //     const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
-
-    //     if (
-    //         (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
-    //         nextStmtOfRoot instanceof ElseStatement ||
-    //         (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
-    //         context.lineStatement.indexInRoot == 0
-    //     ) {
-    //         // if inside else statement
-    //         // if this item's root has a sibling afterward which is either an else or an elif
-    //         // if this item's root has a sibling before it which was a normal else
-    //         return false;
-    //     }
-
-    //     // If current item's root is an if and the next item of the root is not an else/elif
-    //     if (curStmtRoot instanceof IfStatement && !(nextStmtOfRoot instanceof ElseStatement)) return true;
-    //     if (
-    //         curStmtRoot instanceof ElseStatement &&
-    //         curStmtRoot.hasCondition &&
-    //         !(nextStmtOfRoot instanceof ElseStatement && !nextStmtOfRoot.hasCondition)
-    //     )
-    //         // If current item's root is an elif and the next item of the root is not a normal else
-    //         return true;
-
-    //     return false;
-    // }
-
-    // /**
-    //  * This function expects that we've tried inserting the elif at the current indent
-    //  * before calling this function.
-    //  *
-    //  * logic: returns false if inside else, or the item's root has a sibling before it which was an else.
-    //  * returns true if current item's root is either an if or an elif.
-    //  */
-    // canInsertElifStmtAtPrevIndent(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     const prevStmtOfRoot = this.getPrevSiblingOfRoot(context);
-    //     const curStmtRoot = context.lineStatement.rootNode as Statement | Module;
-
-    //     if (
-    //         (curStmtRoot instanceof ElseStatement && !curStmtRoot.hasCondition) ||
-    //         (prevStmtOfRoot instanceof ElseStatement && !prevStmtOfRoot.hasCondition) ||
-    //         context.lineStatement.indexInRoot == 0
-    //     ) {
-    //         // if inside else statement
-    //         // if this item's root has a sibling before it which was an else
-    //         return false;
-    //     }
-
-    //     if (curStmtRoot instanceof IfStatement || (curStmtRoot instanceof ElseStatement && curStmtRoot.hasCondition)) {
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
 
     /**
      * Checks if context.lineStatement is an empty line
@@ -675,50 +465,6 @@ export class Validator {
         }
     }
 
-    // /**
-    //  * Checks whether there are currly brackets to the left of the current position
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if the current position is at the end of a line, false otherwise
-    //  */
-    // canDeletePrevFStringCurlyBrackets(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     // "print(f'{}|')"
-    //     return context.expressionToLeft instanceof FormattedStringCurlyBracketsExpr;
-    // }
-
-    // /**
-    //  * Checks whether there are currly brackets to the right of the current position
-    //  *
-    //  * @param providedContext - The context to use for the validation. If not provided, the current context will be used
-    //  * @returns - true if the current position is at the end of a line, false otherwise
-    //  */
-    // canDeleteNextFStringCurlyBrackets(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     // "print(f'|{}')"
-    //     return context.expressionToRight instanceof FormattedStringCurlyBracketsExpr;
-    // }
-
-    // canDeleteSelectedFStringCurlyBrackets(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.token instanceof TypedEmptyExpr &&
-    //         context.token.rootNode instanceof FormattedStringCurlyBracketsExpr
-    //     );
-    // }
-
-    // canDeleteStringLiteral(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         (context.tokenToLeft?.text == '"' || context.tokenToLeft?.text == "'") &&
-    //         (context.tokenToRight?.text == '"' || context.tokenToRight?.text == "'")
-    //     );
-    // }
-
     /**
      * logic: checks if at the beginning of an expression, and not at the beginning of a line (statement)
      */
@@ -757,63 +503,6 @@ export class Validator {
         return providedContext.tokenToLeft instanceof NonEditableTkn;
     }
 
-    // /**
-    //  * Checks if the cursor is in a hole of an assignment statement
-    //  *
-    //  * @param providedContext
-    //  * @returns true if the cursor is in a hole of an assignment statement, false otherwise
-    //  */
-    // shouldDeleteVarAssignmentOnHole(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     if (context.token instanceof TypedEmptyExpr && context.selected) {
-    //         const root = context.token.rootNode;
-
-    //         if (root instanceof GeneralStatement && root.containsAssignments()) {
-    //             return true; // this.module.variableController.isVarStmtReassignment(root, this.module);
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-    // shouldDeleteHole(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     if (context.token instanceof TypedEmptyExpr && context.selected) {
-    //         const root = context.token.rootNode;
-
-    //         if (root instanceof AugmentedAssignmentModifier || root instanceof AssignmentModifier) return true;
-    //     }
-
-    //     return false;
-    // }
-
-    // canIndentBackIfStatement(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     if (
-    //         this.module.focus.onBeginningOfLine() &&
-    //         context.lineStatement.rootNode instanceof Statement &&
-    //         context.lineStatement.rootNode.hasBody() &&
-    //         context.lineStatement instanceof IfStatement &&
-    //         !(this.getNextSiblingOfRoot() instanceof ElseStatement) &&
-    //         !this.canDeletePrevLine(context)
-    //     ) {
-    //         const rootsBody = context.lineStatement.rootNode.body;
-
-    //         if (rootsBody.length != 1) {
-    //             for (let i = context.lineStatement.indexInRoot + 1; i < rootsBody.length; i++) {
-    //                 if (!(rootsBody[i] instanceof ElseStatement)) return false;
-    //             }
-    //         }
-
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
-
     isAboveLineIndentedForward(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
@@ -823,16 +512,6 @@ export class Validator {
             return context.codeConstruct.leftCol < lineAbove.leftCol;
         }
     }
-
-    // canIndentForwardIfStatement(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         this.module.focus.onBeginningOfLine() &&
-    //         this.isAboveLineIndentedForward() &&
-    //         context.lineStatement instanceof IfStatement
-    //     );
-    // }
 
     /**
      * logic:
@@ -924,70 +603,6 @@ export class Validator {
         );
     }
 
-    // canInsertEmptyList(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.token instanceof TypedEmptyExpr &&
-    //         context.token.isEmpty &&
-    //         (context.token.type.indexOf(DataType.Any) >= 0 || context.token.type.indexOf(DataType.AnyList) >= 0)
-    //     );
-    // }
-
-    // canDeleteListItemToLeft(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     if (context.selected && context.token != null && context.token.rootNode instanceof ListLiteralExpression) {
-    //         const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
-
-    //         // [---, |---|] [---, "123", |---|] [---, |---|, 123]
-    //         if (itemBefore instanceof NonEditableTkn && itemBefore.text == ", ") return true;
-    //     }
-
-    //     return false;
-    // }
-
-    // canDeleteListItemToRight(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     if (
-    //         context.selected &&
-    //         context.token != null &&
-    //         context.token.rootNode instanceof ListLiteralExpression &&
-    //         context.token.rootNode.tokens.length != 3
-    //     ) {
-    //         const itemBefore = context.token.rootNode.tokens[context.token.indexInRoot - 1];
-
-    //         // [|---|, ---] [|---|, "123"] [|---|, ---, 123]
-    //         if (itemBefore instanceof NonEditableTkn && itemBefore.text == "[") return true;
-    //     }
-
-    //     return false;
-    // }
-
-    // canAddListItemToRight(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     // [asd|] [asd, fgh|] [asd|, fgh] => , ---
-    //     return (
-    //         context?.tokenToRight instanceof NonEditableTkn &&
-    //         context?.tokenToRight?.rootNode instanceof ListLiteralExpression &&
-    //         (context?.tokenToRight?.text == "]" || context?.tokenToRight?.text == ", ")
-    //     );
-    // }
-
-    // canAddListItemToLeft(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     // [|asd] [|asd, fgh] [asd, |fgh] => ---,
-
-    //     return (
-    //         context?.tokenToLeft instanceof NonEditableTkn &&
-    //         context?.tokenToLeft?.rootNode instanceof ListLiteralExpression &&
-    //         (context?.tokenToLeft?.text == "[" || context?.tokenToLeft?.text == ", ")
-    //     );
-    // }
-
     atRightOfExpression(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
@@ -1043,27 +658,6 @@ export class Validator {
         );
     }
 
-    // insideFormattedString(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.token?.rootNode instanceof FormattedStringExpr ||
-    //         context.tokenToLeft?.rootNode instanceof FormattedStringExpr ||
-    //         context.tokenToRight?.rootNode instanceof FormattedStringExpr
-    //     );
-    // }
-
-    // canInsertFormattedString(providedContext?: Context): boolean {
-    //     const context = providedContext ? providedContext : this.module.focus.getContext();
-
-    //     return (
-    //         context.selected &&
-    //         context?.token?.isEmpty &&
-    //         context.token instanceof TypedEmptyExpr &&
-    //         !(context.token.rootNode instanceof FormattedStringCurlyBracketsExpr)
-    //     );
-    // }
-
     canConvertAutocompleteToString(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
@@ -1072,56 +666,6 @@ export class Validator {
             context.tokenToRight instanceof AutocompleteTkn &&
             context.tokenToRight.leftCol != context.codeConstruct.leftCol
         );
-    }
-
-    /**
-     * Returns the previous sibling of the given statement
-     *
-     * @param statement - Statement to get the previous sibling of
-     * @returns - The previous sibling of the given statement, or null if the
-     * given statement is the first statement in the root's body
-     */
-    getPrevSiblingOf(statement: Statement): CodeConstruct {
-        // Statement is the first statement in the root's body
-        if (statement.indexInRoot == 0) return null;
-        return this.getStatementInBody(statement.rootNode, statement.indexInRoot - 1);
-    }
-
-    /**
-     * Returns the next sibling of the given statement
-     *
-     * @param statement - Statement to get the next sibling of
-     * @returns - The next sibling of the given statement, or null if the
-     * given statement is the last statement in the root's body
-     */
-    getNextSiblingOf(statement: Statement): CodeConstruct {
-        // Statement is the last statement in the root's body
-        if (statement.indexInRoot == statement.rootNode.body.length - 1) return null;
-        return this.getStatementInBody(statement.rootNode, statement.indexInRoot + 1);
-    }
-
-    /**
-     * Returns the parent of the given statement
-     *
-     * @param statement - Statement to get the parent of
-     * @returns - The parent of the given statement, or null if the given statement
-     * is of the {@link Module} type
-     */
-    getParentOf(statement: Statement): CodeConstruct {
-        if (statement.rootNode instanceof Module) return null;
-        return statement.rootNode;
-    }
-
-    private getPrevSibling(providedContext?: Context): CodeConstruct {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-
-        return this.getStatementInBody(context?.codeConstruct?.rootNode, context?.codeConstruct?.indexInRoot - 1);
-    }
-
-    private getNextSibling(providedContext?: Context): CodeConstruct {
-        const context = providedContext ? providedContext : this.module.focus.getContext();
-
-        return this.getStatementInBody(context?.codeConstruct?.rootNode, context?.codeConstruct?.indexInRoot + 1);
     }
 
     private getNextSiblingOfRoot(providedContext?: Context): CodeConstruct {
@@ -1170,125 +714,6 @@ export class Validator {
 
         return null;
     }
-
-    // /**
-    //  * Gets the valid (or draft) variable references for the given code construct
-    //  *
-    //  * @param code - The code construct to get the valid variable references for
-    //  * @param variableController - The variable controller to use for the validation
-    //  * @returns A list of valid (or draft) variable references for the given code construct
-    //  */
-    // static getValidVariableReferences(
-    //     code: Construct,
-    //     variableController: VariableController
-    // ): [Reference, InsertionType][] {
-    //     // List of all references
-    //     const refs: Reference[] = [];
-    //     // List of mapped references mapped to their insertion type
-    //     const mappedRefs: [Reference, InsertionType][] = []; //no point of making this a map since we don't have access to the refs whereever this method is used. Otherwise would have to use buttonId or uniqueId as keys into the map.
-
-    //     try {
-    //         // If the code is an empty expression or an empty line
-    //         if (code instanceof TypedEmptyExpr || code instanceof EmptyLineStmt) {
-    //             // Get nearest scope
-    //             let scope =
-    //                 code instanceof TypedEmptyExpr
-    //                     ? code.getNearestStatement()?.scope
-    //                     : (code.rootNode as Module).scope; //line that contains "code"
-    //             let currRootNode = code.rootNode;
-
-    //             // Keep going up the tree until we find a non-null scope
-    //             while (!scope) {
-    //                 if (!(currRootNode instanceof Module)) {
-    //                     if (currRootNode.getNearestStatement()?.hasScope()) {
-    //                         scope = currRootNode.getNearestStatement().scope;
-    //                     } else if (currRootNode.rootNode instanceof Statement) {
-    //                         currRootNode = currRootNode.rootNode;
-    //                     } else if (currRootNode.rootNode instanceof Module) {
-    //                         scope = currRootNode.rootNode.scope;
-    //                     }
-    //                 } else {
-    //                     break;
-    //                 }
-    //             }
-
-    //             // Get all accessable assignments
-    //             refs.push(...scope.getValidReferences(code.getSelection().startLineNumber));
-
-    //             // // For each of the accessable assignments
-    //             // for (const ref of refs) {
-    //             //     // Only add it to the mapped references if it is a variable assignment statement
-    //             //     if (ref.statement instanceof VarAssignmentStmt) {
-    //             //         // If it is a typed empty expression
-    //             //         if (code instanceof TypedEmptyExpr) {
-    //             //             // If the type of the hole / TypedEmptyExpr is the same as the type of
-    //             //             // the variable reference, add it to the mapped references with a valid insertion type
-    //             //             // Else add it to the mapped references with a draft mode insertion type
-    //             //             if (
-    //             //                 code.type.indexOf(
-    //             //                     variableController.getVariableTypeNearLine(
-    //             //                         scope,
-    //             //                         code.getLineNumber(),
-    //             //                         ref.statement.getIdentifier()
-    //             //                     )
-    //             //                 ) > -1 ||
-    //             //                 code.type.indexOf(DataType.Any) > -1
-    //             //             ) {
-    //             //                 mappedRefs.push([ref, InsertionType.Valid]);
-    //             //             } else {
-    //             //                 mappedRefs.push([ref, InsertionType.DraftMode]);
-    //             //             }
-    //             //         } else if (code instanceof EmptyLineStmt) {
-    //             //             // All variables can become var = --- so allow all of them to trigger draft mode
-    //             //             mappedRefs.push([ref, InsertionType.DraftMode]);
-    //             //         }
-    //             //     }
-    //             // }
-    //             // For each of the accessable assignments
-    //             for (const ref of refs) {
-    //                 // Only add it to the mapped references if it is a variable assignment statement
-    //                 // If it is a typed empty expression
-    //                 if (code instanceof TypedEmptyExpr) {
-    //                     // No types, thus valid
-    //                     mappedRefs.push([ref, InsertionType.Valid]);
-    //                 } else if (code instanceof EmptyLineStmt) {
-    //                     // Originally only possible for a variable refrence
-    //                     mappedRefs.push([ref, InsertionType.DraftMode]);
-    //                 }
-    //             }
-    //         }
-    //     } catch (e) {
-    //         console.error("Unable to get valid variable references for " + code + "\n\n" + e);
-    //     } finally {
-    //         return mappedRefs;
-    //     }
-    // }
-
-    // /**
-    //  * Gets the EditCodeActions for the given search string
-    //  *
-    //  * @param searchString - The string to search for
-    //  * @param possibilities - The list of possibilities to search through (EditCodeAction[])
-    //  * @param searchKeys - The keys to search through (strings)
-    //  * @returns - A list of results that match the search string
-    //  */
-    // static matchEditCodeAction(
-    //     searchString: string,
-    //     possibilities: EditCodeAction[],
-    //     searchKeys: string[]
-    // ): Fuse.FuseResult<EditCodeAction>[] {
-    //     const options = {
-    //         includeScore: true,
-    //         includeMatches: true,
-    //         shouldSort: true,
-    //         findAllMatches: true,
-    //         threshold: 0.5,
-    //         keys: searchKeys,
-    //     };
-    //     const fuse = new Fuse(possibilities, options);
-
-    //     return fuse.search(searchString);
-    // }
 
     /**
      * Mark a codestruct requiring an import as draft mode, or unmark if import is okay

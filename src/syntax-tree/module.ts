@@ -40,7 +40,6 @@ import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";
 import { Language } from "./language";
 import { Scope } from "./scope";
 import { ASTManupilation } from "./utils";
-import { VariableController } from "./variable-controller";
 
 /**
  * The main body of the code which includes an array of statements.
@@ -76,7 +75,6 @@ export class Module {
     scope: Scope;
     draftExpressions: DraftRecord[];
 
-    variableController: VariableController;
     actionFilter: ActionFilter;
 
     globals: { hoveringOverCascadedMenu: boolean; hoveringOverVarRefButton: boolean; lastPressedRunButtonId: string };
@@ -86,8 +84,6 @@ export class Module {
         this.focus = new Focus(this);
         this.validator = new Validator(this);
         this.executer = new ActionExecutor(this);
-        // this.typeSystem = new TypeChecker(this);
-        this.variableController = new VariableController(this);
         this.actionFilter = new ActionFilter(this);
         this.notificationManager = new NotificationManager(this);
         this.toolboxController = new ToolboxController(this);
@@ -619,29 +615,29 @@ export class Module {
     //     };
     // }
 
-    /**
-     * Adds `code` to the body at the given index
-     *
-     * @param code the statement to be added
-     * @param index the index to add the `code` statement
-     * @param line the line number that will be given to the newly added statement
-     */
-    addStatementToBody(bodyContainer: GeneralStatement | Module, code: Statement, index: number, line: number) {
-        // Add code to the body of the container
-        bodyContainer.body.splice(index, 0, code);
-        // Increase the index of all statements in the container after the newly added statement
-        for (let i = index + 1; i < bodyContainer.body.length; i++) bodyContainer.body[i].indexInRoot++;
+    // /**
+    //  * Adds `code` to the body at the given index
+    //  *
+    //  * @param code the statement to be added
+    //  * @param index the index to add the `code` statement
+    //  * @param line the line number that will be given to the newly added statement
+    //  */
+    // addStatementToBody(bodyContainer: GeneralStatement | Module, code: Statement, index: number, line: number) {
+    //     // Add code to the body of the container
+    //     bodyContainer.body.splice(index, 0, code);
+    //     // Increase the index of all statements in the container after the newly added statement
+    //     for (let i = index + 1; i < bodyContainer.body.length; i++) bodyContainer.body[i].indexInRoot++;
 
-        // Rebuild all statements following the newly added statement in the container
-        rebuildBody(bodyContainer, index + 1, line + code.getHeight());
-        // Set the parentscope to be the scope of the container
-        if (code.hasScope()) code.scope.parentScope = bodyContainer.scope;
+    //     // Rebuild all statements following the newly added statement in the container
+    //     rebuildBody(bodyContainer, index + 1, line + code.getHeight());
+    //     // Set the parentscope to be the scope of the container
+    //     if (code.hasScope()) code.scope.parentScope = bodyContainer.scope;
 
-        // Container has been changed, so call the notify method
-        if (bodyContainer instanceof GeneralStatement) {
-            bodyContainer.notify(CallbackType.change);
-        }
-    }
+    //     // Container has been changed, so call the notify method
+    //     if (bodyContainer instanceof GeneralStatement) {
+    //         bodyContainer.notify(CallbackType.change);
+    //     }
+    // }
 
     // /**
     //  * Add the assignment to the current working scope.

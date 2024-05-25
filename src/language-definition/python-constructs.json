@@ -1294,7 +1294,6 @@
                 "value": "'"
             }
         ],
-        "holes": [],
         "match": "",
         "matchRegex": "^([^\\r\\n\\\"]*)$",
         "triggerInsertion": ["'"],

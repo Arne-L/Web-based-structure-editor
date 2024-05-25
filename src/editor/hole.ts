@@ -73,66 +73,6 @@ export class Hole {
                     this.element.classList.add(Hole.editableHoleClass);
                 })
             );
-            // } else if (code instanceof TypedEmptyExpr) {
-            // When focussing a hole with a TypedEmptyExpr, show the available variables
-            // in the current location ... literally
-            // This method will indicate visually all variable assignments that you can use
-            // by giving them a green; idem for draft variables
-            // WE CURRENTLY DISABLE THIS FUNCTIONALITY AS THIS CAUSES ERROR AND REQUIRES SOME
-            // REWRITES WHILE NOT CONTRIBUTING TO THE MAIN FUNCTIONALITY
-            // code.subscribe(
-            //     CallbackType.showAvailableVars,
-            //     new Callback(() => {
-            //         // Get the current context
-            //         const c = Hole.module.focus.getContext();
-            //         // Get the token or line statement that is currently focused
-            //         const focusedNode = c.token && c.selected ? c.token : c.lineStatement;
-            //         // Get all valid or draft variable references in the current context
-            //         const refInsertionTypes = Validator.getValidVariableReferences(
-            //             focusedNode,
-            //             Hole.module.variableController
-            //         );
-            //         // Get all valid variable references in the current context and map them to
-            //         // their buttonId and line number
-            //         const validIdentifierIds: [string, number][] = refInsertionTypes.map((ref) => [
-            //             ((ref[0] as Reference).statement as VarAssignmentStmt).buttonId,
-            //             (ref[0] as Reference).getLineNumber(),
-            //         ]);
-            //         // Initialize a map to map the buttonId to the insertionType and line number
-            //         const refInsertionTypeMap = new Map<string, [InsertionType, number]>();
-            //         // For each of the validIdentifierIds, add the buttonId as key and the
-            //         // insertionType and line number as value
-            //         for (let i = 0; i < validIdentifierIds.length; i++) {
-            //             refInsertionTypeMap.set(validIdentifierIds[i][0] as string, [
-            //                 refInsertionTypes[i][1],
-            //                 validIdentifierIds[i][1],
-            //             ]); // key = buttonId, value = [insertionType, line]
-            //         }
-            //         // For each of the holes in the entire program
-            //         for (const hole of Hole.holes) {
-            //             // If hole is part of an assignment statement AND the
-            //             // code in the hole is an identifier token AND the buttonId refers
-            //             // to an accessible valid or draft variable identifier
-            //             if (
-            //                 (hole.code.rootNode instanceof VarAssignmentStmt ||
-            //                     hole.code.rootNode instanceof ForStatement) &&
-            //                 hole.code instanceof IdentifierTkn &&
-            //                 refInsertionTypeMap.has(hole.code.rootNode.buttonId)
-            //             ) {
-            //                 if (hole.code.getLineNumber() < this.editor.monaco.getPosition().lineNumber) {
-            //                     // Mark holes before the current line as valid or draft?
-            //                     if (refInsertionTypeMap.get(hole.code.rootNode.buttonId)[0] === InsertionType.Valid) {
-            //                         hole.element.classList.add(Hole.validVarIdentifierHole);
-            //                     } else if (
-            //                         refInsertionTypeMap.get(hole.code.rootNode.buttonId)[0] === InsertionType.DraftMode
-            //                     ) {
-            //                         hole.element.classList.add(Hole.draftVarIdentifierHole);
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     })
-            // );
         }
 
         code.subscribe(

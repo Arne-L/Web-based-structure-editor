@@ -113,94 +113,6 @@ export class ActionFilter {
         return new Map<string, EditCodeAction>();
     }
 
-    // /**
-    //  * Get all valid EditCodeActions for a given variable reference / that can be used on a variable reference
-    //  *
-    //  * TAKE A NEW LOOK AT THIS FUNCTION IN THE FUTURE
-    //  *
-    //  * @param ref - Variable reference to check against
-    //  * @returns - Map of EditCodeActions that are valid for the given variable reference
-    //  */
-    // validateVariableOperations(ref: VariableReferenceExpr): Map<string, EditCodeAction> {
-    //     // TEMPORARY DISABLED DUE TO ERRORS: TAKE A LOOK AT THIS FUNCTION IN THE FUTURE
-    //     return new Map<string, EditCodeAction>();
-
-    // // Get current context
-    // const context = this.module.focus.getContext();
-    // // Datatype of the variable reference
-    // const dataType = ref.returns;
-    // // Get the modifiers that are available for the given datatype
-    // const availableModifiers = Actions.instance().varActionsMap.get(dataType);
-    // // Initialize the map from string to EditCodeAction
-    // const validOptionMap: Map<string, EditCodeAction> = new Map<string, EditCodeAction>();
-
-    // // If there are modifiers available for the given datatype
-    // if (availableModifiers) {
-    //     // For each of the modifiers
-    //     for (const varOperation of availableModifiers) {
-    //         // Get the statement / expression associated with the operation
-    //         const code = varOperation.action() as Expression;
-
-    //         if (code instanceof GeneralStatement && code.containsAssignments()) {
-    //             // Handles both the old VarAssignmentStmt and the ForStatement
-    //             code.setAssignmentIdentifier(ref.identifier, 0);
-    //         } else if (code instanceof ValueOperationExpr) {
-    //             code.setVariable(ref);
-    //             code.updateReturnType();
-    //         } else if (code instanceof VarOperationStmt) {
-    //             code.setVariable(ref);
-    //             code.updateModifierTypes();
-    //         }
-
-    //         let optionName = code.getRenderText();
-
-    //         if (code instanceof GeneralStatement && code.containsAssignments()) {
-    //             //if (code instanceof ForStatement) {
-    //             // optionName is in editor text which is empty, so we need to change it
-    //             // (back) to the dashed version
-    //             optionName = optionName.replace(/   /g, " --");
-    //         } else optionName = optionName.replace(/   /g, " ---");
-
-    //         const codeAction = new EditCodeAction(
-    //             optionName,
-    //             "",
-    //             () => {
-    //                 const code = varOperation.action() as Expression;
-
-    //                 if (code instanceof GeneralStatement && code.containsAssignments()) {
-    //                     // Handles both the old VarAssignmentStmt and the ForStatement
-    //                     code.setAssignmentIdentifier(ref.identifier, 0);
-    //                 } else if (code instanceof ValueOperationExpr) {
-    //                     code.setVariable(ref);
-    //                     code.updateReturnType();
-    //                 } else if (code instanceof VarOperationStmt) {
-    //                     code.setVariable(ref);
-    //                     code.updateModifierTypes();
-    //                 }
-
-    //                 return code;
-    //             },
-    //             code instanceof Statement && !(code instanceof Expression)
-    //                 ? InsertActionType.InsertVarOperationStmt
-    //                 : InsertActionType.InsertValOperationExpr,
-    //             {},
-    //             null,
-    //             [""],
-    //             "",
-    //             null
-    //         );
-    //         // Validate the possible insertion in the current context and type validation
-    //         codeAction.insertionResult = codeAction.validateAction(this.module.validator, context);
-    //         // Add a short description to the EditCodeAction
-    //         codeAction.shortDescription = varOperation.description;
-    //         // Add to the map of valid options
-    //         validOptionMap.set(codeAction.optionName, codeAction);
-    //     }
-    // }
-
-    // return validOptionMap;
-    // }
-
     /**
      * Combined list of all insertions at the current location as EditCodeActions. These elements
      * can still be invalid or in draft mode, so they are not necessarily valid insertions.
@@ -218,27 +130,6 @@ export class ActionFilter {
         return inserts;
     }
 
-    // /**
-    //  * Get an array of all valid variable references at the current location,
-    //  * encapsulated in EditCodeActions
-    //  *
-    //  * @returns
-    //  */
-    // getProcessedVariableInsertions(): EditCodeAction[] {
-    //     // Get all valid variable reference insertions at the current location and
-    //     // return them to a list of EditCodeActions
-    //     return this.convertInsertionMapToList(this.validateVariableInsertions());
-    // }
-
-    /**
-     * Currently just returns an empty list
-     *
-     * @returns Empty list
-     */
-    getProcessedEditInsertions(): EditCodeAction[] {
-        return this.convertInsertionMapToList(this.validateEdits());
-    }
-
     /**
      * Get all predefined constructs, adapted to the current location, as EditCodeActions
      *
@@ -247,81 +138,6 @@ export class ActionFilter {
     getProcessedConstructInsertions(): EditCodeAction[] {
         return this.convertInsertionMapToList(this.validateInsertions());
     }
-
-    // /**
-    //  *
-    //  *
-    //  * @returns
-    //  */
-    // getProcessedVariableOperations(): EditCodeAction[] {
-    //     // Get the current context
-    //     const context = this.module.focus.getContext();
-    //     // Get all variable references at the current location that are either valid or in draft mode
-    //     const availableRefs: [Reference, InsertionType][] = Validator.getValidVariableReferences(
-    //         context.selected ? context.token : context.lineStatement,
-    //         this.module.variableController
-    //     );
-
-    //     // Map of all actions that are valid on the current variable references
-    //     const validActionsForVar: Map<string, EditCodeAction>[] = [];
-
-    //     // For each of the available references
-    //     for (const refRecord of availableRefs) {
-    //         // Get the assignment to which it refers
-    //         const assignment = refRecord[0].getAssignment();
-    //         // const dataType = this.module.variableController.getVariableTypeNearLine(
-    //         //     context.lineStatement.hasScope() ? context.lineStatement.scope : context.lineStatement.rootNode.scope,
-    //         //     context.lineStatement.lineNumber,
-    //         //     assignment.getRenderText()
-    //         // );
-    //         // Create a new VariableReferenceExpr
-    //         const varRef = new VariableReferenceExpr(
-    //             assignment.getRenderText(),
-    //             DataType.Any,
-    //             "RANDOM_CSS_ID" // SOMETHING RANDOM AS THIS IS NOT USED ANYMORE
-    //         );
-
-    //         // Get all valid operations on the variable reference
-    //         validActionsForVar.push(this.validateVariableOperations(varRef));
-    //     }
-
-    //     // Transform the map of actions to a list
-    //     const actionsList: EditCodeAction[] = [];
-    //     for (const map of validActionsForVar) {
-    //         actionsList.push(...this.convertInsertionMapToList(map));
-    //     }
-
-    //     return actionsList;
-    // }
-
-    // getValidInsertsFromSet(optionNames: string[]): EditCodeAction[] {
-    //     const constructMap = this.validateInsertions();
-    //     const varMap = this.validateVariableInsertions();
-    //     const editsMap = this.validateEdits();
-
-    //     const inserts: EditCodeAction[] = [];
-
-    //     for (const option of optionNames) {
-    //         if (
-    //             constructMap.get(option) &&
-    //             constructMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-    //         ) {
-    //             inserts.push(constructMap.get(option));
-    //         } else if (
-    //             varMap.get(option) &&
-    //             varMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-    //         ) {
-    //             inserts.push(varMap.get(option));
-    //         } else if (
-    //             editsMap.get(option) &&
-    //             editsMap.get(option).insertionResult.insertionType !== InsertionType.Invalid
-    //         ) {
-    //             inserts.push(editsMap.get(option));
-    //         }
-    //     }
-
-    //     return inserts;
-    // }
 
     /**
      * Get all values of the map in a list
@@ -445,14 +261,6 @@ export class EditCodeAction extends UserAction {
 
         return action;
     }
-
-    // getUserFriendlyReturnType(): string {
-    //     const code = this.getCode();
-
-    //     if (code instanceof Expression && !(code instanceof Modifier) && !(code instanceof ListComma))
-    //         return getUserFriendlyType(code.returns);
-    //     else return "";
-    // }
 
     getCode() {
         return this.getCodeFunction();

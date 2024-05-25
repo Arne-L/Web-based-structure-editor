@@ -790,7 +790,7 @@ export class GeneralStatement extends Statement {
      * Currently, all depending constructs are indented by 1 tab. This is not always the case, so this should be
      * generalised in the future.
      */
-    readonly requiringConstructs: OptionalConstruct[] = [];
+    requiringConstructs: OptionalConstruct[] = [];
     /**
      * Constructs which this construct depends on (/ are required by this construct). For example, the "elif" construct depends on the
      * "if" construct, so the "if" is required by the "elif". As a construct can depend on multiple constructs, this list
@@ -803,8 +803,8 @@ export class GeneralStatement extends Statement {
      * constructs depending on it (in this specific case, we specified that the order was not fixed) However, it in the future
      * it follows that this (edge) case does not occur (or has a different solution), we can implement the above optimisation.
      */
-    readonly requiredConstructs: string[] = [];
-    readonly requiredAncestorConstructs: AncestorConstruct[] = [];
+    requiredConstructs: string[] = [];
+    requiredAncestorConstructs: AncestorConstruct[] = [];
 
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
