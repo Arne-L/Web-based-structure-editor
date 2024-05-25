@@ -74,22 +74,29 @@
                 "type": "hole",
                 "elements": [
                     {
-                        "type": "expression",
+                        "type": "term",
                         "optional": false
                     }
                 ]
             },
             {
-                "type": "token",
-                "value": ",",
-                "waitOnUser": ","
-            },
-            {
-                "type": "hole",
-                "elements": [
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
                     {
-                        "type": "expression",
-                        "optional": false
+                        "type": "token",
+                        "value": ",",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
                     }
                 ]
             }
