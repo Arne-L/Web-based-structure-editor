@@ -37,7 +37,7 @@ export interface LanguageDefinition {
      *
      * Required.
      */
-    recursiveFile: string;
+    callableFile: string;
     /**
      * The indentation to use when inserting tabs in the editor. It is also frequently used
      * to indent body constructs.
@@ -186,6 +186,9 @@ export interface ConstructDefinition {
      * "{capturing group 1 regex} IN {capturing group 2 regex} FOR SOME SYNTAX". If the user thus types
      * until the second capturing group, its input will be used in the final insertion so that no
      * user input is lost.
+     * 
+     * WARNING: While substrings of the match-field are always a match, substrings of a valid string
+     * according to the regex are only valid if they match the regex. 
      *
      * Mutually exclusive with matchRegex, but one of the two has to be defined. Defining both
      * will result in the matchRegex being skipped.
@@ -442,7 +445,7 @@ interface ToolboxDefinition {
     /**
      * A list of strings against which the user's input is matched when typing in the
      * toolbox's search bar.
-     * 
+     *
      * Required.
      */
     searchQueries: string[];

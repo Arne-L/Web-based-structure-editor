@@ -15,8 +15,8 @@ if (languageConfig.constructFile)
 else throw new Error("No construct file specified in the language configuration file");
 
 let recursiveFormats: RecursiveDefinition[];
-if (languageConfig.recursiveFile)
-    recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
+if (languageConfig.callableFile)
+    recursiveFormats = (await import(`../language-definition/${languageConfig.callableFile}`)).default;
 else throw new Error("No recursive file specified in the language configuration file");
 
 export const INITIALCONSTRUCTDEF = languageConfig.initialConstruct;
@@ -80,7 +80,9 @@ export function getAllCodeActions(): EditCodeAction[] {
         );
 
         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-        action.referenceType = (construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition)?.to;
+        action.referenceType = (
+            construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition
+        )?.to;
 
         // Add the action to the list
 

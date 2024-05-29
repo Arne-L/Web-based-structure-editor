@@ -1,7 +1,7 @@
 {
     "name": "Prolog",
     "constructFile": "prolog-constructs.json",
-    "recursiveFile": "prolog-format.json",
+    "callableFile": "prolog-callable.json",
     "indent": "    ",
     "initialConstruct": {
         "type": "compound",
