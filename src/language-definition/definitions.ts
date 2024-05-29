@@ -408,7 +408,7 @@ export interface CompoundFormatDefinition extends FormatDefinition {
  * Structure of the toolbox definition which is displayed when hovering over a construct in
  * the editor's toolbox.
  */
-interface ToolboxDefinition {
+export interface ToolboxDefinition {
     /**
      * The title of the category in which the construct should be displayed in the toolbox.
      *

@@ -1,3 +1,4 @@
+import { ToolboxDefinition } from "../language-definition/definitions";
 import {
     // Expression,
     GeneralExpression,
@@ -212,7 +213,7 @@ export class EditCodeAction extends UserAction {
         getCodeFunction: (data?: { reference: string }) => Statement,
         insertActionType: InsertActionType,
         insertData: any = {},
-        documentation: any,
+        documentation: ToolboxDefinition,
         terminatingChars: string[],
         matchString: string,
         matchRegex: RegExp,
