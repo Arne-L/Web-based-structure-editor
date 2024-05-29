@@ -416,7 +416,7 @@ interface ToolboxDefinition {
      */
     category: string;
     /**
-     * The title of the pop-up, but this is not shown in the editor.
+     * The id of the pop-up, which should be unique. It is never shown to the end user
      *
      * Required.
      */
