@@ -1,0 +1,275 @@
+[
+    {
+        "keyword": "print",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "print"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "print text",
+        "match": "print",
+        "toolbox": {
+            "category": "Print",
+            "title": "print message",
+            "tooltip": {
+                "title": "Display Text in Console",
+                "body": "Displays the textual value of its input in the console."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-print-num-str",
+                    "example": "print Hello World"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-print-var",
+                    "example": "print How are you?"
+                }
+            ],
+            "search-queries": [
+                "output",
+                "say",
+                "print",
+                "print output",
+                "console",
+                "write",
+                "see output"
+            ]
+        }
+    },
+    {
+        "keyword": "ask",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "ask"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "ask question",
+        "match": "ask",
+        "toolbox": {
+            "category": "Ask",
+            "title": "ask question",
+            "tooltip": {
+                "title": "Ask a question",
+                "body": "Asks a question whose answer can be printed with the echo command."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-ask-name",
+                    "example": "ask Wat is your name?"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-ask-age",
+                    "example": "ask How old are you?"
+                }
+            ],
+            "search-queries": [
+                "ask",
+                "question"
+            ]
+        }
+    },
+    {
+        "keyword": "echo",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "echo"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "echo text answer",
+        "match": "echo",
+        "toolbox": {
+            "category": "Echo",
+            "title": "repeat the answer",
+            "tooltip": {
+                "title": "Display Text and answer in Console",
+                "body": "Displays the textual value of its input followed by the answer to the last question in the console."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-echo-num-str",
+                    "example": "ask How old are you?\necho You are"
+                }
+            ],
+            "search-queries": [
+                "output",
+                "echo"
+            ]
+        }
+    },
+    {
+        "keyword": "play",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "play"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "play note",
+        "match": "play",
+        "toolbox": {
+            "category": "Music",
+            "title": "Play a note",
+            "tooltip": {
+                "title": "Play a note",
+                "body": "Play the given note. The scale goes C-D-E-F-G-A-B. As you can see there are 7 different letters, but we can play more than just 7 notes. Type a number between 1 and 10 behind the letter to choose the scale, for example after B4 comes C5. C1 is the lowest note you can play, C10 is the highest"
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-play-c4",
+                    "example": "play C4"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-play-f4",
+                    "example": "play F4"
+                }
+            ],
+            "search-queries": [
+                "music",
+                "note",
+                "play"
+            ]
+        }
+    },
+    {
+        "keyword": "forward",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "forward"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^(-?[0-9]+)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "forward distance",
+        "match": "forward",
+        "toolbox": {
+            "category": "Drawing",
+            "title": "Draw line",
+            "tooltip": {
+                "title": "Draw line",
+                "body": "Draw a line with a given length."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-forward-20",
+                    "example": "forward 20"
+                }
+            ],
+            "search-queries": [
+                "forward",
+                "line"
+            ]
+        }
+    },
+    {
+        "keyword": "turn",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "turn"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^(left|right)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "turn left/right",
+        "match": "turn",
+        "toolbox": {
+            "category": "Drawing",
+            "title": "Turn a quarter turn",
+            "tooltip": {
+                "title": "Turn a quarter turn",
+                "body": "Turn a quarter turn to the left or to the right."
+            },
+            "invalidTooltip": "Can only be inserted on an empty line.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-turn-left",
+                    "example": "turn left"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-turn-right",
+                    "example": "turn right"
+                }
+            ],
+            "search-queries": [
+                "turn",
+                "left",
+                "right"
+            ]
+        }
+    }
+]
