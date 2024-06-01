@@ -19,9 +19,9 @@ import {
     NonEditableTkn,
     // OperatorTkn,
     Statement,
-    TemporaryStmt,
+    TemporaryConstruct,
     Token,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 import { AutoCompleteType, BuiltInFunctions, PythonKeywords } from "../syntax-tree/consts";
@@ -97,7 +97,7 @@ export class ActionExecutor {
                 ASTManupilation.insertConstruct(context, codeConstruct);
 
                 // Green background on insertion
-                if (flashGreen) this.flashGreen(/*action.data?.statement*/codeConstruct);
+                if (flashGreen) this.flashGreen(/*action.data?.statement*/ codeConstruct);
 
                 // Light blue background
                 if (codeConstruct.hasBody()) {
@@ -519,7 +519,7 @@ export class ActionExecutor {
                     if (removableExpr != null) {
                         if (
                             removableExpr instanceof AutocompleteTkn &&
-                            removableExpr.rootNode instanceof TemporaryStmt
+                            removableExpr.rootNode instanceof TemporaryConstruct
                         ) {
                             // Remove the temporary statement encapsulating the autocomplete token
                             // this.module.deleteCode(removableExpr.rootNode, { statement: true });
@@ -541,7 +541,7 @@ export class ActionExecutor {
                             // Remove the autocomplete token
                             this.deleteAutocompleteToken(removableExpr);
                             // Else just remove the expression
-                        } else this.module.deleteConstruct(removableExpr)//this.module.deleteCode(removableExpr);
+                        } else this.module.deleteConstruct(removableExpr); //this.module.deleteCode(removableExpr);
 
                         break;
                     }
@@ -991,7 +991,7 @@ export class ActionExecutor {
                     // Set the last occuring construct that is not a hole, non-editable or operator token
                     // to be the replacementTkn
                     if (
-                        !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
+                        !(rootNode.tokens[i] instanceof HoleTkn) &&
                         !(rootNode.tokens[i] instanceof NonEditableTkn)
                         // && !(rootNode.tokens[i] instanceof OperatorTkn)
                     ) {
@@ -1187,7 +1187,7 @@ export class ActionExecutor {
                 // At the start of a line
                 case AutoCompleteType.StartOfLine:
                     // If the parent is a temporary statement, remove the entire statement
-                    if (token.rootNode instanceof TemporaryStmt) {
+                    if (token.rootNode instanceof TemporaryConstruct) {
                         // this.module.deleteCode(token.rootNode, {
                         //     statement: true,
                         // });
@@ -1353,7 +1353,7 @@ export class ActionExecutor {
         // context.token is the focused hole in which you want to insert
         // We can only insert expressions in holes / TypedEmptyExpr
 
-        if (!(context.token instanceof TypedEmptyExpr)) return;
+        if (!(context.token instanceof HoleTkn)) return;
 
         // The root of the hole (either an expression or a statement)
         const root = context.token.rootNode;

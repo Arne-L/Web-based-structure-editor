@@ -6,7 +6,7 @@ import {
     // EmptyOperatorTkn,
     IdentifierTkn,
     Statement,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "../syntax-tree/ast";
 import { TAB_SPACES } from "../language-definition/settings";
 import { Module } from "../syntax-tree/module";
@@ -327,7 +327,7 @@ export class Editor {
 
         if (
             code instanceof EditableTextTkn ||
-            code instanceof TypedEmptyExpr ||
+            code instanceof HoleTkn ||
             code instanceof IdentifierTkn
             // || code instanceof EmptyOperatorTkn
         ) {

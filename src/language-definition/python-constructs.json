@@ -889,13 +889,11 @@
         "requiringConstructs": [
             {
                 "ref": "elif",
-                "optional": true,
                 "min_repeat": 0,
                 "max_repeat": null
             },
             {
                 "ref": "else",
-                "optional": true,
                 "min_repeat": 0,
                 "max_repeat": 1
             }

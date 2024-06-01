@@ -1704,7 +1704,7 @@ export class AssignmentToken extends IdentifierTkn {
  * Construct to be able to place non-statement (expressions and tokens) in a statement spot,
  * like the autocomplete Token
  */
-export class TemporaryStmt extends Statement {
+export class TemporaryConstruct extends Statement {
     constructor(token: Construct) {
         super();
 
@@ -1840,7 +1840,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
 /**
  * Represents the "holes" in the text that can be filled with expressions
  */
-export class TypedEmptyExpr extends Token {
+export class HoleTkn extends Token {
     isEmpty = true;
     type: DataType[];
     allowedType: string;
@@ -2192,7 +2192,7 @@ export class CompoundConstruct extends CodeConstruct {
             .every(
                 (token) =>
                     token instanceof NonEditableTkn ||
-                    token instanceof TypedEmptyExpr ||
+                    token instanceof HoleTkn ||
                     (token instanceof Token && token.isEmpty)
             );
 

@@ -31,7 +31,7 @@ import {
     // ListLiteralExpression,
     Statement,
     Token,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "./ast";
 import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
@@ -432,7 +432,7 @@ export class Module {
         if (!root) return;
 
         // Create the hole to replace the removed construct
-        const replacement = new TypedEmptyExpr(
+        const replacement = new HoleTkn(
             [DataType.Any],
             root,
             construct.indexInRoot,
@@ -832,7 +832,7 @@ export class Module {
             let cur: Construct = stack.pop();
             const hasDraftMode = cur.draftModeEnabled;
 
-            if (cur instanceof TypedEmptyExpr /*&& !cur.isListElement()*/) {
+            if (cur instanceof HoleTkn /*&& !cur.isListElement()*/) {
                 status = status ?? CodeStatus.ContainsEmptyHoles;
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
@@ -850,7 +850,7 @@ export class Module {
 
                 for (let i = 0; i < cur.tokens.length; i++) {
                     if (
-                        cur.tokens[i] instanceof TypedEmptyExpr &&
+                        cur.tokens[i] instanceof HoleTkn &&
                         addHighlight &&
                         i < cur.tokens.length - 2 &&
                         !hasDraftMode

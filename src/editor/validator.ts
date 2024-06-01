@@ -9,7 +9,7 @@ import {
     ImportStatement,
     NonEditableTkn,
     Statement,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { isImportable } from "../utilities/util";
@@ -295,7 +295,7 @@ export class Validator {
         // Only deletable if all its tokens are either a hole, non-editable token or an identifier
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
-                !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
+                !(rootNode.tokens[i] instanceof HoleTkn) &&
                 !(rootNode.tokens[i] instanceof NonEditableTkn) &&
                 !(rootNode.tokens[i] instanceof IdentifierTkn)
             )
@@ -324,7 +324,7 @@ export class Validator {
         // Only deletable if all its tokens are either a hole, non-editable token or an identifier
         for (let i = 0; i < rootNode.tokens.length; i++) {
             if (
-                !(rootNode.tokens[i] instanceof TypedEmptyExpr) &&
+                !(rootNode.tokens[i] instanceof HoleTkn) &&
                 !(rootNode.tokens[i] instanceof NonEditableTkn) &&
                 !(rootNode.tokens[i] instanceof IdentifierTkn)
                 // && !(rootNode.tokens[i] instanceof OperatorTkn)
@@ -630,7 +630,7 @@ export class Validator {
     atEmptyHole(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.selected && context?.token?.isEmpty && context.token instanceof TypedEmptyExpr;
+        return context.selected && context?.token?.isEmpty && context.token instanceof HoleTkn;
     }
 
     atEmptyOperatorTkn(providedContext?: Context): boolean {
@@ -653,7 +653,7 @@ export class Validator {
         return (
             context.selected &&
             context?.token?.isEmpty &&
-            context.token instanceof TypedEmptyExpr &&
+            context.token instanceof HoleTkn &&
             context.token.allowedType === type
         );
     }

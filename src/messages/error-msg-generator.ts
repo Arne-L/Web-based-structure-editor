@@ -1,4 +1,4 @@
-import { IdentifierTkn, TypedEmptyExpr } from "../syntax-tree/ast";
+import { IdentifierTkn, HoleTkn } from "../syntax-tree/ast";
 import { CSSClasses, getStyledSpan } from "../utilities/text-enhance";
 
 /**
@@ -29,9 +29,7 @@ export enum ErrorMessage {
 const usePersonalizedMessages = false;
 
 export class ErrorMessageGenerator {
-
-    constructor() {
-    }
+    constructor() {}
 
     /**
      *
@@ -109,26 +107,17 @@ export class ErrorMessageGenerator {
                         args.identifier,
                         CSSClasses.identifier
                     )} is. This could be because it has not been declared or it is declared on a line below this one.
-                            Please let me know what ${getStyledSpan(
-                                args.identifier,
-                                CSSClasses.identifier
-                            )}
+                            Please let me know what ${getStyledSpan(args.identifier, CSSClasses.identifier)}
                             is by declaring it and then I'll know how it can be used.`;
                 }
 
-                return `Attempted to reference ${getStyledSpan(
-                    args.identifier,
-                    CSSClasses.identifier
-                )} 
+                return `Attempted to reference ${getStyledSpan(args.identifier, CSSClasses.identifier)} 
                        before declaration. ${getStyledSpan(args.identifier, CSSClasses.identifier)}
                        either has not been defined or is defined after the current line.`;
 
             case ErrorMessage.methodCallObjectTypeMismatch:
                 if (usePersonalizedMessages) {
-                    return `I don't know how to do ${getStyledSpan(
-                        args.method,
-                        CSSClasses.identifier
-                    )}() from an
+                    return `I don't know how to do ${getStyledSpan(args.method, CSSClasses.identifier)}() from an
                             object of type ${getStyledSpan(
                                 args.calledOn,
                                 CSSClasses.type
@@ -138,10 +127,7 @@ export class ErrorMessageGenerator {
 
                 return `Attempted to call ${getStyledSpan(args.method, CSSClasses.identifier)}() 
                        from an object of type ${getStyledSpan(args.objectType, CSSClasses.type)}.
-                       It can only be called from objects of type ${getStyledSpan(
-                           args.calledOn,
-                           CSSClasses.type
-                       )}.`;
+                       It can only be called from objects of type ${getStyledSpan(args.calledOn, CSSClasses.type)}.`;
 
             //The next three use the same text and args, but are kept separate in case we want to adjust their text individually
             case ErrorMessage.binOpArgTypeMismatch:
@@ -150,17 +136,17 @@ export class ErrorMessageGenerator {
                         args.binOp,
                         CSSClasses.other
                     )} for like types. I cannot perform it on two different types
-                    such as ${getStyledSpan(
-                        args.argType1,
+                    such as ${getStyledSpan(args.argType1, CSSClasses.type)} and ${getStyledSpan(
+                        args.argType2,
                         CSSClasses.type
-                    )} and ${getStyledSpan(args.argType2, CSSClasses.type)}.`;
+                    )}.`;
                 }
 
                 return `${getStyledSpan(args.binOp, CSSClasses.other)} is not defined for types
-                        ${getStyledSpan(
-                            args.argType1,
-                            CSSClasses.type
-                        )} and ${getStyledSpan(args.argType2, CSSClasses.type)}.`;
+                        ${getStyledSpan(args.argType1, CSSClasses.type)} and ${getStyledSpan(
+                    args.argType2,
+                    CSSClasses.type
+                )}.`;
 
             case ErrorMessage.boolOpArgTypeMismatch:
                 if (usePersonalizedMessages) {
@@ -168,18 +154,18 @@ export class ErrorMessageGenerator {
                         args.binOp,
                         CSSClasses.other
                     )} on an expression of type ${getStyledSpan(args.argType2, CSSClasses.type)}.
-                     I can only perform ${getStyledSpan(
-                         args.binOp,
-                         CSSClasses.other
-                     )} on ${getStyledSpan(args.argType1, CSSClasses.type)} literals, 
+                     I can only perform ${getStyledSpan(args.binOp, CSSClasses.other)} on ${getStyledSpan(
+                        args.argType1,
+                        CSSClasses.type
+                    )} literals, 
                      variables or expressions.`;
                 }
 
                 return `${getStyledSpan(args.binOp, CSSClasses.other)} is not defined for types
-                        ${getStyledSpan(
-                            args.argType1,
-                            CSSClasses.type
-                        )} and ${getStyledSpan(args.argType2, CSSClasses.type)}.`;
+                        ${getStyledSpan(args.argType1, CSSClasses.type)} and ${getStyledSpan(
+                    args.argType2,
+                    CSSClasses.type
+                )}.`;
 
             case ErrorMessage.compOpArgTypeMismatch:
                 if (usePersonalizedMessages) {
@@ -187,31 +173,25 @@ export class ErrorMessageGenerator {
                         args.binOp,
                         CSSClasses.other
                     )} on different types such as 
-                    ${getStyledSpan(
-                        args.argType1,
-                        CSSClasses.type
-                    )} and ${getStyledSpan(
+                    ${getStyledSpan(args.argType1, CSSClasses.type)} and ${getStyledSpan(
                         args.argType2,
                         CSSClasses.type
                     )}. They have to be the same type.`;
                 }
 
-                return `${getStyledSpan(
-                    args.binOp,
-                    CSSClasses.other
-                )} is not defined for types ${getStyledSpan(args.argType1, CSSClasses.type)}
+                return `${getStyledSpan(args.binOp, CSSClasses.other)} is not defined for types ${getStyledSpan(
+                    args.argType1,
+                    CSSClasses.type
+                )}
                        and ${getStyledSpan(args.argType2, CSSClasses.type)}.`;
 
             case ErrorMessage.methodArgTypeMismatch:
                 if (usePersonalizedMessages) {
-                    return `This argument to ${getStyledSpan(
-                        args.methodName,
-                        CSSClasses.identifier
-                    )} should be of type 
-                            ${getStyledSpan(
-                                args.argType1,
-                                CSSClasses.type
-                            )}, but I found a ${getStyledSpan(args.argType2, CSSClasses.type)}.`;
+                    return `This argument to ${getStyledSpan(args.methodName, CSSClasses.identifier)} should be of type 
+                            ${getStyledSpan(args.argType1, CSSClasses.type)}, but I found a ${getStyledSpan(
+                        args.argType2,
+                        CSSClasses.type
+                    )}.`;
                 }
 
                 return `Argument of type ${getStyledSpan(args.argType1, CSSClasses.type)} expected, 
@@ -220,10 +200,7 @@ export class ErrorMessageGenerator {
             case ErrorMessage.addableTypeMismatchControlStmt:
                 if (usePersonalizedMessages) {
                     if (args.constructName != "for") {
-                        return `${getStyledSpan(
-                            args.constructName,
-                            CSSClasses.keyword
-                        )} is a control flow statement.
+                        return `${getStyledSpan(args.constructName, CSSClasses.keyword)} is a control flow statement.
                                 I can only put ${getStyledSpan(
                                     "Boolean",
                                     CSSClasses.type
@@ -244,24 +221,15 @@ export class ErrorMessageGenerator {
                     return `${getStyledSpan(
                         args.constructName,
                         CSSClasses.keyword
-                    )} is a control flow statement. It only accepts ${getStyledSpan(
-                        "Boolean",
-                        CSSClasses.type
-                    )}
+                    )} is a control flow statement. It only accepts ${getStyledSpan("Boolean", CSSClasses.type)}
                             expressions or method calls and literal values that evaluate to a ${getStyledSpan(
                                 "Boolean",
                                 CSSClasses.type
-                            )}. Tried to insert a ${getStyledSpan(
-                        args.addedType,
-                        CSSClasses.type
-                    )} instead.`;
+                            )}. Tried to insert a ${getStyledSpan(args.addedType, CSSClasses.type)} instead.`;
                 } else {
                     if (args.focusedNode instanceof IdentifierTkn) {
-                        return `Identifier expected. ${getStyledSpan(
-                            args.addedType,
-                            CSSClasses.type
-                        )} found instead.`;
-                    } else if (args.focusedNode instanceof TypedEmptyExpr) {
+                        return `Identifier expected. ${getStyledSpan(args.addedType, CSSClasses.type)} found instead.`;
+                    } else if (args.focusedNode instanceof HoleTkn) {
                         return `Iterable object expected. ${getStyledSpan(
                             args.addedType,
                             CSSClasses.type
@@ -291,10 +259,7 @@ export class ErrorMessageGenerator {
                     )} on an empty line.`;
                 }
 
-                return `Cannot insert a(n) ${getStyledSpan(
-                    args.addedType,
-                    CSSClasses.keyword
-                )} on an empty line.`;
+                return `Cannot insert a(n) ${getStyledSpan(args.addedType, CSSClasses.keyword)} on an empty line.`;
 
             case ErrorMessage.existingIdentifier:
                 if (usePersonalizedMessages) {
@@ -353,10 +318,7 @@ export class ErrorMessageGenerator {
                     args.constructName,
                     CSSClasses.keyword
                 )} statement only accepts ${getStyledSpan(args.expectedType, CSSClasses.type)}
-                        expressions. Found ${getStyledSpan(
-                            args.addedType,
-                            CSSClasses.type
-                        )} instead.`;
+                        expressions. Found ${getStyledSpan(args.addedType, CSSClasses.type)} instead.`;
 
             case ErrorMessage.addableTypeMismatchMethodArg:
                 if (usePersonalizedMessages) {
@@ -366,23 +328,14 @@ export class ErrorMessageGenerator {
                     )} to methods as they don't know how to work with it.`;
                 }
 
-                return `${getStyledSpan(
-                    args.addedType,
-                    CSSClasses.type
-                )} cannot be used as a method argument.`;
+                return `${getStyledSpan(args.addedType, CSSClasses.type)} cannot be used as a method argument.`;
 
             case ErrorMessage.addableTypeMismatchGeneral:
                 if (usePersonalizedMessages) {
-                    return `I cannot insert a(n) ${getStyledSpan(
-                        args.addedType,
-                        CSSClasses.type
-                    )} here.`;
+                    return `I cannot insert a(n) ${getStyledSpan(args.addedType, CSSClasses.type)} here.`;
                 }
 
-                return `A(n) ${getStyledSpan(
-                    args.addedType,
-                    CSSClasses.type
-                )} cannot be inserted at this location.`;
+                return `A(n) ${getStyledSpan(args.addedType, CSSClasses.type)} cannot be inserted at this location.`;
 
             case ErrorMessage.general:
                 return args.message;

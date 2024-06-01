@@ -1,4 +1,4 @@
-import { Construct, EmptyLineStmt, TypedEmptyExpr } from "../syntax-tree/ast";
+import { Construct, EmptyLineStmt, HoleTkn } from "../syntax-tree/ast";
 import { Editor } from "./editor";
 
 export class Cursor {
@@ -16,7 +16,7 @@ export class Cursor {
 
         const cursor = this;
 
-        // This function is called indefinitely to continuously animate 
+        // This function is called indefinitely to continuously animate
         // the cursor selection
         function loop() {
             cursor.setTransform(cursor.code);
@@ -29,7 +29,7 @@ export class Cursor {
 
     /**
      * Set the selection region in the editor of the given code
-     * 
+     *
      * @param code - The code in which a region is selected
      */
     setTransform(code: Construct) {
@@ -39,7 +39,7 @@ export class Cursor {
         const selection = code != null ? code.getSelection() : this.editor.monaco.getSelection();
 
         // Styling the background of the selection
-        if (code instanceof TypedEmptyExpr) this.element.style.borderRadius = "15px";
+        if (code instanceof HoleTkn) this.element.style.borderRadius = "15px";
         else this.element.style.borderRadius = "0";
 
         this.element.style.visibility = "visible";
@@ -55,8 +55,8 @@ export class Cursor {
     }
 
     /**
-     * Sets the visual selection region in the editor 
-     * 
+     * Sets the visual selection region in the editor
+     *
      * @param code - The code to be selected
      */
     setSelection(code: Construct = null) {

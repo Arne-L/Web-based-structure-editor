@@ -334,7 +334,7 @@ export class EventRouter {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
-                                if (curTkn instanceof ast.TypedEmptyExpr && prevTkn.getRenderText() === INDENT) {
+                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === INDENT) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
                                         console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
@@ -355,7 +355,7 @@ export class EventRouter {
                                         );
                                         const toReplace = nextCompound.tokens
                                             .slice(underNextCompound.indexInRoot, nextCompound.cycleLength)
-                                            .find((tkn) => tkn instanceof ast.TypedEmptyExpr);
+                                            .find((tkn) => tkn instanceof ast.HoleTkn);
                                         ASTManupilation.replaceWith(toReplace, rightConstruct);
                                     } else {
                                         // Undo the replacement
