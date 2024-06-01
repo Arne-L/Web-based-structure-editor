@@ -303,9 +303,9 @@ export abstract class CodeConstruct extends Construct {
      *
      * @returns All AssignmentTokens within the statement
      */
-    getAssignments(): AssignmentToken[] {
+    getAssignments(): AssignmentTkn[] {
         return this.assignmentIndices.map((index) => {
-            if (this.tokens[index] instanceof AssignmentToken) return this.tokens[index] as AssignmentToken;
+            if (this.tokens[index] instanceof AssignmentTkn) return this.tokens[index] as AssignmentTkn;
             else console.error(`Token at index ${index} within ${this} is not an assignment token`);
         });
     }
@@ -318,8 +318,8 @@ export abstract class CodeConstruct extends Construct {
      * Set the identifier of the assignment token at the given index to the given identifier
      */
     setAssignmentIdentifier(identifier: string, index: number) {
-        if (this.tokens[index] instanceof AssignmentToken) {
-            (this.tokens[index] as AssignmentToken).setIdentifierText(identifier); // Should maybe be setEditedText
+        if (this.tokens[index] instanceof AssignmentTkn) {
+            (this.tokens[index] as AssignmentTkn).setIdentifierText(identifier); // Should maybe be setEditedText
         } else console.error(`Token at index ${index} within ${this} is not an assignment token`);
     }
 
@@ -1519,7 +1519,7 @@ export class IdentifierTkn extends Token implements TextEditable {
  * Handles the creation, (re)assignment and deletion of variables with regards to
  * the scope, AST and visual representation.
  */
-export class AssignmentToken extends IdentifierTkn {
+export class AssignmentTkn extends IdentifierTkn {
     /**
      * The old identifier of the assignment token. This is used to keep track of the
      * identifier before it was changed, easily update the old references and detect

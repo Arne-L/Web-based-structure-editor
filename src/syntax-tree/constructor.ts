@@ -1,7 +1,7 @@
 import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
 import { globalFormats } from "../language-definition/parser";
 import {
-    AssignmentToken,
+    AssignmentTkn,
     CodeConstruct,
     CompoundConstruct,
     Construct,
@@ -140,11 +140,7 @@ export namespace SyntaxConstructor {
                     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
                     rootConstruct.holeTypes.set(indexInRoot + constructs.length, token.elements[i].type);
                     constructs.push(
-                        new HoleTkn(
-                            rootConstruct,
-                            indexInRoot + constructs.length,
-                            token.elements[i].type
-                        )
+                        new HoleTkn(rootConstruct, indexInRoot + constructs.length, token.elements[i].type)
                     );
 
                     if (i + 1 < token.elements.length)
@@ -155,7 +151,7 @@ export namespace SyntaxConstructor {
                 return constructs;
             case "identifier":
                 return [
-                    new AssignmentToken(
+                    new AssignmentTkn(
                         undefined,
                         rootConstruct,
                         indexInRoot,

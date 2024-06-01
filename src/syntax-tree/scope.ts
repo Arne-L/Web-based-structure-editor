@@ -1,5 +1,5 @@
 import { Position } from "monaco-editor";
-import { AssignmentToken } from "./ast";
+import { AssignmentTkn } from "./ast";
 import { Module } from "./module";
 
 /**
@@ -32,7 +32,7 @@ export class Scope {
     getValidReferences(pos: Position, referenceType?: string): Reference[] {
         return [
             ...(referenceType
-                ? (Module.instance.scope.references.get(referenceType) ?? [])
+                ? Module.instance.scope.references.get(referenceType) ?? []
                 : [...Module.instance.scope.references.values()].flat()),
             ...this.getValidReferencesRecursive(pos, referenceType),
         ];
@@ -45,7 +45,9 @@ export class Scope {
      * @returns - An array of all the valid references in this and all parent scopes
      */
     private getValidReferencesRecursive(pos: Position, referenceType?: string): Reference[] {
-        const references = referenceType ? (this.references.get(referenceType) ?? []) : [...this.references.values()].flat();
+        const references = referenceType
+            ? this.references.get(referenceType) ?? []
+            : [...this.references.values()].flat();
         // All references that appear before the current line
         let validReferences = references.filter((ref) => ref.getPosition().isBeforeOrEqual(pos));
 
@@ -111,7 +113,7 @@ export class Scope {
      *
      * @returns true if the reference was removed, false otherwise
      */
-    removeAssignment(assignment: AssignmentToken): boolean {
+    removeAssignment(assignment: AssignmentTkn): boolean {
         const references = this.references.get(assignment.referenceType) ?? [];
         const initialLength = references.length;
         this.references.set(
@@ -126,7 +128,7 @@ export class Scope {
      *
      * @param assignment - The assignment token to add to the current scope
      */
-    addAssignment(assignment: AssignmentToken) {
+    addAssignment(assignment: AssignmentTkn) {
         const references = this.references.get(assignment.referenceType);
         if (references) references.push(new Reference(assignment, this));
         else this.references.set(assignment.referenceType, [new Reference(assignment, this)]);
@@ -140,7 +142,7 @@ export class Scope {
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
      */
-    pushToScope(toScope: Scope, assignments: AssignmentToken[]): number {
+    pushToScope(toScope: Scope, assignments: AssignmentTkn[]): number {
         let total = 0;
 
         if (!toScope) return;
@@ -161,7 +163,7 @@ export class Scope {
      * @param assignments - The assignment tokens to push to the parent scope
      * @returns The number of assignments that were pushed to the parent scope
      */
-    pushToParentScope(assignments: AssignmentToken[]): number {
+    pushToParentScope(assignments: AssignmentTkn[]): number {
         return this.pushToScope(this.parentScope, assignments);
     }
 }
@@ -174,7 +176,7 @@ export class Reference {
      * Token encapsulating the assignment. It has a place in the AST and
      * can be used for context information.
      */
-    token: AssignmentToken;
+    token: AssignmentTkn;
 
     /**
      * The scope in which this item is assigned.
@@ -188,7 +190,7 @@ export class Reference {
      * @param scope - The scope in which the reference is valid
      * @param token - The token that is being referenced
      */
-    constructor(token: AssignmentToken, scope: Scope) {
+    constructor(token: AssignmentTkn, scope: Scope) {
         this.token = token;
         this.scope = scope;
     }
@@ -197,7 +199,7 @@ export class Reference {
         return this.token.right;
     }
 
-    getAssignment(): AssignmentToken {
+    getAssignment(): AssignmentTkn {
         return this.token;
     }
 }
