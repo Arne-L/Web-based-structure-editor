@@ -141,7 +141,6 @@ export namespace SyntaxConstructor {
                     rootConstruct.holeTypes.set(indexInRoot + constructs.length, token.elements[i].type);
                     constructs.push(
                         new HoleTkn(
-                            [DataType.Any],
                             rootConstruct,
                             indexInRoot + constructs.length,
                             token.elements[i].type

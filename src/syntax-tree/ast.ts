@@ -1842,19 +1842,17 @@ export class AutocompleteTkn extends Token implements TextEditable {
  */
 export class HoleTkn extends Token {
     isEmpty = true;
-    type: DataType[];
     allowedType: string;
     cssClasses = {
         selectionBackground: "border-15",
         hole: "expression-hole",
     };
 
-    constructor(type: DataType[], root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
+    constructor(root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
         super("    ");
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
-        this.type = type;
         if (allowedType) this.allowedType = allowedType;
     }
 

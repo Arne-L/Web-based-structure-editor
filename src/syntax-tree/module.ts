@@ -433,7 +433,6 @@ export class Module {
 
         // Create the hole to replace the removed construct
         const replacement = new HoleTkn(
-            [DataType.Any],
             root,
             construct.indexInRoot,
             root.holeTypes.get(construct.indexInRoot)
