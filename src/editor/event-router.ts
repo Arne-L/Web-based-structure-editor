@@ -299,6 +299,7 @@ export class EventRouter {
                         console.log("BACKSPACE editable");
                         if (!curTkn.isEmpty) return new EditAction(EditActionType.DeletePrevChar);
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                            // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
                         } else {
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
@@ -366,8 +367,7 @@ export class EventRouter {
                             }
                         } else {
                             console.log("BACKSPACE compound");
-                            const compound = curTkn.rootNode;
-                            compound.removeExpansion(curTkn);
+                            nearestCompound.removeExpansion(curTkn);
                         }
                         // compound.
                         // Try to remove one cycle of the compound construct
