@@ -609,11 +609,10 @@ export class EventRouter {
 
                         newText = curText.join("");
                     }
+                    // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
-                        !(
-                            (editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) &&
-                            !editableTkn.validatorRegex.test(newText)
-                        )
+                        !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
+                        editableTkn.validatorRegex.test(newText)
                     ) {
                         return new EditAction(EditActionType.InsertChar);
                     }
@@ -885,7 +884,7 @@ export class EventRouter {
                  */
                 const statement = e.getCode(); // Should be replaced with the construct object in the future
                 if (statement.validateContext(this.module.validator, context) === InsertionType.Valid) {
-                    return new EditAction(EditActionType.InsertGeneralStmt, {
+                    return new EditAction(EditActionType.InsertUniConstruct, {
                         construct: statement,
                         source,
                     });

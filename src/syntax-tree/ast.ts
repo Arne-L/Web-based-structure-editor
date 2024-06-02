@@ -641,9 +641,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns the module of the whole system
      */
     getModule(): Module {
-        if (this.rootNode instanceof Module) return this.rootNode;
-
-        return (this.rootNode as Statement).getModule();
+        return Module.instance;
     }
 
     // getRootBody(): Array<Statement> {

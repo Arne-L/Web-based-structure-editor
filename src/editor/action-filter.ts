@@ -49,7 +49,7 @@ export class ActionFilter {
             if (action.referenceType) {
                 // TODO: Check why currentTkn is null when you click on a hole (for the first of many iterations atleast)
                 // Current hypthesis: getContextFromSelection() tries to build the context from the selection, but initially, this
-                // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere 
+                // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere
                 // else than the beginning, the token range will not match with the selection range and thus result in
                 // no valid token (for the context)
                 const references = scope.getValidReferences(currentTkn?.left ?? nearestStmt.left, action.referenceType);
@@ -279,7 +279,7 @@ export class EditCodeAction extends UserAction {
         // Create an EditAction that contains all information to create the final construct
         // The EditActionType is not used in the createFinalConstruct function and can thus
         // be anythin
-        const editaction = new EditAction(EditActionType.InsertGeneralStmt, {
+        const editaction = new EditAction(EditActionType.InsertUniConstruct, {
             construct: this.getCode(),
             autocompleteData: { values: getHoleValues(userInput, this.matchRegex) },
         });

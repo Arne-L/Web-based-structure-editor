@@ -72,7 +72,7 @@ export class ActionExecutor {
         // Handle each of the different action types
         switch (action.type) {
             // KInda language independent
-            case EditActionType.InsertGeneralStmt:
+            case EditActionType.InsertUniConstruct:
             case EditActionType.InsertGeneralExpr:
                 /**
                  * Purpose is to try to
