@@ -226,6 +226,45 @@
         }
     },
     {
+        "keyword": "draaiLit",
+        "constructType": "turn_expression",
+        "editorName": "links/rechts",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^(links|rechts)$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^(links|rechts)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tekenen",
+            "title": "richting",
+            "tooltip": {
+                "title": "De richting",
+                "body": "The richting waarin gedraaid wordt links of rechts."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-turn-left",
+                    "example": "draai links"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-turn-right",
+                    "example": "draai rechts"
+                }
+            ],
+            "search-queries": [
+                "draai",
+                "links",
+                "rechts"
+            ]
+        }
+    },
+    {
         "keyword": "draai",
         "constructType": "statement",
         "format": [
@@ -238,8 +277,13 @@
                 "value": " "
             },
             {
-                "type": "editable",
-                "regex": "^(links|rechts)$"
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "turn_expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "triggerInsertion": [],

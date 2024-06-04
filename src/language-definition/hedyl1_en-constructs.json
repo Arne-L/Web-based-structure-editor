@@ -226,6 +226,45 @@
         }
     },
     {
+        "keyword": "turnLit",
+        "constructType": "turn_expression",
+        "editorName": "left/right",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^(left|right)$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^(left|right)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Drawing",
+            "title": "direction",
+            "tooltip": {
+                "title": "The direction",
+                "body": "The direction in which to turn: left or right."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-turn-left",
+                    "example": "turn left"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-turn-right",
+                    "example": "turn right"
+                }
+            ],
+            "search-queries": [
+                "turn",
+                "left",
+                "right"
+            ]
+        }
+    },
+    {
         "keyword": "turn",
         "constructType": "statement",
         "format": [
@@ -238,8 +277,13 @@
                 "value": " "
             },
             {
-                "type": "editable",
-                "regex": "^(left|right)$"
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "turn_expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "triggerInsertion": [],
