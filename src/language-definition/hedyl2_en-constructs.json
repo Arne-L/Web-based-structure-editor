@@ -305,7 +305,7 @@
     },
     {
         "keyword": "noteLit",
-        "constructType": "expression",
+        "constructType": "note_expression",
         "editorName": "note",
         "format": [
             {
@@ -351,7 +351,7 @@
                 "type": "hole",
                 "elements": [
                     {
-                        "type": "expression",
+                        "type": "note_expression",
                         "optional": false
                     }
                 ]
