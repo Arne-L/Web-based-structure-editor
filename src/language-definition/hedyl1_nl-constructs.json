@@ -1,0 +1,319 @@
+[
+    {
+        "keyword": "print",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "print"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "print tekst",
+        "match": "print",
+        "toolbox": {
+            "category": "Print",
+            "title": "print bericht",
+            "tooltip": {
+                "title": "Toon tekst in de console",
+                "body": "Toont de gegeven tekst in de console."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-print-num-str",
+                    "example": "print Dag allemaal"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-print-var",
+                    "example": "print Hoe gaat het?"
+                }
+            ],
+            "search-queries": [
+                "uitvoer",
+                "zeg",
+                "print",
+                "print uitvoer",
+                "console",
+                "schrijf"
+            ]
+        }
+    },
+    {
+        "keyword": "vraag",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "vraag"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "vraag de vraag",
+        "match": "vraag",
+        "toolbox": {
+            "category": "Vraag",
+            "title": "Stel vraag",
+            "tooltip": {
+                "title": "Stel een vraag",
+                "body": "Stel een vraag waarvan het antwoord nadien met het echo commando geprint kan worden."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-ask-name",
+                    "example": "vraag Wat is je naam?"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-ask-age",
+                    "example": "vraag Hoe oud ben je?"
+                }
+            ],
+            "search-queries": [
+                "vraag",
+                "stel vraag"
+            ]
+        }
+    },
+    {
+        "keyword": "echo",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "echo"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^([^\\r\\n\\\"]*)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "echo tekst antwoord",
+        "match": "echo",
+        "toolbox": {
+            "category": "Echo",
+            "title": "herhaal het antwoord",
+            "tooltip": {
+                "title": "Toont tekst en antwoord in de Console",
+                "body": "Toont de gegeven tekst gevolgd door het antwoord op de laatste vraag in de console."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-echo-num-str",
+                    "example": "vraag Hoe oud ben je?\necho Je bent"
+                }
+            ],
+            "search-queries": [
+                "uitvoer",
+                "echo",
+                "herhaal"
+            ]
+        }
+    },
+    {
+        "keyword": "speel",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "speel"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "speel muzieknoot",
+        "match": "speel",
+        "toolbox": {
+            "category": "Muziek",
+            "title": "speel een muzieknoot",
+            "tooltip": {
+                "title": "Speel een muzieknoot",
+                "body": "Speel de gegeven muzieknoot. De toonladder gaat zo: C-D-E-F-G-A-B. Zoals je ziet zijn er 7 verschillende letters, maar er zijn veel meer dan 7 muzieknoten. Type een getal tussen 1 en 10 achter de letter om een toonladder te kiezen. Zo komt na de noot B4 de noot C5. C1 is de laagste noot die je kunt spelen en C10 is de hoogste."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-play-c4",
+                    "example": "speel C4"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-play-f4",
+                    "example": "speel F4"
+                }
+            ],
+            "search-queries": [
+                "muziek",
+                "noot",
+                "speel"
+            ]
+        }
+    },
+    {
+        "keyword": "vooruit",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "vooruit"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "editable",
+                "regex": "^(-?[0-9]+)$"
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "vooruit afstand",
+        "match": "vooruit",
+        "toolbox": {
+            "category": "Tekenen",
+            "title": "ga naar voren",
+            "tooltip": {
+                "title": "Teken lijn",
+                "body": "Teken een lijn met gegeven lengte."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-forward-20",
+                    "example": "vooruit 20"
+                }
+            ],
+            "search-queries": [
+                "vooruit",
+                "lijn"
+            ]
+        }
+    },
+    {
+        "keyword": "draaiLit",
+        "constructType": "turn_expression",
+        "editorName": "links/rechts",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^(links|rechts)$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^(links|rechts)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Tekenen",
+            "title": "richting",
+            "tooltip": {
+                "title": "De richting",
+                "body": "The richting waarin gedraaid wordt links of rechts."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-turn-left",
+                    "example": "draai links"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-turn-right",
+                    "example": "draai rechts"
+                }
+            ],
+            "search-queries": [
+                "draai",
+                "links",
+                "rechts"
+            ]
+        }
+    },
+    {
+        "keyword": "draai",
+        "constructType": "statement",
+        "format": [
+            {
+                "type": "token",
+                "value": "draai"
+            },
+            {
+                "type": "token",
+                "value": " "
+            },
+            {
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "turn_expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "triggerInsertion": [],
+        "editorName": "draai links/rechts",
+        "match": "draai",
+        "toolbox": {
+            "category": "Tekenen",
+            "title": "Draai een kwartslag",
+            "tooltip": {
+                "title": "Draai een kwartslag",
+                "body": "Draai een kwartslag naar links of naar rechts."
+            },
+            "invalidTooltip": "Kan enkel op lege lijnen ingevoegd worden.",
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-turn-left",
+                    "example": "draai links"
+                },
+                {
+                    "type": "executable",
+                    "id": "ex-turn-right",
+                    "example": "draai rechts"
+                }
+            ],
+            "search-queries": [
+                "draai",
+                "links",
+                "rechts"
+            ]
+        }
+    }
+]
