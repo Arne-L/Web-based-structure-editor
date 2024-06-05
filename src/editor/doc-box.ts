@@ -12,107 +12,107 @@ export class ExecutableCode {
     private static openBoxes: DocBoxMeta[] = [];
     private static pressedEscape = false;
 
-    constructor(uniqueId: string, documentation: any) {
-        const container = document.createElement("div");
-        container.classList.add("doc-box-container");
-        container.id = `doc-box-${uniqueId}`;
-        docBoxRunButtons.set(container.id, []);
+    // constructor(uniqueId: string, documentation: any) {
+    //     const container = document.createElement("div");
+    //     container.classList.add("doc-box-container");
+    //     container.id = `doc-box-${uniqueId}`;
+    //     docBoxRunButtons.set(container.id, []);
 
-        const headerDiv = document.createElement("div");
-        headerDiv.classList.add("doc-box-header");
+    //     const headerDiv = document.createElement("div");
+    //     headerDiv.classList.add("doc-box-header");
 
-        const closeButton = document.createElement("div");
-        closeButton.classList.add("close-button");
-        closeButton.innerHTML = `<span>&times;</span>`;
+    //     const closeButton = document.createElement("div");
+    //     closeButton.classList.add("close-button");
+    //     closeButton.innerHTML = `<span>&times;</span>`;
 
-        const docTitle = document.createElement("h3");
-        docTitle.classList.add("doc-title");
-        docTitle.innerText = documentation.title;
-        headerDiv.appendChild(docTitle);
+    //     const docTitle = document.createElement("h3");
+    //     docTitle.classList.add("doc-title");
+    //     docTitle.innerText = documentation.title;
+    //     headerDiv.appendChild(docTitle);
 
-        headerDiv.appendChild(closeButton);
-        container.appendChild(headerDiv);
+    //     headerDiv.appendChild(closeButton);
+    //     container.appendChild(headerDiv);
 
-        document.body.appendChild(container);
+    //     document.body.appendChild(container);
 
-        // the documentation:
-        const docBody = document.createElement("div");
-        docBody.classList.add("doc-body");
-        container.appendChild(docBody);
+    //     // the documentation:
+    //     const docBody = document.createElement("div");
+    //     docBody.classList.add("doc-body");
+    //     container.appendChild(docBody);
 
-        for (const item of documentation.body) {
-            if (item.hasOwnProperty("paragraph")) {
-                const p = document.createElement("p");
-                p.innerHTML = item.paragraph;
+    //     for (const item of documentation.body) {
+    //         if (item.hasOwnProperty("paragraph")) {
+    //             const p = document.createElement("p");
+    //             p.innerHTML = item.paragraph;
 
-                docBody.appendChild(p);
-            } else if (item.hasOwnProperty("example")) {
-                const ex = createExample(item);
-                docBody.appendChild(ex[0]);
-                docBoxRunButtons.set(container.id, ex[1]);
+    //             docBody.appendChild(p);
+    //         } else if (item.hasOwnProperty("example")) {
+    //             const ex = createExample(item);
+    //             docBody.appendChild(ex[0]);
+    //             docBoxRunButtons.set(container.id, ex[1]);
 
-                attachPyodideActions(
-                    (() => {
-                        const actions = [];
+    //             attachPyodideActions(
+    //                 (() => {
+    //                     const actions = [];
 
-                        for (const buttonId of ex[1]) {
-                            actions.push((pyodideController) => {
-                                const button = document.getElementById(buttonId);
+    //                     for (const buttonId of ex[1]) {
+    //                         actions.push((pyodideController) => {
+    //                             const button = document.getElementById(buttonId);
 
-                                button.addEventListener("click", () => {
-                                    try {
-                                        nova.globals.lastPressedRunButtonId = button.id;
+    //                             button.addEventListener("click", () => {
+    //                                 try {
+    //                                     nova.globals.lastPressedRunButtonId = button.id;
 
-                                        clearConsole(ex[3]);
-                                        pyodideController.runPython(codeString(ex[2].getValue()));
-                                    } catch (err) {
-                                        console.error("Unable to run python code");
+    //                                     clearConsole(ex[3]);
+    //                                     pyodideController.runPython(codeString(ex[2].getValue()));
+    //                                 } catch (err) {
+    //                                     console.error("Unable to run python code");
 
-                                        addTextToConsole(
-                                            runBtnToOutputWindow.get(button.id),
-                                            err,
-                                            CONSOLE_ERR_TXT_CLASS
-                                        );
-                                    }
-                                });
-                            });
-                        }
+    //                                     addTextToConsole(
+    //                                         runBtnToOutputWindow.get(button.id),
+    //                                         err,
+    //                                         CONSOLE_ERR_TXT_CLASS
+    //                                     );
+    //                                 }
+    //                             });
+    //                         });
+    //                     }
 
-                        return actions;
-                    })(),
-                    []
-                );
-            } else if (item.hasOwnProperty("block-based-image")) {
-                docBody.appendChild(createImage(item));
-            }
-        }
+    //                     return actions;
+    //                 })(),
+    //                 []
+    //             );
+    //         } else if (item.hasOwnProperty("block-based-image")) {
+    //             docBody.appendChild(createImage(item));
+    //         }
+    //     }
 
-        window.addEventListener("mousedown", function (e) {
-            if (container.contains(e.target as Element)) ExecutableCode.focusBox(container.id);
-            else headerDiv.classList.remove("focused-header");
-        });
+    //     window.addEventListener("mousedown", function (e) {
+    //         if (container.contains(e.target as Element)) ExecutableCode.focusBox(container.id);
+    //         else headerDiv.classList.remove("focused-header");
+    //     });
 
-        closeButton.onclick = () => {
-            ExecutableCode.closeBox(container.id);
-        };
+    //     closeButton.onclick = () => {
+    //         ExecutableCode.closeBox(container.id);
+    //     };
 
-        document.addEventListener("keydown", (ev) => {
-            if (ev.key == "Escape") {
-                ExecutableCode.pressedEscape = true;
-            }
-        });
+    //     document.addEventListener("keydown", (ev) => {
+    //         if (ev.key == "Escape") {
+    //             ExecutableCode.pressedEscape = true;
+    //         }
+    //     });
 
-        document.addEventListener("keyup", (ev) => {
-            if (ev.key == "Escape" && ExecutableCode.pressedEscape) {
-                const focusedBox = ExecutableCode.openBoxes.find((box) => box.isFocused);
-                if (focusedBox) ExecutableCode.closeBox(focusedBox.id);
+    //     document.addEventListener("keyup", (ev) => {
+    //         if (ev.key == "Escape" && ExecutableCode.pressedEscape) {
+    //             const focusedBox = ExecutableCode.openBoxes.find((box) => box.isFocused);
+    //             if (focusedBox) ExecutableCode.closeBox(focusedBox.id);
 
-                ExecutableCode.pressedEscape = false;
-            }
-        });
+    //             ExecutableCode.pressedEscape = false;
+    //         }
+    //     });
 
-        ExecutableCode.addNewBox(container.id);
-    }
+    //     ExecutableCode.addNewBox(container.id);
+    // }
 
     static getNewConsoleId(): string {
         return "console-id-" + ExecutableCode.exampleCounter++;

@@ -11,5 +11,7 @@
             "example": "a = 2\na += 2\nprint(a)"
         }
     ],
-    "search-queries": ["add to variable"]
+    "searchQueries": [
+        "add to variable"
+    ]
 }

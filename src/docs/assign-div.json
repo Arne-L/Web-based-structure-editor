@@ -11,5 +11,7 @@
             "example": "a = 10\na /= 2\nprint(a)"
         }
     ],
-    "search-queries": ["divide variable"]
+    "searchQueries": [
+        "divide variable"
+    ]
 }

@@ -303,9 +303,9 @@ export abstract class CodeConstruct extends Construct {
      *
      * @returns All AssignmentTokens within the statement
      */
-    getAssignments(): AssignmentToken[] {
+    getAssignments(): AssignmentTkn[] {
         return this.assignmentIndices.map((index) => {
-            if (this.tokens[index] instanceof AssignmentToken) return this.tokens[index] as AssignmentToken;
+            if (this.tokens[index] instanceof AssignmentTkn) return this.tokens[index] as AssignmentTkn;
             else console.error(`Token at index ${index} within ${this} is not an assignment token`);
         });
     }
@@ -318,8 +318,8 @@ export abstract class CodeConstruct extends Construct {
      * Set the identifier of the assignment token at the given index to the given identifier
      */
     setAssignmentIdentifier(identifier: string, index: number) {
-        if (this.tokens[index] instanceof AssignmentToken) {
-            (this.tokens[index] as AssignmentToken).setIdentifierText(identifier); // Should maybe be setEditedText
+        if (this.tokens[index] instanceof AssignmentTkn) {
+            (this.tokens[index] as AssignmentTkn).setIdentifierText(identifier); // Should maybe be setEditedText
         } else console.error(`Token at index ${index} within ${this} is not an assignment token`);
     }
 
@@ -641,9 +641,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns the module of the whole system
      */
     getModule(): Module {
-        if (this.rootNode instanceof Module) return this.rootNode;
-
-        return (this.rootNode as Statement).getModule();
+        return Module.instance;
     }
 
     // getRootBody(): Array<Statement> {
@@ -1519,7 +1517,7 @@ export class IdentifierTkn extends Token implements TextEditable {
  * Handles the creation, (re)assignment and deletion of variables with regards to
  * the scope, AST and visual representation.
  */
-export class AssignmentToken extends IdentifierTkn {
+export class AssignmentTkn extends IdentifierTkn {
     /**
      * The old identifier of the assignment token. This is used to keep track of the
      * identifier before it was changed, easily update the old references and detect
@@ -1704,7 +1702,7 @@ export class AssignmentToken extends IdentifierTkn {
  * Construct to be able to place non-statement (expressions and tokens) in a statement spot,
  * like the autocomplete Token
  */
-export class TemporaryStmt extends Statement {
+export class TemporaryConstruct extends Statement {
     constructor(token: Construct) {
         super();
 
@@ -1840,21 +1838,19 @@ export class AutocompleteTkn extends Token implements TextEditable {
 /**
  * Represents the "holes" in the text that can be filled with expressions
  */
-export class TypedEmptyExpr extends Token {
+export class HoleTkn extends Token {
     isEmpty = true;
-    type: DataType[];
     allowedType: string;
     cssClasses = {
         selectionBackground: "border-15",
         hole: "expression-hole",
     };
 
-    constructor(type: DataType[], root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
+    constructor(root?: CodeConstruct, indexInRoot?: number, allowedType?: string) {
         super("    ");
 
         this.rootNode = root;
         this.indexInRoot = indexInRoot;
-        this.type = type;
         if (allowedType) this.allowedType = allowedType;
     }
 
@@ -2192,7 +2188,7 @@ export class CompoundConstruct extends CodeConstruct {
             .every(
                 (token) =>
                     token instanceof NonEditableTkn ||
-                    token instanceof TypedEmptyExpr ||
+                    token instanceof HoleTkn ||
                     (token instanceof Token && token.isEmpty)
             );
 

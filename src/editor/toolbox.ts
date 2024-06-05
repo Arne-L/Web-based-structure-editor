@@ -13,7 +13,6 @@ import { Accordion, TooltipType } from "./accordion";
 import { EditCodeAction } from "./action-filter";
 import { Actions } from "./consts";
 import { createExample } from "./doc-box";
-import { EventAction, EventStack, EventType } from "./event-stack";
 import { Context } from "./focus";
 
 export const docBoxRunButtons = new Map<string, string[]>(); // Can remove export
@@ -169,7 +168,7 @@ export class ToolboxController {
             includeMatches: true,
             shouldSort: true,
             threshold: 0.2,
-            keys: ["documentation.search-queries"],
+            keys: ["documentation.searchQueries"],
         };
 
         const fuse = new Fuse(Actions.instance().actionsList, options);

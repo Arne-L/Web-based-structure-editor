@@ -16,7 +16,7 @@
             "example": "a = [1, 2, 3]\na[1] = \"cat\"\nprint(a)"
         }
     ],
-    "search-queries": [
+    "searchQueries": [
         "assign element at index",
         "change value list index",
         "update item at index",

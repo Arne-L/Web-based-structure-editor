@@ -1,5 +1,5 @@
 import { Context } from "../editor/focus";
-import { CodeConstruct, CompoundConstruct, Construct, GeneralStatement, TypedEmptyExpr } from "./ast";
+import { CodeConstruct, CompoundConstruct, Construct, GeneralStatement, HoleTkn } from "./ast";
 import { Module } from "./module";
 
 export namespace ValidatorNameSpace {
@@ -38,7 +38,7 @@ export namespace ValidatorNameSpace {
             let currentConstruct: Construct = context.codeConstruct;
             if (currentConstruct instanceof CompoundConstruct) {
                 const replacement = context.token ?? context.tokenToLeft ?? context.tokenToRight;
-                if (replacement instanceof TypedEmptyExpr) currentConstruct = replacement;
+                if (replacement instanceof HoleTkn) currentConstruct = replacement;
             }
             const startingConstruct = currentConstruct;
 
@@ -176,14 +176,14 @@ export namespace ValidatorNameSpace {
     }
 
     /**
-     * Returns the next sibling of the given construct that is either a UniConstruct 
+     * Returns the next sibling of the given construct that is either a UniConstruct
      * or a Hole
      *
      * @param construct - Statement to get the next sibling of
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
      */
-    function getNextSiblingOf(construct: Construct): GeneralStatement | TypedEmptyExpr {
+    function getNextSiblingOf(construct: Construct): GeneralStatement | HoleTkn {
         // TODO: Currently both the getNextSiblingOf & getPrevSiblingOf functions
         // only check for a possible sibling in the same root construct. Maybe we want
         // to traverse further if the rootNode is a CompoundConstruct? This might be useful,
@@ -195,26 +195,26 @@ export namespace ValidatorNameSpace {
         // Get the next construct
         const nextConstruct = construct.rootNode.tokens[construct.indexInRoot + 1];
         // If the next construct is a UniConstruct or a Hole, return it
-        if (nextConstruct instanceof GeneralStatement || nextConstruct instanceof TypedEmptyExpr) return nextConstruct;
+        if (nextConstruct instanceof GeneralStatement || nextConstruct instanceof HoleTkn) return nextConstruct;
         // Otherwise, keep searching
         else return getNextSiblingOf(nextConstruct);
     }
 
     /**
-     * Returns the previous sibling of the given construct that is either a UniConstruct 
+     * Returns the previous sibling of the given construct that is either a UniConstruct
      * or a Hole
      *
      * @param construct - Statement to get the previous sibling of
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
      */
-    function getPrevSiblingOf(construct: Construct): GeneralStatement | TypedEmptyExpr {
+    function getPrevSiblingOf(construct: Construct): GeneralStatement | HoleTkn {
         // Construct is the first construct in the root's tokens
         if (!construct?.rootNode || construct.indexInRoot === 0) return null;
         // Get the previous construct
         const prevConstruct = construct.rootNode.tokens[construct.indexInRoot - 1];
         // If the prev construct is a UniConstruct or a Hole, return it
-        if (prevConstruct instanceof GeneralStatement || prevConstruct instanceof TypedEmptyExpr) return prevConstruct;
+        if (prevConstruct instanceof GeneralStatement || prevConstruct instanceof HoleTkn) return prevConstruct;
         // Otherwise, keep searching
         else return getPrevSiblingOf(prevConstruct);
     }

@@ -8,9 +8,9 @@ import {
     GeneralStatement,
     // EmptyOperatorTkn,
     Statement,
-    TemporaryStmt,
+    TemporaryConstruct,
     Token,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "./ast";
 import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
@@ -23,7 +23,7 @@ export namespace ASTManupilation {
             // If on empty line, replace the empty line
             if (module.validator.onEmptyLine(context)) {
                 // replaceEmptyStatement(context.lineStatement, new TemporaryStmt(construct));
-                replaceWith(context.codeConstruct, new TemporaryStmt(construct));
+                replaceWith(context.codeConstruct, new TemporaryConstruct(construct));
             }
             // If at empty expression hole, insert the token
             else if (module.validator.atEmptyHole(context)) {
@@ -114,7 +114,7 @@ export namespace ASTManupilation {
         // console.log("InsertToken", context.token, context)
 
         // Token is either a TypedEmptyExpr or an EmptyOperatorTkn (= a hole)
-        if (context.token instanceof TypedEmptyExpr /*|| context.token instanceof EmptyOperatorTkn*/) {
+        if (context.token instanceof HoleTkn /*|| context.token instanceof EmptyOperatorTkn*/) {
             // If there is a focused expression
             let focusedConstruct = context.construct ?? context.token; // Will it not always be context.token? As we are replacing the TypedEmptyExpr tkn?
 
@@ -210,7 +210,7 @@ export namespace ASTManupilation {
     function insertExpression(context: Context, code: Construct) {
         const module = Module.instance;
         // We can only insert expressions in holes / TypedEmptyExpr
-        if (!(context.token instanceof TypedEmptyExpr)) return;
+        if (!(context.token instanceof HoleTkn)) return;
 
         // Remove message if there is one
         if (context.token.message && context.selected) {
@@ -342,7 +342,6 @@ export namespace ASTManupilation {
         return construct;
     }
 
-
     export function getNextSibling(construct: Construct): Construct {
         // Keep track of how many levels up the current construct is
         let depth = 0;
@@ -369,24 +368,24 @@ export namespace ASTManupilation {
 export namespace DebugUtils {
     /**
      * Used to print special characters in a string to the console
-     * 
+     *
      * @param str - The string to print
      * @returns The string with special characters printed
      */
     export function escape(str) {
-        return str.replace(/[\b\f\n\r\t\v\0\'\"\\]/g, match => {
-          return {
-            '\b': '\\b',
-            '\f': '\\f',
-            '\n': '\\n',
-            '\r': '\\r',
-            '\t': '\\t',
-            '\v': '\\v',
-            '\0': '\\0',
-            '\'': '\\\'',
-            '\"': '\\\"',
-            '\\': '\\\\'
-          }[match]
-        })
-      }
+        return str.replace(/[\b\f\n\r\t\v\0\'\"\\]/g, (match) => {
+            return {
+                "\b": "\\b",
+                "\f": "\\f",
+                "\n": "\\n",
+                "\r": "\\r",
+                "\t": "\\t",
+                "\v": "\\v",
+                "\0": "\\0",
+                "'": "\\'",
+                '"': '\\"',
+                "\\": "\\\\",
+            }[match];
+        });
+    }
 }

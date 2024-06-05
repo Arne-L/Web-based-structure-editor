@@ -11,5 +11,8 @@
             "example": "names = [\"Anna\", \"John\", \"Peter\"]\njoinedNames = \"-\".join(names)\nprint(joinedNames)"
         }
     ],
-    "search-queries": ["join string", "join text"]
+    "searchQueries": [
+        "join string",
+        "join text"
+    ]
 }

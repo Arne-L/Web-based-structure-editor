@@ -5,7 +5,7 @@ import {
     // ForStatement,
     IdentifierTkn,
     // OperatorTkn,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 import { Module } from "../syntax-tree/module";
@@ -61,7 +61,7 @@ export class Hole {
         if (code instanceof IdentifierTkn) this.element.classList.add("identifier-hole");
         else if (code instanceof EditableTextTkn) {
             this.element.classList.add("text-editable-expr-hole");
-        } else if (code instanceof TypedEmptyExpr) {
+        } else if (code instanceof HoleTkn) {
             this.element.classList.add("expression-hole");
         }
 

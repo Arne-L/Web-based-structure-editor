@@ -11,5 +11,10 @@
             "example": "for i in range(10):\n\tprint(i)"
         }
     ],
-    "search-queries": ["range", "sequence", "iterate", "for loop"]
+    "searchQueries": [
+        "range",
+        "sequence",
+        "iterate",
+        "for loop"
+    ]
 }

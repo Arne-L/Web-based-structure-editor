@@ -43,7 +43,12 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "search-queries": ["predicate", "head", "rule", "clause"]
+            "searchQueries": [
+                "predicate",
+                "head",
+                "rule",
+                "clause"
+            ]
         }
     },
     {
@@ -80,7 +85,9 @@
         ],
         "match": null,
         "matchRegex": "^([a-z][a-zA-Z0-9_]*)\\(?(.*\\)\\s*:-\\s*.*\\.)?$",
-        "triggerInsertion": ["("],
+        "triggerInsertion": [
+            "("
+        ],
         "toolbox": {
             "category": "Predicates",
             "title": "Predicate",
@@ -94,7 +101,13 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "search-queries": ["predicate", "head", "rule", "clause", ":-"]
+            "searchQueries": [
+                "predicate",
+                "head",
+                "rule",
+                "clause",
+                ":-"
+            ]
         }
     },
     {
@@ -135,7 +148,10 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "search-queries": ["predicate", "call"]
+            "searchQueries": [
+                "predicate",
+                "call"
+            ]
         }
     },
     {
@@ -150,7 +166,9 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Variables",
             "title": "Reference Variable",
@@ -159,7 +177,11 @@
                 "body": "Refers to the value stored in the specified variable."
             },
             "tips": [],
-            "search-queries": ["reference variable", "variable", "var"]
+            "searchQueries": [
+                "reference variable",
+                "variable",
+                "var"
+            ]
         }
     },
     {
@@ -174,7 +196,9 @@
         ],
         "match": "tru",
         "matchRegex": null,
-        "triggerInsertion": ["e"],
+        "triggerInsertion": [
+            "e"
+        ],
         "toolbox": {
             "category": "Predicates",
             "title": "True",
@@ -188,7 +212,11 @@
                     "text": "Insert the constant true"
                 }
             ],
-            "search-queries": ["true", "constant", "truth"]
+            "searchQueries": [
+                "true",
+                "constant",
+                "truth"
+            ]
         }
     },
     {
@@ -203,7 +231,9 @@
         ],
         "match": "fals",
         "matchRegex": null,
-        "triggerInsertion": ["e"],
+        "triggerInsertion": [
+            "e"
+        ],
         "toolbox": {
             "category": "Predicates",
             "title": "False",
@@ -217,7 +247,11 @@
                     "text": "Insert the constant false"
                 }
             ],
-            "search-queries": ["false", "constant", "truth"]
+            "searchQueries": [
+                "false",
+                "constant",
+                "truth"
+            ]
         }
     },
     {
@@ -250,7 +284,9 @@
         ],
         "match": "is",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "Arithmetic equality check",
@@ -268,7 +304,11 @@
                     "text": ""
                 }
             ],
-            "search-queries": ["false", "constant", "truth"]
+            "searchQueries": [
+                "false",
+                "constant",
+                "truth"
+            ]
         }
     },
     {
@@ -303,7 +343,9 @@
         ],
         "match": null,
         "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
-        "triggerInsertion": ["+"],
+        "triggerInsertion": [
+            "+"
+        ],
         "toolbox": {
             "category": "Arithmetics",
             "title": "add",
@@ -312,7 +354,10 @@
                 "body": "Adds the values to the left and right of the operator."
             },
             "tips": [],
-            "search-queries": ["add", "sum"]
+            "searchQueries": [
+                "add",
+                "sum"
+            ]
         }
     },
     {
@@ -356,7 +401,11 @@
                 "body": "Subtracts the value to the right of the operator from the value to the left."
             },
             "tips": [],
-            "search-queries": ["subtract numbers", "subtraction", "deduct"]
+            "searchQueries": [
+                "subtract numbers",
+                "subtraction",
+                "deduct"
+            ]
         }
     },
     {
@@ -412,7 +461,9 @@
         ],
         "match": null,
         "matchRegex": "^([^\\r\\n]*)$",
-        "triggerInsertion": ["\""],
+        "triggerInsertion": [
+            "\""
+        ],
         "toolbox": {
             "category": "Text",
             "title": "text",
@@ -421,7 +472,12 @@
                 "body": "Inserts an editable text that is wrapped by double quotes."
             },
             "tips": [],
-            "search-queries": ["create text", "create string", "empty string", "empty text"]
+            "searchQueries": [
+                "create text",
+                "create string",
+                "empty string",
+                "empty text"
+            ]
         }
     },
     {
@@ -454,7 +510,9 @@
         ],
         "match": "=",
         "matchRegex": null,
-        "triggerInsertion": [" "],
+        "triggerInsertion": [
+            " "
+        ],
         "toolbox": {
             "category": "Unification",
             "title": "Unification",
@@ -468,7 +526,11 @@
                     "text": "Unify two terms"
                 }
             ],
-            "search-queries": ["false", "constant", "truth"]
+            "searchQueries": [
+                "false",
+                "constant",
+                "truth"
+            ]
         }
     },
     {
@@ -519,7 +581,9 @@
         ],
         "match": "[---]",
         "matchRegex": null,
-        "triggerInsertion": ["]"],
+        "triggerInsertion": [
+            "]"
+        ],
         "toolbox": {
             "category": "Lists",
             "title": "List",
@@ -527,9 +591,14 @@
                 "title": "Insert Editable List",
                 "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
             },
-            "tips": [
-            ],
-            "search-queries": ["empty list", "create empty list", "create list", "array", "create empty array"]
+            "tips": [],
+            "searchQueries": [
+                "empty list",
+                "create empty list",
+                "create list",
+                "array",
+                "create empty array"
+            ]
         }
     },
     {
@@ -572,7 +641,9 @@
         ],
         "match": "[--- | ---]",
         "matchRegex": null,
-        "triggerInsertion": ["|"],
+        "triggerInsertion": [
+            "|"
+        ],
         "toolbox": {
             "category": "Lists",
             "title": "List",
@@ -580,9 +651,14 @@
                 "title": "Insert Editable List",
                 "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
             },
-            "tips": [
-            ],
-            "search-queries": ["empty list", "create empty list", "create list", "array", "create empty array"]
+            "tips": [],
+            "searchQueries": [
+                "empty list",
+                "create empty list",
+                "create list",
+                "array",
+                "create empty array"
+            ]
         }
     }
 ]

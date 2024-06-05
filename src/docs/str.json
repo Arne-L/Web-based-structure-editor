@@ -11,5 +11,10 @@
             "example": "fruit = \"apple\"\nprint(fruit)\nprint(\"apple\")"
         }
     ],
-    "search-queries": ["create text", "create string", "empty string", "empty text"]
+    "searchQueries": [
+        "create text",
+        "create string",
+        "empty string",
+        "empty text"
+    ]
 }

@@ -15,8 +15,8 @@ if (languageConfig.constructFile)
 else throw new Error("No construct file specified in the language configuration file");
 
 let recursiveFormats: RecursiveDefinition[];
-if (languageConfig.recursiveFile)
-    recursiveFormats = (await import(`../language-definition/${languageConfig.recursiveFile}`)).default;
+if (languageConfig.callableFile)
+    recursiveFormats = (await import(`../language-definition/${languageConfig.callableFile}`)).default;
 else throw new Error("No recursive file specified in the language configuration file");
 
 export const INITIALCONSTRUCTDEF = languageConfig.initialConstruct;
@@ -72,7 +72,7 @@ export function getAllCodeActions(): EditCodeAction[] {
             // InsertActionType.InsertPrintStmt is superfluous
             {}, // EXTRACT; context info; maybe extractable from format?
             construct.toolbox,
-            construct.triggerInsertion, // EXTRACT: character which triggers the insertion in the editor
+            construct.triggerInsertion ?? [], // EXTRACT: character which triggers the insertion in the editor
             // Automating? Maybe take last character before a hole or end of statement?
             construct.match ?? null, // Match when typing
             construct.matchRegex !== undefined && construct.matchRegex !== null ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
@@ -80,7 +80,9 @@ export function getAllCodeActions(): EditCodeAction[] {
         );
 
         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-        action.referenceType = (construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition)?.to;
+        action.referenceType = (
+            construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition
+        )?.to;
 
         // Add the action to the list
 
@@ -149,7 +151,7 @@ export function initLanguage() {
     return {
         language: languageConfig.name,
         reservedWords: new Map<string, Set<string>>(
-            languageConfig.reservedWords.map((reservedCategory) => [
+            (languageConfig.reservedWords ?? []).map((reservedCategory) => [
                 reservedCategory.reason,
                 new Set(reservedCategory.words),
             ])

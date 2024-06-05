@@ -1,7 +1,7 @@
 {
     "name": "Python",
     "constructFile": "python-constructs.json",
-    "recursiveFile": "python-format.json",
+    "callableFile": "python-callable.json",
     "indent": "    ",
     "initialConstruct": {
         "type": "compound",

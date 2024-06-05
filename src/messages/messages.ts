@@ -2,7 +2,7 @@ import { Selection } from "monaco-editor";
 import { Editor } from "../editor/editor";
 import { nova } from "../index";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
-import { Construct, Statement, TypedEmptyExpr } from "../syntax-tree/ast";
+import { Construct, Statement, HoleTkn } from "../syntax-tree/ast";
 import { Callback, CallbackType } from "../syntax-tree/callback";
 
 /**
@@ -181,7 +181,7 @@ export class ConstructHighlight extends CodeHighlight {
         let height = 0;
 
         //no idea why these need separate handling... This was the easiest fix.
-        if (this.code instanceof TypedEmptyExpr) {
+        if (this.code instanceof HoleTkn) {
             const transform = this.editor.computeBoundingBox(this.code.getSelection());
             const text = this.code.getRenderText();
 

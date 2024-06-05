@@ -11,5 +11,7 @@
             "example": "a = 5\na *= 2\nprint(a)"
         }
     ],
-    "search-queries": ["multiply variable"]
+    "searchQueries": [
+        "multiply variable"
+    ]
 }

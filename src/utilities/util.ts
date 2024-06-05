@@ -1,6 +1,6 @@
 import { Position } from "monaco-editor";
 import { EditAction } from "../editor/data-types";
-import { AssignmentToken, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
+import { AssignmentTkn, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { DataType, ListTypes, addClassToDraftModeResolutionButton } from "./../syntax-tree/consts";
 
@@ -232,7 +232,7 @@ export function createFinalConstruct(action: EditAction): GeneralStatement {
     let index = 0;
     for (const token of construct.tokens) {
         if (
-            (token instanceof AssignmentToken || token instanceof EditableTextTkn) &&
+            (token instanceof AssignmentTkn || token instanceof EditableTextTkn) &&
             autocompleteValues &&
             autocompleteValues.length > index
         ) {

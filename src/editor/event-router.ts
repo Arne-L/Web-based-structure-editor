@@ -299,6 +299,7 @@ export class EventRouter {
                         console.log("BACKSPACE editable");
                         if (!curTkn.isEmpty) return new EditAction(EditActionType.DeletePrevChar);
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                            // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
                         } else {
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
@@ -334,7 +335,7 @@ export class EventRouter {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
-                                if (curTkn instanceof ast.TypedEmptyExpr && prevTkn.getRenderText() === INDENT) {
+                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === INDENT) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
                                         console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
@@ -355,7 +356,7 @@ export class EventRouter {
                                         );
                                         const toReplace = nextCompound.tokens
                                             .slice(underNextCompound.indexInRoot, nextCompound.cycleLength)
-                                            .find((tkn) => tkn instanceof ast.TypedEmptyExpr);
+                                            .find((tkn) => tkn instanceof ast.HoleTkn);
                                         ASTManupilation.replaceWith(toReplace, rightConstruct);
                                     } else {
                                         // Undo the replacement
@@ -366,8 +367,7 @@ export class EventRouter {
                             }
                         } else {
                             console.log("BACKSPACE compound");
-                            const compound = curTkn.rootNode;
-                            compound.removeExpansion(curTkn);
+                            nearestCompound.removeExpansion(curTkn);
                         }
                         // compound.
                         // Try to remove one cycle of the compound construct
@@ -609,11 +609,10 @@ export class EventRouter {
 
                         newText = curText.join("");
                     }
+                    // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
-                        !(
-                            (editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) &&
-                            !editableTkn.validatorRegex.test(newText)
-                        )
+                        !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
+                        editableTkn.validatorRegex.test(newText)
                     ) {
                         return new EditAction(EditActionType.InsertChar);
                     }
@@ -885,7 +884,7 @@ export class EventRouter {
                  */
                 const statement = e.getCode(); // Should be replaced with the construct object in the future
                 if (statement.validateContext(this.module.validator, context) === InsertionType.Valid) {
-                    return new EditAction(EditActionType.InsertGeneralStmt, {
+                    return new EditAction(EditActionType.InsertUniConstruct, {
                         construct: statement,
                         source,
                     });

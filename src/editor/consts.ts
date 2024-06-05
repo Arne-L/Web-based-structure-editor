@@ -130,7 +130,7 @@ export enum EditActionType {
     DeleteStmt, // Self added
     DeleteRootOfToken, // Self added
 
-    InsertGeneralStmt,
+    InsertUniConstruct,
     InsertGeneralExpr,
 
     Copy, // TODO: NYI: could use default or navigator.clipboard.writeText()

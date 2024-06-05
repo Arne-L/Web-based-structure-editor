@@ -1,7 +1,7 @@
 import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
 import { globalFormats } from "../language-definition/parser";
 import {
-    AssignmentToken,
+    AssignmentTkn,
     CodeConstruct,
     CompoundConstruct,
     Construct,
@@ -10,7 +10,7 @@ import {
     GeneralStatement,
     NonEditableTkn,
     ReferenceTkn,
-    TypedEmptyExpr,
+    HoleTkn,
 } from "./ast";
 import { DataType } from "./consts";
 import { Scope } from "./scope";
@@ -40,15 +40,15 @@ export namespace SyntaxConstructor {
 
     /**
      * Construct an array of constructs from the given JSON specification.
-     * The construction is specific for compound constructs, as it needs 
+     * The construction is specific for compound constructs, as it needs
      * to be able to handle various additional conditions.
-     * 
+     *
      * @param formatTokens - The JSON specification of the constructs
      * @param rootConstruct - The parent construct of the new constructs
      * @param data - Additional data that might be needed for the construct.
      * @param startingConstructs - The constructs that have already been constructed
      * @param startingIndex - The index at which the construction should start
-     * @param initialConstruction - Whether this is the first time the compound's tokens 
+     * @param initialConstruction - Whether this is the first time the compound's tokens
      * have been constructed
      * @returns The extended array of constructs that represent the JSON specification
      */
@@ -81,9 +81,13 @@ export namespace SyntaxConstructor {
         do {
             if (index === 0 && jsonConstruct.insertBefore)
                 // Do we want to allow any token here? Or only non-editable tokens?
-                constructs.push(new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, indexInRoot + constructs.length));
+                constructs.push(
+                    new NonEditableTkn(jsonConstruct.insertBefore, rootConstruct, indexInRoot + constructs.length)
+                );
 
-            constructs.push(...constructToken(jsonConstruct.format[index], rootConstruct, indexInRoot + constructs.length, data));
+            constructs.push(
+                ...constructToken(jsonConstruct.format[index], rootConstruct, indexInRoot + constructs.length, data)
+            );
 
             index = (index + 1) % jsonConstruct.format.length;
         } while (!stopCondition(jsonConstruct.format[index])); // TODO: Does not work if the first construct has a waitOnUser
@@ -95,13 +99,13 @@ export namespace SyntaxConstructor {
         for (let i = indexInRoot + constructs.length; i < finalConstructs.length; i++) {
             finalConstructs[i].indexInRoot += constructs.length;
         }
-        
+
         return finalConstructs;
     }
 
     /**
      * Given a token specification, check if the stop condition is met.
-     * 
+     *
      * @param token - The token to check for the stop condition
      * @returns True if the token has a stop condition, false otherwise
      */
@@ -120,44 +124,52 @@ export namespace SyntaxConstructor {
      * is only used for the reference token to keep track of the precise variable to which it referes.
      * @returns The constructed construct(s) from the token specification
      */
-    function constructToken(token: FormatDefType, rootConstruct: CodeConstruct, indexInRoot: number, data: any): Construct[] {
+    function constructToken(
+        token: FormatDefType,
+        rootConstruct: CodeConstruct,
+        indexInRoot: number,
+        data: any
+    ): Construct[] {
         switch (token.type) {
             case "token":
                 return [new NonEditableTkn(token.value, rootConstruct, indexInRoot)];
             case "hole":
-                const constructs: Construct[] = []
+                const constructs: Construct[] = [];
                 // DO we still want this or do we want it to be generalised?
                 for (let i = 0; i < token.elements.length; i++) {
                     // THIS DOES INCLUDE ARGUMENT TYPES, WHICH CURRENTLY IS NOT IMPLEMENTED
                     rootConstruct.holeTypes.set(indexInRoot + constructs.length, token.elements[i].type);
-                    constructs.push(new TypedEmptyExpr([DataType.Any], rootConstruct, indexInRoot + constructs.length, token.elements[i].type));
+                    constructs.push(
+                        new HoleTkn(rootConstruct, indexInRoot + constructs.length, token.elements[i].type)
+                    );
 
                     if (i + 1 < token.elements.length)
-                        constructs.push(new NonEditableTkn(token.delimiter, rootConstruct, indexInRoot + constructs.length));
+                        constructs.push(
+                            new NonEditableTkn(token.delimiter, rootConstruct, indexInRoot + constructs.length)
+                        );
                 }
                 return constructs;
-            case "body":
-                let root = rootConstruct as GeneralStatement;
-                // FFD
-                root.body.push(new EmptyLineStmt(root, root.body.length));
-                root.scope = new Scope();
-                // rootConstruct.hasSubValues = true;
-                /**
-                 * We still need to add scope for constructs without a body like else and elif
-                 */
-                return [];
             case "identifier":
-                return [new AssignmentToken(undefined, rootConstruct, indexInRoot, RegExp(token.regex), token.scopeType, token.reference)];
-            case "reference":
-                return [new ReferenceTkn(data?.reference ?? "", rootConstruct, indexInRoot)];
-            case "editable":
                 return [
-                    new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, indexInRoot)];
+                    new AssignmentTkn(
+                        undefined,
+                        rootConstruct,
+                        indexInRoot,
+                        RegExp(token.regex),
+                        token.scopeType,
+                        token.reference
+                    ),
+                ];
+            case "reference":
+                // return [new ReferenceTkn(data?.reference ?? "", rootConstruct, indexInRoot)];
+                return [new NonEditableTkn(data?.reference ?? "", rootConstruct, indexInRoot)];
+            case "editable":
+                return [new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, indexInRoot)];
             case "recursive":
                 const compositeContent = globalFormats.get(token.recursiveName);
                 const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, indexInRoot, data);
                 return tokens;
-                // constructs.push(new CompositeConstruct(token.recursiveName));
+            // constructs.push(new CompositeConstruct(token.recursiveName));
             case "compound":
                 return [new CompoundConstruct(token, rootConstruct, indexInRoot)];
             default:
