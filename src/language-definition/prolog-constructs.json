@@ -27,8 +27,8 @@
                 "value": "."
             }
         ],
-        "match": "--(",
-        "matchRegex": null,
+        "match": null,
+        "matchRegex": "^([a-z][a-zA-Z0-9_]*)\\(?(.*\\)\\s*:-\\s*.*\\.)?$",
         "triggerInsertion": [],
         "toolbox": {
             "category": "Predicates",

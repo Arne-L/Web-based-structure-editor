@@ -1,7 +1,7 @@
 {
     "name": "Hedy Level 1 (Nederlands)",
     "constructFile": "hedyl1_nl-constructs.json",
-    "recursiveFile": "hedyl1_nl-callable.json",
+    "callableFile": "hedyl1_nl-callable.json",
     "indent": "",
     "initialConstruct": {
         "type": "compound",
