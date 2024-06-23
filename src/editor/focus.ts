@@ -138,6 +138,7 @@ export class Focus {
                 curSelection.getStartPosition(),
                 curSelection.getEndPosition()
             );
+            console.log("Context from selection");
         } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
@@ -728,8 +729,8 @@ export class Focus {
             const curToken = tokensStack.pop();
 
             if (
-                pos == curToken.left &&
-                pos == curToken.right &&
+                pos.equals(curToken.left) &&
+                pos.equals(curToken.right) &&
                 (curToken instanceof EditableTextTkn ||
                     // curToken instanceof LiteralValExpr ||
                     curToken instanceof IdentifierTkn)
@@ -774,6 +775,7 @@ export class Focus {
 
                 if (pos.equals(curToken.left)) {
                     context.token = this.findNonTextualHole(statement, pos);
+                    console.log("Token", context.token?.toString());
                     context.tokenToRight = curToken;
                     context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
                         token.right.equals(pos)

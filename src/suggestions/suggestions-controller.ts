@@ -408,7 +408,7 @@ class MenuOption {
     }
 
     select() {
-        if (this.childMenu) this.childMenu.open();
+        if (this.childMenu) this.childMenu.open(); // TODO: No child menu's anymore?
         else if (this.selectAction) this.selectAction();
     }
 
