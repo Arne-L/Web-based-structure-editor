@@ -134,26 +134,26 @@ export namespace ASTManupilation {
             // Update the Monaco editor with the given token
             module.editor.executeEdits(range, code);
             // Insert the given token to the right of an expression on the left
-        } else if (toRight && context.expressionToLeft != null) {
+        } else if (toRight && context.codeConstructToLeft != null) {
             // Get the parent of the expression to the left
-            const root = context.expressionToLeft.rootNode;
+            const root = context.codeConstructToLeft.rootNode;
             // Set the parent of the given token to the parent of the expression to the left
             code.rootNode = root;
             // Add the given token directly after the expression to the left
             // without removing anything
-            root.tokens.splice(context.expressionToLeft.indexInRoot + 1, 0, code);
+            root.tokens.splice(context.codeConstructToLeft.indexInRoot + 1, 0, code);
             // Rebuild
             root.rebuild(root.getLeftPosition(), 0);
             // Add code construct to Monaco editor
             module.editor.insertAtCurPos([code]);
             // Insert the given token to the left of an expression on the right
-        } else if (toLeft && context.expressionToRight != null) {
+        } else if (toLeft && context.codeConstructToRight != null) {
             // Get the parent of the expression to the right
-            const root = context.expressionToRight.rootNode;
+            const root = context.codeConstructToRight.rootNode;
             // Set the parent of the given token to the parent of the expression to the right
             code.rootNode = root;
             // Add token directly before the expression to the right
-            root.tokens.splice(context.expressionToRight.indexInRoot, 0, code);
+            root.tokens.splice(context.codeConstructToRight.indexInRoot, 0, code);
             // Rebuild
             root.rebuild(root.getLeftPosition(), 0);
             // Add code construct to Monaco editor

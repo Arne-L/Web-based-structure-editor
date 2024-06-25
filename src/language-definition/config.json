@@ -1,3 +1,4 @@
 {
-    "languageFile": "python.json"
+    "languageFile": "python.json",
+    "availableLanguages": ["python", "hedyl1_en", "hedyl1_nl", "hedyl2_en"]
 }

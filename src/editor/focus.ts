@@ -74,10 +74,10 @@ export class Focus {
 
         let node = null;
 
-        if (context.expressionToLeft?.draftModeEnabled) {
-            node = context.expressionToLeft;
-        } else if (context.expressionToRight?.draftModeEnabled) {
-            node = context.expressionToRight;
+        if (context.codeConstructToLeft?.draftModeEnabled) {
+            node = context.codeConstructToLeft;
+        } else if (context.codeConstructToRight?.draftModeEnabled) {
+            node = context.codeConstructToRight;
         } else if (
             focusedNode instanceof Token &&
             !(focusedNode.rootNode instanceof Module) &&
@@ -130,7 +130,7 @@ export class Focus {
         const curSelection = this.module.editor.monaco.getSelection();
         const curLine = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
-        if (!curLine) console.log("curLine", curLine)
+        if (!curLine) console.log("curLine", curLine);
 
         if (!curSelection.getStartPosition().equals(curSelection.getEndPosition())) {
             context = this.getContextFromSelection(
@@ -143,7 +143,7 @@ export class Focus {
 
         context.position = curPosition;
 
-        if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct)
+        if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct);
         console.log("Context", context);
 
         return context;
@@ -782,16 +782,19 @@ export class Focus {
                     );
 
                     if (context.tokenToRight != null) {
-                        context.expressionToRight = this.getExpression(
-                            context.tokenToRight,
-                            context.tokenToRight.rootNode.left.equals(pos)
-                        );
+                        context.codeConstructToRight = context.tokenToRight.rootNode;
+                        // context.codeConstructToRight =
+                        //     this.getExpression(
+                        //     context.tokenToRight,
+                        //     context.tokenToRight.rootNode.left.equals(pos)
+                        // );
                     }
                     if (context.tokenToLeft) {
-                        context.expressionToLeft = this.getExpression(
-                            context.tokenToLeft,
-                            context.tokenToLeft.rootNode.right.equals(pos)
-                        );
+                        context.codeConstructToLeft = context.tokenToLeft.rootNode;
+                        // context.codeConstructToLeft = this.getExpression(
+                        //     context.tokenToLeft,
+                        //     context.tokenToLeft.rootNode.right.equals(pos)
+                        // );
                     }
 
                     context.codeConstruct = context.tokenToRight.getNearestCodeConstruct();
@@ -805,16 +808,18 @@ export class Focus {
                     );
 
                     if (context.tokenToRight != null) {
-                        context.expressionToRight = this.getExpression(
-                            context.tokenToRight,
-                            context.tokenToRight.rootNode.left.equals(pos)
-                        );
+                        context.codeConstructToRight = context.tokenToRight.rootNode;
+                        // context.codeConstructToRight = this.getExpression(
+                        //     context.tokenToRight,
+                        //     context.tokenToRight.rootNode.left.equals(pos)
+                        // );
                     }
                     if (context.tokenToLeft) {
-                        context.expressionToLeft = this.getExpression(
-                            context.tokenToLeft,
-                            context.tokenToLeft.rootNode.right.equals(pos)
-                        );
+                        context.codeConstructToLeft = context.tokenToLeft.rootNode;
+                        // context.codeConstructToLeft = this.getExpression(
+                        //     context.tokenToLeft,
+                        //     context.tokenToLeft.rootNode.right.equals(pos)
+                        // );
                     }
                     context.codeConstruct = context.tokenToLeft.getNearestCodeConstruct();
 
@@ -882,8 +887,8 @@ export class Context {
      */
     // parentExpression?: Expression = null;
     construct?: Construct = null;
-    expressionToLeft?: GeneralExpression = null;
-    expressionToRight?: GeneralExpression = null;
+    codeConstructToLeft?: CodeConstruct = null;
+    codeConstructToRight?: CodeConstruct = null;
 
     codeConstruct: CodeConstruct;
 

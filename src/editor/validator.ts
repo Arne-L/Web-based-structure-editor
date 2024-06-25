@@ -350,7 +350,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (context.expressionToLeft != null) return false;
+            if (context.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -370,7 +370,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (context.expressionToLeft != null) return false;
+            if (context.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -384,7 +384,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (providedContext.expressionToLeft != null) return false;
+            if (providedContext.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -474,7 +474,7 @@ export class Validator {
         // Not at the start of a line and not text editable, but there is an expression to the right
         return (
             !this.module.focus.onBeginningOfLine() &&
-            context.expressionToRight != null &&
+            context.codeConstructToRight != null &&
             !this.module.focus.isTextEditable(providedContext)
         );
     }
@@ -485,7 +485,7 @@ export class Validator {
     canDeletePrevToken(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.expressionToLeft != null && !this.module.focus.isTextEditable(providedContext);
+        return context.codeConstructToLeft != null && !this.module.focus.isTextEditable(providedContext);
     }
 
     /**
@@ -608,7 +608,7 @@ export class Validator {
 
         return (
             // !this.insideFormattedString(context) &&
-            context?.expressionToLeft != null
+            context?.codeConstructToLeft != null
             // &&
             // context?.expressionToLeft?.returns != null &&
             // context?.expressionToLeft?.returns != DataType.Void
@@ -620,7 +620,7 @@ export class Validator {
 
         return (
             // !this.insideFormattedString(context) &&
-            context?.expressionToRight != null
+            context?.codeConstructToRight != null
             // &&
             // context?.expressionToRight?.returns != null &&
             // context?.expressionToRight?.returns != DataType.Void

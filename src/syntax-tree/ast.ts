@@ -299,6 +299,23 @@ export abstract class CodeConstruct extends Construct {
     }
 
     /**
+     * Check if the construct is changeable or has changeable parts
+     */
+    get hasSubValues(): boolean {
+        return this.tokens.some((val) => val.hasSubValues);
+    }
+
+    /**
+     * Whether the construct has changeable parts.
+     *
+     * @returns True if subparts of the construct can be changed, such as subexpressions
+     * or changeable tokens, otherwise false
+     */
+    isAtomic(): boolean {
+        return !this.hasSubValues;
+    }
+
+    /**
      * Get all AssignmentTokens within the statement which contain all identifier information.
      *
      * @returns All AssignmentTokens within the statement
@@ -895,13 +912,6 @@ export class GeneralStatement extends Statement {
     }
 
     /**
-     * Check if the construct is changeable or has changeable parts
-     */
-    get hasSubValues(): boolean {
-        return this.tokens.some((val) => val.hasSubValues);
-    }
-
-    /**
      * TODO: Temporary solution REMOVE LATER!!
      *
      * @param constructs - The constructs to add to the map
@@ -949,16 +959,6 @@ export class GeneralStatement extends Statement {
 
     getKeyword(): string {
         return this.keyword;
-    }
-
-    /**
-     * Whether the construct has changeable parts.
-     *
-     * @returns True if subparts of the construct can be changed, such as subexpressions
-     * or changeable tokens, otherwise false
-     */
-    isAtomic(): boolean {
-        return !this.hasSubValues;
     }
 
     /**
@@ -2028,10 +2028,6 @@ export class CompoundConstruct extends CodeConstruct {
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, 0, true);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
-    }
-
-    get hasSubValues(): boolean {
-        return this.tokens.some((tkn) => tkn.hasSubValues);
     }
 
     get hasEmptyToken(): boolean {

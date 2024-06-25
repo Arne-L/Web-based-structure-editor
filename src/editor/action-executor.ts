@@ -141,7 +141,7 @@ export class ActionExecutor {
                 //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 // } else
                 // this.module.deleteCode(context.expressionToRight);
-                this.module.deleteConstruct(context.expressionToRight);
+                this.module.deleteConstruct(context.codeConstructToRight);
 
                 break;
             }
@@ -162,7 +162,7 @@ export class ActionExecutor {
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
                 // else
                 // this.module.deleteCode(context.expressionToLeft);
-                this.module.deleteConstruct(context.expressionToLeft);
+                this.module.deleteConstruct(context.codeConstructToLeft);
 
                 break;
             }
@@ -505,12 +505,12 @@ export class ActionExecutor {
                         removableExpr = context.construct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
-                    } else if (context.expressionToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
-                        removableExpr = context.expressionToLeft;
+                    } else if (context.codeConstructToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
+                        removableExpr = context.codeConstructToLeft;
                     } else if (context.tokenToLeft instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToLeft;
-                    } else if (context.expressionToRight?.isAtomic() /*instanceof LiteralValExpr*/) {
-                        removableExpr = context.expressionToRight;
+                    } else if (context.codeConstructToRight?.isAtomic() /*instanceof LiteralValExpr*/) {
+                        removableExpr = context.codeConstructToRight;
                     } else if (context.tokenToRight instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToRight;
                     }
