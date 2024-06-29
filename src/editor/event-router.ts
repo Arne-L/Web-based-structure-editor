@@ -698,8 +698,8 @@ export class EventRouter {
                     ) {
                         console.log("Should be getting here");
                         rightConstruct.continueExpansion(leftConstruct);
-                        
-                        // No edit action could be matched
+
+                        // No other actions should be performed
                         return new EditAction(EditActionType.None);
                     }
                     // Otherwise we keep on going up in search of a parent compound
@@ -712,7 +712,7 @@ export class EventRouter {
                         compound.continueExpansion(leftConstruct);
                         console.log("EXPANDING COMPOUND 1")
 
-                        // No edit action could be matched
+                        // No other actions should be performed
                         return new EditAction(EditActionType.None);
                     }
                 }
