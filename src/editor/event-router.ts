@@ -562,6 +562,7 @@ export class EventRouter {
                     // Check if a sequence of characters, e.g. abc, can be converted to a string
                     // At least, I think ...
                     if (this.module.validator.canConvertAutocompleteToString(context)) {
+                        console.log("CONVERT TO STRING");
                         // String literals
                         return new EditAction(EditActionType.ConvertAutocompleteToString, {
                             token: context.tokenToRight,
@@ -614,6 +615,7 @@ export class EventRouter {
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
                         editableTkn.validatorRegex.test(newText)
                     ) {
+                        console.log("INSERT CHAR");
                         return new EditAction(EditActionType.InsertChar);
                     }
                     break;
@@ -625,6 +627,7 @@ export class EventRouter {
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
                 } else if (this.module.validator.atEmptyOperatorTkn(context)) {
                     // Return the autocomplete menu for the operator token
+                    console.log("AT EMPTY OPER");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
                         firstChar: e.key,
@@ -653,6 +656,7 @@ export class EventRouter {
                     //     });
                     // } else {
                     // Else open the autocomplete menu
+                    console.log("AT EXPRESSION HOLE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtExpressionHole,
                         firstChar: e.key,
@@ -664,6 +668,7 @@ export class EventRouter {
                     // If on an empty line and the identifier regex matches the pressed character
                 } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
                     // Open the autocomplete menu
+                    console.log("ON EMPTY LINE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.StartOfLine,
                         firstChar: e.key,
@@ -673,23 +678,70 @@ export class EventRouter {
                             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                     });
                     // If at the right of an expresssion and a single character key is pressed
-                } else if (this.module.validator.atRightOfExpression(context)) {
+                }
+
+                // VERY UGLY TEMPORARY FIX; NEEDS TO BE REFACTORED!!!!
+                // WAS AN ELSE IF BEFORE; NOW THIS IS PLACED INBETWEEN
+                let leftConstruct: ast.Construct = context.tokenToLeft;
+                // console.log("LeftConstruct", leftConstruct, context);
+                let rightConstruct: ast.Construct = null;
+                while (
+                    leftConstruct?.right.equals(this.curPosition) &&
+                    !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
+                ) {
+                    // Also look at the right construct; if this is a compound, we need to check if it's
+                    // first token has a waitOnUser field that matches the pressed key
+                    rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
+                    if (
+                        rightConstruct instanceof ast.CompoundConstruct &&
+                        rightConstruct.canContinueExpansion(leftConstruct, e.key)
+                    ) {
+                        console.log("Should be getting here");
+                        rightConstruct.continueExpansion(leftConstruct);
+                        
+                        // No edit action could be matched
+                        return new EditAction(EditActionType.None);
+                    }
+                    // Otherwise we keep on going up in search of a parent compound
+                    leftConstruct = leftConstruct.rootNode;
+                }
+
+                if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
+                    const compound = leftConstruct.rootNode;
+                    if (compound.canContinueExpansion(leftConstruct, e.key)) {
+                        compound.continueExpansion(leftConstruct);
+                        console.log("EXPANDING COMPOUND 1")
+
+                        // No edit action could be matched
+                        return new EditAction(EditActionType.None);
+                    }
+                }
+
+                // Get all valid actions at the given cursor position
+                const validActions = this.module.actionFilter
+                        .getProcessedInsertionsList()
+                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                if (
+                    this.module.validator.atRightOfExpression(context) &&
+                    validActions.length > 0
+                ) {
                     // Open the autocomplete menu starting from all possible matches
+                    console.log("AT RIGHT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.RightOfExpression,
                         firstChar: e.key,
-                        validMatches: this.module.actionFilter
-                            .getProcessedInsertionsList()
-                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        validMatches: validActions,
                     });
                     // Idem but now the cursor is at the left of an expression
-                } else if (this.module.validator.atLeftOfExpression(context)) {
+                } else if (
+                    this.module.validator.atLeftOfExpression(context) &&
+                    validActions.length > 0
+                ) {
+                    console.log("AT LEFT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.LeftOfExpression,
                         firstChar: e.key,
-                        validMatches: this.module.actionFilter
-                            .getProcessedInsertionsList()
-                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        validMatches: validActions,
                     });
                 }
             }
@@ -713,7 +765,6 @@ export class EventRouter {
                 rightConstruct instanceof ast.CompoundConstruct &&
                 rightConstruct.canContinueExpansion(leftConstruct, e.key)
             ) {
-                console.log("Should be getting here");
                 rightConstruct.continueExpansion(leftConstruct);
                 break;
             }
@@ -724,6 +775,7 @@ export class EventRouter {
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
             if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
+            console.log("EXPANDING COMPOUND 2")
         }
 
         // No edit action could be matched
@@ -745,6 +797,7 @@ export class EventRouter {
         // If there is data, set its source to "keyboard"
         if (action?.data) action.data.source = { type: "keyboard" };
 
+        console.log("Action", action);
         // Execute the action and prevent the default event from being triggered if necessary
         const preventDefaultEvent = this.module.executer.execute(action, context, e.browserEvent);
 
