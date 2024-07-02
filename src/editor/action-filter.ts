@@ -81,6 +81,23 @@ export class ActionFilter {
                         )
                     );
                 }
+
+                if (references.length === 0) 
+                    validOptionMap.set(
+                        action.optionName,
+                        EditCodeAction.createDynamicEditCodeAction(
+                            action.optionName,
+                            action.cssId,
+                            action.getCodeFunction,
+                            action.insertActionType,
+                            action.insertData,
+                            new InsertionResult(InsertionType.Invalid, "No valid references found.", []),
+                            action.terminatingChars,
+                            action.matchString,
+                            action.matchRegex,
+                            action.insertableTerminatingCharRegex
+                        )
+                    );
             } else {
                 validOptionMap.set(
                     action.optionName,

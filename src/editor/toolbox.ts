@@ -286,19 +286,22 @@ export class ToolboxButton {
         const button = document.createElement("div");
         button.classList.add("button");
 
-        if (!(code instanceof Expression) && !(code instanceof Modifier)) {
-            // For example "if ...", "while ...", "for ...", "var = ..." etc.
-            // Shown as a square button.
-            button.classList.add("statement-button");
-        } else if (code instanceof Modifier) {
-            // For example "= ...", "+= ...", "-= ...", etc.
-            // Shown as a square button.
-            button.classList.add("modifier-button");
-        } else if (code instanceof Expression) {
-            // For example "0", "range(...)", etc.
-            // Shown as a pill shaped button button.
-            button.classList.add("expression-button");
-        }
+        /**
+         * TODO: CHANGE BUTTON VISUAL MODES TO SOMETHING EXTENTABLE
+         */
+        // if (!(code instanceof Expression) && !(code instanceof Modifier)) {
+        //     // For example "if ...", "while ...", "for ...", "var = ..." etc.
+        //     // Shown as a square button.
+        //     button.classList.add("statement-button");
+        // } else if (code instanceof Modifier) {
+        //     // For example "= ...", "+= ...", "-= ...", etc.
+        //     // Shown as a square button.
+        //     button.classList.add("modifier-button");
+        // } else if (code instanceof Expression) {
+        //     // For example "0", "range(...)", etc.
+        //     // Shown as a pill shaped button button.
+        //     button.classList.add("expression-button");
+        // }
 
         this.container.appendChild(button);
 
@@ -453,194 +456,194 @@ export class ToolboxButton {
 //     document.getElementById("vars-button-grid").removeChild(parent.parentElement);
 // }
 
-/**
- * Create the cascaded menu div object and its options along with their action handlers.
- */
-/**
- * Creates the menu that appears when hovering over the "actions >" button of a variable reference
- *
- * @param validActions - The valid actions for the variable reference button; the ways in which the variable can be used.
- * @param buttonId - The id of the variable reference button.
- * @param module - The module to add the cascaded menu to.
- * @param identifier - The name of the variable, e.g. "x".
- * @param type - The type of the variable, e.g. DataType.Number.
- * @returns - The created cascaded menu div object.
- */
-function constructCascadedMenuObj(
-    validActions: Map<string, EditCodeAction>,
-    buttonId: string,
-    module: Module,
-    identifier: string,
-    type: DataType
-): HTMLDivElement {
-    const context = module.focus.getContext();
-    // The "tooltip"
-    const menu = document.createElement("div");
-    menu.classList.add("cascadedMenuMainDiv");
-    menu.id = `${buttonId}-cascadedMenu`;
+// /**
+//  * Create the cascaded menu div object and its options along with their action handlers.
+//  */
+// /**
+//  * Creates the menu that appears when hovering over the "actions >" button of a variable reference
+//  *
+//  * @param validActions - The valid actions for the variable reference button; the ways in which the variable can be used.
+//  * @param buttonId - The id of the variable reference button.
+//  * @param module - The module to add the cascaded menu to.
+//  * @param identifier - The name of the variable, e.g. "x".
+//  * @param type - The type of the variable, e.g. DataType.Number.
+//  * @returns - The created cascaded menu div object.
+//  */
+// function constructCascadedMenuObj(
+//     validActions: Map<string, EditCodeAction>,
+//     buttonId: string,
+//     module: Module,
+//     identifier: string,
+//     type: DataType
+// ): HTMLDivElement {
+//     const context = module.focus.getContext();
+//     // The "tooltip"
+//     const menu = document.createElement("div");
+//     menu.classList.add("cascadedMenuMainDiv");
+//     menu.id = `${buttonId}-cascadedMenu`;
 
-    // "Tooltip" header
-    const header = document.createElement("div");
-    header.classList.add("cascaded-menu-header");
-    header.innerHTML = `<h3>actions with <span class="identifier">${identifier}</span> variable:</h3>`;
-    menu.appendChild(header);
+//     // "Tooltip" header
+//     const header = document.createElement("div");
+//     header.classList.add("cascaded-menu-header");
+//     header.innerHTML = `<h3>actions with <span class="identifier">${identifier}</span> variable:</h3>`;
+//     menu.appendChild(header);
 
-    setTimeout(() => {
-        menu.style.opacity = "1";
-    }, 1);
+//     setTimeout(() => {
+//         menu.style.opacity = "1";
+//     }, 1);
 
-    let id = 0;
+//     let id = 0;
 
-    for (const [key, value] of validActions) {
-        // Action / option
-        const menuItem = document.createElement("div");
-        menuItem.classList.add("cascadedMenuContent");
+//     for (const [key, value] of validActions) {
+//         // Action / option
+//         const menuItem = document.createElement("div");
+//         menuItem.classList.add("cascadedMenuContent");
 
-        // Text for the action / option
-        const menuText = document.createElement("span");
-        menuText.classList.add("cascadedMenuOptionTooltip");
-        if (value.shortDescription) {
-            menuText.innerHTML =
-                "> " + value.shortDescription.replace("{VAR_ID}", `<span class="inline-var-id">${identifier}</span>`);
-        }
+//         // Text for the action / option
+//         const menuText = document.createElement("span");
+//         menuText.classList.add("cascadedMenuOptionTooltip");
+//         if (value.shortDescription) {
+//             menuText.innerHTML =
+//                 "> " + value.shortDescription.replace("{VAR_ID}", `<span class="inline-var-id">${identifier}</span>`);
+//         }
 
-        if (value.insertionResult.insertionType === InsertionType.Valid) {
-            menuText.classList.add("valid-option-tooltip");
-        }
+//         if (value.insertionResult.insertionType === InsertionType.Valid) {
+//             menuText.classList.add("valid-option-tooltip");
+//         }
 
-        const code = value.getCode();
-        let returnType = null;
+//         const code = value.getCode();
+//         let returnType = null;
 
-        if (code instanceof Expression && code.returns != DataType.Void) {
-            returnType = getUserFriendlyType(code.returns);
-        }
+//         if (code instanceof Expression && code.returns != DataType.Void) {
+//             returnType = getUserFriendlyType(code.returns);
+//         }
 
-        // Create the clickable button for the action / option
-        value.cssId = `cascadedMenu-button-${id}`;
-        id++;
-        const menuButton = ToolboxButton.createToolboxButtonFromJsonObj(value);
+//         // Create the clickable button for the action / option
+//         value.cssId = `cascadedMenu-button-${id}`;
+//         id++;
+//         const menuButton = ToolboxButton.createToolboxButtonFromJsonObj(value);
 
-        menuButton.getButtonElement().classList.add("cascadedMenuItem");
-        menuButton.getButtonElement().innerHTML = menuButton
-            .getButtonElement()
-            .innerHTML.replace(identifier, `<span class="button-id">${identifier}</span>`);
-        value.performAction.bind(value);
+//         menuButton.getButtonElement().classList.add("cascadedMenuItem");
+//         menuButton.getButtonElement().innerHTML = menuButton
+//             .getButtonElement()
+//             .innerHTML.replace(identifier, `<span class="button-id">${identifier}</span>`);
+//         value.performAction.bind(value);
 
-        // Add the option to the editor when clicked
-        menuButton.getButtonElement().addEventListener("click", () => {
-            value.performAction(module.executer, module.eventRouter, context, "defined-variables");
+//         // Add the option to the editor when clicked
+//         menuButton.getButtonElement().addEventListener("click", () => {
+//             value.performAction(module.executer, module.eventRouter, context, "defined-variables");
 
-            menu.remove();
-        });
+//             menu.remove();
+//         });
 
-        // Update the visual mode of the button (e.g. if it is invalid, it will be disabled)
-        menuButton.divButtonVisualMode(value.insertionResult.insertionType);
+//         // Update the visual mode of the button (e.g. if it is invalid, it will be disabled)
+//         menuButton.divButtonVisualMode(value.insertionResult.insertionType);
 
-        menuItem.appendChild(menuButton.container);
-        menuItem.appendChild(menuText);
+//         menuItem.appendChild(menuButton.container);
+//         menuItem.appendChild(menuText);
 
-        menu.appendChild(menuItem);
-    }
+//         menu.appendChild(menuItem);
+//     }
 
-    // Container for the extra options (e.g. converting a string to a number)
-    const extraContainer = document.createElement("div");
-    extraContainer.classList.add("cascaded-menu-extra-container");
+//     // Container for the extra options (e.g. converting a string to a number)
+//     const extraContainer = document.createElement("div");
+//     extraContainer.classList.add("cascaded-menu-extra-container");
 
-    const createExtraItem = (innerHTML: string) => {
-        const extraItem = document.createElement("div");
-        extraItem.classList.add("cascaded-menu-extra-item");
-        extraItem.innerHTML = innerHTML;
+//     const createExtraItem = (innerHTML: string) => {
+//         const extraItem = document.createElement("div");
+//         extraItem.classList.add("cascaded-menu-extra-item");
+//         extraItem.innerHTML = innerHTML;
 
-        return extraItem;
-    };
+//         return extraItem;
+//     };
 
-    if (type === DataType.String) {
-        // Not always logical to convert a string to a number (e.g. "hello")
-        extraContainer.appendChild(
-            createExtraItem(
-                `try converting to integer (number) using <span class='code'>int(<span class='inline-var'>${identifier}</span>)</span>`
-            )
-        );
+//     if (type === DataType.String) {
+//         // Not always logical to convert a string to a number (e.g. "hello")
+//         extraContainer.appendChild(
+//             createExtraItem(
+//                 `try converting to integer (number) using <span class='code'>int(<span class='inline-var'>${identifier}</span>)</span>`
+//             )
+//         );
 
-        menu.appendChild(extraContainer);
-    } else if (type === DataType.Number) {
-        extraContainer.appendChild(
-            createExtraItem(
-                `convert to string (text) using <span class='code'>str(<span class='inline-var'>${identifier}</span>)</span>`
-            )
-        );
+//         menu.appendChild(extraContainer);
+//     } else if (type === DataType.Number) {
+//         extraContainer.appendChild(
+//             createExtraItem(
+//                 `convert to string (text) using <span class='code'>str(<span class='inline-var'>${identifier}</span>)</span>`
+//             )
+//         );
 
-        menu.appendChild(extraContainer);
-    }
+//         menu.appendChild(extraContainer);
+//     }
 
-    return menu;
-}
+//     return menu;
+// }
 
 //creates a cascaded menu dom object with the given options and attaches it to button with id = buttonId.
 //also updates its position according to the button it is being attached to.
-/**
- * Creates the menu and positions it according to the button it is being attached to.
- *
- * @param moreActionsButton - The "actions >" button of the variable reference.
- * @param buttonId - The id of the variable reference button.
- * @param validActions - The valid actions for the variable reference button; the ways in which the variable can be used.
- * @param module - The module to add the cascaded menu to.
- * @param identifier - The name of the variable, e.g. "x".
- * @param type - The type of the variable, e.g. DataType.Number.
- */
-function createAndAttachCascadedMenu(
-    moreActionsButton: HTMLDivElement,
-    buttonId: string,
-    validActions: Map<string, EditCodeAction>,
-    module: Module,
-    identifier: string,
-    type: DataType
-) {
-    const button = document.getElementById(buttonId);
+// /**
+//  * Creates the menu and positions it according to the button it is being attached to.
+//  *
+//  * @param moreActionsButton - The "actions >" button of the variable reference.
+//  * @param buttonId - The id of the variable reference button.
+//  * @param validActions - The valid actions for the variable reference button; the ways in which the variable can be used.
+//  * @param module - The module to add the cascaded menu to.
+//  * @param identifier - The name of the variable, e.g. "x".
+//  * @param type - The type of the variable, e.g. DataType.Number.
+//  */
+// function createAndAttachCascadedMenu(
+//     moreActionsButton: HTMLDivElement,
+//     buttonId: string,
+//     validActions: Map<string, EditCodeAction>,
+//     module: Module,
+//     identifier: string,
+//     type: DataType
+// ) {
+//     const button = document.getElementById(buttonId);
 
-    if (!document.getElementById(`${buttonId}-cascadedMenu`)) {
-        const menuElement = constructCascadedMenuObj(validActions, buttonId, module, identifier, type);
+//     if (!document.getElementById(`${buttonId}-cascadedMenu`)) {
+//         const menuElement = constructCascadedMenuObj(validActions, buttonId, module, identifier, type);
 
-        if (menuElement.children.length > 0) {
-            const content = document.createElement("div");
-            content.classList.add("cascadedMenuContent");
-            button.parentElement.appendChild(menuElement);
+//         if (menuElement.children.length > 0) {
+//             const content = document.createElement("div");
+//             content.classList.add("cascadedMenuContent");
+//             button.parentElement.appendChild(menuElement);
 
-            const domMenuElement = document.getElementById(`${buttonId}-cascadedMenu`);
-            const buttonRect = moreActionsButton.getBoundingClientRect();
-            const bodyRect = document.body.getBoundingClientRect();
+//             const domMenuElement = document.getElementById(`${buttonId}-cascadedMenu`);
+//             const buttonRect = moreActionsButton.getBoundingClientRect();
+//             const bodyRect = document.body.getBoundingClientRect();
 
-            const leftPos = buttonRect.left - bodyRect.left + buttonRect.width;
+//             const leftPos = buttonRect.left - bodyRect.left + buttonRect.width;
 
-            domMenuElement.style.left = `${leftPos + 10}px`;
-            domMenuElement.style.bottom = `${bodyRect.bottom - buttonRect.bottom}px`;
+//             domMenuElement.style.left = `${leftPos + 10}px`;
+//             domMenuElement.style.bottom = `${bodyRect.bottom - buttonRect.bottom}px`;
 
-            // When mouse leaves "actions >" button, remove the menu only if
-            // the mouse is not over the menu or button after 100ms
-            moreActionsButton.addEventListener("mouseleave", () => {
-                setTimeout(() => {
-                    if (menuElement && !menuElement.matches(":hover") && !moreActionsButton.matches(":hover")) {
-                        menuElement.style.opacity = "0";
-                        setTimeout(() => {
-                            menuElement.remove();
-                        }, 100);
-                    }
-                }, 150);
-            });
+//             // When mouse leaves "actions >" button, remove the menu only if
+//             // the mouse is not over the menu or button after 100ms
+//             moreActionsButton.addEventListener("mouseleave", () => {
+//                 setTimeout(() => {
+//                     if (menuElement && !menuElement.matches(":hover") && !moreActionsButton.matches(":hover")) {
+//                         menuElement.style.opacity = "0";
+//                         setTimeout(() => {
+//                             menuElement.remove();
+//                         }, 100);
+//                     }
+//                 }, 150);
+//             });
 
-            // Remove menu when leaving the menu with the mouse
-            menuElement.addEventListener("mouseleave", () => {
-                if (menuElement && !menuElement.matches(":hover") && !button.matches(":hover")) {
-                    menuElement.style.opacity = "0";
+//             // Remove menu when leaving the menu with the mouse
+//             menuElement.addEventListener("mouseleave", () => {
+//                 if (menuElement && !menuElement.matches(":hover") && !button.matches(":hover")) {
+//                     menuElement.style.opacity = "0";
 
-                    setTimeout(() => {
-                        menuElement.remove();
-                    }, 100);
-                }
-            });
-        }
-    }
-}
+//                     setTimeout(() => {
+//                         menuElement.remove();
+//                     }, 100);
+//                 }
+//             });
+//         }
+//     }
+// }
 
 // helper for creating options for a variable's cascaded menu
 // /**
