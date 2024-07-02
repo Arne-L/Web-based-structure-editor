@@ -82,6 +82,8 @@ export class ActionFilter {
                     );
                 }
 
+                // If there are no references (and thus the for loop did not produce any results),
+                // add the action as an invalid option (e.g. for the toolbox buttons to be disabled)
                 if (references.length === 0) 
                     validOptionMap.set(
                         action.optionName,
