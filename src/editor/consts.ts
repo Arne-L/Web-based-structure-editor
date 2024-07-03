@@ -203,7 +203,7 @@ export enum EditActionType {
     CloseValidInsertMenu,
     OpenValidInsertMenu,
     OpenSubMenu,
-    CloseSubMenu,
+    // CloseSubMenu,
 
     //TODO: Remove later (for the continuous menu with categories)
     // OpenValidInsertMenuSingleLevel,

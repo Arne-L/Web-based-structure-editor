@@ -57,16 +57,16 @@ class Menu {
     }
 
     //close any open sub-menus of menu
-    closeChildren() {
-        const activeChildren = this.children.filter((menu) => menu.isOpen);
+    // closeChildren() {
+    //     const activeChildren = this.children.filter((menu) => menu.isOpen);
 
-        if (activeChildren.length > 0) {
-            activeChildren.forEach((menu) => {
-                menu.closeChildren();
-                menu.close();
-            });
-        }
-    }
+    //     if (activeChildren.length > 0) {
+    //         activeChildren.forEach((menu) => {
+    //             menu.closeChildren();
+    //             menu.close();
+    //         });
+    //     }
+    // }
 
     //indent children of this menu according to their level
     indentChildren(offset: number = 0) {
@@ -456,8 +456,9 @@ class MenuOption {
     removeFocus() {
         this.htmlElement.classList.remove(MenuController.selectedOptionElementClass);
 
-        if (this.childMenu) this.parentMenu.closeChildren();
-        else if (this.doc) this.doc.hide();
+        // if (this.childMenu) this.parentMenu.closeChildren();
+        // else
+        if(this.doc) this.doc.hide();
     }
 
     removeFromDOM() {
@@ -740,15 +741,15 @@ export class MenuController {
     }
 
     //Close any open sub-menus when navigating up in the menu from the currently focused option.
-    closeSubMenu() {
-        if (this.menus[this.focusedMenuIndex].parentMenu) {
-            this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].removeFocus();
-            this.focusedMenuIndex = this.menus.indexOf(this.menus[this.focusedMenuIndex].parentMenu);
-            this.focusedOptionIndex = this.menus[this.focusedMenuIndex].openedLinkOptionIndex; //TODO: If we ever go back to nested menus then this.topOptionIndex and this.bottomOptionIndex need to be updated here.
-            this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].setFocus();
-            this.menus[this.focusedMenuIndex].closeChildren();
-        }
-    }
+    // closeSubMenu() {
+    //     if (this.menus[this.focusedMenuIndex].parentMenu) {
+    //         this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].removeFocus();
+    //         this.focusedMenuIndex = this.menus.indexOf(this.menus[this.focusedMenuIndex].parentMenu);
+    //         this.focusedOptionIndex = this.menus[this.focusedMenuIndex].openedLinkOptionIndex; //TODO: If we ever go back to nested menus then this.topOptionIndex and this.bottomOptionIndex need to be updated here.
+    //         this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].setFocus();
+    //         this.menus[this.focusedMenuIndex].closeChildren();
+    //     }
+    // }
 
     //Perform the action associated with the currently focused option.
     selectFocusedOption() {
