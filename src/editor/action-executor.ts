@@ -1966,6 +1966,8 @@ export class ActionExecutor {
         if (existingAutocompleteTkn instanceof AutocompleteTkn) {
             autocompleteTkn = existingAutocompleteTkn;
 
+            console.log("Existing autocomplete token found", autocompleteTkn);
+            
             this.openAutocompleteMenu(autocompleteTkn.validMatches);
             this.updateAutocompleteMenu(autocompleteTkn);
             // do something
@@ -1973,6 +1975,8 @@ export class ActionExecutor {
             const validMatches = this.module.actionFilter
                 .getProcessedInsertionsList()
                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+            
+            console.log("No existing autocomplete token found", validMatches)
 
             // Create a new autocompleteTkn
             autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);

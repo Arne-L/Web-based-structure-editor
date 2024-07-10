@@ -534,6 +534,8 @@ export class EventRouter {
                 // Should be the printable characters (excluding things like arrow keys etc)
                 if (e.key.length !== 1) break;
 
+                console.log("in text edit mode?", inTextEditMode);
+
                 if (inTextEditMode) {
                     // Handle flow control keys (Not currently implemented)
                     switch (e.key) {
@@ -569,6 +571,33 @@ export class EventRouter {
                         });
                     }
 
+                    const editableTkn = this.module.focus.getTextEditableItem(context);
+                    const token = editableTkn.getToken();
+                    const selectedText = this.module.editor.monaco.getSelection();
+                    let newText = "";
+                    if (token instanceof ast.IdentifierTkn && token.isEmptyIdentifier()) {
+                        const curText = "";
+                        newText = curText + e.key;
+                    } else {
+                        const curText = editableTkn.getEditableText().split("");
+                        curText.splice(
+                            this.curPosition.column - token.leftCol,
+                            Math.abs(selectedText.startColumn - selectedText.endColumn),
+                            e.key
+                        );
+
+                        newText = curText.join("");
+                    }
+                    if (!(context.tokenToRight instanceof ast.AutocompleteTkn) && editableTkn.validatorRegex && !editableTkn.validatorRegex.test(newText)) {
+                        console.log("left num");
+                        return new EditAction(EditActionType.OpenAutocomplete, {
+                            autocompleteType: AutoCompleteType.RightOfExpression,
+                            firstChar: e.key,
+                            validMatches: this.module.actionFilter
+                                .getProcessedInsertionsList()
+                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        });
+                    }
                     // If a key is being pressed right after a number literal, check if
                     // the new literal is not part of the literal (e.g. 12+) and if so
                     // open the autocomplete menu
@@ -593,23 +622,7 @@ export class EventRouter {
                     // } else
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
-                    const editableTkn = this.module.focus.getTextEditableItem(context);
-                    const token = editableTkn.getToken();
-                    const selectedText = this.module.editor.monaco.getSelection();
-                    let newText = "";
-                    if (token instanceof ast.IdentifierTkn && token.isEmptyIdentifier()) {
-                        const curText = "";
-                        newText = curText + e.key;
-                    } else {
-                        const curText = editableTkn.getEditableText().split("");
-                        curText.splice(
-                            this.curPosition.column - token.leftCol,
-                            Math.abs(selectedText.startColumn - selectedText.endColumn),
-                            e.key
-                        );
-
-                        newText = curText.join("");
-                    }
+                    
                     // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
@@ -618,14 +631,15 @@ export class EventRouter {
                         console.log("INSERT CHAR");
                         return new EditAction(EditActionType.InsertChar);
                     }
-                    break;
+                    // break;
                     // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     //     const compound = context.tokenToLeft?.rootNode;
                     //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
                     //         compound.continueExpansion();
                     //     break;
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
-                } else if (this.module.validator.atEmptyOperatorTkn(context)) {
+                }
+                if (this.module.validator.atEmptyOperatorTkn(context)) {
                     // Return the autocomplete menu for the operator token
                     console.log("AT EMPTY OPER");
                     return new EditAction(EditActionType.OpenAutocomplete, {
@@ -710,7 +724,7 @@ export class EventRouter {
                     const compound = leftConstruct.rootNode;
                     if (compound.canContinueExpansion(leftConstruct, e.key)) {
                         compound.continueExpansion(leftConstruct);
-                        console.log("EXPANDING COMPOUND 1")
+                        console.log("EXPANDING COMPOUND 1");
 
                         // No other actions should be performed
                         return new EditAction(EditActionType.None);
@@ -719,12 +733,10 @@ export class EventRouter {
 
                 // Get all valid actions at the given cursor position
                 const validActions = this.module.actionFilter
-                        .getProcessedInsertionsList()
-                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-                if (
-                    this.module.validator.atRightOfExpression(context) &&
-                    validActions.length > 0
-                ) {
+                    .getProcessedInsertionsList()
+                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                console.log("IMPORTANT", this.module.validator.atRightOfExpression(context), validActions);
+                if (this.module.validator.atRightOfExpression(context) && validActions.length > 0) {
                     // Open the autocomplete menu starting from all possible matches
                     console.log("AT RIGHT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
@@ -733,10 +745,7 @@ export class EventRouter {
                         validMatches: validActions,
                     });
                     // Idem but now the cursor is at the left of an expression
-                } else if (
-                    this.module.validator.atLeftOfExpression(context) &&
-                    validActions.length > 0
-                ) {
+                } else if (this.module.validator.atLeftOfExpression(context) && validActions.length > 0) {
                     console.log("AT LEFT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.LeftOfExpression,
@@ -774,8 +783,11 @@ export class EventRouter {
 
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
-            if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
-            console.log("EXPANDING COMPOUND 2")
+            if (compound.canContinueExpansion(leftConstruct, e.key)) {
+                compound.continueExpansion(leftConstruct);
+
+                console.log("EXPANDING COMPOUND 2");
+            }
         }
 
         // No edit action could be matched

@@ -384,7 +384,7 @@ export class EditCodeAction extends UserAction {
         // Check if the given code can be inserted at the current location
         // Either valid, draft or invalid
         const astInsertionType = code.validateContext(validator, context);
-
+        
         if (!(code instanceof GeneralExpression)) {
             // Code is not an expression; however, this method requires it to be an expression
             return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);

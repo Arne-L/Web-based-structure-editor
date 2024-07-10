@@ -1594,8 +1594,8 @@
                 ]
             }
         ],
-        "match": null,
-        "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
+        "match": "+",
+        "matchRegex": null,
         "triggerInsertion": [
             "+"
         ],
