@@ -4,6 +4,8 @@ import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/a
 import config from "./config.json";
 import { ConstructDefinition, LanguageDefinition, RecursiveDefinition, ReferenceFormatDefinition } from "./definitions";
 
+console.log("Parser")
+
 // Dynamically import the correct language and constructs
 let languageConfig: LanguageDefinition;
 if (config.languageFile) languageConfig = (await import(`../language-definition/${config.languageFile}`)).default;

@@ -1,6 +1,9 @@
 import "./css/index.css";
 //might be related to parsing or handling the syntax tree of the code written in the editor.??
 import { Module } from "./syntax-tree/module";
+import { initializeEditor } from "./editor/language-toggle";
+
+console.log("index")
 
 // @ts-ignore
 self.MonacoEnvironment = { // self == window, so we define a MonacoEnvironment property on the window object
@@ -25,9 +28,20 @@ self.MonacoEnvironment = { // self == window, so we define a MonacoEnvironment p
     },
 };
 
+
+initializeEditor();
+
 // retrieveUser();
-const nova = new Module("editor");
+let currLanguage;
+let nova = new Module("editor");
 const runBtnToOutputWindow = new Map<string, string>();
 runBtnToOutputWindow.set("runCodeBtn", "outputDiv");
 
-export { nova, runBtnToOutputWindow };
+const languageToggle = <HTMLSelectElement>document.getElementById("toggleLanguageBtn")
+languageToggle.addEventListener("change", function () { 
+    currLanguage = this.value;
+    initializeEditor();
+    nova = new Module("editor");
+ });
+
+export { nova, runBtnToOutputWindow, currLanguage };

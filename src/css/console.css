@@ -14,6 +14,17 @@
     box-shadow: 10px 0px 20px 0px #ccc;
 }
 
+.button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.toggle-language-btn {
+    justify-self: start;
+    background-color: #4b4ba8;
+    color: #fff !important;
+}
+
 .run-code-btn {
     justify-self: start;
     background-color: rgb(24 200 120);
