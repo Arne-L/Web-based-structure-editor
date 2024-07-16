@@ -4,6 +4,7 @@ import { Module } from "./syntax-tree/module";
 import { initializeEditor as initialiseEditor } from "./editor/language-toggle";
 import { Loader } from "./language-definition/parser";
 import { Actions } from "./editor/consts";
+import config from "./language-definition/config.json";
 
 console.log("index");
 
@@ -60,7 +61,7 @@ async function handleToggle() {
     // Handle export button
     document.getElementById("exportCodeBtn").addEventListener("click", () => {
         const code = nova.editor.monaco.getValue();
-        download(code, "code.py", "text/plain");
+        download(code, `code.${config.availableLanguages.find((val) => val.language === this.value).extension}`, "text/plain");
     });
 }
 

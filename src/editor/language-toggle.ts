@@ -2,7 +2,7 @@ import config from "../language-definition/config.json";
 import { Loader } from "../language-definition/parser";
 import { exportIcon } from "../icons/icons";
 
-const languages = config.availableLanguages;
+const languages = config.availableLanguages.map((lang) => lang.language);
 
 export async function initializeEditor(language?: string) {
     await Loader.instance.updateLanguage(language);

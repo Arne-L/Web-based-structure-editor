@@ -1,4 +1,12 @@
 {
     "language": "python",
-    "availableLanguages": ["python", "hedyl1_en", "hedyl1_nl", "hedyl2_en"]
+    "availableLanguages": [
+        {
+            "language": "python",
+            "extension": "py"
+        },
+        { "language": "hedyl1_en", "extension": "txt" },
+        { "language": "hedyl1_nl", "extension": "txt" },
+        { "language": "hedyl2_en", "extension": "txt" }
+    ]
 }
