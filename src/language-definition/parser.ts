@@ -83,6 +83,9 @@ export class Loader {
         // Load the initial starting structure for the editor
         this._initialConstructDef = this._languageConfig.initialConstruct;
         // Load the JSON-definitions for the global - function like - constructs
+        console.log("languageConfig", this._languageConfig)
+        console.log("constructs", this._constructs)
+        console.log("recursiveFormats", recursiveFormats)
         this._globalFormats = new Map(
             recursiveFormats.map((format) => {
                 const { name, ...formatData } = format;

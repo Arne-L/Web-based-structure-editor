@@ -1,7 +1,9 @@
 import "./css/index.css";
 //might be related to parsing or handling the syntax tree of the code written in the editor.??
 import { Module } from "./syntax-tree/module";
-import { initializeEditor } from "./editor/language-toggle";
+import { initializeEditor as initialiseEditor } from "./editor/language-toggle";
+import { Loader } from "./language-definition/parser";
+import { Actions } from "./editor/consts";
 
 console.log("index")
 
@@ -29,7 +31,7 @@ self.MonacoEnvironment = { // self == window, so we define a MonacoEnvironment p
 };
 
 
-await initializeEditor();
+await initialiseEditor();
 
 // retrieveUser();
 let currLanguage;
@@ -38,12 +40,19 @@ const runBtnToOutputWindow = new Map<string, string>();
 runBtnToOutputWindow.set("runCodeBtn", "outputDiv");
 
 const languageToggle = <HTMLSelectElement>document.getElementById("toggleLanguageBtn")
-console.log("Adding listener to language toggle");
-languageToggle.addEventListener("change", async function () { 
+languageToggle.addEventListener("change", handleToggle);
+
+async function handleToggle() { 
     console.log("Language changed to: ", this.value);
     currLanguage = this.value;
-    await initializeEditor(this.value);
+    await initialiseEditor(this.value);
+    Actions.reset();
+    console.log("Editor initialised", Loader.instance)
     nova = new Module("editor");
- });
+
+    // Reattach event listener after previous one has been deleted
+    const languageToggle = <HTMLSelectElement>document.getElementById("toggleLanguageBtn");
+    languageToggle.addEventListener("change", handleToggle);
+ }
 
 export { nova, runBtnToOutputWindow, currLanguage };
