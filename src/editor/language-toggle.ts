@@ -1,5 +1,6 @@
 import config from "../language-definition/config.json";
 import { Loader } from "../language-definition/parser";
+import { exportIcon } from "../icons/icons";
 
 const languages = config.availableLanguages;
 
@@ -43,6 +44,9 @@ export async function initializeEditor(language?: string) {
                             <select name="toggleLanguage" class="console-button toggle-language-btn" id="toggleLanguageBtn">
                                 ${languageHTML}
                             </select>
+                            <button class="console-button" id="exportCodeBtn">
+                                ${exportIcon}
+                            </button>
                         </div>
                     </div>
                     <div id="outputDiv"></div>
