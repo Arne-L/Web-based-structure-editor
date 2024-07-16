@@ -29,7 +29,7 @@ self.MonacoEnvironment = { // self == window, so we define a MonacoEnvironment p
 };
 
 
-initializeEditor();
+await initializeEditor();
 
 // retrieveUser();
 let currLanguage;
@@ -38,9 +38,11 @@ const runBtnToOutputWindow = new Map<string, string>();
 runBtnToOutputWindow.set("runCodeBtn", "outputDiv");
 
 const languageToggle = <HTMLSelectElement>document.getElementById("toggleLanguageBtn")
-languageToggle.addEventListener("change", function () { 
+console.log("Adding listener to language toggle");
+languageToggle.addEventListener("change", async function () { 
+    console.log("Language changed to: ", this.value);
     currLanguage = this.value;
-    initializeEditor();
+    await initializeEditor(this.value);
     nova = new Module("editor");
  });
 

@@ -46,7 +46,7 @@
 // import * as CastToStrDocs from "../docs/to-str.json";
 // import * as TrueDocs from "../docs/true.json";
 // import * as WhileDocs from "../docs/while.json";
-import { addEditCodeActionsToCategories, getAllCodeActions } from "../language-definition/parser";
+import { addEditCodeActionsToCategories, Loader } from "../language-definition/parser";
 import {
     // Argument,
     // AssignmentModifier,
@@ -1366,7 +1366,7 @@ export class Actions {
         //     ImportRandintStmt,
         //     ImportChoiceStmt
         // );
-        const loadedCodeActions = getAllCodeActions();
+        const loadedCodeActions = Loader.instance.getAllCodeActions();
         // this.actionsList.push(...loadedCodeActions); // Add loaded actions
         this.actionsList = loadedCodeActions; // Add loaded actions
 

@@ -6,7 +6,10 @@ export interface ConfigDefinition {
      *
      * Required.
      */
-    languageFile: string;
+    language: string;
+    /**
+     * COMPLETE FURTHER AND UPDATE PREVIOUS COMMENT
+     */
 }
 export interface LanguageDefinition {
     /**

@@ -1,5 +1,5 @@
 import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
-import { globalFormats } from "../language-definition/parser";
+import { Loader } from "../language-definition/parser";
 import {
     AssignmentTkn,
     CodeConstruct,
@@ -14,6 +14,8 @@ import {
 } from "./ast";
 import { DataType } from "./consts";
 import { Scope } from "./scope";
+
+console.log("Constructor");
 
 export namespace SyntaxConstructor {
     /**
@@ -166,7 +168,7 @@ export namespace SyntaxConstructor {
             case "editable":
                 return [new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, indexInRoot)];
             case "recursive":
-                const compositeContent = globalFormats.get(token.recursiveName);
+                const compositeContent = Loader.instance.globalFormats.get(token.recursiveName);
                 const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, indexInRoot, data);
                 return tokens;
             // constructs.push(new CompositeConstruct(token.recursiveName));

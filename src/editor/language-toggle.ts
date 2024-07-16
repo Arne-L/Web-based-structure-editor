@@ -1,13 +1,16 @@
 import config from "../language-definition/config.json";
+import { Loader } from "../language-definition/parser";
 
 const languages = config.availableLanguages;
 
-let languageHTML = "";
-for (const language of languages) {
-    languageHTML += `<option value="${language}">${language}</option>`;
-}
+export async function initializeEditor(language?: string) {
+    await Loader.instance.updateLanguage(language);
 
-export function initializeEditor() {
+    let languageHTML = "";
+    for (const option of languages) {
+        languageHTML += `<option value="${option}" ${option === language ? "selected" : ""}>${option}</option>`;
+    }
+
     document.getElementsByTagName("body")[0].innerHTML = `<div id="editor-container">
             <div id="toolbox-container">
                 <div id="static-toolbox">

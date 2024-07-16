@@ -1,6 +1,6 @@
 import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
 
-import { INDENT } from "../language-definition/parser";
+import { Loader } from "../language-definition/parser";
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { ASTManupilation } from "../syntax-tree/utils";
@@ -9,6 +9,8 @@ import { EditCodeAction } from "./action-filter";
 import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
+
+console.log("Event router")
 
 /**
  * Handle incoming events and route them to the corresponding action.
@@ -335,13 +337,13 @@ export class EventRouter {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
-                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === INDENT) {
+                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === Loader.instance.indent) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
                                         console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
                                     }
                                     console.log("Tokens1.5", nextCompound.tokens);
-                                } else if (prevTkn.getRenderText() === INDENT) {
+                                } else if (prevTkn.getRenderText() === Loader.instance.indent) {
                                     console.log("Tokens2", nextCompound.tokens);
                                     const rightConstruct = ASTManupilation.getNextSiblingOfRoot(curTkn);
                                     const tempTkn = new ast.NonEditableTkn(
