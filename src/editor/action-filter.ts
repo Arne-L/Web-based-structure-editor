@@ -3,7 +3,7 @@ import {
     // Expression,
     GeneralExpression,
     // ForStatement,
-    GeneralStatement,
+    UniConstruct,
     Statement,
 } from "../syntax-tree/ast";
 import { InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
@@ -84,7 +84,7 @@ export class ActionFilter {
 
                 // If there are no references (and thus the for loop did not produce any results),
                 // add the action as an invalid option (e.g. for the toolbox buttons to be disabled)
-                if (references.length === 0) 
+                if (references.length === 0)
                     validOptionMap.set(
                         action.optionName,
                         EditCodeAction.createDynamicEditCodeAction(
@@ -294,7 +294,7 @@ export class EditCodeAction extends UserAction {
      * base text as well as all possible completions through the input text of the user
      * @returns Final construct that would be put in the editor
      */
-    getConstruct(userInput: string): GeneralStatement {
+    getConstruct(userInput: string): UniConstruct {
         // Create an EditAction that contains all information to create the final construct
         // The EditActionType is not used in the createFinalConstruct function and can thus
         // be anythin

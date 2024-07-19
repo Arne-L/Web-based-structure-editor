@@ -186,7 +186,7 @@ export abstract class Construct {
      * @returns The nearest (itself or an ancestor) CodeConstruct of the given
      * CodeConstruct type if given, otherwise the nearest CodeConstruct
      */
-    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     abstract getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     abstract getNearestCodeConstruct(): CodeConstruct;
 
@@ -641,7 +641,7 @@ export abstract class Statement extends CodeConstruct {
      * this method!
      */
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct | Statement | CompoundConstruct {
         if (!type || type === CodeConstructType.UniConstruct) return this;
@@ -794,7 +794,7 @@ class AncestorConstruct {
  *
  * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
  */
-export class GeneralStatement extends Statement {
+export class UniConstruct extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     /**
@@ -824,7 +824,7 @@ export class GeneralStatement extends Statement {
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
-    static constructs: Map<string, GeneralStatement>;
+    static constructs: Map<string, UniConstruct>;
 
     /**
      * The type of the construct. Most frequent options are "statement" and "expression".
@@ -916,7 +916,7 @@ export class GeneralStatement extends Statement {
      *
      * @param constructs - The constructs to add to the map
      */
-    static addAllConstructs(constructs: GeneralStatement[]) {
+    static addAllConstructs(constructs: UniConstruct[]) {
         this.constructs = constructs.reduce((map, construct) => {
             map.set(construct.keyword, construct);
             return map;
@@ -941,7 +941,7 @@ export class GeneralStatement extends Statement {
      * on / requires it
      * @returns true if the current construct is depending on / requires the given construct,
      */
-    isDependentOf(construct: GeneralStatement): boolean {
+    isDependentOf(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiredConstructs.includes(construct.getKeyword());
     }
@@ -952,7 +952,7 @@ export class GeneralStatement extends Statement {
      * @param construct - The construct to check if it is depending on / requires the current construct
      * @returns true if the current construct has the given construct as a dependent / requiring construct
      */
-    hasDependent(construct: GeneralStatement): boolean {
+    hasDependent(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiringConstructs.some((dependent) => dependent.getConstructName() === construct.getKeyword());
     }
@@ -979,7 +979,7 @@ export class GeneralStatement extends Statement {
     }
 }
 
-export class GeneralExpression extends GeneralStatement {
+export class GeneralExpression extends UniConstruct {
     constructor(
         construct: ConstructDefinition,
         root?: CodeConstruct,
@@ -1211,7 +1211,7 @@ export abstract class Token extends Construct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // This is weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -1938,7 +1938,7 @@ export abstract class HoleStructure extends Construct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // Weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -2273,7 +2273,7 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         if (!type || type === CodeConstructType.CompoundConstruct) return this;

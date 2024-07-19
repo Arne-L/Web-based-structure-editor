@@ -5,7 +5,7 @@ import {
     Construct,
     GeneralExpression,
     // Expression,
-    GeneralStatement,
+    UniConstruct,
     // EmptyOperatorTkn,
     Statement,
     TemporaryConstruct,
@@ -53,7 +53,7 @@ export namespace ASTManupilation {
             } else if (module.validator.atEmptyHole(context)) {
                 replaceWith(context.token, construct);
             }
-        } else if (construct instanceof GeneralStatement) {
+        } else if (construct instanceof UniConstruct) {
             // Currently for expressions and statements
 
             // If on empty line, replace the empty line

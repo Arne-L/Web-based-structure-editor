@@ -24,7 +24,7 @@ import {
     EmptyLineStmt,
     Expression,
     // FormattedStringCurlyBracketsExpr,
-    GeneralStatement,
+    UniConstruct,
     ImportStatement,
     // ForStatement,
     Importable,
@@ -105,7 +105,11 @@ export class Module {
         this.toolboxController.loadToolboxFromJson();
         // Initialise the editors starting construct
         // The starting construct needs to be a CodeConstruct (needs to contain tokens)
-        this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON([Loader.instance.initialConstructDef], null, 0)[0];
+        this.compoundConstruct = SyntaxConstructor.constructTokensFromJSON(
+            [Loader.instance.initialConstructDef],
+            null,
+            0
+        )[0];
         this.compoundConstruct.build(new Position(1, 1));
         const range = new Range(
             this.compoundConstruct.left.lineNumber,
@@ -326,7 +330,7 @@ export class Module {
                 // aboveMultilineStmt.scope.references.push(new Reference(stmt, aboveMultilineStmt.scope));
 
                 // If the statement contains assignments, push them to their new parent scope
-                if (stmt instanceof GeneralStatement && stmt.containsAssignments())
+                if (stmt instanceof UniConstruct && stmt.containsAssignments())
                     root.scope.pushToScope(aboveMultilineStmt.scope, stmt.getAssignments());
             } else {
                 // If the current statement has a body
@@ -434,11 +438,7 @@ export class Module {
         if (!root) return;
 
         // Create the hole to replace the removed construct
-        const replacement = new HoleTkn(
-            root,
-            construct.indexInRoot,
-            root.holeTypes.get(construct.indexInRoot)
-        );
+        const replacement = new HoleTkn(root, construct.indexInRoot, root.holeTypes.get(construct.indexInRoot));
 
         // Remove the construct from the AST
         root.tokens.splice(construct.indexInRoot, 1, replacement);
@@ -498,7 +498,7 @@ export class Module {
     deleteLine(line: Construct) {
         const root = line.rootNode;
 
-        if (root instanceof Module || root instanceof GeneralStatement) {
+        if (root instanceof Module || root instanceof UniConstruct) {
             this.recursiveNotify(line, CallbackType.delete);
             root.body.splice(line.indexInRoot, 1);
             rebuildBody(this, 0, 1);
@@ -891,7 +891,7 @@ export class Module {
             let curr: Construct = Q.splice(0, 1)[0];
 
             // If the current construct has tokens and possibly a body
-            if (curr instanceof GeneralStatement) {
+            if (curr instanceof UniConstruct) {
                 // Push all of its tokens to the list
                 Q.push(...curr.tokens);
 

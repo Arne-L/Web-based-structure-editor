@@ -4,7 +4,7 @@ import {
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
-    GeneralStatement,
+    UniConstruct,
     IdentifierTkn,
     ImportStatement,
     NonEditableTkn,
@@ -566,8 +566,8 @@ export class Validator {
             context.codeConstruct instanceof EmptyLineStmt &&
             context.codeConstruct.rootNode instanceof Statement &&
             context.codeConstruct.rootNode.hasBody() &&
-            !(context.codeConstruct.rootNode as GeneralStatement).hasDependent(
-                this.getNextSiblingOfRoot(context) as GeneralStatement
+            !(context.codeConstruct.rootNode as UniConstruct).hasDependent(
+                this.getNextSiblingOfRoot(context) as UniConstruct
             ) // NOT OK: Clean up types later
         ) {
             const rootsBody = context.codeConstruct.rootNode.body;

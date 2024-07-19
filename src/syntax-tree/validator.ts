@@ -1,9 +1,9 @@
 import { Context } from "../editor/focus";
-import { CodeConstruct, CompoundConstruct, Construct, GeneralStatement, HoleTkn } from "./ast";
+import { CodeConstruct, CompoundConstruct, Construct, UniConstruct, HoleTkn } from "./ast";
 import { Module } from "./module";
 
 export namespace ValidatorNameSpace {
-    export function validateRequiredConstructs(context: Context, invokedConstruct: GeneralStatement): boolean {
+    export function validateRequiredConstructs(context: Context, invokedConstruct: UniConstruct): boolean {
         // If there are no required constructs, the depending constructs are always valid
         if (invokedConstruct.requiredConstructs.length === 0) return true;
 
@@ -12,7 +12,7 @@ export namespace ValidatorNameSpace {
         // appears (correctly) in front of the current construct
         for (const requiredName of invokedConstruct.requiredConstructs) {
             // TODO: This is currently casted because expression does inherit from Statement and not GeneralStatement => CHANGE IN THE FUTURE
-            const requiredConstruct = GeneralStatement.constructs.get(requiredName); // NOT OKAY; FIX LATER
+            const requiredConstruct = UniConstruct.constructs.get(requiredName); // NOT OKAY; FIX LATER
 
             // TODO: Currently the function assumes that each construct will only appear once
             // This is however not always the case, so we should look for a way to generalise
@@ -144,7 +144,7 @@ export namespace ValidatorNameSpace {
         return canInsertConstruct;
     }
 
-    export function validateAncestors(context: Context, invokedConstruct: GeneralStatement): boolean {
+    export function validateAncestors(context: Context, invokedConstruct: UniConstruct): boolean {
         // If element needs to be a descendant of a certain construct
         if (invokedConstruct.requiredAncestorConstructs.length === 0) return true;
 
@@ -183,7 +183,7 @@ export namespace ValidatorNameSpace {
      * @returns - The next sibling of the given statement, or null if the
      * given statement is the last statement in the root's body
      */
-    function getNextSiblingOf(construct: Construct): GeneralStatement | HoleTkn {
+    function getNextSiblingOf(construct: Construct): UniConstruct | HoleTkn {
         // TODO: Currently both the getNextSiblingOf & getPrevSiblingOf functions
         // only check for a possible sibling in the same root construct. Maybe we want
         // to traverse further if the rootNode is a CompoundConstruct? This might be useful,
@@ -195,7 +195,7 @@ export namespace ValidatorNameSpace {
         // Get the next construct
         const nextConstruct = construct.rootNode.tokens[construct.indexInRoot + 1];
         // If the next construct is a UniConstruct or a Hole, return it
-        if (nextConstruct instanceof GeneralStatement || nextConstruct instanceof HoleTkn) return nextConstruct;
+        if (nextConstruct instanceof UniConstruct || nextConstruct instanceof HoleTkn) return nextConstruct;
         // Otherwise, keep searching
         else return getNextSiblingOf(nextConstruct);
     }
@@ -208,13 +208,13 @@ export namespace ValidatorNameSpace {
      * @returns - The previous sibling of the given statement, or null if the
      * given statement is the first statement in the root's body
      */
-    function getPrevSiblingOf(construct: Construct): GeneralStatement | HoleTkn {
+    function getPrevSiblingOf(construct: Construct): UniConstruct | HoleTkn {
         // Construct is the first construct in the root's tokens
         if (!construct?.rootNode || construct.indexInRoot === 0) return null;
         // Get the previous construct
         const prevConstruct = construct.rootNode.tokens[construct.indexInRoot - 1];
         // If the prev construct is a UniConstruct or a Hole, return it
-        if (prevConstruct instanceof GeneralStatement || prevConstruct instanceof HoleTkn) return prevConstruct;
+        if (prevConstruct instanceof UniConstruct || prevConstruct instanceof HoleTkn) return prevConstruct;
         // Otherwise, keep searching
         else return getPrevSiblingOf(prevConstruct);
     }

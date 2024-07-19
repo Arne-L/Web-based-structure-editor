@@ -7,7 +7,7 @@ import {
     EditableTextTkn,
     EmptyLineStmt,
     GeneralExpression,
-    GeneralStatement,
+    UniConstruct,
     IdentifierTkn,
     NonEditableTkn,
     Statement,
@@ -866,7 +866,7 @@ export class Focus {
 
             if (curToken instanceof Token && !curToken.left.equals(curToken.right) && check(curToken)) return curToken;
 
-            if (curToken instanceof GeneralStatement || curToken instanceof CompoundConstruct) {
+            if (curToken instanceof UniConstruct || curToken instanceof CompoundConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
             }
         }

@@ -12,7 +12,7 @@ import {
     // EmptyOperatorTkn,
     // Expression,
     GeneralExpression,
-    GeneralStatement,
+    UniConstruct,
     IdentifierTkn,
     // IfStatement,
     Importable,
@@ -499,7 +499,7 @@ export class ActionExecutor {
 
                     // If the current expression is atomic (has no subexpressions or editable token)
                     if (
-                        context.construct instanceof GeneralStatement &&
+                        context.construct instanceof UniConstruct &&
                         context.construct?.isAtomic() /*context.expression instanceof LiteralValExpr*/
                     ) {
                         removableExpr = context.construct;
@@ -1250,7 +1250,7 @@ export class ActionExecutor {
         // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
-            (match.getCode() as GeneralStatement)?.containsAssignments() &&
+            (match.getCode() as UniConstruct)?.containsAssignments() &&
             this.module.language.isReservedWord(token.text.trim())
         ) {
             // TODO: can insert an interesting warning
@@ -1261,7 +1261,7 @@ export class ActionExecutor {
         // Length of the match token
         let length = 0;
         // Get the length of the text token if it is a variable
-        if ((match.getCode() as GeneralStatement)?.containsAssignments()) length = token.text.length + 1;
+        if ((match.getCode() as UniConstruct)?.containsAssignments()) length = token.text.length + 1;
         // Otherwise, get the length of the match string
         else length = match.matchString.length + 1;
 

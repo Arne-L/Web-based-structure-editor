@@ -4,7 +4,7 @@ import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
-import { Construct, GeneralStatement } from "../syntax-tree/ast";
+import { Construct, UniConstruct } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
@@ -458,7 +458,7 @@ class MenuOption {
 
         // if (this.childMenu) this.parentMenu.closeChildren();
         // else
-        if(this.doc) this.doc.hide();
+        if (this.doc) this.doc.hide();
     }
 
     removeFromDOM() {

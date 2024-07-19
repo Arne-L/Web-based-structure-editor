@@ -10,7 +10,7 @@ import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
 
-console.log("Event router")
+console.log("Event router");
 
 /**
  * Handle incoming events and route them to the corresponding action.
@@ -216,7 +216,7 @@ export class EventRouter {
                         }
                         return new EditAction(EditActionType.ReplaceExpressionWithItem);
                     }
-                    if (context.token.rootNode instanceof ast.GeneralStatement) {
+                    if (context.token.rootNode instanceof ast.UniConstruct) {
                         if (this.module.validator.canDeleteStatement(context)) {
                             return new EditAction(EditActionType.DeleteStatement);
                         }
@@ -337,7 +337,10 @@ export class EventRouter {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
-                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === Loader.instance.indent) {
+                                if (
+                                    curTkn instanceof ast.HoleTkn &&
+                                    prevTkn.getRenderText() === Loader.instance.indent
+                                ) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
                                         console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
@@ -712,7 +715,7 @@ export class EventRouter {
                     const compound = leftConstruct.rootNode;
                     if (compound.canContinueExpansion(leftConstruct, e.key)) {
                         compound.continueExpansion(leftConstruct);
-                        console.log("EXPANDING COMPOUND 1")
+                        console.log("EXPANDING COMPOUND 1");
 
                         // No other actions should be performed
                         return new EditAction(EditActionType.None);
@@ -721,12 +724,9 @@ export class EventRouter {
 
                 // Get all valid actions at the given cursor position
                 const validActions = this.module.actionFilter
-                        .getProcessedInsertionsList()
-                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-                if (
-                    this.module.validator.atRightOfExpression(context) &&
-                    validActions.length > 0
-                ) {
+                    .getProcessedInsertionsList()
+                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                if (this.module.validator.atRightOfExpression(context) && validActions.length > 0) {
                     // Open the autocomplete menu starting from all possible matches
                     console.log("AT RIGHT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
@@ -735,10 +735,7 @@ export class EventRouter {
                         validMatches: validActions,
                     });
                     // Idem but now the cursor is at the left of an expression
-                } else if (
-                    this.module.validator.atLeftOfExpression(context) &&
-                    validActions.length > 0
-                ) {
+                } else if (this.module.validator.atLeftOfExpression(context) && validActions.length > 0) {
                     console.log("AT LEFT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.LeftOfExpression,
@@ -777,7 +774,7 @@ export class EventRouter {
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
             if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
-            console.log("EXPANDING COMPOUND 2")
+            console.log("EXPANDING COMPOUND 2");
         }
 
         // No edit action could be matched
@@ -924,7 +921,7 @@ export class EventRouter {
      */
     routeToolboxEvents(e: EditCodeAction, context: Context, source: {}): EditAction {
         switch (e.insertActionType) {
-            case InsertActionType.InsertGeneralStmt:
+            case InsertActionType.InsertUniConstruct:
                 /**
                  * Purpose is to try to
                  * 1) Include all statements under this type

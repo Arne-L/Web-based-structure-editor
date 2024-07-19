@@ -250,7 +250,7 @@ export enum ConstructName {
  * If and While are grouped under “InsertStatement”
  */
 export enum InsertActionType {
-    InsertGeneralStmt,
+    InsertUniConstruct,
     // InsertGeneralExpr,
 
     InsertNewVariableStmt,
