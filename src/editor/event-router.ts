@@ -946,15 +946,15 @@ export class EventRouter {
                 }
                 break;
 
-            case InsertActionType.InsertGeneralExpr:
-                const expression = e.getCode();
-                if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
-                    return new EditAction(EditActionType.InsertGeneralExpr, {
-                        construct: expression,
-                        source,
-                    });
-                }
-                break;
+            // case InsertActionType.InsertGeneralExpr:
+            //     const expression = e.getCode();
+            //     if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
+            //         return new EditAction(EditActionType.InsertGeneralExpr, {
+            //             construct: expression,
+            //             source,
+            //         });
+            //     }
+            //     break;
 
             case InsertActionType.InsertBinaryExpr: {
                 if (this.module.validator.atRightOfExpression(context)) {

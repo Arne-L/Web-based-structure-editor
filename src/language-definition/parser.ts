@@ -13,53 +13,93 @@ import {
     ReferenceFormatDefinition,
 } from "./definitions";
 
-console.log("Parser");
-
-// console.log(currLanguage)
-
 /**
- * Transform json into usable objects and information
+ * Load the JSON from the language configuration files and make it available through an API.
  */
 export class Loader {
+    // Keep track of the singleton instance
     private static _instance: Loader;
 
+    // Language specific data
     private _initialConstructDef: FormatDefType;
     private _globalFormats: Map<string, RecursiveDefinition>;
     private _indent: string;
     private _currLanguage: string;
 
-    // File contents
+    // JSON file contents
     private _languageConfig: LanguageDefinition;
     private _constructs: ConstructDefinition[];
 
-    get initialConstructDef() {
+    /**
+     * Get the format definition for the construct with which the editor should be initialised.
+     */
+    get initialConstructDef(): FormatDefType {
         if (!this._initialConstructDef) throw new Error("Language not set yet");
         return this._initialConstructDef;
     }
 
-    get globalFormats() {
+    /**
+     * Get all the global recursive format definitions for the current language. Each recursive
+     * definition consists of a name and a format definition.
+     */
+    get globalFormats(): Map<string, RecursiveDefinition> {
         if (!this._globalFormats) throw new Error("Language not set yet");
         return this._globalFormats;
     }
 
-    get indent() {
+    /**
+     * Get the indentation string. This can be any string varying from four spaces to a sequence of
+     * random characters
+     */
+    get indent(): string {
         if (!this._indent) throw new Error("Language not set yet");
         return this._indent;
     }
 
-    get currLanguage() {
+    /**
+     * Get the internal name of the language. Most names follow these guidelines:
+     * * language name in lowercase
+     * * words are separated by an underscore
+     * * variants are clearly identified by a suffix such that other variants can easily be added
+     * in the future
+     */
+    get currLanguage(): string {
         if (!this._currLanguage) throw new Error("Language not set yet");
         return this._currLanguage;
     }
 
+    /**
+     * Get the user-friendly name of the language.
+     */
+    get languageName(): string {
+        return this._languageConfig.name;
+    }
+
+    /**
+     * Get the singleton instance of the Loader class.
+     */
     static get instance() {
         if (!Loader._instance) Loader._instance = new Loader();
         return Loader._instance;
     }
 
+    /**
+     * Create a new instance of the Loader class. This is a singleton class and should not be
+     * instantiated directly. Call the static getter `Loader.instance` instead.
+     */
     private constructor() {}
 
-    initLanguage() {
+    /**
+     * Get the main settings for the language. This includes the language name and the reserved
+     * words.
+     *
+     * @returns - An object containing the language name and the reserved words, based on the
+     * current language configuration
+     */
+    mainSettings(): {
+        language: string;
+        reservedWords: Map<string, Set<string>>;
+    } {
         return {
             language: this._languageConfig.name,
             reservedWords: new Map<string, Set<string>>(
@@ -71,6 +111,12 @@ export class Loader {
         };
     }
 
+    /**
+     * Update the singleton to contain the given language's settings and configurations.
+     *
+     * @param language - The language to update to. If not provided, the language will be updated to
+     * the default language specified in the main configuration file.
+     */
     async updateLanguage(language?: string) {
         // Update the current language
         this._currLanguage = language ?? config.language;
@@ -83,9 +129,6 @@ export class Loader {
         // Load the initial starting structure for the editor
         this._initialConstructDef = this._languageConfig.initialConstruct;
         // Load the JSON-definitions for the global - function like - constructs
-        console.log("languageConfig", this._languageConfig)
-        console.log("constructs", this._constructs)
-        console.log("recursiveFormats", recursiveFormats)
         this._globalFormats = new Map(
             recursiveFormats.map((format) => {
                 const { name, ...formatData } = format;
@@ -96,7 +139,12 @@ export class Loader {
         this._indent = this._languageConfig.indent;
     }
 
-    getAllCodeActions(): EditCodeAction[] {
+    /**
+     * Get all the injectable constructs for the current language.
+     * 
+     * @returns An array of all EditCodeActions that can be used in the editor.
+     */
+    getAllEditCodeActions(): EditCodeAction[] {
         // All code actions
         const editCodeActions: EditCodeAction[] = [];
         // Variable to create unique ids even when the name is the same
@@ -104,7 +152,7 @@ export class Loader {
 
         // First we make sure that all nested codestructs are flattened, i.e.
         // that all nested implementations are brought to the top level
-        const flattenedConstructs: ConstructDefinition[] = []; // TODO: Replace the any type
+        const flattenedConstructs: ConstructDefinition[] = [];
 
         // Go through all codestructs
         for (const construct of this._constructs) {
@@ -129,10 +177,7 @@ export class Loader {
                 construct.editorName,
                 `add-${construct.keyword}-btn-${toolboxId++}`,
                 getCodeFunction(construct),
-                construct.constructType === "expression"
-                    ? InsertActionType.InsertGeneralExpr
-                    : InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
-                // InsertActionType.InsertPrintStmt is superfluous
+                InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
                 {}, // EXTRACT; context info; maybe extractable from format?
                 construct.toolbox,
                 construct.triggerInsertion ?? [], // EXTRACT: character which triggers the insertion in the editor
@@ -159,129 +204,9 @@ export class Loader {
         // the heywords of the constructs and the values being the constructs themselves.
         GeneralStatement.addAllConstructs(editCodeActions.map((action) => action.getCode() as GeneralStatement));
 
-        /**
-         * Ideally for cleaner code we would write this as a single statement without
-         * repetition => To look at latet!
-         */
-
-        // If no implementations, create an EditCodeAction for the general codestruct
-
-        // const action = new EditCodeAction()
-        // editCodeActions.push(action)
         return editCodeActions;
     }
 }
-
-// export let INITIALCONSTRUCTDEF;
-// export let globalFormats;
-// export let INDENT;
-
-// let languageConfig: LanguageDefinition;
-// let constructs: ConstructDefinition[];
-
-// export async function loadLanguageFiles(language?: string) {
-//     // Dynamically import the correct language and constructs
-//     if (config.languageFile)
-//         languageConfig = (await import(`../language-definition/${language ? language + ".json" : config.languageFile}`))
-//             .default;
-//     else throw new Error("The language-file field is not correctly specified in the configuration file");
-
-//     if (languageConfig.constructFile)
-//         constructs = (await import(`../language-definition/${languageConfig.constructFile}`)).default;
-//     else throw new Error("No construct file specified in the language configuration file");
-
-//     let recursiveFormats: RecursiveDefinition[];
-//     if (languageConfig.callableFile)
-//         recursiveFormats = (await import(`../language-definition/${languageConfig.callableFile}`)).default;
-//     else throw new Error("No recursive file specified in the language configuration file");
-
-//     languageConfig.initialConstruct;
-//     globalFormats = new Map(
-//         recursiveFormats.map((format) => {
-//             const { name, ...formatData } = format;
-//             return [format.name, formatData];
-//         })
-//     );
-//     INDENT = languageConfig.indent;
-// }
-
-// /* EVERYTHING RELATED TO ACTIONS AND EDITCODEACTIONS AND AST */
-
-// /**
-//  * Create EditCodeActions based on the language configuration file.
-//  */
-// export function getAllCodeActions(): EditCodeAction[] {
-//     // All code actions
-//     const editCodeActions: EditCodeAction[] = [];
-//     // Variable to create unique ids even when the name is the same
-//     let toolboxId = 0;
-
-//     // First we make sure that all nested codestructs are flattened, i.e.
-//     // that all nested implementations are brought to the top level
-//     const flattenedConstructs: ConstructDefinition[] = []; // TODO: Replace the any type
-
-//     // Go through all codestructs
-//     for (const construct of constructs) {
-//         // If there are implementations, bring them to the top level
-//         if (construct.implementations) {
-//             // Go through all implementations
-//             for (const implementation of construct.implementations) {
-//                 // Add the implementation to the list of constructs
-//                 flattenedConstructs.push({ ...implementation, ...construct });
-//             }
-//         } else {
-//             // If no implementations, add the construct to the list of constructs
-//             flattenedConstructs.push(construct);
-//         }
-//     }
-
-//     // Now we have a list of all given constructs, including the implementations
-
-//     // Go through all constructs
-//     for (const construct of flattenedConstructs) {
-//         const action = new EditCodeAction(
-//             construct.editorName,
-//             `add-${construct.keyword}-btn-${toolboxId++}`,
-//             getCodeFunction(construct),
-//             construct.constructType === "expression"
-//                 ? InsertActionType.InsertGeneralExpr
-//                 : InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
-//             // InsertActionType.InsertPrintStmt is superfluous
-//             {}, // EXTRACT; context info; maybe extractable from format?
-//             construct.toolbox,
-//             construct.triggerInsertion ?? [], // EXTRACT: character which triggers the insertion in the editor
-//             // Automating? Maybe take last character before a hole or end of statement?
-//             construct.match ?? null, // Match when typing
-//             construct.matchRegex !== undefined && construct.matchRegex !== null ? RegExp(construct.matchRegex) : null // EXTRACT: match regex => Currently only used for VarAssignStmt to
-//             // identify what a valid identifier is
-//         );
-
-//         // MAYBE MAKE THIS CLEANER IN THE FUTURE? IDEALLY REMOVE THIS SETTING ALTOGETHER
-//         action.referenceType = (
-//             construct.format.find((struct) => struct.type === "reference") as ReferenceFormatDefinition
-//         )?.to;
-
-//         // Add the action to the list
-
-//         editCodeActions.push(action);
-//     }
-
-//     // Add all corresponding constructs to the AST class field "this.constructs".
-//     // This field contains all constructs available to the editor, with the keys being
-//     // the heywords of the constructs and the values being the constructs themselves.
-//     GeneralStatement.addAllConstructs(editCodeActions.map((action) => action.getCode() as GeneralStatement));
-
-//     /**
-//      * Ideally for cleaner code we would write this as a single statement without
-//      * repetition => To look at latet!
-//      */
-
-//     // If no implementations, create an EditCodeAction for the general codestruct
-
-//     // const action = new EditCodeAction()
-//     // editCodeActions.push(action)
-//     return editCodeActions;
-// }
 
 /**
  * Expands the toolboxCategories with the given EditCodeActions. If one of the EditCodeActions
@@ -323,15 +248,3 @@ function getCodeFunction(construct): (data?: { reference: string }) => Statement
     if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct, null, null, data);
     else return (data?) => new GeneralStatement(construct, null, null, data);
 }
-
-// export function initLanguage() {
-//     return {
-//         language: languageConfig.name,
-//         reservedWords: new Map<string, Set<string>>(
-//             (languageConfig.reservedWords ?? []).map((reservedCategory) => [
-//                 reservedCategory.reason,
-//                 new Set(reservedCategory.words),
-//             ])
-//         ),
-//     };
-// }

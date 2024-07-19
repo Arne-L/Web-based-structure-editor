@@ -15,7 +15,7 @@ export class Language {
         this.module = module;
 
         // Load the language definition file
-        const langConfig = Loader.instance.initLanguage();
+        const langConfig = Loader.instance.mainSettings();
         this.language = langConfig.language;
         this.reservedWords = langConfig.reservedWords;
     }

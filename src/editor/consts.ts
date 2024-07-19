@@ -251,7 +251,7 @@ export enum ConstructName {
  */
 export enum InsertActionType {
     InsertGeneralStmt,
-    InsertGeneralExpr,
+    // InsertGeneralExpr,
 
     InsertNewVariableStmt,
 
@@ -305,7 +305,7 @@ export class Actions {
     toolboxCategories: Array<ToolboxCategory> = [];
 
     private constructor() {
-        const loadedCodeActions = Loader.instance.getAllCodeActions();
+        const loadedCodeActions = Loader.instance.getAllEditCodeActions();
         // this.actionsList.push(...loadedCodeActions); // Add loaded actions
         this.actionsList = loadedCodeActions; // Add loaded actions
 
@@ -326,11 +326,10 @@ export class Actions {
     }
 
     /**
-     * Replaces the old singleton with a newly created singleton, refreshing all encapsulated data. 
+     * Replaces the old singleton with a newly created singleton, refreshing all encapsulated data.
      */
     static reset() {
         Actions.inst = new Actions();
-    
     }
 }
 
