@@ -971,8 +971,7 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return (context.codeConstruct instanceof EmptyLineStmt ||
-            validator.atHoleWithType(context, this.constructType)) &&
+        return validator.atHoleWithType(context, this.constructType) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
             ValidatorNameSpace.validateAncestors(context, this)
             ? InsertionType.Valid
