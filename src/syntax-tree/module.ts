@@ -33,7 +33,7 @@ import {
     Token,
     HoleTkn,
 } from "./ast";
-import { rebuildBody } from "./body";
+// import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
 import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";
@@ -223,180 +223,180 @@ export class Module {
         } else if (code instanceof Token) code.notify(callbackType);
     }
 
-    /**
-     * Perform the AST rebuilding to reflect the changes after a backwards indent
-     *
-     * @param stmt - The statement to be indented back / to the left
-     */
-    indentBackStatement(stmt: CodeConstruct) {
-        // The parent statement
-        const root = stmt.rootNode;
+    // /**
+    //  * Perform the AST rebuilding to reflect the changes after a backwards indent
+    //  *
+    //  * @param stmt - The statement to be indented back / to the left
+    //  */
+    // indentBackStatement(stmt: CodeConstruct) {
+    //     // The parent statement
+    //     const root = stmt.rootNode;
 
-        // If root instance of statement, then we can indent back
-        // Otherwise we are at the top level and cannot indent back
-        if (root instanceof Statement) {
-            // Remove the current statement from the body of the root
-            const removedItem = root.body.splice(stmt.indexInRoot, 1);
+    //     // If root instance of statement, then we can indent back
+    //     // Otherwise we are at the top level and cannot indent back
+    //     if (root instanceof Statement) {
+    //         // Remove the current statement from the body of the root
+    //         const removedItem = root.body.splice(stmt.indexInRoot, 1);
 
-            // The parent statement of the parent
-            let outerRoot = root.rootNode;
+    //         // The parent statement of the parent
+    //         let outerRoot = root.rootNode;
 
-            // Set the parent to the parent of the parent (= outerRoot)
-            removedItem[0].rootNode = root.rootNode;
-            // Set the index to the index of the parent + 1 (it will become the next sibling
-            // after the original parent)
-            removedItem[0].indexInRoot = root.indexInRoot + 1;
-            // Rebuild the statement's placement in the AST
-            removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol - TAB_SPACES));
+    //         // Set the parent to the parent of the parent (= outerRoot)
+    //         removedItem[0].rootNode = root.rootNode;
+    //         // Set the index to the index of the parent + 1 (it will become the next sibling
+    //         // after the original parent)
+    //         removedItem[0].indexInRoot = root.indexInRoot + 1;
+    //         // Rebuild the statement's placement in the AST
+    //         removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol - TAB_SPACES));
 
-            if (!stmt.hasBody()) {
-                // Might be better to change the condition in the future
-                // The current statement does not have a body
+    //         if (!stmt.hasBody()) {
+    //             // Might be better to change the condition in the future
+    //             // The current statement does not have a body
 
-                // Add the statement to the body of the parent of the parent
-                outerRoot.body.splice(root.indexInRoot + 1, 0, ...removedItem);
+    //             // Add the statement to the body of the parent of the parent
+    //             outerRoot.body.splice(root.indexInRoot + 1, 0, ...removedItem);
 
-                // Update the positions of the statements recursively
-                rebuildBody(this, 0, 1);
+    //             // Update the positions of the statements recursively
+    //             rebuildBody(this, 0, 1);
 
-                // if (stmt instanceof VarAssignmentStmt) {
-                //     root.scope.references = root.scope.references.filter((ref) => {
-                //         ref.statement !== stmt;
-                //     });
-                // }
+    //             // if (stmt instanceof VarAssignmentStmt) {
+    //             //     root.scope.references = root.scope.references.filter((ref) => {
+    //             //         ref.statement !== stmt;
+    //             //     });
+    //             // }
 
-                // outerRoot.scope.references.push(new Reference(stmt, outerRoot.scope));
+    //             // outerRoot.scope.references.push(new Reference(stmt, outerRoot.scope));
 
-                // If the statement contains assignments, push them to their parent scope
-                // if (stmt instanceof GeneralStatement && stmt.containsAssignments())
-                //     root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
-            } else {
-                // The current statement has a body
+    //             // If the statement contains assignments, push them to their parent scope
+    //             // if (stmt instanceof GeneralStatement && stmt.containsAssignments())
+    //             //     root.scope.pushToScope(outerRoot.scope, stmt.getAssignments());
+    //         } else {
+    //             // The current statement has a body
 
-                // All statements contained in the body of the current statement need to be indented
-                // as well
-                const stmtStack = new Array<Statement>();
-                stmtStack.unshift(...removedItem[0].body);
+    //             // All statements contained in the body of the current statement need to be indented
+    //             // as well
+    //             const stmtStack = new Array<Statement>();
+    //             stmtStack.unshift(...removedItem[0].body);
 
-                while (stmtStack.length > 0) {
-                    const curStmt = stmtStack.pop();
-                    // Shift to the left
-                    curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol - TAB_SPACES));
+    //             while (stmtStack.length > 0) {
+    //                 const curStmt = stmtStack.pop();
+    //                 // Shift to the left
+    //                 curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol - TAB_SPACES));
 
-                    // Keep doing it recusiveley
-                    if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
-                }
+    //                 // Keep doing it recusiveley
+    //                 if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
+    //             }
 
-                // Set the parent scope of the current statement to the parent of the parent
-                // removedItem[0].scope.parentScope = outerRoot.scope;
+    //             // Set the parent scope of the current statement to the parent of the parent
+    //             // removedItem[0].scope.parentScope = outerRoot.scope;
 
-                // Add the statement to the body of the parent of the parent
-                outerRoot.body.splice(root.indexInRoot + 1, 0, ...removedItem);
-                // Update the positions of the statements recursively
-                rebuildBody(this, 0, 1);
-            }
-        }
-    }
+    //             // Add the statement to the body of the parent of the parent
+    //             outerRoot.body.splice(root.indexInRoot + 1, 0, ...removedItem);
+    //             // Update the positions of the statements recursively
+    //             rebuildBody(this, 0, 1);
+    //         }
+    //     }
+    // }
 
-    indentForwardStatement(stmt: CodeConstruct) {
-        // The parent statement
-        const root = stmt.rootNode;
+    // indentForwardStatement(stmt: CodeConstruct) {
+    //     // The parent statement
+    //     const root = stmt.rootNode;
 
-        if (root instanceof Statement || root instanceof Module) {
-            // The statement above the current statement
-            const aboveMultilineStmt = root.body[stmt.indexInRoot - 1];
-            // Remove the current statement from the body of the root
-            const removedItem = root.body.splice(stmt.indexInRoot, 1);
+    //     if (root instanceof Statement || root instanceof Module) {
+    //         // The statement above the current statement
+    //         const aboveMultilineStmt = root.body[stmt.indexInRoot - 1];
+    //         // Remove the current statement from the body of the root
+    //         const removedItem = root.body.splice(stmt.indexInRoot, 1);
 
-            // Set the statement before the current statement as the parent of the current statement
-            removedItem[0].rootNode = aboveMultilineStmt;
-            removedItem[0].indexInRoot = aboveMultilineStmt.body.length;
-            // Indent the statement to the right
-            removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol + TAB_SPACES));
+    //         // Set the statement before the current statement as the parent of the current statement
+    //         removedItem[0].rootNode = aboveMultilineStmt;
+    //         removedItem[0].indexInRoot = aboveMultilineStmt.body.length;
+    //         // Indent the statement to the right
+    //         removedItem[0].build(new Position(stmt.lineNumber, stmt.leftCol + TAB_SPACES));
 
-            if (!stmt.hasBody()) {
-                // If the current statement does not have a body
+    //         if (!stmt.hasBody()) {
+    //             // If the current statement does not have a body
 
-                // Add current statement to the body of the statement above
-                // aboveMultilineStmt.body.push(removedItem[0]);
-                // Update the positions of the statements recursively
-                rebuildBody(this, 0, 1);
+    //             // Add current statement to the body of the statement above
+    //             // aboveMultilineStmt.body.push(removedItem[0]);
+    //             // Update the positions of the statements recursively
+    //             rebuildBody(this, 0, 1);
 
-                // if (stmt instanceof VarAssignmentStmt) {
-                //     root.scope.references = root.scope.references.filter((ref) => {
-                //         ref.statement !== stmt;
-                //     });
-                // }
-                // aboveMultilineStmt.scope.references.push(new Reference(stmt, aboveMultilineStmt.scope));
+    //             // if (stmt instanceof VarAssignmentStmt) {
+    //             //     root.scope.references = root.scope.references.filter((ref) => {
+    //             //         ref.statement !== stmt;
+    //             //     });
+    //             // }
+    //             // aboveMultilineStmt.scope.references.push(new Reference(stmt, aboveMultilineStmt.scope));
 
-                // If the statement contains assignments, push them to their new parent scope
-                if (stmt instanceof UniConstruct && stmt.containsAssignments())
-                    root.scope.pushToScope(aboveMultilineStmt.scope, stmt.getAssignments());
-            } else {
-                // If the current statement has a body
+    //             // If the statement contains assignments, push them to their new parent scope
+    //             if (stmt instanceof UniConstruct && stmt.containsAssignments())
+    //                 root.scope.pushToScope(aboveMultilineStmt.scope, stmt.getAssignments());
+    //         } else {
+    //             // If the current statement has a body
 
-                // All statements contained in the body of the current statement need to be indented
-                // as well
-                const stmtStack = new Array<Statement>();
-                // stmtStack.unshift(...removedItem[0].body);
+    //             // All statements contained in the body of the current statement need to be indented
+    //             // as well
+    //             const stmtStack = new Array<Statement>();
+    //             // stmtStack.unshift(...removedItem[0].body);
 
-                while (stmtStack.length > 0) {
-                    const curStmt = stmtStack.pop();
-                    // Shift to the right
-                    curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol + TAB_SPACES));
+    //             while (stmtStack.length > 0) {
+    //                 const curStmt = stmtStack.pop();
+    //                 // Shift to the right
+    //                 curStmt.build(new Position(curStmt.lineNumber, curStmt.leftCol + TAB_SPACES));
 
-                    // Keep doing it recusiveley
-                    if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
-                }
+    //                 // Keep doing it recusiveley
+    //                 if (curStmt.hasBody()) stmtStack.unshift(...curStmt.body);
+    //             }
 
-                // Add current statement to the body of the statement above
-                // aboveMultilineStmt.body.push(removedItem[0]);
-                rebuildBody(this, 0, 1);
+    //             // Add current statement to the body of the statement above
+    //             // aboveMultilineStmt.body.push(removedItem[0]);
+    //             rebuildBody(this, 0, 1);
 
-                // Set the parent scope of the current statement to the scope of the original
-                // previous statement
-                // TODO: FIX LATER
-                // stmt.scope.parentScope = aboveMultilineStmt.scope;
-            }
-        }
-    }
+    //             // Set the parent scope of the current statement to the scope of the original
+    //             // previous statement
+    //             // TODO: FIX LATER
+    //             // stmt.scope.parentScope = aboveMultilineStmt.scope;
+    //         }
+    //     }
+    // }
 
-    /**
-     * Indents all constructs in the body of the current line statement
-     *
-     * @param providedContext - The context of the current line statement
-     * @param backwards - Whether to indent backwards or forwards
-     */
-    indentBodyConstructs(providedContext: Context, backwards: boolean) {
-        // The parent statement
-        const parent = providedContext.codeConstruct;
+    // /**
+    //  * Indents all constructs in the body of the current line statement
+    //  *
+    //  * @param providedContext - The context of the current line statement
+    //  * @param backwards - Whether to indent backwards or forwards
+    //  */
+    // indentBodyConstructs(providedContext: Context, backwards: boolean) {
+    //     // The parent statement
+    //     const parent = providedContext.codeConstruct;
 
-        if (!parent.hasBody()) return;
+    //     if (!parent.hasBody()) return;
 
-        while (parent.body.length > 0) {
-            // Indent the last statement in the body
-            this.indentConstruct(parent.body[parent.body.length - 1], backwards);
-        }
-    }
+    //     while (parent.body.length > 0) {
+    //         // Indent the last statement in the body
+    //         this.indentConstruct(parent.body[parent.body.length - 1], backwards);
+    //     }
+    // }
 
-    /**
-     * Indent the given statement backwards or forwards
-     *
-     * @param statement - The statement to be indented
-     * @param backwards - Whether to indent backwards or forwards
-     */
-    indentConstruct(statement: CodeConstruct, backwards: boolean) {
-        // Performs the indentation of the last statement in the body
-        this.editor.indentRecursively(statement, { backward: backwards });
-        // Restructures the AST to following the new indentation
-        // This action results in the current last statement being removed from the body
-        // of the current line statement
-        if (backwards) {
-            this.indentBackStatement(statement);
-        } else {
-            this.indentForwardStatement(statement);
-        }
-    }
+    // /**
+    //  * Indent the given statement backwards or forwards
+    //  *
+    //  * @param statement - The statement to be indented
+    //  * @param backwards - Whether to indent backwards or forwards
+    //  */
+    // indentConstruct(statement: CodeConstruct, backwards: boolean) {
+    //     // Performs the indentation of the last statement in the body
+    //     this.editor.indentRecursively(statement, { backward: backwards });
+    //     // Restructures the AST to following the new indentation
+    //     // This action results in the current last statement being removed from the body
+    //     // of the current line statement
+    //     if (backwards) {
+    //         this.indentBackStatement(statement);
+    //     } else {
+    //         this.indentForwardStatement(statement);
+    //     }
+    // }
 
     // /**
     //  * CURRENTLY NOT USED => MIGHT BE USEFULL FOR LISTS OF ITEMS IN THE FUTURE
@@ -489,21 +489,21 @@ export class Module {
     //     return null;
     // }
 
-    /**
-     * Remove a statement without replacing
-     * Same as removeStatement but without replacing the construct with an empty line
-     *
-     * @param line - The line to be removed without replacing it with an empty line
-     */
-    deleteLine(line: Construct) {
-        const root = line.rootNode;
+    // /**
+    //  * Remove a statement without replacing
+    //  * Same as removeStatement but without replacing the construct with an empty line
+    //  *
+    //  * @param line - The line to be removed without replacing it with an empty line
+    //  */
+    // deleteLine(line: Construct) {
+    //     const root = line.rootNode;
 
-        if (root instanceof Module || root instanceof UniConstruct) {
-            this.recursiveNotify(line, CallbackType.delete);
-            root.body.splice(line.indexInRoot, 1);
-            rebuildBody(this, 0, 1);
-        }
-    }
+    //     if (root instanceof Module || root instanceof UniConstruct) {
+    //         this.recursiveNotify(line, CallbackType.delete);
+    //         root.body.splice(line.indexInRoot, 1);
+    //         rebuildBody(this, 0, 1);
+    //     }
+    // }
 
     // /**
     //  * MAYBE PLACE THIS IN THE AST ASWELL?

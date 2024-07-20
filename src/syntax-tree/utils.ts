@@ -12,7 +12,7 @@ import {
     Token,
     HoleTkn,
 } from "./ast";
-import { replaceInBody } from "./body";
+// import { replaceInBody } from "./body";
 import { CallbackType } from "./callback";
 import { Module } from "./module";
 
@@ -84,29 +84,29 @@ export namespace ASTManupilation {
         }
     }
 
-    function replaceEmptyStatement(emptyLine: Statement, statement: Statement) {
-        const module = Module.instance;
+    // function replaceEmptyStatement(emptyLine: Statement, statement: Statement) {
+    //     const module = Module.instance;
 
-        // Get the root of the empty line
-        const root = emptyLine.rootNode as Statement | Module;
+    //     // Get the root of the empty line
+    //     const root = emptyLine.rootNode as Statement | Module;
 
-        // Replace the empty line with the given statement
-        replaceInBody(root, emptyLine.indexInRoot, statement);
+    //     // Replace the empty line with the given statement
+    //     replaceInBody(root, emptyLine.indexInRoot, statement);
 
-        // Notify the root that a replacement has taken place
-        if (root instanceof Statement) root.notify(CallbackType.replace);
+    //     // Notify the root that a replacement has taken place
+    //     if (root instanceof Statement) root.notify(CallbackType.replace);
 
-        // Get the range of the statement line
-        // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
-        const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
+    //     // Get the range of the statement line
+    //     // console.log("Statement: ", statement.lineNumber, "emptyLine: ", emptyLine.lineNumber);
+    //     const range = new Range(statement.lineNumber, statement.leftCol, statement.lineNumber, statement.rightCol);
 
-        // Remove messages from the empty line statement
-        if (emptyLine.message) module.messageController.removeMessageFromConstruct(emptyLine);
+    //     // Remove messages from the empty line statement
+    //     if (emptyLine.message) module.messageController.removeMessageFromConstruct(emptyLine);
 
-        // Update the Monaco editor with the new statement
-        module.editor.executeEdits(range, statement);
-        module.focus.updateContext(statement.getInitialFocus());
-    }
+    //     // Update the Monaco editor with the new statement
+    //     module.editor.executeEdits(range, statement);
+    //     module.focus.updateContext(statement.getInitialFocus());
+    // }
 
     function insertToken(context: Context, code: Token, { toLeft = false, toRight = false } = {}) {
         const module = Module.instance;

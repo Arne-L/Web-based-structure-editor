@@ -293,6 +293,7 @@ export abstract class CodeConstruct extends Construct {
 
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
+    
     // TODO: TEMP
     hasBody() {
         return false;
@@ -467,26 +468,12 @@ export abstract class Statement extends CodeConstruct {
         );
     }
 
-    /**
-     * The lineNumbers from the beginning to the end of this construct, including child constructs.
-     */
-    getHeight(): number {
-        if (this.body.length == 0) return 1;
-        else {
-            let height = 1;
-
-            for (const line of this.body) height += line.getHeight();
-
-            return height;
-        }
-    }
-
-    /**
-     * This should be true for every statement that has a body.
-     */
-    hasScope(): boolean {
-        return this.scope != null;
-    }
+    // /**
+    //  * This should be true for every statement that has a body.
+    //  */
+    // hasScope(): boolean {
+    //     return this.scope != null;
+    // }
 
     /**
      * Get the nearest scope if there is one.
@@ -499,12 +486,9 @@ export abstract class Statement extends CodeConstruct {
         return this.scope ?? this.rootNode?.getNearestScope();
     }
 
+    // FFD?
     hasBody(): boolean {
         return this.body.length > 0;
-    }
-
-    getBoundaries(): Range {
-        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
@@ -878,21 +862,6 @@ export class UniConstruct extends Statement {
                 );
             }
         }
-
-        // Handling assignments
-        /**
-         * Different variants in Python:
-         * 1) Definition: a = 5
-         *    Use: a
-         * Augmented assignment should not require any special logic
-         *
-         * 2) Definition: def func(a, b)
-         *    Use: func(a, b)
-         * Need to be able to use a and b in the definition body
-         *
-         * 3) Definition: class A:
-         *    Use: A(a, b)
-         */
 
         // Add the requiring constructs
         if (construct.requiringConstructs)

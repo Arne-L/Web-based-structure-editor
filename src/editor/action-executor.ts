@@ -190,7 +190,7 @@ export class ActionExecutor {
             case EditActionType.DeleteStmt: {
                 // Remove the currently focused statement and update the body to
                 // reflect the new correct indentation
-                this.module.indentBodyConstructs(context, true);
+                // this.module.indentBodyConstructs(context, true); // TODO: FFD?
                 // this.module.deleteCode(context.codeConstruct, { statement: true });
                 this.module.deleteConstruct(context.codeConstruct);
 
@@ -244,36 +244,36 @@ export class ActionExecutor {
 
             // NOT language independent
             // See before
-            case EditActionType.DeleteEmptyLine: {
-                this.module.deleteLine(context.codeConstruct);
-                let range: Range;
+            // case EditActionType.DeleteEmptyLine: {
+            //     this.module.deleteLine(context.codeConstruct);
+            //     let range: Range;
 
-                if (action.data?.pressedBackspace) {
-                    const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
-                        context.codeConstruct.lineNumber - 1
-                    );
-                    this.module.focus.updateContext({
-                        positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
-                    });
-                    range = new Range(
-                        context.codeConstruct.lineNumber,
-                        context.codeConstruct.leftCol,
-                        lineAbove.lineNumber,
-                        lineAbove.rightCol
-                    );
-                } else {
-                    range = new Range(
-                        context.codeConstruct.lineNumber,
-                        context.codeConstruct.leftCol,
-                        context.codeConstruct.lineNumber + 1,
-                        context.codeConstruct.leftCol
-                    );
-                }
+            //     if (action.data?.pressedBackspace) {
+            //         const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
+            //             context.codeConstruct.lineNumber - 1
+            //         );
+            //         this.module.focus.updateContext({
+            //             positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
+            //         });
+            //         range = new Range(
+            //             context.codeConstruct.lineNumber,
+            //             context.codeConstruct.leftCol,
+            //             lineAbove.lineNumber,
+            //             lineAbove.rightCol
+            //         );
+            //     } else {
+            //         range = new Range(
+            //             context.codeConstruct.lineNumber,
+            //             context.codeConstruct.leftCol,
+            //             context.codeConstruct.lineNumber + 1,
+            //             context.codeConstruct.leftCol
+            //         );
+            //     }
 
-                this.module.editor.executeEdits(range, null, "");
+            //     this.module.editor.executeEdits(range, null, "");
 
-                break;
-            }
+            //     break;
+            // }
 
             // NOT language independent
             // Idem
@@ -284,25 +284,25 @@ export class ActionExecutor {
             // }
 
             // Partly language independent
-            case EditActionType.DeletePrevLine: {
-                const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
+            // case EditActionType.DeletePrevLine: {
+            //     const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
 
-                if (prevLine.leftCol != context.codeConstruct.leftCol) {
-                    // Indent the current line
-                    this.module.indentConstruct(context.codeConstruct, false);
-                }
+            //     if (prevLine.leftCol != context.codeConstruct.leftCol) {
+            //         // Indent the current line
+            //         this.module.indentConstruct(context.codeConstruct, false);
+            //     }
 
-                const deleteRange = new Range(
-                    prevLine.lineNumber,
-                    prevLine.leftCol,
-                    prevLine.lineNumber + 1,
-                    prevLine.leftCol
-                );
-                this.module.deleteLine(prevLine);
-                this.module.editor.executeEdits(deleteRange, null, "");
+            //     const deleteRange = new Range(
+            //         prevLine.lineNumber,
+            //         prevLine.leftCol,
+            //         prevLine.lineNumber + 1,
+            //         prevLine.leftCol
+            //     );
+            //     this.module.deleteLine(prevLine);
+            //     this.module.editor.executeEdits(deleteRange, null, "");
 
-                break;
-            }
+            //     break;
+            // }
 
             // Mostly language independent: except for "indentBackStatement"
             // case EditActionType.DeleteBackMultiLines: {
@@ -321,20 +321,21 @@ export class ActionExecutor {
             // }
 
             // Mostly language independent: except for "indentBackStatement"
-            case EditActionType.IndentBackwards: {
-                this.module.indentConstruct(context.codeConstruct, true);
+            // case EditActionType.IndentBackwards: {
+            //     this.module.indentConstruct(context.codeConstruct, true);
 
-                this.module.focus.fireOnNavChangeCallbacks();
+            //     this.module.focus.fireOnNavChangeCallbacks();
 
-                break;
-            }
+            //     break;
+            // }
 
             // Mostly language independent: except for "indentForwardStatement"
             case EditActionType.IndentForwards: {
-                this.module.editor.indentRecursively(context.codeConstruct, { backward: false });
-                this.module.indentForwardStatement(context.codeConstruct);
+                // TODO: currently disabled; see comments in corresponding part of the event-router class
+                // this.module.editor.indentRecursively(context.codeConstruct, { backward: false });
+                // this.module.indentForwardStatement(context.codeConstruct);
 
-                this.module.focus.fireOnNavChangeCallbacks();
+                // this.module.focus.fireOnNavChangeCallbacks();
 
                 break;
             }

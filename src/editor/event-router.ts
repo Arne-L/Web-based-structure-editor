@@ -193,9 +193,10 @@ export class EventRouter {
                 // console.log("Expression to right", context.expressionToRight);
                 // console.log("Current expression", context.expression);
 
-                if (this.module.validator.canDeleteEmptyLine(context, { backwards: false })) {
-                    return new EditAction(EditActionType.DeleteEmptyLine);
-                } else if (this.module.validator.canDeleteNextStmt(context)) {
+                // if (this.module.validator.canDeleteEmptyLine(context, { backwards: false })) {
+                //     return new EditAction(EditActionType.DeleteEmptyLine);
+                // } else
+                if (this.module.validator.canDeleteNextStmt(context)) {
                     return new EditAction(EditActionType.DeleteStmt);
                 } else if (this.module.validator.canDeleteNextTkn(context)) {
                     // Token to the right of the current position is non-editable
@@ -335,6 +336,7 @@ export class EventRouter {
                                 nearestCompound.compoundToken.toString() === nextCompound.compoundToken.toString()
                             ) {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
+                                console.log("prevTkn", prevTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
                                 if (
@@ -346,7 +348,7 @@ export class EventRouter {
                                         nextCompound.continueExpansion(underNextCompound);
                                     }
                                     console.log("Tokens1.5", nextCompound.tokens);
-                                } else if (prevTkn.getRenderText() === Loader.instance.indent) {
+                                } else if (prevTkn && prevTkn.getRenderText() === Loader.instance.indent) {
                                     console.log("Tokens2", nextCompound.tokens);
                                     const rightConstruct = ASTManupilation.getNextSiblingOfRoot(curTkn);
                                     const tempTkn = new ast.NonEditableTkn(
@@ -413,23 +415,23 @@ export class EventRouter {
                 } else if (this.module.validator.canDeletePrevLine(context)) {
                     // When the line above is an empty line construct, it can be deleted
                     console.log("CASES: prev line");
-                    return new EditAction(EditActionType.DeletePrevLine);
+                    // return new EditAction(EditActionType.DeletePrevLine);
                 } else if (this.module.validator.canIndentBack(context)) {
                     // When the cursor is at the beginning of a line and there is something
                     // on the line before, indent the current line back
                     console.log("CASES: indent back");
-                    return new EditAction(EditActionType.IndentBackwards);
+                    // return new EditAction(EditActionType.IndentBackwards);
                     // } else if (this.module.validator.canDeletePrevToken(context)) {
                 } else if (this.module.validator.canDeletePrevTkn(context)) {
                     console.log("CASES: prev token");
                     // return new EditAction(EditActionType.DeletePrevToken);
                     return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
-                } else if (this.module.validator.canDeleteEmptyLine(context, { backwards: true })) {
+                    // } else if (this.module.validator.canDeleteEmptyLine(context, { backwards: true })) {
                     // } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
-                    console.log("CASES: cur empty line");
-                    return new EditAction(EditActionType.DeleteEmptyLine, {
-                        pressedBackspace: true,
-                    });
+                    // console.log("CASES: cur empty line");
+                    // return new EditAction(EditActionType.DeleteEmptyLine, {
+                    //     pressedBackspace: true,
+                    // });
                     // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
                     //     return new EditAction(EditActionType.DeleteListItem, {
                     //         toLeft: true,
@@ -469,13 +471,10 @@ export class EventRouter {
 
             // Language independent
             case KeyPress.Tab: {
-                if (this.module.validator.canIndentForward(context)) {
-                    return new EditAction(EditActionType.IndentForwards);
-                }
-                // else if (this.module.validator.canIndentForwardIfStatement(context)) {
-                //     return new EditAction(EditActionType.IndentForwardsIfStmt);
+                // TODO: Temporary disabled; read comments on subfunctions for more info
+                // if (this.module.validator.canIndentForward(context)) {
+                //     return new EditAction(EditActionType.IndentForwards);
                 // }
-
                 break;
             }
 
@@ -483,10 +482,6 @@ export class EventRouter {
             case KeyPress.Enter: {
                 // If the menu is open, select the current suggestion
                 if (this.module.menuController.isMenuOpen()) return new EditAction(EditActionType.SelectMenuSuggestion);
-                // If an empty line can be inserted, insert an empty line
-                // else if (this.module.validator.canInsertEmptyLine()) {
-                //     return new EditAction(EditActionType.InsertEmptyLine);
-                // }
 
                 break;
             }
