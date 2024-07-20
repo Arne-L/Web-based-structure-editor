@@ -10,6 +10,7 @@ import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
 import { createFinalConstruct, getHoleValues } from "../utilities/util";
+import { Context } from "../editor/focus";
 
 /*
  *A tree menu that can hold options for the user and link through those options to other menus.
@@ -538,6 +539,9 @@ export class MenuController {
             //     menu.insertOption(option);
             //     this.focusedOptionIndex = 0;
             // }
+
+            // DEBUG
+            if (!menu) console.warn("No menu constructed!")
 
             menu.updateDimensions();
             menu.open();

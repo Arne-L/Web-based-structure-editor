@@ -1998,6 +1998,7 @@ export class ActionExecutor {
             );
 
             // Open the autocomplete menu
+            console.log("validMatches", validMatches)
             this.openAutocompleteMenu(validMatches);
 
             // Choose how to replace the existing token / construct

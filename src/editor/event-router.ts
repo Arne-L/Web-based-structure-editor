@@ -588,7 +588,7 @@ export class EventRouter {
 
                         newText = curText.join("");
                     }
-                    if (!(context.tokenToRight instanceof ast.AutocompleteTkn) && editableTkn.validatorRegex && !editableTkn.validatorRegex.test(newText)) {
+                    if (!(context.tokenToRight instanceof ast.AutocompleteTkn) && editableTkn.validatorRegex && editableTkn.validatorRegex.test(newText)) {
                         console.log("left num");
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.RightOfExpression,
