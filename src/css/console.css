@@ -26,15 +26,17 @@
 }
 
 #exportCodeBtn svg {
-    height: 30px;
-    width: 30px;
+    height: 100%;
+    width: 100%;
+    vertical-align:unset;
 }
 #exportCodeBtn {
     background-color: rgb(24 200 120);
-    padding: 0;
+    /* padding: 0;*/
     height: 36px;
-    width: 36px;
+    /*width: 36px; */
     color: #fff !important;
+    justify-self: start;
     border: none;
 }
 
