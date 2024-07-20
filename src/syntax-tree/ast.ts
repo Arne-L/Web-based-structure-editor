@@ -287,7 +287,8 @@ export abstract class CodeConstruct extends Construct {
     holeTypes: Map<number, string> = new Map<number, string>();
 
     /**
-     * List of all assignments within the statement.
+     * List of all assignments within the construct. Each number functions as an index 
+     * in the list of tokens, identifying the ones that function as an assignment.
      */
     private assignmentIndices: number[] = [];
 
@@ -343,11 +344,16 @@ export abstract class CodeConstruct extends Construct {
 
     /**
      * Whether the statement contains any assignments
-     *
+     * 
+     * @param - Check if the given index corresponds to an assignment. If not provided,
+     * checks the entires construct for any assignment.
      * @returns true if the statement contains any assignments, false otherwise
      */
-    containsAssignments(): boolean {
-        return this.assignmentIndices.length > 0;
+    containsAssignments(index?: number): boolean {
+        // If no index given, check if there is ANY assignment in the construct
+        if (index === null || index === undefined) return this.assignmentIndices.length > 0
+        // Check if the given index is an assignment in the construct
+        return this.assignmentIndices.some(val => val === index);
     }
 
     /**

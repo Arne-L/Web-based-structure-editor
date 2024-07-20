@@ -877,7 +877,9 @@ export class MenuController {
             const code = editAction.getConstruct(optionText);
 
             // If the current input is a reserved keyword, skip this option if it contains an identifier
-            if (code.containsAssignments() && this.module.language.isReservedWord(optionText)) continue;
+            if (code.containsAssignments(0) && this.module.language.isReservedWord(optionText)) continue;
+            // TODO: currently the index is taken to be 0, but will not always be the case. Fix this for more
+            // advanced cases in the future
 
             // Create the HTML string for the option name
             const optionDisplayText = getStyledSpanAtSubstrings(
