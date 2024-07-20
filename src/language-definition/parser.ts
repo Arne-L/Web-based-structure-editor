@@ -3,7 +3,7 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { dynamicImport } from "../editor/utils";
-import { GeneralExpression, GeneralStatement, Statement } from "../syntax-tree/ast";
+import { GeneralExpression, UniConstruct as UniConstruct, Statement } from "../syntax-tree/ast";
 import config from "./config.json";
 import {
     ConstructDefinition,
@@ -141,7 +141,7 @@ export class Loader {
 
     /**
      * Get all the injectable constructs for the current language.
-     * 
+     *
      * @returns An array of all EditCodeActions that can be used in the editor.
      */
     getAllEditCodeActions(): EditCodeAction[] {
@@ -176,8 +176,8 @@ export class Loader {
             const action = new EditCodeAction(
                 construct.editorName,
                 `add-${construct.keyword}-btn-${toolboxId++}`,
-                getCodeFunction(construct),
-                InsertActionType.InsertGeneralStmt, // EXTRACT; maybe removable?
+                (data?) => new UniConstruct(construct, null, null, data),
+                InsertActionType.InsertUniConstruct, // EXTRACT; maybe removable?
                 {}, // EXTRACT; context info; maybe extractable from format?
                 construct.toolbox,
                 construct.triggerInsertion ?? [], // EXTRACT: character which triggers the insertion in the editor
@@ -202,7 +202,7 @@ export class Loader {
         // Add all corresponding constructs to the AST class field "this.constructs".
         // This field contains all constructs available to the editor, with the keys being
         // the heywords of the constructs and the values being the constructs themselves.
-        GeneralStatement.addAllConstructs(editCodeActions.map((action) => action.getCode() as GeneralStatement));
+        UniConstruct.addAllConstructs(editCodeActions.map((action) => action.getCode() as UniConstruct));
 
         return editCodeActions;
     }
@@ -234,17 +234,4 @@ export function addEditCodeActionsToCategories(
             toolboxCategories.push(newCategory);
         }
     }
-}
-
-/**
- * Builds the function to return a FunctionCallStmt from a list of arguments.
- *
- * @param construct - An object containing the information to build the GeneralStatement
- * @returns - a function that returns a GeneralStatement
- */
-function getCodeFunction(construct): (data?: { reference: string }) => Statement {
-    // Currently handle expression and statement separately
-    // Merge them into one in the future
-    if (construct.constructType === "expression") return (data?) => new GeneralExpression(construct, null, null, data);
-    else return (data?) => new GeneralStatement(construct, null, null, data);
 }

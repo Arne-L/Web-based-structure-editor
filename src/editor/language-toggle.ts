@@ -45,7 +45,7 @@ export async function initializeEditor(language?: string) {
                                 ${languageHTML}
                             </select>
                             <button class="console-button" id="exportCodeBtn">
-                                ${exportIcon}
+                                Export
                             </button>
                         </div>
                     </div>
@@ -54,3 +54,5 @@ export async function initializeEditor(language?: string) {
             </div>
         </div>`;
 }
+// ${exportIcon}
+

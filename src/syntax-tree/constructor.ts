@@ -7,7 +7,7 @@ import {
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
-    GeneralStatement,
+    UniConstruct,
     NonEditableTkn,
     ReferenceTkn,
     HoleTkn,
@@ -169,7 +169,6 @@ export namespace SyntaxConstructor {
                 return [new EditableTextTkn(token.value ?? "", RegExp(token.regex), rootConstruct, indexInRoot)];
             case "recursive":
                 const compositeContent = Loader.instance.globalFormats.get(token.recursiveName);
-                console.log("Loggy log", compositeContent, token.recursiveName)
                 const tokens = constructTokensFromJSON(compositeContent.format, rootConstruct, indexInRoot, data);
                 return tokens;
             // constructs.push(new CompositeConstruct(token.recursiveName));

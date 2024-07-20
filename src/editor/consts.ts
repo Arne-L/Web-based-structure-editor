@@ -170,14 +170,14 @@ export enum EditActionType {
 
     DeleteNextToken,
     DeletePrevToken,
-    DeletePrevLine,
+    // DeletePrevLine, // ABSTRACTED AWAY
     DeleteBackMultiLines,
     DeleteEmptyLine,
     DeleteStatement,
     DeleteSelectedModifier,
     DeleteMultiLineStatement, // REPLACED BY DeleteStmt
 
-    IndentBackwards,
+    // IndentBackwards, // FFD
     IndentBackwardsIfStmt,
     IndentForwards,
     IndentForwardsIfStmt,
@@ -250,7 +250,7 @@ export enum ConstructName {
  * If and While are grouped under “InsertStatement”
  */
 export enum InsertActionType {
-    InsertGeneralStmt,
+    InsertUniConstruct,
     // InsertGeneralExpr,
 
     InsertNewVariableStmt,

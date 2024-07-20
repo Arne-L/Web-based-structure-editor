@@ -186,7 +186,7 @@ export abstract class Construct {
      * @returns The nearest (itself or an ancestor) CodeConstruct of the given
      * CodeConstruct type if given, otherwise the nearest CodeConstruct
      */
-    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     abstract getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     abstract getNearestCodeConstruct(): CodeConstruct;
 
@@ -293,6 +293,7 @@ export abstract class CodeConstruct extends Construct {
 
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
+    
     // TODO: TEMP
     hasBody() {
         return false;
@@ -453,7 +454,7 @@ export abstract class Statement extends CodeConstruct {
     scope: Scope = null;
     background: CodeBackground = null;
     message: HoverMessage = null;
-    keywordIndex = -1;
+    // keywordIndex = -1;
     simpleInvalidTooltip: string = Tooltip.InvalidInsertStatement;
 
     constructor() {
@@ -467,26 +468,12 @@ export abstract class Statement extends CodeConstruct {
         );
     }
 
-    /**
-     * The lineNumbers from the beginning to the end of this construct, including child constructs.
-     */
-    getHeight(): number {
-        if (this.body.length == 0) return 1;
-        else {
-            let height = 1;
-
-            for (const line of this.body) height += line.getHeight();
-
-            return height;
-        }
-    }
-
-    /**
-     * This should be true for every statement that has a body.
-     */
-    hasScope(): boolean {
-        return this.scope != null;
-    }
+    // /**
+    //  * This should be true for every statement that has a body.
+    //  */
+    // hasScope(): boolean {
+    //     return this.scope != null;
+    // }
 
     /**
      * Get the nearest scope if there is one.
@@ -499,12 +486,9 @@ export abstract class Statement extends CodeConstruct {
         return this.scope ?? this.rootNode?.getNearestScope();
     }
 
+    // FFD?
     hasBody(): boolean {
         return this.body.length > 0;
-    }
-
-    getBoundaries(): Range {
-        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
@@ -641,7 +625,7 @@ export abstract class Statement extends CodeConstruct {
      * this method!
      */
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct | Statement | CompoundConstruct {
         if (!type || type === CodeConstructType.UniConstruct) return this;
@@ -674,7 +658,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns text representation of statement's keyword or an empty string if it has none
      */
     getKeyword(): string {
-        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
+        // if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
 
         return "";
     }
@@ -794,7 +778,7 @@ class AncestorConstruct {
  *
  * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
  */
-export class GeneralStatement extends Statement {
+export class UniConstruct extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     /**
@@ -824,7 +808,7 @@ export class GeneralStatement extends Statement {
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
-    static constructs: Map<string, GeneralStatement>;
+    static constructs: Map<string, UniConstruct>;
 
     /**
      * The type of the construct. Most frequent options are "statement" and "expression".
@@ -879,21 +863,6 @@ export class GeneralStatement extends Statement {
             }
         }
 
-        // Handling assignments
-        /**
-         * Different variants in Python:
-         * 1) Definition: a = 5
-         *    Use: a
-         * Augmented assignment should not require any special logic
-         *
-         * 2) Definition: def func(a, b)
-         *    Use: func(a, b)
-         * Need to be able to use a and b in the definition body
-         *
-         * 3) Definition: class A:
-         *    Use: A(a, b)
-         */
-
         // Add the requiring constructs
         if (construct.requiringConstructs)
             this.requiringConstructs = construct.requiringConstructs.map(
@@ -916,7 +885,7 @@ export class GeneralStatement extends Statement {
      *
      * @param constructs - The constructs to add to the map
      */
-    static addAllConstructs(constructs: GeneralStatement[]) {
+    static addAllConstructs(constructs: UniConstruct[]) {
         this.constructs = constructs.reduce((map, construct) => {
             map.set(construct.keyword, construct);
             return map;
@@ -941,7 +910,7 @@ export class GeneralStatement extends Statement {
      * on / requires it
      * @returns true if the current construct is depending on / requires the given construct,
      */
-    isDependentOf(construct: GeneralStatement): boolean {
+    isDependentOf(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiredConstructs.includes(construct.getKeyword());
     }
@@ -952,7 +921,7 @@ export class GeneralStatement extends Statement {
      * @param construct - The construct to check if it is depending on / requires the current construct
      * @returns true if the current construct has the given construct as a dependent / requiring construct
      */
-    hasDependent(construct: GeneralStatement): boolean {
+    hasDependent(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiringConstructs.some((dependent) => dependent.getConstructName() === construct.getKeyword());
     }
@@ -979,7 +948,7 @@ export class GeneralStatement extends Statement {
     }
 }
 
-export class GeneralExpression extends GeneralStatement {
+export class GeneralExpression extends UniConstruct {
     constructor(
         construct: ConstructDefinition,
         root?: CodeConstruct,
@@ -1211,7 +1180,7 @@ export abstract class Token extends Construct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // This is weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -1938,7 +1907,7 @@ export abstract class HoleStructure extends Construct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // Weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -2273,7 +2242,7 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         if (!type || type === CodeConstructType.CompoundConstruct) return this;
