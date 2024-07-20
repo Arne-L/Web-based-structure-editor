@@ -454,7 +454,7 @@ export abstract class Statement extends CodeConstruct {
     scope: Scope = null;
     background: CodeBackground = null;
     message: HoverMessage = null;
-    keywordIndex = -1;
+    // keywordIndex = -1;
     simpleInvalidTooltip: string = Tooltip.InvalidInsertStatement;
 
     constructor() {
@@ -658,7 +658,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns text representation of statement's keyword or an empty string if it has none
      */
     getKeyword(): string {
-        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
+        // if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
 
         return "";
     }

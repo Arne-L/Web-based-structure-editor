@@ -202,13 +202,13 @@ export class Module {
         code.notify(callbackType);
 
         // If the current CodeConstruct is a Statement or an Expression, notify all of its tokens
-        if (code instanceof Expression || code instanceof Statement) {
+        if (code instanceof CodeConstruct) {
             const codeStack = new Array<Construct>();
             // Get all of the tokens of the construct
             codeStack.unshift(...code.tokens);
 
             // Add all body statements to the stack if it is a statement
-            if (code instanceof Statement && code.hasBody()) codeStack.unshift(...code.body);
+            // if (code instanceof Statement && code.hasBody()) codeStack.unshift(...code.body);
 
             // Keep notifying until the stack is empty
             while (codeStack.length > 0) {
@@ -216,8 +216,8 @@ export class Module {
                 curCode.notify(callbackType);
 
                 // Add tokens and body recursively to the stack
-                if (curCode instanceof Statement || curCode instanceof Expression) codeStack.unshift(...curCode.tokens);
-                if (curCode instanceof Statement && curCode.hasBody()) codeStack.unshift(...curCode.body);
+                if (curCode instanceof CodeConstruct) codeStack.unshift(...curCode.tokens);
+                // if (curCode instanceof Statement && curCode.hasBody()) codeStack.unshift(...curCode.body);
             }
             // If the current CodeConstruct is a Token, send a notification
         } else if (code instanceof Token) code.notify(callbackType);
@@ -866,7 +866,7 @@ export class Module {
                     stack.push(token);
                 }
 
-                if (cur.body.length > 0) stack.push(...cur.body);
+                // if (cur.body.length > 0) stack.push(...cur.body);
             }
         }
 
@@ -895,7 +895,7 @@ export class Module {
                 // Push all of its tokens to the list
                 Q.push(...curr.tokens);
 
-                if (curr.hasBody()) Q.push(...curr.body);
+                // if (curr.hasBody()) Q.push(...curr.body);
             }
 
             // Perform the given action on the current construct
