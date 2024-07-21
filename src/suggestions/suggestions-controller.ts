@@ -887,7 +887,7 @@ export class MenuController {
 
             // Create the HTML string for the option name
             const optionDisplayText = getStyledSpanAtSubstrings(
-                editAction.getDisplayText(optionText), //code.getRenderText(),
+                code.getRenderText().split("\n")[0], //editAction.getDisplayText(optionText), //code.getRenderText(),
                 "matchingText",
                 substringMatchRanges
             );

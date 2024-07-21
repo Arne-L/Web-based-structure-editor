@@ -138,13 +138,13 @@ export class Focus {
                 curSelection.getStartPosition(),
                 curSelection.getEndPosition()
             );
-            console.log("Context from selection");
+            // console.log("Context from selection");
         } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
 
         if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct);
-        console.log("Context", context);
+        // console.log("Context", context);
 
         return context;
     }

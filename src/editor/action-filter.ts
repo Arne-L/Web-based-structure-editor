@@ -176,8 +176,12 @@ export class ActionFilter {
     }
 }
 
-export class UserAction {
+class UserAction {
     // Can remove export
+    /**
+     * Text to be displayed in the toolbox
+     * Can include -- to signify a texthole, and a --- to represent a general hole
+     */
     optionName: string;
     cssId: string;
 
