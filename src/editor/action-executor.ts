@@ -167,6 +167,13 @@ export class ActionExecutor {
                 break;
             }
 
+            case EditActionType.DeleteToken: {
+                this.module.deleteConstruct(
+                    context.token ?? (action.data.backwards ? context.tokenToLeft : context.tokenToRight)
+                );
+                break;
+            }
+
             case EditActionType.DeleteRootOfToken: {
                 let token: Construct;
                 if (action.data?.backwards) token = context.token ?? context.tokenToLeft;
@@ -187,7 +194,7 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.DeleteStmt: {
+            case EditActionType.DeleteCodeConstruct: {
                 // Remove the currently focused statement and update the body to
                 // reflect the new correct indentation
                 // this.module.indentBodyConstructs(context, true); // TODO: FFD?
@@ -1968,7 +1975,7 @@ export class ActionExecutor {
             autocompleteTkn = existingAutocompleteTkn;
 
             console.log("Existing autocomplete token found", autocompleteTkn);
-            
+
             this.openAutocompleteMenu(autocompleteTkn.validMatches);
             this.updateAutocompleteMenu(autocompleteTkn);
             // do something
@@ -1976,8 +1983,8 @@ export class ActionExecutor {
             const validMatches = this.module.actionFilter
                 .getProcessedInsertionsList()
                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-            
-            console.log("No existing autocomplete token found", validMatches)
+
+            console.log("No existing autocomplete token found", validMatches);
 
             // Create a new autocompleteTkn
             autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);
@@ -1998,7 +2005,7 @@ export class ActionExecutor {
             );
 
             // Open the autocomplete menu
-            console.log("validMatches", validMatches)
+            console.log("validMatches", validMatches);
             this.openAutocompleteMenu(validMatches);
 
             // Choose how to replace the existing token / construct

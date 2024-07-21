@@ -197,7 +197,7 @@ export class EventRouter {
                 //     return new EditAction(EditActionType.DeleteEmptyLine);
                 // } else
                 if (this.module.validator.canDeleteNextStmt(context)) {
-                    return new EditAction(EditActionType.DeleteStmt);
+                    return new EditAction(EditActionType.DeleteCodeConstruct);
                 } else if (this.module.validator.canDeleteNextTkn(context)) {
                     // Token to the right of the current position is non-editable
                     return new EditAction(EditActionType.DeleteRootOfToken, { backwards: false });
@@ -300,11 +300,23 @@ export class EventRouter {
                         curTkn instanceof ast.EditableTextTkn
                     ) {
                         console.log("BACKSPACE editable");
-                        if (!curTkn.isEmpty) return new EditAction(EditActionType.DeletePrevChar);
+                        // Strictly more than one character left
+                        if (curTkn.text.length > 1) {
+                            console.log("BACKSPACE not empty");
+                            return new EditAction(EditActionType.DeletePrevChar);
+                            // Exactly one character left; removing it should replace the text slot with 
+                            // a hole
+                        } else if (curTkn.text.length === 1) {
+                            console.log("BACKSPACE one character left")
+                            return new EditAction(EditActionType.DeleteToken, { backwards: true });
+                        } // If the root is a compound and the current slot is empty, remove one iteration of the root
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                            console.log("BACKSPACE compound");
                             // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
+                        // Else simply remove the previous character
                         } else {
+                            console.log("BACKSPACE previous");
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
                         }
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
@@ -406,7 +418,7 @@ export class EventRouter {
                 } else if (this.module.validator.canDeletePrevStmt(context)) {
                     // Delete the statement right before the current position, if any
                     console.log("CASES: prev statement");
-                    return new EditAction(EditActionType.DeleteStmt);
+                    return new EditAction(EditActionType.DeleteCodeConstruct);
                 } else if (this.module.validator.canDeleteBackMultiEmptyLines(context)) {
                     // When the cursor is on an empty line and all lines behind it are empty without
                     // a depending construct thereafter, delete all empty lines
@@ -588,7 +600,11 @@ export class EventRouter {
 
                         newText = curText.join("");
                     }
-                    if (!(context.tokenToRight instanceof ast.AutocompleteTkn) && editableTkn.validatorRegex && editableTkn.validatorRegex.test(newText)) {
+                    if (
+                        !(context.tokenToRight instanceof ast.AutocompleteTkn) &&
+                        editableTkn.validatorRegex &&
+                        editableTkn.validatorRegex.test(newText)
+                    ) {
                         console.log("left num");
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.RightOfExpression,
@@ -622,7 +638,7 @@ export class EventRouter {
                     // } else
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
-                    
+
                     // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
