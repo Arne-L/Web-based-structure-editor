@@ -149,6 +149,13 @@ export abstract class Construct {
     abstract getRenderText(): string;
 
     /**
+     * Returns the symbolic value of the code construct by joining all its tokens. It is
+     * identical to getRenderText() with the exception that holes are rendered
+     * as either -- (textual) or --- (construct)
+     */
+    abstract getDisplayText(): string;
+
+    /**
      * Returns the line number of this code-construct in the rendered text.
      */
     abstract getFirstLineNumber(): number;
@@ -449,6 +456,12 @@ export abstract class CodeConstruct extends Construct {
 
     getModule(): Module {
         return Module.instance;
+    }
+
+    getDisplayText(): string {
+        let txt = "";
+        for (const token of this.tokens) txt += token.getDisplayText();
+        return txt
     }
 }
 
@@ -1181,6 +1194,10 @@ export abstract class Token extends Construct {
         return this.text;
     }
 
+    getDisplayText(): string {
+        return this.text;
+    }
+
     getFirstLineNumber(): number {
         return this.left.lineNumber;
     }
@@ -1412,6 +1429,10 @@ export class EditableTextTkn extends Token implements TextEditable {
 
         return new Position(pos.lineNumber, this.rightCol);
     }
+
+    getDisplayText(): string {
+        return this.text ? this.text : "--";
+    }
 }
 
 /**
@@ -1484,6 +1505,10 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     isEmptyIdentifier(): boolean {
         return this.text == EMPTYIDENTIFIER;
+    }
+
+    getDisplayText(): string {
+        return this.text ? this.text : "--";
     }
 }
 
@@ -1837,6 +1862,10 @@ export class HoleTkn extends Token {
     }
 
     getKeyword(): string {
+        return "---";
+    }
+
+    getDisplayText(): string {
         return "---";
     }
 }
