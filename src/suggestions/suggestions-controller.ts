@@ -293,7 +293,7 @@ class Menu {
             }
         });
 
-        // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
+        // Sorting of autocomplete options (OPTIMISATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
