@@ -309,7 +309,10 @@ export class EventRouter {
                             // a hole
                         } else if (curTkn.text.length === 1) {
                             console.log("BACKSPACE one character left")
-                            return new EditAction(EditActionType.DeleteToken, { backwards: true });
+                            // Autocomplete tokens appear on their own, without encapsulating construct
+                            if (curTkn instanceof ast.AutocompleteTkn) return new EditAction(EditActionType.DeleteToken, { backwards: true });
+                            // Once inserted, a token will always be encapsulated either within a CodeConstruct (Compound or Uni)
+                            else return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                         } // If the root is a compound and the current slot is empty, remove one iteration of the root
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
                             console.log("BACKSPACE compound");

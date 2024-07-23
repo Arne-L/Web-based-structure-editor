@@ -128,7 +128,7 @@ export class Focus {
     getContext(position?: Position): Context {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
-        const curLine = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
+        const curLine = this.getConstructAtPosition(curPosition) as CodeConstruct; //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
         if (!curLine) console.log("curLine", curLine);
 
@@ -154,8 +154,8 @@ export class Focus {
      *
      * @returns The focused statement (line) in the editor.
      */
-    getFocusedStatement(): Statement {
-        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement; //this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
+    getFocusedStatement(): CodeConstruct {
+        return this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as CodeConstruct; //this.getStatementAtLineNumber(this.module.editor.monaco.getPosition().lineNumber);
     }
 
     /**
@@ -267,7 +267,7 @@ export class Focus {
             const prevConstr = this.getConstructAtPosition(this.prevPosition),
                 currConstr = this.getConstructAtPosition(curPos);
 
-            if (prevConstr !== currConstr) this.fireOnNavOffCallbacks(prevConstr as Statement, currConstr as Statement);
+            if (prevConstr !== currConstr) this.fireOnNavOffCallbacks(prevConstr as CodeConstruct, currConstr as CodeConstruct);
         }
         // if (runNavOffCallbacks && this.prevPosition != null && this.prevPosition.lineNumber != curPos.lineNumber) {
         //     this.fireOnNavOffCallbacks(
@@ -286,8 +286,8 @@ export class Focus {
      */
     navigateUp() {
         const curPosition = this.module.editor.monaco.getPosition();
-        const focusedLineStatement = this.getConstructAtPosition(curPosition) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber);
-        const lineAbove = this.getConstructAtPosition(curPosition.delta(-1)) as Statement; //this.getStatementAtLineNumber(curPosition.lineNumber - 1);
+        const focusedLineStatement = this.getConstructAtPosition(curPosition) as CodeConstruct; //this.getStatementAtLineNumber(curPosition.lineNumber);
+        const lineAbove = this.getConstructAtPosition(curPosition.delta(-1)) as CodeConstruct; //this.getStatementAtLineNumber(curPosition.lineNumber - 1);
 
         if (focusedLineStatement !== lineAbove) this.fireOnNavOffCallbacks(focusedLineStatement, lineAbove);
 
@@ -387,7 +387,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement
+            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as CodeConstruct
         );
         this.fireOnNavChangeCallbacks();
     }
@@ -459,7 +459,7 @@ export class Focus {
 
         this.fireOnNavOffCallbacks(
             focusedLineStatement,
-            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as Statement
+            this.getConstructAtPosition(this.module.editor.monaco.getPosition()) as CodeConstruct
         );
         this.fireOnNavChangeCallbacks();
     }
@@ -669,18 +669,18 @@ export class Focus {
     /**
      * Given a statement and a selection, this function will return the context of the selection.
      *
-     * @param statement - The statement to search in.
+     * @param codeConstruct - The statement to search in.
      * @param left  - The left position of the selection.
      * @param right - The right position of the selection.
      * @returns - The context of the selection.
      */
-    private getContextFromSelection(statement: Statement, left: Position, right: Position): Context {
+    private getContextFromSelection(codeConstruct: CodeConstruct, left: Position, right: Position): Context {
         const context = new Context();
-        context.codeConstruct = statement;
+        context.codeConstruct = codeConstruct;
         const tokensStack = new Array<Construct>();
 
         // initialize tokensStack
-        if (statement instanceof CodeConstruct) tokensStack.unshift(...statement.tokens);
+        if (codeConstruct instanceof CodeConstruct) tokensStack.unshift(...codeConstruct.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
@@ -704,7 +704,7 @@ export class Focus {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
-                        `getContextFromSelection(statement: ${statement}, left: ${left}, right: ${right}) -> found expression with no child tokens.`
+                        `getContextFromSelection(statement: ${codeConstruct}, left: ${left}, right: ${right}) -> found expression with no child tokens.`
                     );
                 }
             }
@@ -720,7 +720,7 @@ export class Focus {
      * @param pos - Column to search for
      * @returns - The non-textual hole at the given column, or null if not found.
      */
-    private findNonTextualHole(statement: Statement, pos: Position): Token {
+    private findNonTextualHole(statement: CodeConstruct, pos: Position): Token {
         const tokensStack = new Array<Construct>();
 
         for (const token of statement.tokens) tokensStack.unshift(token); // One liner: tokensStack.unshift(...statement.tokens);?
@@ -751,21 +751,21 @@ export class Focus {
     /**
      * Finds the context of the given position in the given statement.
      *
-     * @param statement - The statement to search in.
+     * @param codeconstruct - The statement to search in.
      * @param pos - The position to search for.
      * @returns - The context of the given position in the given statements.
      */
-    private getContextFromPosition(statement: Statement, pos: Position): Context {
+    private getContextFromPosition(codeconstruct: CodeConstruct, pos: Position): Context {
         // PROBABLY REFORMAT IN THE FUTURE
         // NOW they search a lot of trees, while this could probably be minimised
         const context = new Context();
-        context.codeConstruct = statement;
+        context.codeConstruct = codeconstruct;
         const tokensStack = new Array<Construct>();
 
-        if (!statement) console.log("No statement");
+        if (!codeconstruct) console.log("No statement");
 
         // initialize tokensStack
-        if (statement instanceof CodeConstruct) tokensStack.unshift(...statement.tokens);
+        if (codeconstruct instanceof CodeConstruct) tokensStack.unshift(...codeconstruct.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
@@ -774,10 +774,9 @@ export class Focus {
                 // this code assumes that there is no token with an empty text
 
                 if (pos.equals(curToken.left)) {
-                    context.token = this.findNonTextualHole(statement, pos);
-                    console.log("Token", context.token?.toString());
+                    context.token = this.findNonTextualHole(codeconstruct, pos);
                     context.tokenToRight = curToken;
-                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                    context.tokenToLeft = this.searchNonEmptyTokenWithCheck(codeconstruct, (token) =>
                         token.right.equals(pos)
                     );
 
@@ -801,9 +800,9 @@ export class Focus {
 
                     break;
                 } else if (pos.equals(curToken.right)) {
-                    context.token = this.findNonTextualHole(statement, pos);
+                    context.token = this.findNonTextualHole(codeconstruct, pos);
                     context.tokenToLeft = curToken;
-                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(statement, (token) =>
+                    context.tokenToRight = this.searchNonEmptyTokenWithCheck(codeconstruct, (token) =>
                         token.left.equals(pos)
                     );
 
@@ -835,7 +834,7 @@ export class Focus {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
                     console.warn(
-                        `getContextFromPosition(statement: ${statement}, column: ${pos}) -> found expression with no child tokens.`
+                        `getContextFromPosition(statement: ${codeconstruct}, column: ${pos}) -> found expression with no child tokens.`
                     );
                 }
             }
@@ -844,19 +843,19 @@ export class Focus {
         return context;
     }
 
-    /**
-     * Finds the parent expression of a given token that meets the given 'check' condition.
-     */
-    private getExpression(token: Token, check: boolean): GeneralExpression {
-        if (token.rootNode instanceof GeneralExpression && check) return token.rootNode;
+    // /**
+    //  * Finds the parent expression of a given token that meets the given 'check' condition.
+    //  */
+    // private getExpression(token: Token, check: boolean): GeneralExpression {
+    //     if (token.rootNode instanceof GeneralExpression && check) return token.rootNode;
 
-        return null;
-    }
+    //     return null;
+    // }
 
     /**
      * Searches the tokens tree for a token that matches the passed check() condition.
      */
-    private searchNonEmptyTokenWithCheck(statement: Statement, check: (token: Token) => boolean): Token {
+    private searchNonEmptyTokenWithCheck(statement: CodeConstruct, check: (token: Token) => boolean): Token {
         const tokensStack = new Array<Construct>();
 
         tokensStack.unshift(...statement.tokens);
