@@ -293,6 +293,7 @@ export class EventRouter {
                 // Token directly to the left of the cursor is either the current
                 // token or the token to the left (if between two tokens)
                 const curTkn = context.token ?? context.tokenToLeft;
+                console.log("context", context)
                 if (curTkn instanceof ast.Token) {
                     if (
                         curTkn instanceof ast.AutocompleteTkn ||
@@ -320,6 +321,7 @@ export class EventRouter {
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
                         }
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                        console.log("BACKSPACE compound");
                         const nearestCompound = curTkn.rootNode;
                         // The cycle to remove is the last compound cycle and the current compound is not the top most compound
                         // Otherwise, it would not be possible to jump to next compound up in the tree
@@ -399,6 +401,7 @@ export class EventRouter {
                         return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                     }
                 } else {
+                    console.log("BACKSPACE none")
                     // CodeConstruct
                     // Do we even need something here? As the smallest element will always be a
                 }
@@ -600,20 +603,22 @@ export class EventRouter {
 
                         newText = curText.join("");
                     }
-                    if (
-                        !(context.tokenToRight instanceof ast.AutocompleteTkn) &&
-                        editableTkn.validatorRegex &&
-                        editableTkn.validatorRegex.test(newText)
-                    ) {
-                        console.log("left num");
-                        return new EditAction(EditActionType.OpenAutocomplete, {
-                            autocompleteType: AutoCompleteType.RightOfExpression,
-                            firstChar: e.key,
-                            validMatches: this.module.actionFilter
-                                .getProcessedInsertionsList()
-                                .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
-                        });
-                    }
+                    // TODO: WHERE IS THIS NEEDED? THIS IS PROBABLY NEEDED!
+                    // if (
+                    //     !(context.tokenToRight instanceof ast.AutocompleteTkn) &&
+                    //     editableTkn.validatorRegex &&
+                    //     editableTkn.validatorRegex.test(newText)
+                    // ) {
+                    //     console.log(context)
+                    //     console.log("left num");
+                    //     return new EditAction(EditActionType.OpenAutocomplete, {
+                    //         autocompleteType: AutoCompleteType.RightOfExpression,
+                    //         firstChar: e.key,
+                    //         validMatches: this.module.actionFilter
+                    //             .getProcessedInsertionsList()
+                    //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    //     });
+                    // }
                     // If a key is being pressed right after a number literal, check if
                     // the new literal is not part of the literal (e.g. 12+) and if so
                     // open the autocomplete menu
