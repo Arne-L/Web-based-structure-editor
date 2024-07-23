@@ -814,24 +814,19 @@ export class Module {
      * Retrieve the current status of the code, i.e. if it is runnable or not,
      * and highlight constructs violating the status if required.
      *
-     * WILL NEED SOME REWRITES!!!
-     *
      * @param highlightConstructs - Whether to highlight constructs violating the status
      * @returns The status of the code
      */
     getCodeStatus(highlightConstructs: boolean = false) {
         let status = null;
 
-        if (this.body.length === 0 || (this.body.length === 1 && this.body[0] instanceof EmptyLineStmt)) {
-            return CodeStatus.Empty;
-        }
-
         const stack: Construct[] = [];
-        stack.push(...this.body);
+        // stack.push(...this.body);
+        stack.push(this.compoundConstruct);
 
         while (stack.length > 0) {
             let cur: Construct = stack.pop();
-            const hasDraftMode = cur.draftModeEnabled;
+            const hasDraftMode = cur.draftModeEnabled; // Currently not used
 
             if (cur instanceof HoleTkn /*&& !cur.isListElement()*/) {
                 status = status ?? CodeStatus.ContainsEmptyHoles;
@@ -841,32 +836,12 @@ export class Module {
                 status = status ?? CodeStatus.ContainsAutocompleteTokens;
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
-            } else if (cur.draftModeEnabled) {
+            } else if (cur.draftModeEnabled) { // FFD
                 status = status ?? CodeStatus.ContainsDraftMode;
 
                 if (highlightConstructs && !hasDraftMode) cur.addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
-            } else if (cur instanceof Expression && cur.tokens.length > 0) {
-                const addHighlight = false; //cur instanceof ListLiteralExpression && !cur.isHolePlacementValid();
-                status = addHighlight ? CodeStatus.ContainsEmptyHoles : status;
-
-                for (let i = 0; i < cur.tokens.length; i++) {
-                    if (
-                        cur.tokens[i] instanceof HoleTkn &&
-                        addHighlight &&
-                        i < cur.tokens.length - 2 &&
-                        !hasDraftMode
-                    ) {
-                        cur.tokens[i].addHighlight(ERROR_HIGHLIGHT_COLOUR, this.editor);
-                    }
-
-                    stack.push(cur.tokens[i]);
-                }
-            } else if (cur instanceof Statement) {
-                for (const token of cur.tokens) {
-                    stack.push(token);
-                }
-
-                // if (cur.body.length > 0) stack.push(...cur.body);
+            } else if (cur instanceof CodeConstruct) {
+                stack.push(...cur.tokens)
             }
         }
 
