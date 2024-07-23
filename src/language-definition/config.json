@@ -5,8 +5,9 @@
             "language": "python",
             "extension": "py"
         },
+        { "language": "prolog", "extension": "txt" },
         { "language": "hedyl1_en", "extension": "txt" },
         { "language": "hedyl1_nl", "extension": "txt" },
-        { "language": "hedyl2_en", "extension": "txt" }
+        { "language": "hedyl2_en", "extension": "pl" }
     ]
 }
