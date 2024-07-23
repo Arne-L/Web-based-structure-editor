@@ -46,7 +46,7 @@
 // import * as CastToStrDocs from "../docs/to-str.json";
 // import * as TrueDocs from "../docs/true.json";
 // import * as WhileDocs from "../docs/while.json";
-import { addEditCodeActionsToCategories, Loader } from "../language-definition/parser";
+import { addEditCodeActionsToCategories, Loader } from "../language-definition/loader";
 import {
     // Argument,
     // AssignmentModifier,

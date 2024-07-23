@@ -11,7 +11,7 @@ import { Context, Focus } from "../editor/focus";
 import { Hole } from "../editor/hole";
 import { ToolboxController } from "../editor/toolbox";
 import { Validator } from "../editor/validator";
-import { Loader } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import { ERROR_HIGHLIGHT_COLOUR, TAB_SPACES } from "../language-definition/settings";
 import { MessageController } from "../messages/message-controller";
 import { NotificationManager } from "../messages/notifications";

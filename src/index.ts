@@ -2,7 +2,7 @@ import "./css/index.css";
 //might be related to parsing or handling the syntax tree of the code written in the editor.??
 import { Module } from "./syntax-tree/module";
 import { initializeEditor as initialiseEditor } from "./editor/language-toggle";
-import { Loader } from "./language-definition/parser";
+import { Loader } from "./language-definition/loader";
 import { Actions } from "./editor/consts";
 import config from "./language-definition/config.json";
 
@@ -61,7 +61,11 @@ async function handleToggle() {
     // Handle export button
     document.getElementById("exportCodeBtn").addEventListener("click", () => {
         const code = nova.editor.monaco.getValue();
-        download(code, `code.${config.availableLanguages.find((val) => val.language === this.value).extension}`, "text/plain");
+        download(
+            code,
+            `code.${config.availableLanguages.find((val) => val.language === this.value).extension}`,
+            "text/plain"
+        );
     });
 }
 

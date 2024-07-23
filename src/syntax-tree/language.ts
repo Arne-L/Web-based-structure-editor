@@ -1,4 +1,4 @@
-import { Loader } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import { ErrorMessage } from "../messages/error-msg-generator";
 import { Construct } from "./ast";
 import { Module } from "./module";

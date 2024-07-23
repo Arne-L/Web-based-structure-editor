@@ -1,5 +1,5 @@
 import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
-import { Loader } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import {
     AssignmentTkn,
     CodeConstruct,

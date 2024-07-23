@@ -1,6 +1,6 @@
 import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
 
-import { Loader } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { ASTManupilation } from "../syntax-tree/utils";
@@ -293,7 +293,7 @@ export class EventRouter {
                 // Token directly to the left of the cursor is either the current
                 // token or the token to the left (if between two tokens)
                 const curTkn = context.token ?? context.tokenToLeft;
-                console.log("context", context)
+                console.log("context", context);
                 if (curTkn instanceof ast.Token) {
                     if (
                         curTkn instanceof ast.AutocompleteTkn ||
@@ -305,12 +305,13 @@ export class EventRouter {
                         if (curTkn.text.length > 1) {
                             console.log("BACKSPACE not empty");
                             return new EditAction(EditActionType.DeletePrevChar);
-                            // Exactly one character left; removing it should replace the text slot with 
+                            // Exactly one character left; removing it should replace the text slot with
                             // a hole
                         } else if (curTkn.text.length === 1) {
-                            console.log("BACKSPACE one character left")
+                            console.log("BACKSPACE one character left");
                             // Autocomplete tokens appear on their own, without encapsulating construct
-                            if (curTkn instanceof ast.AutocompleteTkn) return new EditAction(EditActionType.DeleteToken, { backwards: true });
+                            if (curTkn instanceof ast.AutocompleteTkn)
+                                return new EditAction(EditActionType.DeleteToken, { backwards: true });
                             // Once inserted, a token will always be encapsulated either within a CodeConstruct (Compound or Uni)
                             else return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                         } // If the root is a compound and the current slot is empty, remove one iteration of the root
@@ -318,7 +319,7 @@ export class EventRouter {
                             console.log("BACKSPACE compound");
                             // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
-                        // Else simply remove the previous character
+                            // Else simply remove the previous character
                         } else {
                             console.log("BACKSPACE previous");
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
@@ -404,7 +405,7 @@ export class EventRouter {
                         return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                     }
                 } else {
-                    console.log("BACKSPACE none")
+                    console.log("BACKSPACE none");
                     // CodeConstruct
                     // Do we even need something here? As the smallest element will always be a
                 }
