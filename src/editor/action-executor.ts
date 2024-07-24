@@ -1255,10 +1255,11 @@ export class ActionExecutor {
      * @returns
      */
     private performMatchAction(match: EditCodeAction, token: AutocompleteTkn) {
+        const code = match.getConstruct(token.text);
         // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
-            (match.getCode() as UniConstruct)?.containsAssignments() &&
+            code.containsAssignments() &&
             this.module.language.isReservedWord(token.text.trim())
         ) {
             // TODO: can insert an interesting warning
@@ -1269,7 +1270,7 @@ export class ActionExecutor {
         // Length of the match token
         let length = 0;
         // Get the length of the text token if it is a variable
-        if ((match.getCode() as UniConstruct)?.containsAssignments()) length = token.text.length + 1;
+        if (code.containsAssignments()) length = token.text.length + 1;
         // Otherwise, get the length of the match string
         else length = match.matchString.length + 1;
 
@@ -1280,6 +1281,9 @@ export class ActionExecutor {
             { type: "autocomplete", precision: "1", length },
             {
                 identifier: token.text,
+                // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                // they can be used in the autocomplete
+                values: match.matchRegex ? match.matchRegex.exec(token.text) : [],
             }
         );
     }
