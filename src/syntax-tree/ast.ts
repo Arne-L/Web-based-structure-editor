@@ -294,14 +294,14 @@ export abstract class CodeConstruct extends Construct {
     holeTypes: Map<number, string> = new Map<number, string>();
 
     /**
-     * List of all assignments within the construct. Each number functions as an index 
+     * List of all assignments within the construct. Each number functions as an index
      * in the list of tokens, identifying the ones that function as an assignment.
      */
     private assignmentIndices: number[] = [];
 
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
-    
+
     // TODO: TEMP
     hasBody() {
         return false;
@@ -350,17 +350,17 @@ export abstract class CodeConstruct extends Construct {
     }
 
     /**
-     * Whether the statement contains any assignments
-     * 
+     * Whether the codeconstruct contains any assignments
+     *
      * @param - Check if the given index corresponds to an assignment. If not provided,
      * checks the entires construct for any assignment.
      * @returns true if the statement contains any assignments, false otherwise
      */
     containsAssignments(index?: number): boolean {
         // If no index given, check if there is ANY assignment in the construct
-        if (index === null || index === undefined) return this.assignmentIndices.length > 0
+        if (index === null || index === undefined) return this.assignmentIndices.length > 0;
         // Check if the given index is an assignment in the construct
-        return this.assignmentIndices.some(val => val === index);
+        return this.assignmentIndices.some((val) => val === index);
     }
 
     /**
@@ -461,7 +461,7 @@ export abstract class CodeConstruct extends Construct {
     getDisplayText(): string {
         let txt = "";
         for (const token of this.tokens) txt += token.getDisplayText();
-        return txt
+        return txt;
     }
 }
 
@@ -1508,7 +1508,7 @@ export class IdentifierTkn extends Token implements TextEditable {
     }
 
     getDisplayText(): string {
-        return this.text ? this.text : "--";
+        return this.text && this.text !== "  " ? this.text : "--";
     }
 }
 
@@ -1766,7 +1766,16 @@ export class AutocompleteTkn extends Token implements TextEditable {
      * @returns - Matching EditCodeAction or null if no match
      */
     isMatch(): EditCodeAction {
-        for (const match of this.validMatches) if (this.text == match.matchString) return match;
+        for (const match of this.validMatches) {
+            // console.log(match);
+            // console.log(this.text, match.getConstruct(this.text).getDisplayText().split("--")[0]);
+            if (
+                this.text === match.matchString
+                // || this.text === match.getConstruct(this.text).getDisplayText().split("--")[0]
+            ) {
+                return match;
+            }
+        }
 
         return null;
     }
@@ -1835,7 +1844,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
 }
 
 /**
- * Represents the "holes" in the text that can be filled with expressions
+ * Represents the "holes" in the code than can be filled with constructs
  */
 export class HoleTkn extends Token {
     isEmpty = true;
