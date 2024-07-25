@@ -1126,6 +1126,9 @@ export class EventRouter {
                     { type: "autocomplete", precision: "1", length: match.matchString.length + 1 },
                     {
                         identifier: token.text,
+                        // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                        // they can be used in the autocomplete
+                        values: match.matchRegex ? match.matchRegex.exec(token.text) : [],
                     }
                 );
             }

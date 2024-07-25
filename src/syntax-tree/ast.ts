@@ -1767,14 +1767,13 @@ export class AutocompleteTkn extends Token implements TextEditable {
      */
     isMatch(): EditCodeAction {
         for (const match of this.validMatches) {
-            // console.log(match);
-            // console.log(this.text, match.getConstruct(this.text).getDisplayText().split("--")[0]);
             if (
                 this.text === match.matchString
-                // || this.text === match.getConstruct(this.text).getDisplayText().split("--")[0]
-            ) {
+            )
                 return match;
-            }
+            // Get all text untill the appearance of a first hole - be it a text or construct hole
+            const textTillHole = match.getConstruct(this.text).getDisplayText().split("--")[0]
+            if (this.text === textTillHole) return match;
         }
 
         return null;
