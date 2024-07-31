@@ -321,6 +321,7 @@ export namespace DOMManupulation {
  *
  * @param construct - The construct to check
  * @param pos - The position to check
+ * @param inclusive - Whether the position should be included in the construct; defaults to true on both sides
  * @returns True if the construct contains the position, false otherwise
  */
 export function doesConstructContainPos(

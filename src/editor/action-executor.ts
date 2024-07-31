@@ -124,6 +124,7 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.OpenAutocomplete: {
+                // TODO: action.data.validMatches is obselete and can be removed
                 this.openSuggestionMenu(context, action.data.firstChar, action.data.autocompleteType);
                 break;
             }
@@ -1992,6 +1993,7 @@ export class ActionExecutor {
 
             // Create a new autocompleteTkn
             autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);
+            console.log("AutocompleteTkn", autocompleteTkn);
 
             // MOVE TO AUTOCOMPLETETKN CONSTRUCTION?
             // Update the menu whenever the text changes
@@ -2045,6 +2047,7 @@ export class ActionExecutor {
             this.module.editor.cursor.setSelection(null);
             // Check if there is an exact match
             const match = autocompleteTkn.isTerminatingMatch();
+            console.log("Match found", match);
 
             // If the match is exact, insert the construct in the editor
             if (match) {

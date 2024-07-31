@@ -128,7 +128,7 @@ export class Focus {
     getContext(position?: Position): Context {
         const curPosition = position ? position : this.module.editor.monaco.getPosition();
         const curSelection = this.module.editor.monaco.getSelection();
-        const curLine = this.getConstructAtPosition(curPosition) as CodeConstruct; //this.getStatementAtLineNumber(curPosition.lineNumber);
+        const curLine = this.getConstructAtPosition(curPosition); //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
         if (!curLine) console.log("curLine", curLine);
 
@@ -144,7 +144,8 @@ export class Focus {
         context.position = curPosition;
 
         if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct);
-        // console.log("Context", context);
+        
+        console.log("Context", context, curLine);
 
         return context;
     }
@@ -716,14 +717,14 @@ export class Focus {
     /**
      * Finds the non-textual hole, read no string, at the given column in the given statement
      *
-     * @param statement - Statement to search in
+     * @param codeConstruct - Statement to search in
      * @param pos - Column to search for
      * @returns - The non-textual hole at the given column, or null if not found.
      */
-    private findNonTextualHole(statement: CodeConstruct, pos: Position): Token {
+    private findNonTextualHole(codeConstruct: CodeConstruct, pos: Position): Token {
         const tokensStack = new Array<Construct>();
 
-        for (const token of statement.tokens) tokensStack.unshift(token); // One liner: tokensStack.unshift(...statement.tokens);?
+        tokensStack.unshift(...codeConstruct.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
@@ -732,17 +733,13 @@ export class Focus {
                 pos.equals(curToken.left) &&
                 pos.equals(curToken.right) &&
                 (curToken instanceof EditableTextTkn ||
-                    // curToken instanceof LiteralValExpr ||
                     curToken instanceof IdentifierTkn)
             ) {
-                // if (curToken instanceof LiteralValExpr && curToken.returns == DataType.Number)
-                //     return curToken.tokens[0] as Token;
-                // else
                 return curToken;
             }
 
-            if (curToken instanceof GeneralExpression)
-                if (curToken.tokens.length > 0) for (let token of curToken.tokens) tokensStack.unshift(token);
+            if (curToken instanceof CodeConstruct)
+                tokensStack.unshift(...curToken.tokens);
         }
 
         return null;
@@ -765,10 +762,14 @@ export class Focus {
         if (!codeconstruct) console.log("No statement");
 
         // initialize tokensStack
-        if (codeconstruct instanceof CodeConstruct) tokensStack.unshift(...codeconstruct.tokens);
+        // if (codeconstruct instanceof CodeConstruct) 
+        tokensStack.unshift(...codeconstruct.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
+
+            // Skip the construct if the position is not within it
+            if (pos.isBefore(curToken.left) || curToken.right.isBefore(pos)) continue;
 
             if (curToken instanceof Token) {
                 // this code assumes that there is no token with an empty text
@@ -855,10 +856,10 @@ export class Focus {
     /**
      * Searches the tokens tree for a token that matches the passed check() condition.
      */
-    private searchNonEmptyTokenWithCheck(statement: CodeConstruct, check: (token: Token) => boolean): Token {
+    private searchNonEmptyTokenWithCheck(codeConstruct: CodeConstruct, check: (token: Token) => boolean): Token {
         const tokensStack = new Array<Construct>();
 
-        tokensStack.unshift(...statement.tokens);
+        tokensStack.unshift(...codeConstruct.tokens);
 
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();

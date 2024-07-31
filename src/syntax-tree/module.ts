@@ -32,6 +32,7 @@ import {
     Statement,
     Token,
     HoleTkn,
+    CompoundConstruct,
 } from "./ast";
 // import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
