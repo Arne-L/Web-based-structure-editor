@@ -42,8 +42,6 @@ import { Language } from "./language";
 import { Scope } from "./scope";
 import { ASTManupilation } from "./utils";
 
-console.log("Module");
-
 /**
  * The main body of the code which includes an array of statements.
  */

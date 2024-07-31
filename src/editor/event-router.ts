@@ -10,8 +10,6 @@ import { Actions, EditActionType, InsertActionType, KeyPress } from "./consts";
 import { EditAction } from "./data-types";
 import { Context } from "./focus";
 
-console.log("Event router");
-
 /**
  * Handle incoming events and route them to the corresponding action.
  */
@@ -648,6 +646,10 @@ export class EventRouter {
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
 
+                    // if (context.tokenToLeft?.rootNode instanceof ast.UniConstruct &&
+                    //     context.tokenToLeft.rootNode.constructType ===
+                    // )
+
                     // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
@@ -656,6 +658,36 @@ export class EventRouter {
                         console.log("INSERT CHAR");
                         return new EditAction(EditActionType.InsertChar);
                     }
+
+                    // If none of the previous options worked, try to open an autocomplete menu but check
+                    // that the number of options is strictly positive
+                    // Similar to the "canSwitchLeftNumToAutocomplete" check
+                    // + when inserting a construct, check that if it starts with a hole whether
+                    // or not a construt appears before it and can be placed in that hole
+                    // + adapt valid matches to also work in text editable areas, but only if the
+                    // construct appearing in front can be replaced and the parent construct expects
+                    // the type of the match, e.g. the following conditions need to be met:
+                    // * The construct in front is op the constructType of the first hole in the match or is text
+                    // * The parent construct expects the constructType of the match
+                    // * The match has a hole at the beginning
+                    
+                    // Number of autocomplete options
+                    const validMatches = this.module.actionFilter
+                        .getProcessedInsertionsList()
+                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                    
+                    // Check if constructs can be inserted on non-empty (non-hole) positions
+                    // based on the amount of valid matches (constructs of which their validateContext method
+                    // succeeds)
+                    if (validMatches.length > 0) {
+                        console.log("OPEN AUTOCOMPLETE");
+                        return new EditAction(EditActionType.OpenAutocomplete, {
+                            autocompleteType: AutoCompleteType.RightOfExpression,
+                            firstChar: e.key,
+                            validMatches: validMatches,
+                        });
+                    }
+
                     // break;
                     // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     //     const compound = context.tokenToLeft?.rootNode;

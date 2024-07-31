@@ -35,13 +35,14 @@ export namespace ASTManupilation {
                     context
                 )
             ) {
-                insertToken(context, construct, { toLeft: true });
+                console.log("AutocompleteTkn right");
+                insertToken(context, construct, { toRight: true });
             } else if (
                 /*module.validator.canSwitchRightNumToAutocomplete(context) || */ module.validator.atLeftOfExpression(
                     context
                 )
             ) {
-                insertToken(context, construct, { toRight: true });
+                insertToken(context, construct, { toLeft: true });
             } else {
                 console.error(
                     `insertConstruct(${context}, ${construct}): When inserting a token in the AST, the context was not valid for insertion`
@@ -54,6 +55,7 @@ export namespace ASTManupilation {
                 replaceWith(context.token, construct);
             }
         } else if (construct instanceof UniConstruct) {
+            console.log("Are we getting here with UniConstruct?");
             // Currently for expressions and statements
 
             // If on empty line, replace the empty line
@@ -70,6 +72,7 @@ export namespace ASTManupilation {
                     context
                 )
             ) {
+                replaceWith(context.codeConstructToLeft, construct, true);
                 // insertToken(context, construct, { toLeft: true });
             } else if (
                 /*module.validator.canSwitchRightNumToAutocomplete(context) || */ module.validator.atLeftOfExpression(
@@ -139,6 +142,7 @@ export namespace ASTManupilation {
             const root = context.codeConstructToLeft.rootNode;
             // Set the parent of the given token to the parent of the expression to the left
             code.rootNode = root;
+            console.log("AutocompleteTkn root", root);
             // Add the given token directly after the expression to the left
             // without removing anything
             root.tokens.splice(context.codeConstructToLeft.indexInRoot + 1, 0, code);
@@ -161,7 +165,16 @@ export namespace ASTManupilation {
         }
     }
 
-    export function replaceWith(constructToReplace: Construct, newConstruct: Construct) {
+    /**
+     * Replace the given construct with a new construct in the AST.
+     * 
+     * @param constructToReplace - Construct to be replaced in the AST
+     * @param newConstruct - Construct to replace the given construct with
+     * @param keep - Whether the constructToReplace should be added as a child of the newConstruct. 
+     * If this option is set, the constructToReplace will be placed in the first token slot of the 
+     * newConstruct if the first token is a hole and the type matches with the hole 
+     */
+    export function replaceWith(constructToReplace: Construct, newConstruct: Construct, keep = false) {
         const module = Module.instance;
 
         // Removing draft mode message if there is one
@@ -182,7 +195,21 @@ export namespace ASTManupilation {
         // Replace construct
         root.tokens[constructToReplace.indexInRoot] = newConstruct;
 
-        // TODO: Scoping
+        // Place the constructToReplace as a child of the new construct (only if the first token
+        // is a hole and the type matches)
+        if (
+            keep &&
+            newConstruct instanceof UniConstruct &&
+            constructToReplace instanceof UniConstruct &&
+            newConstruct.tokens[0] instanceof HoleTkn &&
+            constructToReplace.constructType === newConstruct.tokens[0].allowedType
+        ) {
+            constructToReplace.rootNode = newConstruct;
+            constructToReplace.indexInRoot = 0;
+            newConstruct.tokens[0] = constructToReplace;
+        }
+
+        // TODO: Scoping (should be fixed)
         // if (newConstruct.hasScope()) newConstruct.scope.parentScope = bodyContainer.scope;
 
         // Rebuild everything that comes after the statement that is being replaced

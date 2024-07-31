@@ -15,6 +15,7 @@ import { Module } from "./module";
 import { Scope } from "./scope";
 import { ASTManupilation } from "./utils";
 import { ValidatorNameSpace } from "./validator";
+import { doesConstructContainPos } from "../utilities/util";
 
 export abstract class Construct {
     /**
@@ -183,6 +184,42 @@ export abstract class Construct {
      */
     getSelection(): Selection {
         return new Selection(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
+    }
+
+    /**
+     * Get the smallest UniConstruct that is a sibling of the current construct.
+     *
+     * @param left - Whether to get the left sibling (true) or the right sibling (false)
+     * @returns - The smallest UniConstruct directly adjacent to the current construct, null if
+     * none is found
+     */
+    getUniSibling(left = true): UniConstruct {
+        // Go through all constructs in the code
+        const constructStack = new Array<Construct>();
+
+        // Initialise the stack with the root construct
+        constructStack.push(Module.instance.compoundConstruct);
+
+        // Keep track of the uniconstructs found until now
+        let uniConstruct;
+        // As long as the program contains unvisited constructs
+        while (constructStack.length > 0) {
+            // Get the next construct
+            const construct = constructStack.pop();
+
+            // If construct's end position does not equal the current left position, skip this construct
+            if (left && !construct.right.equals(this.left)) continue;
+            if (!left && !construct.left.equals(this.right)) continue;
+
+            // If the construct is a uniconstruct, set it as the current smallest sibling
+            if (construct instanceof UniConstruct) uniConstruct = construct;
+
+            // If a codeconstruct covers the left position, one of its children might be a sibling
+            if (construct instanceof CodeConstruct && doesConstructContainPos(construct, left ? this.left : this.right))
+                constructStack.push(...construct.tokens);
+        }
+
+        return uniConstruct;
     }
 
     /**
@@ -959,9 +996,29 @@ export class UniConstruct extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return validator.atHoleWithType(context, this.constructType) &&
+        const currTkn = context.token ?? context.tokenToLeft;
+
+
+        let currUniCode = currTkn?.rootNode;
+        while (!(currUniCode instanceof UniConstruct)) {
+            currUniCode = currUniCode.rootNode;
+            if (!currUniCode) break;
+        }
+
+        return (
+            // Normal validation
+            validator.atHoleWithType(context, this.constructType) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
-            ValidatorNameSpace.validateAncestors(context, this)
+            ValidatorNameSpace.validateAncestors(context, this))
+            ||
+            // Validation specifically to make constructs starting with a hole
+            // insertable directly after a UniConstruct
+            (this.tokens.length > 0 &&
+                this.tokens[0] instanceof HoleTkn &&
+                currTkn &&
+                currTkn.rootNode instanceof UniConstruct &&
+                this.tokens[0].allowedType === currTkn.rootNode.constructType &&
+                this.constructType === currTkn?.rootNode?.rootNode?.holeTypes.get(currTkn?.rootNode?.indexInRoot))
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
@@ -1767,12 +1824,9 @@ export class AutocompleteTkn extends Token implements TextEditable {
      */
     isMatch(): EditCodeAction {
         for (const match of this.validMatches) {
-            if (
-                this.text === match.matchString
-            )
-                return match;
+            if (this.text === match.matchString) return match;
             // Get all text untill the appearance of a first hole - be it a text or construct hole
-            const textTillHole = match.getConstruct(this.text).getDisplayText().split("--")[0]
+            const textTillHole = match.getConstruct(this.text).getDisplayText().split("--")[0];
             if (this.text === textTillHole) return match;
         }
 
