@@ -5,8 +5,7 @@ import { initializeEditor as initialiseEditor } from "./editor/language-toggle";
 import { Loader } from "./language-definition/loader";
 import { Actions } from "./editor/consts";
 import config from "./language-definition/config.json";
-
-console.log("index");
+import { loadCode } from "./language-definition/parser";
 
 // @ts-ignore
 self.MonacoEnvironment = {
@@ -82,5 +81,7 @@ function download(data, filename, type) {
         window.URL.revokeObjectURL(url);
     }, 0);
 }
+
+// loadCode()
 
 export { nova, runBtnToOutputWindow };
