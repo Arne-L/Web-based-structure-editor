@@ -421,9 +421,9 @@ export interface ToolboxDefinition {
     /**
      * The id of the pop-up, which should be unique. It is never shown to the end user
      *
-     * Required.
+     * Obsolete. Can be removed as it is now handled automatically.
      */
-    title: string;
+    title?: string;
     /**
      * The header of the pop-up, with the title and the description that is being shown.
      *

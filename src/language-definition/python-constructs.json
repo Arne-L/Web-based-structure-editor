@@ -34,7 +34,6 @@
         ],
         "toolbox": {
             "category": "Loops",
-            "title": "while loop",
             "tooltip": {
                 "title": "repeatedly execute code while true",
                 "body": "repeatedly executes the code block inside the while loop as long as the condition remains `True`."

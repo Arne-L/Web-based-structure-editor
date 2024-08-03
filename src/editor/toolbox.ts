@@ -942,7 +942,7 @@ export class TooltipComponent {
             const useCasesContainer = document.createElement("div");
             useCasesContainer.classList.add("use-cases-container");
 
-            const accordion = new Accordion(code.documentation.title.replace(" ", "-"));
+            const accordion = new Accordion(`${code.cssId}-toolbox`);
             tooltipContainer.appendChild(accordion.HTMLElement);
 
             for (const tip of code.documentation.tips) {
