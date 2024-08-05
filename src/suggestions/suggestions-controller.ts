@@ -1,16 +1,12 @@
 import { Position } from "monaco-editor";
 import { EditCodeAction } from "../editor/action-filter";
-import { Actions, EditActionType } from "../editor/consts";
-import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
-import { Construct, UniConstruct } from "../syntax-tree/ast";
+import { Construct } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
-import { createFinalConstruct, getHoleValues } from "../utilities/util";
-import { Context } from "../editor/focus";
 
 /*
  *A tree menu that can hold options for the user and link through those options to other menus.
@@ -54,140 +50,6 @@ class Menu {
 
         this.htmlElement.addEventListener("mouseover", () => {
             this.htmlElement.style.visibility = "visible";
-        });
-    }
-
-    //close any open sub-menus of menu
-    // closeChildren() {
-    //     const activeChildren = this.children.filter((menu) => menu.isOpen);
-
-    //     if (activeChildren.length > 0) {
-    //         activeChildren.forEach((menu) => {
-    //             menu.closeChildren();
-    //             menu.close();
-    //         });
-    //     }
-    // }
-
-    //indent children of this menu according to their level
-    indentChildren(offset: number = 0) {
-        if (this.children.length > 0) {
-            const adjustment = offset + this.htmlElement.offsetWidth;
-            this.children.forEach((child) => {
-                child.htmlElement.style.left = `${adjustment}px`;
-
-                if (child.children.length > 0) child.indentChildren(adjustment);
-            });
-        }
-    }
-
-    //Link this menu to a child through optionInParent
-    linkMenuThroughOption(child: Menu, optionInParent: string) {
-        const option = this.options.filter((option) => option.text === optionInParent)[0];
-
-        if (option.hasChild()) option.setChildMenu(child);
-        else {
-            option.linkToChildMenu(child);
-            option.selectAction = null;
-            child.close();
-
-            child.htmlElement.style.left = `${this.htmlElement.offsetWidth + this.htmlElement.offsetLeft}px`;
-
-            this.addChildMenu(child);
-        }
-    }
-
-    removeChild(child: Menu) {
-        const childIndex = this.children.indexOf(child);
-
-        if (childIndex > -1) {
-            this.children.splice(childIndex, 1);
-            child.removeFromDOM();
-            this.removeLink(child);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    //Remove the option that links this menu to child from this menu and the DOM
-    private removeLink(child: Menu) {
-        const link = this.options.filter((option) => option.hasChild() && option.getChildMenu() === child)[0];
-        this.options.splice(this.options.indexOf(link), 1);
-        link.removeFromDOM();
-    }
-
-    //An empty option is one that does not link to another menu and also does not have a select action
-    private countEmptyOptions() {
-        let count = 0;
-
-        this.options.forEach((option) => {
-            if (!option.selectAction && !option.hasChild()) count++;
-        });
-
-        return count;
-    }
-
-    //Removes menu's that only serve as links (have a single option that links to another menu)
-    static collapseSingleLinkMenus(root: Menu) {
-        //this will collapse a menu that links to a single option as long as it is not the root menu
-        if (root.parentMenu && root.options.length == 1 && root.children.length == 1) {
-            const child = root.children[0];
-
-            //move the child's options' DOM elements to root
-            child.options.forEach((option) => {
-                option.attachToParentMenu(root);
-                const removedOption = child.htmlElement.removeChild(option.htmlElement);
-                root.htmlElement.appendChild(removedOption);
-            });
-
-            //update root's children
-            root.setChildMenus([...root.children, ...child.children]);
-            root.removeChild(child);
-            root.indentChildren(root.htmlElement.offsetLeft);
-
-            root.options = child.options;
-
-            //possible that root is a single option menu that links to another
-            root = Menu.collapseSingleLinkMenus(root);
-
-            return root;
-        }
-
-        //Do this for all nodes
-        root.children.forEach((child) => {
-            child = Menu.collapseSingleLinkMenus(child);
-        });
-
-        return root;
-    }
-
-    removeEmptyChildren() {
-        if (this.children.length == 0) {
-            //root could be a menu with options that had all of their links removed
-            if (this.countEmptyOptions() == this.options.length && this.parentMenu) {
-                this.parentMenu.removeChild(this);
-            }
-        }
-
-        //some options might remain, but not link to a menu or have an action associated with them. These need to be removed
-        //this is due to the fact that buildAvailableInsertsMenu() does not recursively check the menuMap for empty options
-        let optionsToRemove = [];
-        this.options.forEach((option) => {
-            if (!option.hasChild() && !option.selectAction) {
-                optionsToRemove.push(option);
-            }
-        });
-        optionsToRemove.forEach((option) => {
-            option.removeFromDOM();
-        });
-        optionsToRemove = optionsToRemove.map((option) => option.text);
-
-        this.options = this.options.filter((option) => optionsToRemove.indexOf(option.text) == -1);
-
-        this.children.forEach((child) => {
-            child.removeEmptyChildren();
         });
     }
 
