@@ -792,27 +792,27 @@ export class EventRouter {
                 }
 
                 // Get all valid actions at the given cursor position
-                const validActions = this.module.actionFilter
-                    .getProcessedInsertionsList()
-                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-                console.log("IMPORTANT", this.module.validator.atRightOfExpression(context), validActions);
-                if (this.module.validator.atRightOfExpression(context) && validActions.length > 0) {
-                    // Open the autocomplete menu starting from all possible matches
-                    console.log("AT RIGHT OF EXPRESSION");
-                    return new EditAction(EditActionType.OpenAutocomplete, {
-                        autocompleteType: AutoCompleteType.RightOfExpression,
-                        firstChar: e.key,
-                        validMatches: validActions,
-                    });
-                    // Idem but now the cursor is at the left of an expression
-                } else if (this.module.validator.atLeftOfExpression(context) && validActions.length > 0) {
-                    console.log("AT LEFT OF EXPRESSION");
-                    return new EditAction(EditActionType.OpenAutocomplete, {
-                        autocompleteType: AutoCompleteType.LeftOfExpression,
-                        firstChar: e.key,
-                        validMatches: validActions,
-                    });
-                }
+                // const validActions = this.module.actionFilter
+                //     .getProcessedInsertionsList()
+                //     .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                // console.log("IMPORTANT", this.module.validator.atRightOfExpression(context), validActions);
+                // if (this.module.validator.atRightOfExpression(context) && validActions.length > 0) {
+                //     // Open the autocomplete menu starting from all possible matches
+                //     console.log("AT RIGHT OF EXPRESSION");
+                //     return new EditAction(EditActionType.OpenAutocomplete, {
+                //         autocompleteType: AutoCompleteType.RightOfExpression,
+                //         firstChar: e.key,
+                //         validMatches: validActions,
+                //     });
+                //     // Idem but now the cursor is at the left of an expression
+                // } else if (this.module.validator.atLeftOfExpression(context) && validActions.length > 0) {
+                //     console.log("AT LEFT OF EXPRESSION");
+                //     return new EditAction(EditActionType.OpenAutocomplete, {
+                //         autocompleteType: AutoCompleteType.LeftOfExpression,
+                //         firstChar: e.key,
+                //         validMatches: validActions,
+                //     });
+                // }
             }
         }
 
