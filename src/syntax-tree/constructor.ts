@@ -1,4 +1,4 @@
-import { CompoundFormatDefinition, ConstructDefinition, FormatDefType } from "../language-definition/definitions";
+import { CompoundFormatDefinition, FormatDefType } from "../language-definition/definitions";
 import { Loader } from "../language-definition/loader";
 import {
     AssignmentTkn,
@@ -6,16 +6,9 @@ import {
     CompoundConstruct,
     Construct,
     EditableTextTkn,
-    EmptyLineStmt,
-    UniConstruct,
     NonEditableTkn,
-    ReferenceTkn,
     HoleTkn,
 } from "./ast";
-import { DataType } from "./consts";
-import { Scope } from "./scope";
-
-console.log("Constructor");
 
 export namespace SyntaxConstructor {
     /**

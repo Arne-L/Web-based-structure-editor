@@ -145,7 +145,7 @@ export class Focus {
 
         if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct);
         
-        console.log("Context", context, curLine);
+        // console.log("Context", context, curLine);
 
         return context;
     }

@@ -191,7 +191,6 @@ export namespace ValidatorNameSpace {
 
         // Construct is the last construct in the root's tokens
         if (!construct.rootNode || construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
-        console.log("fdfsfd", construct.rootNode, construct.rootNode?.tokens.length - 1);
         // Get the next construct
         const nextConstruct = construct.rootNode.tokens[construct.indexInRoot + 1];
         // If the next construct is a UniConstruct or a Hole, return it

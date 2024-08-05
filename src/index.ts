@@ -45,7 +45,6 @@ languageToggle.addEventListener("change", handleToggle);
 document.getElementById("exportCodeBtn").addEventListener("click", () => {
     const code = nova.editor.monaco.getValue();
     download(code, "code.py", "text/plain");
-    console.log("Exported code", code);
 });
 
 async function handleToggle() {

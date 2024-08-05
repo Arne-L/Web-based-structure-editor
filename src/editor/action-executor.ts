@@ -1979,8 +1979,6 @@ export class ActionExecutor {
         if (existingAutocompleteTkn instanceof AutocompleteTkn) {
             autocompleteTkn = existingAutocompleteTkn;
 
-            console.log("Existing autocomplete token found", autocompleteTkn);
-
             this.openAutocompleteMenu(autocompleteTkn.validMatches);
             this.updateAutocompleteMenu(autocompleteTkn);
             // do something
@@ -1989,11 +1987,8 @@ export class ActionExecutor {
                 .getProcessedInsertionsList()
                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
 
-            console.log("No existing autocomplete token found", validMatches);
-
             // Create a new autocompleteTkn
             autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);
-            console.log("AutocompleteTkn", autocompleteTkn);
 
             // MOVE TO AUTOCOMPLETETKN CONSTRUCTION?
             // Update the menu whenever the text changes
@@ -2047,7 +2042,6 @@ export class ActionExecutor {
             this.module.editor.cursor.setSelection(null);
             // Check if there is an exact match
             const match = autocompleteTkn.isTerminatingMatch();
-            console.log("Match found", match);
 
             // If the match is exact, insert the construct in the editor
             if (match) {
