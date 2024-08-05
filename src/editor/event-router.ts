@@ -679,8 +679,11 @@ export class EventRouter {
                     // Check if constructs can be inserted on non-empty (non-hole) positions
                     // based on the amount of valid matches (constructs of which their validateContext method
                     // succeeds)
-                    if (validMatches.length > 0) {
-                        console.log("OPEN AUTOCOMPLETE");
+                    // Matches starting with a hole (ASSUMPTION: all valid matches start with a hole) and in which the second
+                    // subconstruct contains the pressed key
+                    const validMatchesWithKey = validMatches.filter((item) => item.getCode().tokens.at(1)?.getRenderText().includes(e.key))
+                    if (validMatchesWithKey.length > 0) {
+                        console.log("OPEN AUTOCOMPLETE", validMatches);
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.RightOfExpression,
                             firstChar: e.key,
