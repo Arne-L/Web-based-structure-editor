@@ -15,6 +15,7 @@ import { Module } from "./module";
 import { Scope } from "./scope";
 import { ASTManupilation } from "./utils";
 import { ValidatorNameSpace } from "./validator";
+import { doesConstructContainPos } from "../utilities/util";
 
 export abstract class Construct {
     /**
@@ -149,6 +150,13 @@ export abstract class Construct {
     abstract getRenderText(): string;
 
     /**
+     * Returns the symbolic value of the code construct by joining all its tokens. It is
+     * identical to getRenderText() with the exception that holes are rendered
+     * as either -- (textual) or --- (construct)
+     */
+    abstract getDisplayText(): string;
+
+    /**
      * Returns the line number of this code-construct in the rendered text.
      */
     abstract getFirstLineNumber(): number;
@@ -179,6 +187,42 @@ export abstract class Construct {
     }
 
     /**
+     * Get the smallest UniConstruct that is a sibling of the current construct.
+     *
+     * @param left - Whether to get the left sibling (true) or the right sibling (false)
+     * @returns - The smallest UniConstruct directly adjacent to the current construct, null if
+     * none is found
+     */
+    getUniSibling(left = true): UniConstruct {
+        // Go through all constructs in the code
+        const constructStack = new Array<Construct>();
+
+        // Initialise the stack with the root construct
+        constructStack.push(Module.instance.compoundConstruct);
+
+        // Keep track of the uniconstructs found until now
+        let uniConstruct;
+        // As long as the program contains unvisited constructs
+        while (constructStack.length > 0) {
+            // Get the next construct
+            const construct = constructStack.pop();
+
+            // If construct's end position does not equal the current left position, skip this construct
+            if (left && !construct.right.equals(this.left)) continue;
+            if (!left && !construct.left.equals(this.right)) continue;
+
+            // If the construct is a uniconstruct, set it as the current smallest sibling
+            if (construct instanceof UniConstruct) uniConstruct = construct;
+
+            // If a codeconstruct covers the left position, one of its children might be a sibling
+            if (construct instanceof CodeConstruct && doesConstructContainPos(construct, left ? this.left : this.right))
+                constructStack.push(...construct.tokens);
+        }
+
+        return uniConstruct;
+    }
+
+    /**
      * Returns the parent statement of this CodeConstruct (an element of the Module.body array).
      *
      * @param type - The type of the CodeConstruct to return; if none is given, the nearest CodeConstruct
@@ -186,7 +230,7 @@ export abstract class Construct {
      * @returns The nearest (itself or an ancestor) CodeConstruct of the given
      * CodeConstruct type if given, otherwise the nearest CodeConstruct
      */
-    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    abstract getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     abstract getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     abstract getNearestCodeConstruct(): CodeConstruct;
 
@@ -287,15 +331,34 @@ export abstract class CodeConstruct extends Construct {
     holeTypes: Map<number, string> = new Map<number, string>();
 
     /**
-     * List of all assignments within the statement.
+     * List of all assignments within the construct. Each number functions as an index
+     * in the list of tokens, identifying the ones that function as an assignment.
      */
     private assignmentIndices: number[] = [];
 
     // TODO: TEMP - REMOVE IN THE FUTURE
     body: Array<CodeConstruct> = new Array<CodeConstruct>();
+
     // TODO: TEMP
     hasBody() {
         return false;
+    }
+
+    /**
+     * Check if the construct is changeable or has changeable parts
+     */
+    get hasSubValues(): boolean {
+        return this.tokens.some((val) => val.hasSubValues);
+    }
+
+    /**
+     * Whether the construct has changeable parts.
+     *
+     * @returns True if subparts of the construct can be changed, such as subexpressions
+     * or changeable tokens, otherwise false
+     */
+    isAtomic(): boolean {
+        return !this.hasSubValues;
     }
 
     /**
@@ -324,12 +387,17 @@ export abstract class CodeConstruct extends Construct {
     }
 
     /**
-     * Whether the statement contains any assignments
+     * Whether the codeconstruct contains any assignments
      *
+     * @param - Check if the given index corresponds to an assignment. If not provided,
+     * checks the entires construct for any assignment.
      * @returns true if the statement contains any assignments, false otherwise
      */
-    containsAssignments(): boolean {
-        return this.assignmentIndices.length > 0;
+    containsAssignments(index?: number): boolean {
+        // If no index given, check if there is ANY assignment in the construct
+        if (index === null || index === undefined) return this.assignmentIndices.length > 0;
+        // Check if the given index is an assignment in the construct
+        return this.assignmentIndices.some((val) => val === index);
     }
 
     /**
@@ -426,6 +494,12 @@ export abstract class CodeConstruct extends Construct {
     getModule(): Module {
         return Module.instance;
     }
+
+    getDisplayText(): string {
+        let txt = "";
+        for (const token of this.tokens) txt += token.getDisplayText();
+        return txt;
+    }
 }
 
 /**
@@ -436,7 +510,7 @@ export abstract class Statement extends CodeConstruct {
     scope: Scope = null;
     background: CodeBackground = null;
     message: HoverMessage = null;
-    keywordIndex = -1;
+    // keywordIndex = -1;
     simpleInvalidTooltip: string = Tooltip.InvalidInsertStatement;
 
     constructor() {
@@ -450,26 +524,12 @@ export abstract class Statement extends CodeConstruct {
         );
     }
 
-    /**
-     * The lineNumbers from the beginning to the end of this construct, including child constructs.
-     */
-    getHeight(): number {
-        if (this.body.length == 0) return 1;
-        else {
-            let height = 1;
-
-            for (const line of this.body) height += line.getHeight();
-
-            return height;
-        }
-    }
-
-    /**
-     * This should be true for every statement that has a body.
-     */
-    hasScope(): boolean {
-        return this.scope != null;
-    }
+    // /**
+    //  * This should be true for every statement that has a body.
+    //  */
+    // hasScope(): boolean {
+    //     return this.scope != null;
+    // }
 
     /**
      * Get the nearest scope if there is one.
@@ -482,12 +542,9 @@ export abstract class Statement extends CodeConstruct {
         return this.scope ?? this.rootNode?.getNearestScope();
     }
 
+    // FFD?
     hasBody(): boolean {
         return this.body.length > 0;
-    }
-
-    getBoundaries(): Range {
-        return new Range(this.left.lineNumber, this.leftCol, this.right.lineNumber, this.rightCol);
     }
 
     // DO WE STILL WANT THIS FUNCTION OR DO WE WANT TO INTEGRATE IT WITH THE POSITION?
@@ -624,7 +681,7 @@ export abstract class Statement extends CodeConstruct {
      * this method!
      */
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct | Statement | CompoundConstruct {
         if (!type || type === CodeConstructType.UniConstruct) return this;
@@ -657,7 +714,7 @@ export abstract class Statement extends CodeConstruct {
      * @returns text representation of statement's keyword or an empty string if it has none
      */
     getKeyword(): string {
-        if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
+        // if (this.keywordIndex > -1) return (this.tokens[this.keywordIndex] as Token).text;
 
         return "";
     }
@@ -777,7 +834,7 @@ class AncestorConstruct {
  *
  * Data necessary for the statement is loaded from the configuration file and given to the class in the construct argument of the constructor.
  */
-export class GeneralStatement extends Statement {
+export class UniConstruct extends Statement {
     // private argumentsIndices = new Array<number>();
     keyword: string = "";
     /**
@@ -807,7 +864,7 @@ export class GeneralStatement extends Statement {
     /**
      * Map of all possible constructs. The key is the name of the construct, the value is the construct itself.
      */
-    static constructs: Map<string, GeneralStatement>;
+    static constructs: Map<string, UniConstruct>;
 
     /**
      * The type of the construct. Most frequent options are "statement" and "expression".
@@ -862,21 +919,6 @@ export class GeneralStatement extends Statement {
             }
         }
 
-        // Handling assignments
-        /**
-         * Different variants in Python:
-         * 1) Definition: a = 5
-         *    Use: a
-         * Augmented assignment should not require any special logic
-         *
-         * 2) Definition: def func(a, b)
-         *    Use: func(a, b)
-         * Need to be able to use a and b in the definition body
-         *
-         * 3) Definition: class A:
-         *    Use: A(a, b)
-         */
-
         // Add the requiring constructs
         if (construct.requiringConstructs)
             this.requiringConstructs = construct.requiringConstructs.map(
@@ -895,18 +937,11 @@ export class GeneralStatement extends Statement {
     }
 
     /**
-     * Check if the construct is changeable or has changeable parts
-     */
-    get hasSubValues(): boolean {
-        return this.tokens.some((val) => val.hasSubValues);
-    }
-
-    /**
      * TODO: Temporary solution REMOVE LATER!!
      *
      * @param constructs - The constructs to add to the map
      */
-    static addAllConstructs(constructs: GeneralStatement[]) {
+    static addAllConstructs(constructs: UniConstruct[]) {
         this.constructs = constructs.reduce((map, construct) => {
             map.set(construct.keyword, construct);
             return map;
@@ -931,7 +966,7 @@ export class GeneralStatement extends Statement {
      * on / requires it
      * @returns true if the current construct is depending on / requires the given construct,
      */
-    isDependentOf(construct: GeneralStatement): boolean {
+    isDependentOf(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiredConstructs.includes(construct.getKeyword());
     }
@@ -942,23 +977,13 @@ export class GeneralStatement extends Statement {
      * @param construct - The construct to check if it is depending on / requires the current construct
      * @returns true if the current construct has the given construct as a dependent / requiring construct
      */
-    hasDependent(construct: GeneralStatement): boolean {
+    hasDependent(construct: UniConstruct): boolean {
         if (!construct) return false;
         return this.requiringConstructs.some((dependent) => dependent.getConstructName() === construct.getKeyword());
     }
 
     getKeyword(): string {
         return this.keyword;
-    }
-
-    /**
-     * Whether the construct has changeable parts.
-     *
-     * @returns True if subparts of the construct can be changed, such as subexpressions
-     * or changeable tokens, otherwise false
-     */
-    isAtomic(): boolean {
-        return !this.hasSubValues;
     }
 
     /**
@@ -971,16 +996,35 @@ export class GeneralStatement extends Statement {
     validateContext(validator: Validator, providedContext: Context): InsertionType {
         const context = providedContext ? providedContext : validator.module.focus.getContext();
 
-        return (context.codeConstruct instanceof EmptyLineStmt ||
-            validator.atHoleWithType(context, this.constructType)) &&
+        const currTkn = context.token ?? context.tokenToLeft;
+
+
+        let currUniCode = currTkn?.rootNode;
+        while (!(currUniCode instanceof UniConstruct)) {
+            currUniCode = currUniCode.rootNode;
+            if (!currUniCode) break;
+        }
+
+        return (
+            // Normal validation
+            validator.atHoleWithType(context, this.constructType) &&
             ValidatorNameSpace.validateRequiredConstructs(context, this) &&
-            ValidatorNameSpace.validateAncestors(context, this)
+            ValidatorNameSpace.validateAncestors(context, this))
+            ||
+            // Validation specifically to make constructs starting with a hole
+            // insertable directly after a UniConstruct
+            (this.tokens.length > 0 &&
+                this.tokens[0] instanceof HoleTkn &&
+                currTkn &&
+                currTkn.rootNode instanceof UniConstruct &&
+                this.tokens[0].allowedType === currTkn.rootNode.constructType &&
+                this.constructType === currTkn?.rootNode?.rootNode?.holeTypes.get(currTkn?.rootNode?.indexInRoot))
             ? InsertionType.Valid
             : InsertionType.Invalid;
     }
 }
 
-export class GeneralExpression extends GeneralStatement {
+export class GeneralExpression extends UniConstruct {
     constructor(
         construct: ConstructDefinition,
         root?: CodeConstruct,
@@ -1207,12 +1251,16 @@ export abstract class Token extends Construct {
         return this.text;
     }
 
+    getDisplayText(): string {
+        return this.text;
+    }
+
     getFirstLineNumber(): number {
         return this.left.lineNumber;
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // This is weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -1438,6 +1486,10 @@ export class EditableTextTkn extends Token implements TextEditable {
 
         return new Position(pos.lineNumber, this.rightCol);
     }
+
+    getDisplayText(): string {
+        return this.text ? this.text : "--";
+    }
 }
 
 /**
@@ -1510,6 +1562,10 @@ export class IdentifierTkn extends Token implements TextEditable {
 
     isEmptyIdentifier(): boolean {
         return this.text == EMPTYIDENTIFIER;
+    }
+
+    getDisplayText(): string {
+        return this.text && this.text !== "  " ? this.text : "--";
     }
 }
 
@@ -1767,7 +1823,12 @@ export class AutocompleteTkn extends Token implements TextEditable {
      * @returns - Matching EditCodeAction or null if no match
      */
     isMatch(): EditCodeAction {
-        for (const match of this.validMatches) if (this.text == match.matchString) return match;
+        for (const match of this.validMatches) {
+            if (this.text === match.matchString) return match;
+            // Get all text untill the appearance of a first hole - be it a text or construct hole
+            const textTillHole = match.getConstruct(this.text).getDisplayText().split("--")[0];
+            if (this.text === textTillHole) return match;
+        }
 
         return null;
     }
@@ -1836,7 +1897,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
 }
 
 /**
- * Represents the "holes" in the text that can be filled with expressions
+ * Represents the "holes" in the code than can be filled with constructs
  */
 export class HoleTkn extends Token {
     isEmpty = true;
@@ -1863,6 +1924,10 @@ export class HoleTkn extends Token {
     }
 
     getKeyword(): string {
+        return "---";
+    }
+
+    getDisplayText(): string {
         return "---";
     }
 }
@@ -1939,7 +2004,7 @@ export abstract class HoleStructure extends Construct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         // Weird TypeScript behaviour: it needs to now the exact type argument to be able to call the method
@@ -2028,10 +2093,6 @@ export class CompoundConstruct extends CodeConstruct {
         this.tokens = SyntaxConstructor.constructTokensFromJSONCompound(compoundToken, this, null, null, null, 0, true);
         // How to construct? Build until a waitOnUser? The seperator token can maybe also have
         // a waitOnUser? So that we leave the option to the specification writing user.
-    }
-
-    get hasSubValues(): boolean {
-        return this.tokens.some((tkn) => tkn.hasSubValues);
     }
 
     get hasEmptyToken(): boolean {
@@ -2278,7 +2339,7 @@ export class CompoundConstruct extends CodeConstruct {
     }
 
     getNearestCodeConstruct(): CodeConstruct;
-    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): GeneralStatement;
+    getNearestCodeConstruct(type: CodeConstructType.UniConstruct): UniConstruct;
     getNearestCodeConstruct(type: CodeConstructType.CompoundConstruct): CompoundConstruct;
     getNearestCodeConstruct(type?: CodeConstructType): CodeConstruct {
         if (!type || type === CodeConstructType.CompoundConstruct) return this;

@@ -1,4 +1,4 @@
-import { initLanguage } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import { ErrorMessage } from "../messages/error-msg-generator";
 import { Construct } from "./ast";
 import { Module } from "./module";
@@ -15,7 +15,7 @@ export class Language {
         this.module = module;
 
         // Load the language definition file
-        const langConfig = initLanguage();
+        const langConfig = Loader.instance.mainSettings();
         this.language = langConfig.language;
         this.reservedWords = langConfig.reservedWords;
     }

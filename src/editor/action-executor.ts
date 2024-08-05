@@ -12,7 +12,7 @@ import {
     // EmptyOperatorTkn,
     // Expression,
     GeneralExpression,
-    GeneralStatement,
+    UniConstruct,
     IdentifierTkn,
     // IfStatement,
     Importable,
@@ -124,6 +124,7 @@ export class ActionExecutor {
 
             // NOT language independent
             case EditActionType.OpenAutocomplete: {
+                // TODO: action.data.validMatches is obselete and can be removed
                 this.openSuggestionMenu(context, action.data.firstChar, action.data.autocompleteType);
                 break;
             }
@@ -141,7 +142,7 @@ export class ActionExecutor {
                 //     this.deleteModifier(context.expressionToRight, { deleting: true });
                 // } else
                 // this.module.deleteCode(context.expressionToRight);
-                this.module.deleteConstruct(context.expressionToRight);
+                this.module.deleteConstruct(context.codeConstructToRight);
 
                 break;
             }
@@ -162,8 +163,15 @@ export class ActionExecutor {
                 // else if (context.expressionToLeft instanceof Modifier) this.deleteModifier(context.expressionToLeft);
                 // else
                 // this.module.deleteCode(context.expressionToLeft);
-                this.module.deleteConstruct(context.expressionToLeft);
+                this.module.deleteConstruct(context.codeConstructToLeft);
 
+                break;
+            }
+
+            case EditActionType.DeleteToken: {
+                this.module.deleteConstruct(
+                    context.token ?? (action.data.backwards ? context.tokenToLeft : context.tokenToRight)
+                );
                 break;
             }
 
@@ -187,10 +195,10 @@ export class ActionExecutor {
                 break;
             }
 
-            case EditActionType.DeleteStmt: {
+            case EditActionType.DeleteCodeConstruct: {
                 // Remove the currently focused statement and update the body to
                 // reflect the new correct indentation
-                this.module.indentBodyConstructs(context, true);
+                // this.module.indentBodyConstructs(context, true); // TODO: FFD?
                 // this.module.deleteCode(context.codeConstruct, { statement: true });
                 this.module.deleteConstruct(context.codeConstruct);
 
@@ -244,36 +252,36 @@ export class ActionExecutor {
 
             // NOT language independent
             // See before
-            case EditActionType.DeleteEmptyLine: {
-                this.module.deleteLine(context.codeConstruct);
-                let range: Range;
+            // case EditActionType.DeleteEmptyLine: {
+            //     this.module.deleteLine(context.codeConstruct);
+            //     let range: Range;
 
-                if (action.data?.pressedBackspace) {
-                    const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
-                        context.codeConstruct.lineNumber - 1
-                    );
-                    this.module.focus.updateContext({
-                        positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
-                    });
-                    range = new Range(
-                        context.codeConstruct.lineNumber,
-                        context.codeConstruct.leftCol,
-                        lineAbove.lineNumber,
-                        lineAbove.rightCol
-                    );
-                } else {
-                    range = new Range(
-                        context.codeConstruct.lineNumber,
-                        context.codeConstruct.leftCol,
-                        context.codeConstruct.lineNumber + 1,
-                        context.codeConstruct.leftCol
-                    );
-                }
+            //     if (action.data?.pressedBackspace) {
+            //         const lineAbove = this.module.focus.getCodeConstructAtLineNumber(
+            //             context.codeConstruct.lineNumber - 1
+            //         );
+            //         this.module.focus.updateContext({
+            //             positionToMove: new Position(lineAbove.lineNumber, lineAbove.rightCol),
+            //         });
+            //         range = new Range(
+            //             context.codeConstruct.lineNumber,
+            //             context.codeConstruct.leftCol,
+            //             lineAbove.lineNumber,
+            //             lineAbove.rightCol
+            //         );
+            //     } else {
+            //         range = new Range(
+            //             context.codeConstruct.lineNumber,
+            //             context.codeConstruct.leftCol,
+            //             context.codeConstruct.lineNumber + 1,
+            //             context.codeConstruct.leftCol
+            //         );
+            //     }
 
-                this.module.editor.executeEdits(range, null, "");
+            //     this.module.editor.executeEdits(range, null, "");
 
-                break;
-            }
+            //     break;
+            // }
 
             // NOT language independent
             // Idem
@@ -284,25 +292,25 @@ export class ActionExecutor {
             // }
 
             // Partly language independent
-            case EditActionType.DeletePrevLine: {
-                const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
+            // case EditActionType.DeletePrevLine: {
+            //     const prevLine = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
 
-                if (prevLine.leftCol != context.codeConstruct.leftCol) {
-                    // Indent the current line
-                    this.module.indentConstruct(context.codeConstruct, false);
-                }
+            //     if (prevLine.leftCol != context.codeConstruct.leftCol) {
+            //         // Indent the current line
+            //         this.module.indentConstruct(context.codeConstruct, false);
+            //     }
 
-                const deleteRange = new Range(
-                    prevLine.lineNumber,
-                    prevLine.leftCol,
-                    prevLine.lineNumber + 1,
-                    prevLine.leftCol
-                );
-                this.module.deleteLine(prevLine);
-                this.module.editor.executeEdits(deleteRange, null, "");
+            //     const deleteRange = new Range(
+            //         prevLine.lineNumber,
+            //         prevLine.leftCol,
+            //         prevLine.lineNumber + 1,
+            //         prevLine.leftCol
+            //     );
+            //     this.module.deleteLine(prevLine);
+            //     this.module.editor.executeEdits(deleteRange, null, "");
 
-                break;
-            }
+            //     break;
+            // }
 
             // Mostly language independent: except for "indentBackStatement"
             // case EditActionType.DeleteBackMultiLines: {
@@ -321,20 +329,21 @@ export class ActionExecutor {
             // }
 
             // Mostly language independent: except for "indentBackStatement"
-            case EditActionType.IndentBackwards: {
-                this.module.indentConstruct(context.codeConstruct, true);
+            // case EditActionType.IndentBackwards: {
+            //     this.module.indentConstruct(context.codeConstruct, true);
 
-                this.module.focus.fireOnNavChangeCallbacks();
+            //     this.module.focus.fireOnNavChangeCallbacks();
 
-                break;
-            }
+            //     break;
+            // }
 
             // Mostly language independent: except for "indentForwardStatement"
             case EditActionType.IndentForwards: {
-                this.module.editor.indentRecursively(context.codeConstruct, { backward: false });
-                this.module.indentForwardStatement(context.codeConstruct);
+                // TODO: currently disabled; see comments in corresponding part of the event-router class
+                // this.module.editor.indentRecursively(context.codeConstruct, { backward: false });
+                // this.module.indentForwardStatement(context.codeConstruct);
 
-                this.module.focus.fireOnNavChangeCallbacks();
+                // this.module.focus.fireOnNavChangeCallbacks();
 
                 break;
             }
@@ -499,18 +508,18 @@ export class ActionExecutor {
 
                     // If the current expression is atomic (has no subexpressions or editable token)
                     if (
-                        context.construct instanceof GeneralStatement &&
+                        context.construct instanceof UniConstruct &&
                         context.construct?.isAtomic() /*context.expression instanceof LiteralValExpr*/
                     ) {
                         removableExpr = context.construct;
                     } else if (context.token instanceof AutocompleteTkn) {
                         removableExpr = context.token;
-                    } else if (context.expressionToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
-                        removableExpr = context.expressionToLeft;
+                    } else if (context.codeConstructToLeft?.isAtomic() /*instanceof LiteralValExpr*/) {
+                        removableExpr = context.codeConstructToLeft;
                     } else if (context.tokenToLeft instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToLeft;
-                    } else if (context.expressionToRight?.isAtomic() /*instanceof LiteralValExpr*/) {
-                        removableExpr = context.expressionToRight;
+                    } else if (context.codeConstructToRight?.isAtomic() /*instanceof LiteralValExpr*/) {
+                        removableExpr = context.codeConstructToRight;
                     } else if (context.tokenToRight instanceof AutocompleteTkn) {
                         removableExpr = context.tokenToRight;
                     }
@@ -1094,10 +1103,10 @@ export class ActionExecutor {
 
                 break;
 
-            case EditActionType.CloseSubMenu:
-                this.module.menuController.closeSubMenu();
+            // case EditActionType.CloseSubMenu:
+            //     this.module.menuController.closeSubMenu();
 
-                break;
+            //     break;
 
             case EditActionType.CloseDraftMode:
                 // this.module.deleteCode(action.data.codeNode);
@@ -1247,10 +1256,11 @@ export class ActionExecutor {
      * @returns
      */
     private performMatchAction(match: EditCodeAction, token: AutocompleteTkn) {
+        const code = match.getConstruct(token.text);
         // If you are matching a new variable statement and the token is a keyword
         // or a built-in function
         if (
-            (match.getCode() as GeneralStatement)?.containsAssignments() &&
+            code.containsAssignments() &&
             this.module.language.isReservedWord(token.text.trim())
         ) {
             // TODO: can insert an interesting warning
@@ -1261,7 +1271,7 @@ export class ActionExecutor {
         // Length of the match token
         let length = 0;
         // Get the length of the text token if it is a variable
-        if ((match.getCode() as GeneralStatement)?.containsAssignments()) length = token.text.length + 1;
+        if (code.containsAssignments()) length = token.text.length + 1;
         // Otherwise, get the length of the match string
         else length = match.matchString.length + 1;
 
@@ -1272,6 +1282,9 @@ export class ActionExecutor {
             { type: "autocomplete", precision: "1", length },
             {
                 identifier: token.text,
+                // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                // they can be used in the autocomplete
+                values: match.matchRegex ? match.matchRegex.exec(token.text) : [],
             }
         );
     }
@@ -1340,74 +1353,74 @@ export class ActionExecutor {
     //     }
     // }
 
-    /**
-     * Insert the given expression into the current context, checking types and updating the Monaco editor
-     * in the process.
-     *
-     * @param context - The current focus context
-     * @param code - The expression to insert
-     */
-    private insertExpression(context: Context, code: Construct) {
-        // type checks -- different handling based on type of code construct
-        // focusedNode.returns != code.returns would work, but we need more context to get the right error message
-        // context.token is the focused hole in which you want to insert
-        // We can only insert expressions in holes / TypedEmptyExpr
+    // /**
+    //  * Insert the given expression into the current context, checking types and updating the Monaco editor
+    //  * in the process.
+    //  *
+    //  * @param context - The current focus context
+    //  * @param code - The expression to insert
+    //  */
+    // private insertExpression(context: Context, code: Construct) {
+    //     // type checks -- different handling based on type of code construct
+    //     // focusedNode.returns != code.returns would work, but we need more context to get the right error message
+    //     // context.token is the focused hole in which you want to insert
+    //     // We can only insert expressions in holes / TypedEmptyExpr
 
-        if (!(context.token instanceof HoleTkn)) return;
+    //     if (!(context.token instanceof HoleTkn)) return;
 
-        // The root of the hole (either an expression or a statement)
-        const root = context.token.rootNode;
-        // Determine whether the expression "code" can be inserted into the hole
-        let insertionResult = new InsertionResult(InsertionType.Valid, "", []); //root.typeValidateInsertionIntoHole(code, context.token);
+    //     // The root of the hole (either an expression or a statement)
+    //     const root = context.token.rootNode;
+    //     // Determine whether the expression "code" can be inserted into the hole
+    //     let insertionResult = new InsertionResult(InsertionType.Valid, "", []); //root.typeValidateInsertionIntoHole(code, context.token);
 
-        // Remove message if there is one
-        if (context.token.message && context.selected) {
-            //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
-            this.module.messageController.removeMessageFromConstruct(context.token);
-        }
+    //     // Remove message if there is one
+    //     if (context.token.message && context.selected) {
+    //         //TODO: This should only be closed if the current insertion would fix the current draft mode. Currently we don't know if that is the case.
+    //         this.module.messageController.removeMessageFromConstruct(context.token);
+    //     }
 
-        // Replaces expression with the newly inserted expression
-        this.module.replaceFocusedExpression(code);
+    //     // Replaces expression with the newly inserted expression
+    //     this.module.replaceFocusedExpression(code);
 
-        // Current range
-        const range = new Range(
-            context.position.lineNumber,
-            context.token.leftCol,
-            context.position.lineNumber,
-            context.token.rightCol
-        );
+    //     // Current range
+    //     const range = new Range(
+    //         context.position.lineNumber,
+    //         context.token.leftCol,
+    //         context.position.lineNumber,
+    //         context.token.rightCol
+    //     );
 
-        // Update the text in the Monaco editor
-        this.module.editor.executeEdits(range, code);
+    //     // Update the text in the Monaco editor
+    //     this.module.editor.executeEdits(range, code);
 
-        //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
-        if (!context.token.message) {
-            const newContext = code.getInitialFocus();
-            this.module.focus.updateContext(newContext);
-        }
+    //     //TODO: This should probably run only if the insert above was successful, we cannot assume that it was
+    //     if (!context.token.message) {
+    //         const newContext = code.getInitialFocus();
+    //         this.module.focus.updateContext(newContext);
+    //     }
 
-        // if (root instanceof BinaryOperatorExpr) {
-        //     // Type check binary expression
-        //     // root.validateTypes(this.module);
-        // } else
-        // if (insertionResult.insertionType == InsertionType.DraftMode) {
-        //     this.module.openDraftMode(code, insertionResult.message, [
-        //         ...insertionResult.conversionRecords.map((conversionRecord) => {
-        //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
-        //         }),
-        //     ]);
-        // } else
-        if (isImportable(code)) {
-            //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
-            //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
-            //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some
-            //draft modes this way.
+    //     // if (root instanceof BinaryOperatorExpr) {
+    //     //     // Type check binary expression
+    //     //     // root.validateTypes(this.module);
+    //     // } else
+    //     // if (insertionResult.insertionType == InsertionType.DraftMode) {
+    //     //     this.module.openDraftMode(code, insertionResult.message, [
+    //     //         ...insertionResult.conversionRecords.map((conversionRecord) => {
+    //     //             return conversionRecord.getConversionButton(code.getKeyword(), this.module, code);
+    //     //         }),
+    //     //     ]);
+    //     // } else
+    //     if (isImportable(code)) {
+    //         //TODO: This needs to run regardless of what happens above. But for that we need nested draft modes. It should not be a case within the same if block
+    //         //The current problem is that a construct can only have a single draft mode on it. This is mostly ok since we often reinsert the construct when fixing a draft mode
+    //         //and the reinsertion triggers another draft mode if necessary. But this does not happen for importables because they are not reinserted on a fix so we might lose some
+    //         //draft modes this way.
 
-            //A quick fix for now would be to just trigger reinsertion. Otherwise we need a mechanism for having multiple draft modes. I have a commit on a separate branch for that.
-            //Converting them to a linked list seems to make the most sense.
-            this.checkImports(code, insertionResult.insertionType);
-        }
-    }
+    //         //A quick fix for now would be to just trigger reinsertion. Otherwise we need a mechanism for having multiple draft modes. I have a commit on a separate branch for that.
+    //         //Converting them to a linked list seems to make the most sense.
+    //         this.checkImports(code, insertionResult.insertionType);
+    //     }
+    // }
 
     /**
      * Check if all imports are satisfied and if not, open the draft mode for the given importable
@@ -1966,6 +1979,8 @@ export class ActionExecutor {
         if (existingAutocompleteTkn instanceof AutocompleteTkn) {
             autocompleteTkn = existingAutocompleteTkn;
 
+            console.log("Existing autocomplete token found", autocompleteTkn);
+
             this.openAutocompleteMenu(autocompleteTkn.validMatches);
             this.updateAutocompleteMenu(autocompleteTkn);
             // do something
@@ -1974,8 +1989,11 @@ export class ActionExecutor {
                 .getProcessedInsertionsList()
                 .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
 
+            console.log("No existing autocomplete token found", validMatches);
+
             // Create a new autocompleteTkn
             autocompleteTkn = new AutocompleteTkn(text, autocompleteType, validMatches);
+            console.log("AutocompleteTkn", autocompleteTkn);
 
             // MOVE TO AUTOCOMPLETETKN CONSTRUCTION?
             // Update the menu whenever the text changes
@@ -2029,6 +2047,7 @@ export class ActionExecutor {
             this.module.editor.cursor.setSelection(null);
             // Check if there is an exact match
             const match = autocompleteTkn.isTerminatingMatch();
+            console.log("Match found", match);
 
             // If the match is exact, insert the construct in the editor
             if (match) {

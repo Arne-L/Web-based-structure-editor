@@ -1,6 +1,6 @@
 import { editor, IKeyboardEvent, IScrollEvent, Position } from "monaco-editor";
 
-import { INDENT } from "../language-definition/parser";
+import { Loader } from "../language-definition/loader";
 import * as ast from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { ASTManupilation } from "../syntax-tree/utils";
@@ -191,10 +191,11 @@ export class EventRouter {
                 // console.log("Expression to right", context.expressionToRight);
                 // console.log("Current expression", context.expression);
 
-                if (this.module.validator.canDeleteEmptyLine(context, { backwards: false })) {
-                    return new EditAction(EditActionType.DeleteEmptyLine);
-                } else if (this.module.validator.canDeleteNextStmt(context)) {
-                    return new EditAction(EditActionType.DeleteStmt);
+                // if (this.module.validator.canDeleteEmptyLine(context, { backwards: false })) {
+                //     return new EditAction(EditActionType.DeleteEmptyLine);
+                // } else
+                if (this.module.validator.canDeleteNextStmt(context)) {
+                    return new EditAction(EditActionType.DeleteCodeConstruct);
                 } else if (this.module.validator.canDeleteNextTkn(context)) {
                     // Token to the right of the current position is non-editable
                     return new EditAction(EditActionType.DeleteRootOfToken, { backwards: false });
@@ -214,7 +215,7 @@ export class EventRouter {
                         }
                         return new EditAction(EditActionType.ReplaceExpressionWithItem);
                     }
-                    if (context.token.rootNode instanceof ast.GeneralStatement) {
+                    if (context.token.rootNode instanceof ast.UniConstruct) {
                         if (this.module.validator.canDeleteStatement(context)) {
                             return new EditAction(EditActionType.DeleteStatement);
                         }
@@ -290,6 +291,7 @@ export class EventRouter {
                 // Token directly to the left of the cursor is either the current
                 // token or the token to the left (if between two tokens)
                 const curTkn = context.token ?? context.tokenToLeft;
+                console.log("context", context);
                 if (curTkn instanceof ast.Token) {
                     if (
                         curTkn instanceof ast.AutocompleteTkn ||
@@ -297,14 +299,31 @@ export class EventRouter {
                         curTkn instanceof ast.EditableTextTkn
                     ) {
                         console.log("BACKSPACE editable");
-                        if (!curTkn.isEmpty) return new EditAction(EditActionType.DeletePrevChar);
+                        // Strictly more than one character left
+                        if (curTkn.text.length > 1) {
+                            console.log("BACKSPACE not empty");
+                            return new EditAction(EditActionType.DeletePrevChar);
+                            // Exactly one character left; removing it should replace the text slot with
+                            // a hole
+                        } else if (curTkn.text.length === 1) {
+                            console.log("BACKSPACE one character left");
+                            // Autocomplete tokens appear on their own, without encapsulating construct
+                            if (curTkn instanceof ast.AutocompleteTkn)
+                                return new EditAction(EditActionType.DeleteToken, { backwards: true });
+                            // Once inserted, a token will always be encapsulated either within a CodeConstruct (Compound or Uni)
+                            else return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
+                        } // If the root is a compound and the current slot is empty, remove one iteration of the root
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                            console.log("BACKSPACE compound");
                             // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
+                            // Else simply remove the previous character
                         } else {
+                            console.log("BACKSPACE previous");
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
                         }
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
+                        console.log("BACKSPACE compound");
                         const nearestCompound = curTkn.rootNode;
                         // The cycle to remove is the last compound cycle and the current compound is not the top most compound
                         // Otherwise, it would not be possible to jump to next compound up in the tree
@@ -333,15 +352,19 @@ export class EventRouter {
                                 nearestCompound.compoundToken.toString() === nextCompound.compoundToken.toString()
                             ) {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
+                                console.log("prevTkn", prevTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
-                                if (curTkn instanceof ast.HoleTkn && prevTkn.getRenderText() === INDENT) {
+                                if (
+                                    curTkn instanceof ast.HoleTkn &&
+                                    prevTkn.getRenderText() === Loader.instance.indent
+                                ) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
                                         console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
                                     }
                                     console.log("Tokens1.5", nextCompound.tokens);
-                                } else if (prevTkn.getRenderText() === INDENT) {
+                                } else if (prevTkn && prevTkn.getRenderText() === Loader.instance.indent) {
                                     console.log("Tokens2", nextCompound.tokens);
                                     const rightConstruct = ASTManupilation.getNextSiblingOfRoot(curTkn);
                                     const tempTkn = new ast.NonEditableTkn(
@@ -380,6 +403,7 @@ export class EventRouter {
                         return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                     }
                 } else {
+                    console.log("BACKSPACE none");
                     // CodeConstruct
                     // Do we even need something here? As the smallest element will always be a
                 }
@@ -399,7 +423,7 @@ export class EventRouter {
                 } else if (this.module.validator.canDeletePrevStmt(context)) {
                     // Delete the statement right before the current position, if any
                     console.log("CASES: prev statement");
-                    return new EditAction(EditActionType.DeleteStmt);
+                    return new EditAction(EditActionType.DeleteCodeConstruct);
                 } else if (this.module.validator.canDeleteBackMultiEmptyLines(context)) {
                     // When the cursor is on an empty line and all lines behind it are empty without
                     // a depending construct thereafter, delete all empty lines
@@ -408,23 +432,23 @@ export class EventRouter {
                 } else if (this.module.validator.canDeletePrevLine(context)) {
                     // When the line above is an empty line construct, it can be deleted
                     console.log("CASES: prev line");
-                    return new EditAction(EditActionType.DeletePrevLine);
+                    // return new EditAction(EditActionType.DeletePrevLine);
                 } else if (this.module.validator.canIndentBack(context)) {
                     // When the cursor is at the beginning of a line and there is something
                     // on the line before, indent the current line back
                     console.log("CASES: indent back");
-                    return new EditAction(EditActionType.IndentBackwards);
+                    // return new EditAction(EditActionType.IndentBackwards);
                     // } else if (this.module.validator.canDeletePrevToken(context)) {
                 } else if (this.module.validator.canDeletePrevTkn(context)) {
                     console.log("CASES: prev token");
                     // return new EditAction(EditActionType.DeletePrevToken);
                     return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
-                } else if (this.module.validator.canDeleteEmptyLine(context, { backwards: true })) {
+                    // } else if (this.module.validator.canDeleteEmptyLine(context, { backwards: true })) {
                     // } else if (this.module.validator.canBackspaceCurEmptyLine(context)) {
-                    console.log("CASES: cur empty line");
-                    return new EditAction(EditActionType.DeleteEmptyLine, {
-                        pressedBackspace: true,
-                    });
+                    // console.log("CASES: cur empty line");
+                    // return new EditAction(EditActionType.DeleteEmptyLine, {
+                    //     pressedBackspace: true,
+                    // });
                     // } else if (this.module.validator.canDeleteListItemToLeft(context)) {
                     //     return new EditAction(EditActionType.DeleteListItem, {
                     //         toLeft: true,
@@ -464,13 +488,10 @@ export class EventRouter {
 
             // Language independent
             case KeyPress.Tab: {
-                if (this.module.validator.canIndentForward(context)) {
-                    return new EditAction(EditActionType.IndentForwards);
-                }
-                // else if (this.module.validator.canIndentForwardIfStatement(context)) {
-                //     return new EditAction(EditActionType.IndentForwardsIfStmt);
+                // TODO: Temporary disabled; read comments on subfunctions for more info
+                // if (this.module.validator.canIndentForward(context)) {
+                //     return new EditAction(EditActionType.IndentForwards);
                 // }
-
                 break;
             }
 
@@ -478,10 +499,6 @@ export class EventRouter {
             case KeyPress.Enter: {
                 // If the menu is open, select the current suggestion
                 if (this.module.menuController.isMenuOpen()) return new EditAction(EditActionType.SelectMenuSuggestion);
-                // If an empty line can be inserted, insert an empty line
-                // else if (this.module.validator.canInsertEmptyLine()) {
-                //     return new EditAction(EditActionType.InsertEmptyLine);
-                // }
 
                 break;
             }
@@ -534,6 +551,8 @@ export class EventRouter {
                 // Should be the printable characters (excluding things like arrow keys etc)
                 if (e.key.length !== 1) break;
 
+                console.log("in text edit mode?", inTextEditMode);
+
                 if (inTextEditMode) {
                     // Handle flow control keys (Not currently implemented)
                     switch (e.key) {
@@ -562,12 +581,46 @@ export class EventRouter {
                     // Check if a sequence of characters, e.g. abc, can be converted to a string
                     // At least, I think ...
                     if (this.module.validator.canConvertAutocompleteToString(context)) {
+                        console.log("CONVERT TO STRING");
                         // String literals
                         return new EditAction(EditActionType.ConvertAutocompleteToString, {
                             token: context.tokenToRight,
                         });
                     }
 
+                    const editableTkn = this.module.focus.getTextEditableItem(context);
+                    const token = editableTkn.getToken();
+                    const selectedText = this.module.editor.monaco.getSelection();
+                    let newText = "";
+                    if (token instanceof ast.IdentifierTkn && token.isEmptyIdentifier()) {
+                        const curText = "";
+                        newText = curText + e.key;
+                    } else {
+                        const curText = editableTkn.getEditableText().split("");
+                        curText.splice(
+                            this.curPosition.column - token.leftCol,
+                            Math.abs(selectedText.startColumn - selectedText.endColumn),
+                            e.key
+                        );
+
+                        newText = curText.join("");
+                    }
+                    // TODO: WHERE IS THIS NEEDED? THIS IS PROBABLY NEEDED!
+                    // if (
+                    //     !(context.tokenToRight instanceof ast.AutocompleteTkn) &&
+                    //     editableTkn.validatorRegex &&
+                    //     editableTkn.validatorRegex.test(newText)
+                    // ) {
+                    //     console.log(context)
+                    //     console.log("left num");
+                    //     return new EditAction(EditActionType.OpenAutocomplete, {
+                    //         autocompleteType: AutoCompleteType.RightOfExpression,
+                    //         firstChar: e.key,
+                    //         validMatches: this.module.actionFilter
+                    //             .getProcessedInsertionsList()
+                    //             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                    //     });
+                    // }
                     // If a key is being pressed right after a number literal, check if
                     // the new literal is not part of the literal (e.g. 12+) and if so
                     // open the autocomplete menu
@@ -592,39 +645,60 @@ export class EventRouter {
                     // } else
                     // PREVIOUS DISABLED BECAUSE IT USED A CHECK SPECIFICALLY FOR LITERALVALEXPR WHICH DOES NOT EXIST
                     // ANYMORE; CHECK LATER IF THIS CAN BE DELETED
-                    const editableTkn = this.module.focus.getTextEditableItem(context);
-                    const token = editableTkn.getToken();
-                    const selectedText = this.module.editor.monaco.getSelection();
-                    let newText = "";
-                    if (token instanceof ast.IdentifierTkn && token.isEmptyIdentifier()) {
-                        const curText = "";
-                        newText = curText + e.key;
-                    } else {
-                        const curText = editableTkn.getEditableText().split("");
-                        curText.splice(
-                            this.curPosition.column - token.leftCol,
-                            Math.abs(selectedText.startColumn - selectedText.endColumn),
-                            e.key
-                        );
 
-                        newText = curText.join("");
-                    }
+                    // if (context.tokenToLeft?.rootNode instanceof ast.UniConstruct &&
+                    //     context.tokenToLeft.rootNode.constructType ===
+                    // )
+
                     // Either it is not an identifier or editable text token OR the given regex matches the new text
                     if (
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
                         editableTkn.validatorRegex.test(newText)
                     ) {
+                        console.log("INSERT CHAR");
                         return new EditAction(EditActionType.InsertChar);
                     }
-                    break;
+
+                    // If none of the previous options worked, try to open an autocomplete menu but check
+                    // that the number of options is strictly positive
+                    // Similar to the "canSwitchLeftNumToAutocomplete" check
+                    // + when inserting a construct, check that if it starts with a hole whether
+                    // or not a construt appears before it and can be placed in that hole
+                    // + adapt valid matches to also work in text editable areas, but only if the
+                    // construct appearing in front can be replaced and the parent construct expects
+                    // the type of the match, e.g. the following conditions need to be met:
+                    // * The construct in front is op the constructType of the first hole in the match or is text
+                    // * The parent construct expects the constructType of the match
+                    // * The match has a hole at the beginning
+                    
+                    // Number of autocomplete options
+                    const validMatches = this.module.actionFilter
+                        .getProcessedInsertionsList()
+                        .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                    
+                    // Check if constructs can be inserted on non-empty (non-hole) positions
+                    // based on the amount of valid matches (constructs of which their validateContext method
+                    // succeeds)
+                    if (validMatches.length > 0) {
+                        console.log("OPEN AUTOCOMPLETE");
+                        return new EditAction(EditActionType.OpenAutocomplete, {
+                            autocompleteType: AutoCompleteType.RightOfExpression,
+                            firstChar: e.key,
+                            validMatches: validMatches,
+                        });
+                    }
+
+                    // break;
                     // } else if (context.tokenToLeft?.rootNode instanceof ast.CompoundConstruct) {
                     //     const compound = context.tokenToLeft?.rootNode;
                     //     if (compound.getWaitOnKey() === e.key && compound.atRightPosition(context))
                     //         compound.continueExpansion();
                     //     break;
                     // If at a slot where an operator token is expected, e.g. 1 ... 15
-                } else if (this.module.validator.atEmptyOperatorTkn(context)) {
+                }
+                if (this.module.validator.atEmptyOperatorTkn(context)) {
                     // Return the autocomplete menu for the operator token
+                    console.log("AT EMPTY OPER");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
                         firstChar: e.key,
@@ -653,6 +727,7 @@ export class EventRouter {
                     //     });
                     // } else {
                     // Else open the autocomplete menu
+                    console.log("AT EXPRESSION HOLE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtExpressionHole,
                         firstChar: e.key,
@@ -664,6 +739,7 @@ export class EventRouter {
                     // If on an empty line and the identifier regex matches the pressed character
                 } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
                     // Open the autocomplete menu
+                    console.log("ON EMPTY LINE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.StartOfLine,
                         firstChar: e.key,
@@ -673,23 +749,65 @@ export class EventRouter {
                             .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
                     });
                     // If at the right of an expresssion and a single character key is pressed
-                } else if (this.module.validator.atRightOfExpression(context)) {
+                }
+
+                // VERY UGLY TEMPORARY FIX; NEEDS TO BE REFACTORED!!!!
+                // WAS AN ELSE IF BEFORE; NOW THIS IS PLACED INBETWEEN
+                let leftConstruct: ast.Construct = context.tokenToLeft;
+                // console.log("LeftConstruct", leftConstruct, context);
+                let rightConstruct: ast.Construct = null;
+                while (
+                    leftConstruct?.right.equals(this.curPosition) &&
+                    !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
+                ) {
+                    // Also look at the right construct; if this is a compound, we need to check if it's
+                    // first token has a waitOnUser field that matches the pressed key
+                    rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
+                    if (
+                        rightConstruct instanceof ast.CompoundConstruct &&
+                        rightConstruct.canContinueExpansion(leftConstruct, e.key)
+                    ) {
+                        console.log("Should be getting here");
+                        rightConstruct.continueExpansion(leftConstruct);
+
+                        // No other actions should be performed
+                        return new EditAction(EditActionType.None);
+                    }
+                    // Otherwise we keep on going up in search of a parent compound
+                    leftConstruct = leftConstruct.rootNode;
+                }
+
+                if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
+                    const compound = leftConstruct.rootNode;
+                    if (compound.canContinueExpansion(leftConstruct, e.key)) {
+                        compound.continueExpansion(leftConstruct);
+                        console.log("EXPANDING COMPOUND 1");
+
+                        // No other actions should be performed
+                        return new EditAction(EditActionType.None);
+                    }
+                }
+
+                // Get all valid actions at the given cursor position
+                const validActions = this.module.actionFilter
+                    .getProcessedInsertionsList()
+                    .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
+                console.log("IMPORTANT", this.module.validator.atRightOfExpression(context), validActions);
+                if (this.module.validator.atRightOfExpression(context) && validActions.length > 0) {
                     // Open the autocomplete menu starting from all possible matches
+                    console.log("AT RIGHT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.RightOfExpression,
                         firstChar: e.key,
-                        validMatches: this.module.actionFilter
-                            .getProcessedInsertionsList()
-                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        validMatches: validActions,
                     });
                     // Idem but now the cursor is at the left of an expression
-                } else if (this.module.validator.atLeftOfExpression(context)) {
+                } else if (this.module.validator.atLeftOfExpression(context) && validActions.length > 0) {
+                    console.log("AT LEFT OF EXPRESSION");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.LeftOfExpression,
                         firstChar: e.key,
-                        validMatches: this.module.actionFilter
-                            .getProcessedInsertionsList()
-                            .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid),
+                        validMatches: validActions,
                     });
                 }
             }
@@ -713,7 +831,6 @@ export class EventRouter {
                 rightConstruct instanceof ast.CompoundConstruct &&
                 rightConstruct.canContinueExpansion(leftConstruct, e.key)
             ) {
-                console.log("Should be getting here");
                 rightConstruct.continueExpansion(leftConstruct);
                 break;
             }
@@ -724,6 +841,7 @@ export class EventRouter {
         if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
             const compound = leftConstruct.rootNode;
             if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
+            console.log("EXPANDING COMPOUND 2");
         }
 
         // No edit action could be matched
@@ -745,6 +863,7 @@ export class EventRouter {
         // If there is data, set its source to "keyboard"
         if (action?.data) action.data.source = { type: "keyboard" };
 
+        console.log("Action", action);
         // Execute the action and prevent the default event from being triggered if necessary
         const preventDefaultEvent = this.module.executer.execute(action, context, e.browserEvent);
 
@@ -869,7 +988,7 @@ export class EventRouter {
      */
     routeToolboxEvents(e: EditCodeAction, context: Context, source: {}): EditAction {
         switch (e.insertActionType) {
-            case InsertActionType.InsertGeneralStmt:
+            case InsertActionType.InsertUniConstruct:
                 /**
                  * Purpose is to try to
                  * 1) Include all statements under this type
@@ -891,15 +1010,15 @@ export class EventRouter {
                 }
                 break;
 
-            case InsertActionType.InsertGeneralExpr:
-                const expression = e.getCode();
-                if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
-                    return new EditAction(EditActionType.InsertGeneralExpr, {
-                        construct: expression,
-                        source,
-                    });
-                }
-                break;
+            // case InsertActionType.InsertGeneralExpr:
+            //     const expression = e.getCode();
+            //     if (expression.validateContext(this.module.validator, context) !== InsertionType.Invalid) {
+            //         return new EditAction(EditActionType.InsertGeneralExpr, {
+            //             construct: expression,
+            //             source,
+            //         });
+            //     }
+            //     break;
 
             case InsertActionType.InsertBinaryExpr: {
                 if (this.module.validator.atRightOfExpression(context)) {
@@ -1039,6 +1158,9 @@ export class EventRouter {
                     { type: "autocomplete", precision: "1", length: match.matchString.length + 1 },
                     {
                         identifier: token.text,
+                        // Capture all the groups for regex (sub)constructs that appear in the construct so that
+                        // they can be used in the autocomplete
+                        values: match.matchRegex ? match.matchRegex.exec(token.text) : [],
                     }
                 );
             }

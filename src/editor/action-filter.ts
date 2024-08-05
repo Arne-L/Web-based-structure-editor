@@ -3,7 +3,7 @@ import {
     // Expression,
     GeneralExpression,
     // ForStatement,
-    GeneralStatement,
+    UniConstruct,
     Statement,
 } from "../syntax-tree/ast";
 import { InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
@@ -81,6 +81,25 @@ export class ActionFilter {
                         )
                     );
                 }
+
+                // If there are no references (and thus the for loop did not produce any results),
+                // add the action as an invalid option (e.g. for the toolbox buttons to be disabled)
+                if (references.length === 0)
+                    validOptionMap.set(
+                        action.optionName,
+                        EditCodeAction.createDynamicEditCodeAction(
+                            action.optionName,
+                            action.cssId,
+                            action.getCodeFunction,
+                            action.insertActionType,
+                            action.insertData,
+                            new InsertionResult(InsertionType.Invalid, "No valid references found.", []),
+                            action.terminatingChars,
+                            action.matchString,
+                            action.matchRegex,
+                            action.insertableTerminatingCharRegex
+                        )
+                    );
             } else {
                 validOptionMap.set(
                     action.optionName,
@@ -157,8 +176,12 @@ export class ActionFilter {
     }
 }
 
-export class UserAction {
+class UserAction {
     // Can remove export
+    /**
+     * Text to be displayed in the toolbox
+     * Can include -- to signify a texthole, and a --- to represent a general hole
+     */
     optionName: string;
     cssId: string;
 
@@ -275,7 +298,7 @@ export class EditCodeAction extends UserAction {
      * base text as well as all possible completions through the input text of the user
      * @returns Final construct that would be put in the editor
      */
-    getConstruct(userInput: string): GeneralStatement {
+    getConstruct(userInput: string): UniConstruct {
         // Create an EditAction that contains all information to create the final construct
         // The EditActionType is not used in the createFinalConstruct function and can thus
         // be anythin
@@ -365,7 +388,7 @@ export class EditCodeAction extends UserAction {
         // Check if the given code can be inserted at the current location
         // Either valid, draft or invalid
         const astInsertionType = code.validateContext(validator, context);
-
+        
         if (!(code instanceof GeneralExpression)) {
             // Code is not an expression; however, this method requires it to be an expression
             return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);

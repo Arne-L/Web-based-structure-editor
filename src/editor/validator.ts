@@ -4,7 +4,7 @@ import {
     Construct,
     EditableTextTkn,
     EmptyLineStmt,
-    GeneralStatement,
+    UniConstruct,
     IdentifierTkn,
     ImportStatement,
     NonEditableTkn,
@@ -350,7 +350,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (context.expressionToLeft != null) return false;
+            if (context.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -370,7 +370,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (context.expressionToLeft != null) return false;
+            if (context.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -384,7 +384,7 @@ export class Validator {
             this.module.focus.onEndOfLine() &&
             !this.module.focus.isTextEditable(providedContext)
         ) {
-            if (providedContext.expressionToLeft != null) return false;
+            if (providedContext.codeConstructToLeft != null) return false;
 
             return true;
         }
@@ -392,31 +392,31 @@ export class Validator {
         return false;
     }
 
-    /**
-     * Check if the currently focused line is an empty line and if it could be
-     * deleted
-     *
-     * @param providedContext - The current context
-     * @param param1 - The direction to check for
-     * @returns true if the current line can be deleted, false otherwise
-     */
-    canDeleteEmptyLine(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
-        if (
-            providedContext.codeConstruct instanceof EmptyLineStmt &&
-            providedContext.codeConstruct.rootNode.body.length > 1
-        ) {
-            // So rootNode.body.length > 1
-            if (backwards) {
-                // Can no be the first line
-                return providedContext.codeConstruct.lineNumber != 1;
-            } else {
-                // Can not be the last line
-                return (
-                    providedContext.codeConstruct.indexInRoot != providedContext.codeConstruct.rootNode.body.length - 1
-                );
-            }
-        }
-    }
+    // /**
+    //  * Check if the currently focused line is an empty line and if it could be
+    //  * deleted
+    //  *
+    //  * @param providedContext - The current context
+    //  * @param param1 - The direction to check for
+    //  * @returns true if the current line can be deleted, false otherwise
+    //  */
+    // canDeleteEmptyLine(providedContext: Context, { backwards }: { backwards: boolean }): boolean {
+    //     if (
+    //         providedContext.codeConstruct instanceof EmptyLineStmt &&
+    //         providedContext.codeConstruct.rootNode.body.length > 1
+    //     ) {
+    //         // So rootNode.body.length > 1
+    //         if (backwards) {
+    //             // Can no be the first line
+    //             return providedContext.codeConstruct.lineNumber != 1;
+    //         } else {
+    //             // Can not be the last line
+    //             return (
+    //                 providedContext.codeConstruct.indexInRoot != providedContext.codeConstruct.rootNode.body.length - 1
+    //             );
+    //         }
+    //     }
+    // }
 
     /**
      * Check if the following statement can be deleted
@@ -474,7 +474,7 @@ export class Validator {
         // Not at the start of a line and not text editable, but there is an expression to the right
         return (
             !this.module.focus.onBeginningOfLine() &&
-            context.expressionToRight != null &&
+            context.codeConstructToRight != null &&
             !this.module.focus.isTextEditable(providedContext)
         );
     }
@@ -485,7 +485,7 @@ export class Validator {
     canDeletePrevToken(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
-        return context.expressionToLeft != null && !this.module.focus.isTextEditable(providedContext);
+        return context.codeConstructToLeft != null && !this.module.focus.isTextEditable(providedContext);
     }
 
     /**
@@ -506,11 +506,17 @@ export class Validator {
     isAboveLineIndentedForward(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+
+        // TODO: Problem: the codeconstruct will always be the nearest codeconstruct, which starts higher than
+        // the current line. Should thus check for the current line's linenumber instead of the current codeconstruct's
+        // linenumber
         if (context.codeConstruct.lineNumber > 2) {
             const lineAbove = this.module.focus.getCodeConstructAtLineNumber(context.codeConstruct.lineNumber - 1);
 
             return context.codeConstruct.leftCol < lineAbove.leftCol;
         }
+
+        return false;
     }
 
     /**
@@ -566,8 +572,8 @@ export class Validator {
             context.codeConstruct instanceof EmptyLineStmt &&
             context.codeConstruct.rootNode instanceof Statement &&
             context.codeConstruct.rootNode.hasBody() &&
-            !(context.codeConstruct.rootNode as GeneralStatement).hasDependent(
-                this.getNextSiblingOfRoot(context) as GeneralStatement
+            !(context.codeConstruct.rootNode as UniConstruct).hasDependent(
+                this.getNextSiblingOfRoot(context) as UniConstruct
             ) // NOT OK: Clean up types later
         ) {
             const rootsBody = context.codeConstruct.rootNode.body;
@@ -595,6 +601,9 @@ export class Validator {
     canIndentForward(providedContext?: Context): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
+        console.log("onBeginningOfLine", this.module.focus.onBeginningOfLine());
+        console.log("aboveIsIndented", this.isAboveLineIndentedForward());
+
         return (
             this.module.focus.onBeginningOfLine() &&
             // !(context.lineStatement instanceof ElseStatement) &&
@@ -608,7 +617,7 @@ export class Validator {
 
         return (
             // !this.insideFormattedString(context) &&
-            context?.expressionToLeft != null
+            context?.codeConstructToLeft != null
             // &&
             // context?.expressionToLeft?.returns != null &&
             // context?.expressionToLeft?.returns != DataType.Void
@@ -620,7 +629,7 @@ export class Validator {
 
         return (
             // !this.insideFormattedString(context) &&
-            context?.expressionToRight != null
+            context?.codeConstructToRight != null
             // &&
             // context?.expressionToRight?.returns != null &&
             // context?.expressionToRight?.returns != DataType.Void

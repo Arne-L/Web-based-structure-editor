@@ -1,6 +1,6 @@
 import { Position } from "monaco-editor";
 import { EditAction } from "../editor/data-types";
-import { AssignmentTkn, Construct, EditableTextTkn, GeneralStatement, Importable } from "../syntax-tree/ast";
+import { AssignmentTkn, Construct, EditableTextTkn, UniConstruct, Importable } from "../syntax-tree/ast";
 import { Module } from "../syntax-tree/module";
 import { DataType, ListTypes, addClassToDraftModeResolutionButton } from "./../syntax-tree/consts";
 
@@ -224,8 +224,8 @@ export function createWarningButton(buttonTxt: string, warningCode: Construct, a
  * @returns - The resulting construct of the action. This construct
  * can be used directly in the editor.
  */
-export function createFinalConstruct(action: EditAction): GeneralStatement {
-    const construct = action.data?.construct as GeneralStatement;
+export function createFinalConstruct(action: EditAction): UniConstruct {
+    const construct = action.data?.construct as UniConstruct;
     const autocompleteValues: string[] = action.data?.autocompleteData?.values;
 
     // Update the contents of the tokens
@@ -321,6 +321,7 @@ export namespace DOMManupulation {
  *
  * @param construct - The construct to check
  * @param pos - The position to check
+ * @param inclusive - Whether the position should be included in the construct; defaults to true on both sides
  * @returns True if the construct contains the position, false otherwise
  */
 export function doesConstructContainPos(

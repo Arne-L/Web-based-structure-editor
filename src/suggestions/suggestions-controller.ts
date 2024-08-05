@@ -4,12 +4,13 @@ import { Actions, EditActionType } from "../editor/consts";
 import { EditAction } from "../editor/data-types";
 import { Editor } from "../editor/editor";
 import { EDITOR_DOM_ID } from "../language-definition/settings";
-import { Construct, GeneralStatement } from "../syntax-tree/ast";
+import { Construct, UniConstruct } from "../syntax-tree/ast";
 import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getStyledSpanAtSubstrings } from "../utilities/text-enhance";
 import { ConstructDoc } from "./construct-doc";
 import { createFinalConstruct, getHoleValues } from "../utilities/util";
+import { Context } from "../editor/focus";
 
 /*
  *A tree menu that can hold options for the user and link through those options to other menus.
@@ -57,16 +58,16 @@ class Menu {
     }
 
     //close any open sub-menus of menu
-    closeChildren() {
-        const activeChildren = this.children.filter((menu) => menu.isOpen);
+    // closeChildren() {
+    //     const activeChildren = this.children.filter((menu) => menu.isOpen);
 
-        if (activeChildren.length > 0) {
-            activeChildren.forEach((menu) => {
-                menu.closeChildren();
-                menu.close();
-            });
-        }
-    }
+    //     if (activeChildren.length > 0) {
+    //         activeChildren.forEach((menu) => {
+    //             menu.closeChildren();
+    //             menu.close();
+    //         });
+    //     }
+    // }
 
     //indent children of this menu according to their level
     indentChildren(offset: number = 0) {
@@ -292,7 +293,7 @@ class Menu {
             }
         });
 
-        // Sorting of autocomplete options (OPTIMISATATIONS POSSIBLE)
+        // Sorting of autocomplete options (OPTIMISATIONS POSSIBLE)
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
@@ -408,7 +409,7 @@ class MenuOption {
     }
 
     select() {
-        if (this.childMenu) this.childMenu.open();
+        if (this.childMenu) this.childMenu.open(); // TODO: No child menu's anymore?
         else if (this.selectAction) this.selectAction();
     }
 
@@ -456,8 +457,9 @@ class MenuOption {
     removeFocus() {
         this.htmlElement.classList.remove(MenuController.selectedOptionElementClass);
 
-        if (this.childMenu) this.parentMenu.closeChildren();
-        else if (this.doc) this.doc.hide();
+        // if (this.childMenu) this.parentMenu.closeChildren();
+        // else
+        if (this.doc) this.doc.hide();
     }
 
     removeFromDOM() {
@@ -537,6 +539,9 @@ export class MenuController {
             //     menu.insertOption(option);
             //     this.focusedOptionIndex = 0;
             // }
+
+            // DEBUG
+            if (!menu) console.warn("No menu constructed!")
 
             menu.updateDimensions();
             menu.open();
@@ -740,15 +745,15 @@ export class MenuController {
     }
 
     //Close any open sub-menus when navigating up in the menu from the currently focused option.
-    closeSubMenu() {
-        if (this.menus[this.focusedMenuIndex].parentMenu) {
-            this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].removeFocus();
-            this.focusedMenuIndex = this.menus.indexOf(this.menus[this.focusedMenuIndex].parentMenu);
-            this.focusedOptionIndex = this.menus[this.focusedMenuIndex].openedLinkOptionIndex; //TODO: If we ever go back to nested menus then this.topOptionIndex and this.bottomOptionIndex need to be updated here.
-            this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].setFocus();
-            this.menus[this.focusedMenuIndex].closeChildren();
-        }
-    }
+    // closeSubMenu() {
+    //     if (this.menus[this.focusedMenuIndex].parentMenu) {
+    //         this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].removeFocus();
+    //         this.focusedMenuIndex = this.menus.indexOf(this.menus[this.focusedMenuIndex].parentMenu);
+    //         this.focusedOptionIndex = this.menus[this.focusedMenuIndex].openedLinkOptionIndex; //TODO: If we ever go back to nested menus then this.topOptionIndex and this.bottomOptionIndex need to be updated here.
+    //         this.menus[this.focusedMenuIndex].options[this.focusedOptionIndex].setFocus();
+    //         this.menus[this.focusedMenuIndex].closeChildren();
+    //     }
+    // }
 
     //Perform the action associated with the currently focused option.
     selectFocusedOption() {
@@ -876,11 +881,13 @@ export class MenuController {
             const code = editAction.getConstruct(optionText);
 
             // If the current input is a reserved keyword, skip this option if it contains an identifier
-            if (code.containsAssignments() && this.module.language.isReservedWord(optionText)) continue;
+            if (code.containsAssignments(0) && this.module.language.isReservedWord(optionText)) continue;
+            // TODO: currently the index is taken to be 0, but will not always be the case. Fix this for more
+            // advanced cases in the future
 
             // Create the HTML string for the option name
             const optionDisplayText = getStyledSpanAtSubstrings(
-                editAction.getDisplayText(optionText), //code.getRenderText(),
+                code.getDisplayText().split("\n")[0], //editAction.getDisplayText(optionText), //code.getRenderText(),
                 "matchingText",
                 substringMatchRanges
             );
