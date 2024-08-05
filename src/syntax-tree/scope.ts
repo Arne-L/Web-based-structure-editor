@@ -53,7 +53,7 @@ export class Scope {
 
         // All references that appear before the current line in the parent scope
         if (this.parentScope) {
-            validReferences = validReferences.concat(this.parentScope.getValidReferencesRecursive(pos));
+            validReferences = validReferences.concat(this.parentScope.getValidReferencesRecursive(pos, referenceType));
         }
 
         return validReferences;
