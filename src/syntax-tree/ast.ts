@@ -1000,7 +1000,7 @@ export class UniConstruct extends Statement {
 
 
         let currUniCode = currTkn?.rootNode;
-        while (!(currUniCode instanceof UniConstruct)) {
+        while (currUniCode && !(currUniCode instanceof UniConstruct)) {
             currUniCode = currUniCode.rootNode;
             if (!currUniCode) break;
         }
