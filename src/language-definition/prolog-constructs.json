@@ -16,7 +16,7 @@
             },
             {
                 "type": "recursive",
-                "recursiveName": "arguments"
+                "recursiveName": "arguments_bodyless"
             },
             {
                 "type": "token",

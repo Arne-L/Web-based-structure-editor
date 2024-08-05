@@ -30,5 +30,6 @@ export function scopeHeuristic(construct: Construct, scopeType: ScopeType) {
                     return tkn.scope;
                 }
             }
+            console.error("None of the following subconstructs (after the assignment token) have a scope");
     }
 }
