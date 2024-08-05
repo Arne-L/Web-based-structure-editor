@@ -1218,7 +1218,6 @@ export abstract class Token extends Construct {
             this.right = new Position(pos.lineNumber + lineDiff, rootConstructIndent + lines.at(-1).length);
 
             if (lines.at(-1).length + 1 !== this.rightCol) {
-                console.log(lines.at(-1).length + 1, this.rightCol);
                 // Indent all lines except the first one
                 for (let i = 1; i < lines.length; i++) {
                     // Add the indentation to the line
@@ -1462,7 +1461,7 @@ export class EditableTextTkn extends Token implements TextEditable {
     setEditedText(text: string): boolean {
         if (this.validatorRegex.test(text)) {
             this.text = text;
-            (this.rootNode as Expression).rebuild(this.getLeftPosition(), this.indexInRoot);
+            this.rootNode.rebuild(this.getLeftPosition(), this.indexInRoot);
 
             if (text === "") this.isEmpty = true;
             else this.isEmpty = false;
