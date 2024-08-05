@@ -83,11 +83,6 @@ class Menu {
         this.children = menus;
     }
 
-    addChildMenu(menu: Menu) {
-        menu.parentMenu = this;
-        this.children.push(menu);
-    }
-
     removeFromDOM() {
         document.getElementById(EDITOR_DOM_ID).removeChild(this.htmlElement);
     }
