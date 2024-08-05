@@ -151,6 +151,14 @@ class Menu {
         });
 
         // Sorting of autocomplete options (OPTIMISATIONS POSSIBLE)
+        /**
+         * Compare two actions to determine which should come first in a sorted list.
+         * 
+         * @param a - First action to compare
+         * @param b - Second action to compare
+         * @returns A number indicating the order of the two actions; negative if a should come before b, 
+         * positive if b should come before a, and 0 if they are equal
+         */
         function sortActions(a: EditCodeAction, b: EditCodeAction) {
             // Prefer exact string matches over regex matches
             if (a.matchString && b.matchRegex) return -1;
