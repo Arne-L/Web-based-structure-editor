@@ -1,0 +1,10 @@
+export const EMPTYIDENTIFIER = "  ";
+export const TAB_SPACES = 4;
+export const LIGHT_GRAY = [230, 235, 255, 0.7];
+export const ERROR_HIGHLIGHT_COLOUR = [255, 153, 153, 0.5];
+export const EDITOR_DOM_ID = "editor";
+export const navigationKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
+export const FONT_SIZE = 20;
+export const INITIAL_Z_INDEX = 500;
+export const HOLETEXT = "   ";
+//# sourceMappingURL=settings.js.map

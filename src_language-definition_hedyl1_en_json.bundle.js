@@ -7,7 +7,7 @@
   \************************************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"name":"Hedy Level 1 (English)","constructFile":"hedyl1_en-constructs.json","recursiveFile":"hedyl1_en-callable.json","indent":"","initialConstruct":{"type":"compound","scope":true,"insertBefore":null,"format":[{"type":"hole","delimiter":", ","elements":[{"type":"statement","optional":false}]},{"type":"token","value":"\\n","waitOnUser":"Enter"}]},"reservedWords":[{"reason":"The current identifier is a reserved keyword. Please use a different one.","words":["ask"]}]}');
+module.exports = JSON.parse('{"name":"Hedy Level 1 (English)","constructFile":"hedyl1_en-constructs.json","callableFile":"hedyl1_en-callable.json","indent":"","initialConstruct":{"type":"compound","scope":true,"insertBefore":null,"format":[{"type":"hole","delimiter":", ","elements":[{"type":"statement","optional":false}]},{"type":"token","value":"\\n","waitOnUser":"Enter"}]},"reservedWords":[{"reason":"The current identifier is a reserved keyword. Please use a different one.","words":["ask"]}]}');
 
 /***/ })
 
