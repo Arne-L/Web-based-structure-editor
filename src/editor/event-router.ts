@@ -670,18 +670,20 @@ export class EventRouter {
                     // * The construct in front is op the constructType of the first hole in the match or is text
                     // * The parent construct expects the constructType of the match
                     // * The match has a hole at the beginning
-                    
+
                     // Number of autocomplete options
                     const validMatches = this.module.actionFilter
                         .getProcessedInsertionsList()
                         .filter((item) => item.insertionResult.insertionType != InsertionType.Invalid);
-                    
+
                     // Check if constructs can be inserted on non-empty (non-hole) positions
                     // based on the amount of valid matches (constructs of which their validateContext method
                     // succeeds)
                     // Matches starting with a hole (ASSUMPTION: all valid matches start with a hole) and in which the second
                     // subconstruct contains the pressed key
-                    const validMatchesWithKey = validMatches.filter((item) => item.getCode().tokens.at(1)?.getRenderText().includes(e.key))
+                    const validMatchesWithKey = validMatches.filter((item) =>
+                        item.getCode().tokens.at(1)?.getRenderText().includes(e.key)
+                    );
                     if (validMatchesWithKey.length > 0) {
                         console.log("OPEN AUTOCOMPLETE", validMatches);
                         return new EditAction(EditActionType.OpenAutocomplete, {
@@ -757,7 +759,6 @@ export class EventRouter {
                 // VERY UGLY TEMPORARY FIX; NEEDS TO BE REFACTORED!!!!
                 // WAS AN ELSE IF BEFORE; NOW THIS IS PLACED INBETWEEN
                 let leftConstruct: ast.Construct = context.tokenToLeft;
-                // console.log("LeftConstruct", leftConstruct, context);
                 let rightConstruct: ast.Construct = null;
                 while (
                     leftConstruct?.right.equals(this.curPosition) &&
@@ -784,11 +785,11 @@ export class EventRouter {
                     const compound = leftConstruct.rootNode;
                     if (compound.canContinueExpansion(leftConstruct, e.key)) {
                         compound.continueExpansion(leftConstruct);
-                        console.log("EXPANDING COMPOUND 1");
 
                         // No other actions should be performed
                         return new EditAction(EditActionType.None);
                     }
+                    console.log("EXPANDING COMPOUND 1");
                 }
 
                 // Get all valid actions at the given cursor position
@@ -823,28 +824,38 @@ export class EventRouter {
         let leftConstruct: ast.Construct = context.tokenToLeft;
         // console.log("LeftConstruct", leftConstruct, context);
         let rightConstruct: ast.Construct = null;
-        while (
-            leftConstruct?.right.equals(this.curPosition) &&
-            !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
-        ) {
-            // Also look at the right construct; if this is a compound, we need to check if it's
-            // first token has a waitOnUser field that matches the pressed key
-            rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
-            if (
-                rightConstruct instanceof ast.CompoundConstruct &&
-                rightConstruct.canContinueExpansion(leftConstruct, e.key)
-            ) {
-                rightConstruct.continueExpansion(leftConstruct);
-                break;
-            }
-            // Otherwise we keep on going up in search of a parent compound
-            leftConstruct = leftConstruct.rootNode;
-        }
 
-        if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
-            const compound = leftConstruct.rootNode;
-            if (compound.canContinueExpansion(leftConstruct, e.key)) compound.continueExpansion(leftConstruct);
-            console.log("EXPANDING COMPOUND 2");
+        while (leftConstruct) {
+            while (
+                leftConstruct?.right.equals(this.curPosition) &&
+                !(leftConstruct.rootNode instanceof ast.CompoundConstruct)
+            ) {
+                // Also look at the right construct; if this is a compound, we need to check if it's
+                // first token has a waitOnUser field that matches the pressed key
+                rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
+                console.log("Iterations");
+                if (
+                    rightConstruct instanceof ast.CompoundConstruct &&
+                    rightConstruct.canContinueExpansion(leftConstruct, e.key)
+                ) {
+                    rightConstruct.continueExpansion(leftConstruct);
+                    return new EditAction(EditActionType.None);
+                }
+                // Otherwise we keep on going up in search of a parent compound
+                leftConstruct = leftConstruct.rootNode;
+            }
+
+            if (leftConstruct?.rootNode instanceof ast.CompoundConstruct) {
+                const compound = leftConstruct.rootNode;
+                if (compound.canContinueExpansion(leftConstruct, e.key)) {
+                    compound.continueExpansion(leftConstruct);
+                    console.log("EXPANDING COMPOUND 2");
+                    return new EditAction(EditActionType.None);
+                }
+            }
+
+            // Keep on moving up the AST until you reach the top
+            leftConstruct = leftConstruct.rootNode;
         }
 
         // No edit action could be matched
