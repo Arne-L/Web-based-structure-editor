@@ -9,22 +9,43 @@
             {
                 "type": "compound",
                 "scope": true,
-                "insertBefore": "    ",
+                "insertBefore": null,
                 "enableIndentation": true,
                 "format": [
                     {
-                        "type": "hole",
-                        "elements": [
+                        "type": "compound",
+                        "scope": false,
+                        "insertBefore": null,
+                        "enableIndentation": false,
+                        "format": [
                             {
-                                "type": "term",
-                                "elements": true
+                                "type": "token",
+                                "value": "    "
+                            },
+                            {
+                                "type": "hole",
+                                "elements": [
+                                    {
+                                        "type": "term",
+                                        "elements": true
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "token",
+                                "value": ",",
+                                "waitOnUser": ","
+                            },
+                            {
+                                "type": "token",
+                                "value": "\n"
                             }
                         ]
                     },
                     {
                         "type": "token",
-                        "value": ",",
-                        "waitOnUser": ","
+                        "value": ";",
+                        "waitOnUser": ";"
                     },
                     {
                         "type": "token",
