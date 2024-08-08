@@ -12,11 +12,23 @@
                 "value": " "
             },
             {
-                "type": "hole",
-                "elements": [
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
                     {
-                        "type": "expression",
-                        "optional": false
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": " ",
+                        "waitOnUser": " "
                     }
                 ]
             }
