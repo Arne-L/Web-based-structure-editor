@@ -541,9 +541,11 @@ export class EventRouter {
                     }
                 }
                 // If in text edit mode, insert a space
-                if (inTextEditMode) return new EditAction(EditActionType.InsertChar);
+                // if (inTextEditMode) return new EditAction(EditActionType.InsertChar);
 
-                break;
+                // Do not break, as we want it to overflow into the default case if no action
+                // was taken
+                // break;
             }
 
             // NOT language independent
@@ -771,7 +773,6 @@ export class EventRouter {
                         rightConstruct instanceof ast.CompoundConstruct &&
                         rightConstruct.canContinueExpansion(leftConstruct, e.key)
                     ) {
-                        console.log("Should be getting here");
                         rightConstruct.continueExpansion(leftConstruct);
 
                         // No other actions should be performed
@@ -789,7 +790,6 @@ export class EventRouter {
                         // No other actions should be performed
                         return new EditAction(EditActionType.None);
                     }
-                    console.log("EXPANDING COMPOUND 1");
                 }
 
                 // Get all valid actions at the given cursor position
@@ -833,7 +833,6 @@ export class EventRouter {
                 // Also look at the right construct; if this is a compound, we need to check if it's
                 // first token has a waitOnUser field that matches the pressed key
                 rightConstruct = ASTManupilation.getNextSiblingOfRoot(leftConstruct);
-                console.log("Iterations");
                 if (
                     rightConstruct instanceof ast.CompoundConstruct &&
                     rightConstruct.canContinueExpansion(leftConstruct, e.key)

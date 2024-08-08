@@ -686,15 +686,18 @@ export class Focus {
         while (tokensStack.length > 0) {
             const curToken = tokensStack.pop();
 
-            if (curToken.left.equals(left) && curToken.right.equals(right)) {
+            if (curToken.left.equals(left) && curToken.right.equals(right) && !(curToken instanceof CompoundConstruct)) {
                 context.selected = true;
 
-                if (curToken instanceof Token) context.token = curToken;
+                if (curToken instanceof Token) {
+                    context.token = curToken;
+                    context.codeConstruct = curToken.rootNode;
+                }
                 else if (curToken instanceof CodeConstruct) context.construct = curToken; // (1)
 
                 return context;
             } else if (curToken instanceof CodeConstruct) {
-                if (left.equals(curToken.left) && right.equals(curToken.right)) {
+                if (left.equals(curToken.left) && right.equals(curToken.right) && !(curToken instanceof CompoundConstruct)) {
                     // Literally the same as (1) above
                     context.construct = curToken;
                     context.selected = true;
