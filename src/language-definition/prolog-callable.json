@@ -139,7 +139,7 @@
                         "type": "hole",
                         "elements": [
                             {
-                                "type": "expression",
+                                "type": "term",
                                 "optional": false
                             }
                         ]
