@@ -448,7 +448,16 @@ export class MenuController {
      * @returns the constructed menu. Null if no options was empty.
      */
     private buildMenu(options: EditCodeAction[], pos: any = { left: 0, top: 0 }): Menu {
-        if (options.length > 0) {
+        // Menu to return
+        let menu: Menu;
+
+        if (options.length === 0) {
+            // If options is empty, return a menu with no options
+            menu = new Menu(new Map());
+            const option = new MenuOption("No suitable options found.", false, null, menu, null, () => {});
+            menu.insertOption(option);
+        } else {
+            // If there is atleast on option
             const menuOptions = new Map<string, Function>();
 
             for (const action of options) {
@@ -463,31 +472,29 @@ export class MenuController {
                 });
             }
 
-            const menu = new Menu(menuOptions);
-
-            //TODO: These are the same values as the ones used for mouse offset by the messages so maybe make them shared in some util file
-            menu.htmlElement.style.left = `${pos.left + document.getElementById(EDITOR_DOM_ID).offsetLeft}px`;
-            menu.htmlElement.style.top = `${
-                pos.top + parseFloat(window.getComputedStyle(document.getElementById(EDITOR_DOM_ID)).paddingTop)
-            }px`;
-
-            //TODO: No good way of separating responsibility completely because ready doc objects are stored in util instead of being created here.
-            //I guess, it is always possible to have a list of active docs and loop through it here and update their positions instead of
-            //using the static method to update them all. Do that in case this ever slows down anything.
-            // ConstructDoc.updateDocsLeftOffset(
-            //     document.getElementById(EDITOR_DOM_ID).offsetLeft +
-            //         document.getElementById(`${Menu.idPrefix}${Menu.menuCount - 1}`).offsetWidth
-            // );
-            /**
-             * Currently never being used? So comment for now, maybe we can use it in the future?
-             */
-
-            this.menus.push(menu);
-
-            return menu;
+            menu = new Menu(menuOptions);
         }
 
-        return null;
+        //TODO: These are the same values as the ones used for mouse offset by the messages so maybe make them shared in some util file
+        menu.htmlElement.style.left = `${pos.left + document.getElementById(EDITOR_DOM_ID).offsetLeft}px`;
+        menu.htmlElement.style.top = `${
+            pos.top + parseFloat(window.getComputedStyle(document.getElementById(EDITOR_DOM_ID)).paddingTop)
+        }px`;
+
+        //TODO: No good way of separating responsibility completely because ready doc objects are stored in util instead of being created here.
+        //I guess, it is always possible to have a list of active docs and loop through it here and update their positions instead of
+        //using the static method to update them all. Do that in case this ever slows down anything.
+        // ConstructDoc.updateDocsLeftOffset(
+        //     document.getElementById(EDITOR_DOM_ID).offsetLeft +
+        //         document.getElementById(`${Menu.idPrefix}${Menu.menuCount - 1}`).offsetWidth
+        // );
+        /**
+         * Currently never being used? So comment for now, maybe we can use it in the future?
+         */
+
+        this.menus.push(menu);
+
+        return menu;
     }
 
     /**
