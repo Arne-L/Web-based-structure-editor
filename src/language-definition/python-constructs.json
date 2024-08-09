@@ -52,29 +52,6 @@
                     "type": "quick",
                     "title": "compare to scratch's repeat until block",
                     "text": "the `while` loop in Python compared to the `repeat until` block in Scratch: the `while` loop in Python repeats code as long as the condition is `True`, and stops when the condition becomes `False`. However, the `repeat until` block in Scratch repeats code as long as the condition is `False`, and stops when the condition becomes `True`."
-                },
-                {
-                    "type": "use-case",
-                    "title": "repeatedly increment a variable",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/1-while-counter/",
-                    "max": 30,
-                    "prefix": "Slide",
-                    "extension": "PNG",
-                    "id": "while-increment-var",
-                    "explanations": [
-                        {
-                            "slide": 7,
-                            "text": "i is less than 3 so the condition holds true"
-                        },
-                        {
-                            "slide": 28,
-                            "text": "i is no longer less than 3 so the condition is false"
-                        },
-                        {
-                            "slide": 29,
-                            "text": "should execute the next line after the while loop"
-                        }
-                    ]
                 }
             ],
             "searchQueries": [
@@ -152,42 +129,6 @@
                     "title": "using a for loop to go through a list",
                     "id": "ex-for-list-items",
                     "example": "lst = [\"cat\", \"dog\", \"mouse\", \"parrot\"]\nfor animal in lst:\n\tprint(animal)"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a list of items",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/2-for-loop-list/",
-                    "max": 25,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-list-items"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a sequence of numbers",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/3-for-loop-range/",
-                    "max": 21,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-sequence-nums"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through a list of items using indices",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/4-for-loop-range-list/",
-                    "max": 30,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-list-items-using-indices"
-                },
-                {
-                    "type": "use-case",
-                    "title": "go through every character of a string",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/5-for-loop-string/",
-                    "max": 21,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "loop-chars-of-str"
                 }
             ],
             "searchQueries": ["for", "loop", "repeat", "go through", "iterate", "list"]
@@ -692,89 +633,6 @@
                     "type": "executable",
                     "id": "ex-break-out-range",
                     "example": "for i in range(0, 50):\n\tif i == 25:\n\t\tbreak\n\tprint(i)"
-                },
-                {
-                    "type": "use-case",
-                    "title": "break out of a while loop on some condition",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/3-break/",
-                    "max": 30,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "break-while-on-condition",
-                    "explanations": [
-                        {
-                            "slide": 5,
-                            "text": "variable i is defined and set to 0"
-                        },
-                        {
-                            "slide": 6,
-                            "text": "should repeat the while statements if i < 10"
-                        },
-                        {
-                            "slide": 7,
-                            "text": "i is 0 and less than 10 -> should repeat"
-                        },
-                        {
-                            "slide": 9,
-                            "text": "i is 0, so i + 1 is 1"
-                        },
-                        {
-                            "slide": 11,
-                            "text": "i becomes 1"
-                        },
-                        {
-                            "slide": 12,
-                            "text": "should enter the if statements if i equals 3"
-                        },
-                        {
-                            "slide": 13,
-                            "text": "i is 1 so shouldn't enter the if"
-                        },
-                        {
-                            "slide": 16,
-                            "text": "i is 1, so i + 1 is 2"
-                        },
-                        {
-                            "slide": 14,
-                            "text": "should continue repeating because i is 1"
-                        },
-                        {
-                            "slide": 18,
-                            "text": "i becomes 2"
-                        },
-                        {
-                            "slide": 20,
-                            "text": "i is not equal to 3"
-                        },
-                        {
-                            "slide": 21,
-                            "text": "should continue repeating because i is 2"
-                        },
-                        {
-                            "slide": 23,
-                            "text": "i is 2, so i + 1 is 3"
-                        },
-                        {
-                            "slide": 25,
-                            "text": "i becomes 3"
-                        },
-                        {
-                            "slide": 27,
-                            "text": "is equal to 3 -> should enter if"
-                        },
-                        {
-                            "slide": 28,
-                            "text": "break out of the current loop"
-                        },
-                        {
-                            "slide": 29,
-                            "text": "won't check the while condition as we used break"
-                        },
-                        {
-                            "slide": 30,
-                            "text": "will print 'done'"
-                        }
-                    ]
                 }
             ],
             "searchQueries": ["exit", "loop", "break"]
@@ -839,15 +697,6 @@
                     "type": "executable",
                     "id": "ex-if-2",
                     "example": "a = 3\nif a > 10:\n\tprint(\"Success!\")"
-                },
-                {
-                    "type": "use-case",
-                    "title": "check the value of a variable",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/6-if/",
-                    "max": 13,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "check-val-variable"
                 }
             ],
             "searchQueries": ["if", "condition", "conditional", "choose", "path"]
@@ -937,24 +786,6 @@
                     "type": "executable",
                     "id": "ex-elif-2",
                     "example": "a = 5\nif a > 3:\n\tprint(3)\nelif a > 4:\n\tprint(4)\nelif a == 5:\n\tprint(5)\nelif a > 6:\n\tprint(6)"
-                },
-                {
-                    "type": "use-case",
-                    "title": "using elif after an if statement",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/7-if-single-elif/",
-                    "max": 11,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "elif-after-if"
-                },
-                {
-                    "type": "use-case",
-                    "title": "using elif after another elif statement",
-                    "path": "https://cdn.majeed.cc/pydoc/images/use-cases/7-if-double-elif/",
-                    "max": 13,
-                    "extension": "PNG",
-                    "prefix": "Slide",
-                    "id": "elif-after-elif"
                 }
             ],
             "searchQueries": ["else if", "else", "else condition", "choose", "path", "elif"]
