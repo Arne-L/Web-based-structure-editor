@@ -2006,7 +2006,8 @@ export class ActionExecutor {
             );
 
             // Open the autocomplete menu
-            this.openAutocompleteMenu(validMatches);
+            // TODO: Can this be removed?
+            // this.openAutocompleteMenu(validMatches);
 
             // Choose how to replace the existing token / construct
             // SHOULD BE REMOVED IN THE FUTURE AND REPLACED BY A SINGLE FUNCTION HANDLING
