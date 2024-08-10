@@ -79,7 +79,7 @@
         ],
         "match": "",
         "matchRegex": "^([^\\r\\n ]*)$",
-        "triggerInsertion": [],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Text",
             "title": "text",
@@ -99,64 +99,6 @@
                 "create string",
                 "empty string",
                 "empty text"
-            ]
-        }
-    },
-    {
-        "keyword": "interpolatedstring",
-        "constructType": "expression",
-        "editorName": "--- ---",
-        "format": [
-            {
-                "type": "hole",
-                "elements": [
-                    {
-                        "type": "expression",
-                        "optional": false
-                    }
-                ]
-            },
-            {
-                "type": "compound",
-                "scope": false,
-                "insertBefore": null,
-                "format": [
-                    {
-                        "type": "token",
-                        "value": " ",
-                        "waitOnUser": " "
-                    },
-                    {
-                        "type": "hole",
-                        "elements": [
-                            {
-                                "type": "expression",
-                                "optional": true
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "match": "",
-        "matchRegex": "^([^\\r\\n]*)$",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Text",
-            "title": "Sentence",
-            "tooltip": {
-                "title": "Make a sentence",
-                "body": "Combine text and the value of variables into a sentence."
-            },
-            "tips": [
-                {
-                    "type": "executable",
-                    "id": "ex-declare-sentence",
-                    "example": "firstname is Jesse\nprint Your name is firstname"
-                }
-            ],
-            "search-queries": [
-                "sentence"
             ]
         }
     },
@@ -186,7 +128,7 @@
             }
         ],
         "matchRegex": "^([^\\d\\W]\\w*)$",
-        "triggerInsertion": [],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Variables",
             "title": "Create/Reassign Variable",
@@ -234,7 +176,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Variables",
             "title": "Reference Variable",
@@ -277,11 +219,23 @@
                 "value": " "
             },
             {
-                "type": "hole",
-                "elements": [
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
                     {
-                        "type": "expression",
-                        "optional": false
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    },
+                    {
+                        "type": "token",
+                        "value": " ",
+                        "waitOnUser": " "
                     }
                 ]
             }
