@@ -656,14 +656,14 @@ export class Validator {
      * @param type - The type of the construct to insert
      * @returns True if the current context is at a hole of the given type, false otherwise
      */
-    atHoleWithType(providedContext?: Context, type?: string): boolean {
+    atHoleWithType(providedContext?: Context, type?: string[]): boolean {
         const context = providedContext ? providedContext : this.module.focus.getContext();
 
         return (
             context.selected &&
             context?.token?.isEmpty &&
             context.token instanceof HoleTkn &&
-            context.token.allowedType === type
+            type.includes(context.token.allowedType)
         );
     }
 

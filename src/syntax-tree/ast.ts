@@ -13,7 +13,7 @@ import { AutoCompleteType, CodeConstructType, DataType, InsertionType, ScopeType
 import { scopeHeuristic } from "./heuristics";
 import { Module } from "./module";
 import { Scope } from "./scope";
-import { ASTManupilation } from "./utils";
+import { ASTManupilation, Utils } from "./utils";
 import { ValidatorNameSpace } from "./validator";
 import { doesConstructContainPos } from "../utilities/util";
 
@@ -869,7 +869,7 @@ export class UniConstruct extends Statement {
     /**
      * The type of the construct. Most frequent options are "statement" and "expression".
      */
-    constructType: string;
+    constructType: string[];
 
     constructor(
         construct: ConstructDefinition,
@@ -883,7 +883,7 @@ export class UniConstruct extends Statement {
         this.indexInRoot = indexInRoot;
         this.keyword = construct.keyword; // Rethink this one; will this really always be the name/keyword? MIGHT BE FIXED
 
-        this.constructType = construct.constructType;
+        this.constructType = Utils.ensureList(construct.constructType);
 
         // If an empty construct is given, we can't do anything with it
         if (!construct || !construct.format) return;
@@ -998,7 +998,6 @@ export class UniConstruct extends Statement {
 
         const currTkn = context.token ?? context.tokenToLeft;
 
-
         let currUniCode = currTkn?.rootNode;
         while (currUniCode && !(currUniCode instanceof UniConstruct)) {
             currUniCode = currUniCode.rootNode;
@@ -1007,20 +1006,22 @@ export class UniConstruct extends Statement {
 
         return (
             // Normal validation
-            validator.atHoleWithType(context, this.constructType) &&
-            ValidatorNameSpace.validateRequiredConstructs(context, this) &&
-            ValidatorNameSpace.validateAncestors(context, this))
-            ||
-            // Validation specifically to make constructs starting with a hole
-            // insertable directly after a UniConstruct
-            (this.tokens.length > 0 &&
-                this.tokens[0] instanceof HoleTkn &&
-                currTkn &&
-                currTkn.rootNode instanceof UniConstruct &&
-                this.tokens[0].allowedType === currTkn.rootNode.constructType &&
-                this.constructType === currTkn?.rootNode?.rootNode?.holeTypes.get(currTkn?.rootNode?.indexInRoot))
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
+            (validator.atHoleWithType(context, this.constructType) &&
+                ValidatorNameSpace.validateRequiredConstructs(context, this) &&
+                ValidatorNameSpace.validateAncestors(context, this)) ||
+                // Validation specifically to make constructs starting with a hole
+                // insertable directly after a UniConstruct
+                (this.tokens.length > 0 &&
+                    this.tokens[0] instanceof HoleTkn &&
+                    currTkn &&
+                    currTkn.rootNode instanceof UniConstruct &&
+                    currTkn.rootNode.constructType.includes(this.tokens[0].allowedType) &&
+                    this.constructType.includes(
+                        currTkn?.rootNode?.rootNode?.holeTypes.get(currTkn?.rootNode?.indexInRoot)
+                    ))
+                ? InsertionType.Valid
+                : InsertionType.Invalid
+        );
     }
 }
 

@@ -202,7 +202,7 @@ export namespace ASTManupilation {
             newConstruct instanceof UniConstruct &&
             constructToReplace instanceof UniConstruct &&
             newConstruct.tokens[0] instanceof HoleTkn &&
-            constructToReplace.constructType === newConstruct.tokens[0].allowedType
+            constructToReplace.constructType.includes(newConstruct.tokens[0].allowedType)
         ) {
             constructToReplace.rootNode = newConstruct;
             constructToReplace.indexInRoot = 0;
@@ -389,6 +389,18 @@ export namespace ASTManupilation {
         }
         // Return the previous sibling
         return construct;
+    }
+}
+
+export namespace Utils {
+    /**
+     * Ensures that the given argument is a list. If not, the argument is wrapped in a list.
+     * 
+     * @param arg - The argument to ensure is a list
+     * @returns A list, either the argument if it is a list, or a list with the argument as the only element
+     */
+    export function ensureList<T>(arg: T | T[]): T[] {
+        return Array.isArray(arg) ? arg : [arg];
     }
 }
 

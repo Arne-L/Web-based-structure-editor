@@ -271,7 +271,7 @@
     },
     {
         "keyword": "functionCall",
-        "constructType": "expression",
+        "constructType": ["expression", "statement"],
         "editorName": "function(---)",
         "format": [
             {

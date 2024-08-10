@@ -98,12 +98,13 @@ export interface ConstructDefinition {
      */
     editorName: string;
     /**
-     * The type of the construct. It is used to determine in which holes the construct can be inserted.
-     * Most common values are "expression" and "statement".
+     * The type(s) of the construct. It is used to determine in which holes the construct can be inserted.
+     * Most common values are "expression" and "statement". If multiple types are possible, a list
+     * of types can be given.
      *
      * Required.
      */
-    constructType: string;
+    constructType: string | string[];
     /**
      * The sequence of substructures and tokens that make up the construct. This field
      * determines the structure of the construct and the editor's behaviour.
