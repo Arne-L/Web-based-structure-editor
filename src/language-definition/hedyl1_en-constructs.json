@@ -39,15 +39,7 @@
                     "example": "print How are you?"
                 }
             ],
-            "search-queries": [
-                "output",
-                "say",
-                "print",
-                "print output",
-                "console",
-                "write",
-                "see output"
-            ]
+            "search-queries": ["output", "say", "print", "print output", "console", "write", "see output"]
         }
     },
     {
@@ -90,10 +82,7 @@
                     "example": "ask How old are you?"
                 }
             ],
-            "search-queries": [
-                "ask",
-                "question"
-            ]
+            "search-queries": ["ask", "question"]
         }
     },
     {
@@ -131,10 +120,37 @@
                     "example": "ask How old are you?\necho You are"
                 }
             ],
-            "search-queries": [
-                "output",
-                "echo"
-            ]
+            "search-queries": ["output", "echo"]
+        }
+    },
+    {
+        "keyword": "noteLit",
+        "constructType": "note_expression",
+        "editorName": "note",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Music",
+            "title": "note",
+            "tooltip": {
+                "title": "A note",
+                "body": "A music note. The scale goes C-D-E-F-G-A-B. As you can see there are 7 different letters, but we can play more than just 7 notes. Type a number between 1 and 10 behind the letter to choose the scale, for example after B4 comes C5. C1 is the lowest note you can play, C10 is the highest"
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-note-c8",
+                    "example": "C8"
+                }
+            ],
+            "search-queries": ["note"]
         }
     },
     {
@@ -150,11 +166,16 @@
                 "value": " "
             },
             {
-                "type": "editable",
-                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "note_expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
-        "triggerInsertion": [],
+        "triggerInsertion": [" "],
         "editorName": "play note",
         "match": "play",
         "toolbox": {
@@ -177,11 +198,7 @@
                     "example": "play F4"
                 }
             ],
-            "search-queries": [
-                "music",
-                "note",
-                "play"
-            ]
+            "search-queries": ["music", "note", "play"]
         }
     },
     {
@@ -198,7 +215,7 @@
             },
             {
                 "type": "editable",
-                "regex": "^(-?[0-9]+)$"
+                "regex": "^(-?[0-9]*)$"
             }
         ],
         "triggerInsertion": [],
@@ -219,10 +236,7 @@
                     "example": "forward 20"
                 }
             ],
-            "search-queries": [
-                "forward",
-                "line"
-            ]
+            "search-queries": ["forward", "line"]
         }
     },
     {
@@ -257,11 +271,7 @@
                     "example": "turn right"
                 }
             ],
-            "search-queries": [
-                "turn",
-                "left",
-                "right"
-            ]
+            "search-queries": ["turn", "left", "right"]
         }
     },
     {
@@ -309,11 +319,7 @@
                     "example": "turn right"
                 }
             ],
-            "search-queries": [
-                "turn",
-                "left",
-                "right"
-            ]
+            "search-queries": ["turn", "left", "right"]
         }
     }
 ]
