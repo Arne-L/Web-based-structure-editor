@@ -86,7 +86,7 @@ export class ActionFilter {
                 // add the action as an invalid option (e.g. for the toolbox buttons to be disabled)
                 if (references.length === 0)
                     validOptionMap.set(
-                        action.optionName,
+                        action.cssId,
                         EditCodeAction.createDynamicEditCodeAction(
                             action.optionName,
                             action.cssId,
@@ -102,7 +102,7 @@ export class ActionFilter {
                     );
             } else {
                 validOptionMap.set(
-                    action.optionName,
+                    action.cssId,
                     EditCodeAction.createDynamicEditCodeAction(
                         action.optionName,
                         action.cssId,
@@ -388,6 +388,8 @@ export class EditCodeAction extends UserAction {
         // Check if the given code can be inserted at the current location
         // Either valid, draft or invalid
         const astInsertionType = code.validateContext(validator, context);
+
+        if (code.getKeyword() === "argList") console.log("arglist", astInsertionType)
         
         if (!(code instanceof GeneralExpression)) {
             // Code is not an expression; however, this method requires it to be an expression
