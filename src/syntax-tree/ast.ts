@@ -1644,6 +1644,11 @@ export class AssignmentTkn extends IdentifierTkn {
         // // Get the nearest scope
         // const stmtScope = parentStmt.getNearestScope();
         const currentScope = scopeHeuristic(this, this.scopeType);
+
+        if (!currentScope) {
+            console.error("No scope found for assignment token", this);
+            return;
+        }
         console.log("Scope", currentScope);
 
         if (currentIdentifier !== this.oldIdentifier) {
@@ -1740,6 +1745,11 @@ export class AssignmentTkn extends IdentifierTkn {
         // const parentStmt = this.getNearestCodeConstruct();
         // const currentScope = parentStmt.getNearestScope();
         const currentScope = scopeHeuristic(this, this.scopeType);
+
+        if (!currentScope) {
+            console.error("No scope found for assignment token", this);
+            return;
+        }
 
         // Remove the assignment from the nearest scope
         currentScope.removeAssignment(this);
