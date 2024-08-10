@@ -379,12 +379,14 @@ export class MenuController {
      * Build a single-node menu that contains all options provided by suggestions.
      *
      * @param suggestions An array of options this menu will have.
-     *
      * @param pos         Starting top-left corner of this menu in the editor.
      */
     buildSingleLevelMenu(suggestions: EditCodeAction[], pos: any = { left: 0, top: 0 }) {
+        // Filter options with exactly the same user facing text, such that it shows only unique options
+        const filteredSuggestions = [...new Map(suggestions.map((action) => [action.getDisplayText(""), action])).values()];
+
         if (this.menus.length > 0) this.removeMenus();
-        else if (suggestions.length >= 0) {
+        else if (filteredSuggestions.length >= 0) {
             //TODO: Very hacky way of fixing #569
             // CAN THIS BE REMOVED? SEEMS TO WORK PERFECTLY FINE WITHOUT IT, even when checking against https://github.com/MajeedKazemi/code-struct/issues/569
             //The issue is that the "no options" option is only added to the menu during the call to updateOptions
@@ -393,7 +395,7 @@ export class MenuController {
             //     suggestions.push(Actions.instance().actionsList[0]); //this does not have to be this specific action, just need one to create the option so that the menu is created and then we immediately delete the option
             // }
 
-            const menu = this.module.menuController.buildMenu(suggestions, pos);
+            const menu = this.module.menuController.buildMenu(filteredSuggestions, pos);
 
             //TODO: Continuation of very hacky way of fixing #569
             // CAN THIS BE REMOVED?
@@ -413,7 +415,7 @@ export class MenuController {
             this.indexOfRootMenu = 0;
             this.focusedOptionIndex = 0;
             this.bottomOptionIndex = menu.getOptionsInViewport() - 1;
-            menu.editCodeActionsOptions = suggestions;
+            menu.editCodeActionsOptions = filteredSuggestions;
             this.focusOption(menu.options[this.focusedOptionIndex]);
         }
     }
@@ -461,7 +463,7 @@ export class MenuController {
             const menuOptions = new Map<string, Function>();
 
             for (const action of options) {
-                menuOptions.set(action.optionName, () => {
+                menuOptions.set(action.cssId, () => {
                     action.performAction(
                         this.module.executer,
                         this.module.eventRouter,
