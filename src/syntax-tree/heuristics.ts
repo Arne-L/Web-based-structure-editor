@@ -1,3 +1,4 @@
+import { LOCALCHILDSEARCHDEPTH } from "../language-definition/settings";
 import { CompoundConstruct, Construct } from "./ast";
 import { CodeConstructType, ScopeType } from "./consts";
 import { Module } from "./module";
@@ -18,17 +19,25 @@ export function scopeHeuristic(construct: Construct, scopeType: ScopeType) {
             // The scope of the nearest parent
             return construct.getNearestScope();
         case ScopeType.LocalChild:
-            // Searches for the first compound construct appearing after the given construct
-            // that is a direct child of the root
+            // Searches for the first compound construct with a scope appearing after the given construct
+            // that is a direct child an ancestor node
             // If none is found, or the one found does not have a scope, null is returned
+            // LOCALCHILDSEARCHDEPTH determines how many UniConstructs up the algorithm will search
             // TODO: Increase the search depth to find a scope? Depends on what users expect ...
-            const tokens = construct.rootNode
-                .getNearestCodeConstruct(CodeConstructType.UniConstruct) // TODO: This wrongly assumes that the rootNode is always a UniConstruct
-                .tokens.slice(construct.indexInRoot + 1);
-            for (const tkn of tokens) {
-                if (tkn instanceof CompoundConstruct && tkn.scope) {
-                    return tkn.scope;
+            let currentDepth = 0;
+            let currentConstruct = construct;
+            while (currentDepth < LOCALCHILDSEARCHDEPTH) {
+                const tokens = currentConstruct.rootNode
+                    .getNearestCodeConstruct(CodeConstructType.UniConstruct) // TODO: This wrongly assumes that the rootNode is always a UniConstruct
+                    .tokens.slice(construct.indexInRoot + 1);
+                for (const tkn of tokens) {
+                    if (tkn instanceof CompoundConstruct && tkn.scope) {
+                        return tkn.scope;
+                    }
                 }
+
+                currentConstruct = currentConstruct.rootNode;
+                currentDepth++;
             }
             console.error("None of the following subconstructs (after the assignment token) have a scope");
     }

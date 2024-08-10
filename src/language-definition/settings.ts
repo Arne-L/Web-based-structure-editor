@@ -7,4 +7,13 @@ export const navigationKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"
 export const FONT_SIZE = 20;
 export const INITIAL_Z_INDEX = 500;
 
+/**
+ * The text that is used to represent a hole in the code.
+ */
 export const HOLETEXT = "   ";
+
+/**
+ * Amount of times the algorithm will move up in the AST to the next UniConstruct
+ * in hopes of finding a (child)scope
+ */
+export const LOCALCHILDSEARCHDEPTH = 5;
