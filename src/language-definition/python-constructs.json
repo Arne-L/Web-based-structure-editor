@@ -348,6 +348,52 @@
         }
     },
     {
+        "keyword": "return",
+        "constructType": "statement",
+        "editorName": "return ---",
+        "requiresAncestor": [
+            {
+                "ref": "def",
+                "min_level": 0,
+                "max_level": null
+            }
+        ],
+        "format": [
+            {
+                "type": "token",
+                "value": "return "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "match": "return",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Functions",
+            "tooltip": {
+                "title": "Return statement",
+                "body": "Returns the given value as the result of the function."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-declare-print-var",
+                    "example": "def add(a, b):\n    return a + b"
+                }
+            ],
+            "searchQueries": ["return", "return statement"]
+        }
+    },
+    {
         "keyword": "print",
         "constructType": "statement",
         "format": [
