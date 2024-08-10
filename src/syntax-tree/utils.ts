@@ -342,7 +342,7 @@ export namespace ASTManupilation {
     }
 
     export function getNextSiblingOfRoot(construct: Construct): Construct {
-        if (construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
+        if (!construct.rootNode || construct.indexInRoot === construct.rootNode.tokens.length - 1) return null;
         // Go to the previous sibling of the current construct
         return construct.rootNode.tokens[construct.indexInRoot + 1];
     }

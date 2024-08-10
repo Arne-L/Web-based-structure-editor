@@ -853,6 +853,9 @@ export class EventRouter {
                 }
             }
 
+            // Between the while check and the current line, it can be that
+            // leftconstruct has changed. Therefore we need to check if it is not null
+            if (!leftConstruct) break;
             // Keep on moving up the AST until you reach the top
             leftConstruct = leftConstruct.rootNode;
         }
