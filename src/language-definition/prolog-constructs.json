@@ -43,12 +43,7 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "searchQueries": [
-                "predicate",
-                "head",
-                "rule",
-                "clause"
-            ]
+            "searchQueries": ["predicate", "head", "rule", "clause"]
         }
     },
     {
@@ -85,9 +80,7 @@
         ],
         "match": null,
         "matchRegex": "^([a-z][a-zA-Z0-9_]*)\\(?(.*\\)\\s*:-\\s*.*\\.)?$",
-        "triggerInsertion": [
-            "("
-        ],
+        "triggerInsertion": ["("],
         "toolbox": {
             "category": "Predicates",
             "title": "Predicate",
@@ -101,13 +94,7 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "searchQueries": [
-                "predicate",
-                "head",
-                "rule",
-                "clause",
-                ":-"
-            ]
+            "searchQueries": ["predicate", "head", "rule", "clause", ":-"]
         }
     },
     {
@@ -148,10 +135,142 @@
                     "text": "Define a new predicate"
                 }
             ],
-            "searchQueries": [
-                "predicate",
-                "call"
-            ]
+            "searchQueries": ["predicate", "call"]
+        }
+    },
+    {
+        "keyword": "argIdentifier",
+        "constructType": "arg_term",
+        "editorName": "--",
+        "format": [
+            {
+                "type": "identifier",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                "scopeType": "localChild",
+                "reference": "variable"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^([a-zA-Z_][a-zA-Z0-9_]*)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Predicates",
+            "tooltip": {
+                "title": "Predicate Identifier Argument",
+                "body": "Used to declare a variable in a predicate argument"
+            },
+            "tips": [],
+            "searchQueries": ["predicate argument", "arg"]
+        }
+    },
+    {
+        "keyword": "argList",
+        "constructType": "arg_term",
+        "editorName": "[---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "arg_term",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[---]",
+        "matchRegex": null,
+        "triggerInsertion": ["]"],
+        "toolbox": {
+            "category": "Predicates",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts an empty list in a predicate argument hole. Press comma after each item to add a new empty item."
+            },
+            "tips": [],
+            "searchQueries": ["empty list argument", "create empty list", "create list", "array", "create empty array"]
+        }
+    },
+    {
+        "keyword": "argListTail",
+        "constructType": "arg_term",
+        "editorName": "[--- | ---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " | "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[--- | ---]",
+        "matchRegex": null,
+        "triggerInsertion": ["|"],
+        "toolbox": {
+            "category": "Predicates",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts a list split in a head and a tail in a predicate argument hole."
+            },
+            "tips": [],
+            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     },
     {
@@ -166,9 +285,7 @@
         ],
         "match": "--",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Variables",
             "title": "Reference Variable",
@@ -177,11 +294,32 @@
                 "body": "Refers to the value stored in the specified variable."
             },
             "tips": [],
-            "searchQueries": [
-                "reference variable",
-                "variable",
-                "var"
-            ]
+            "searchQueries": ["reference variable", "variable", "var"]
+        }
+    },
+    {
+        "keyword": "termIdentifier",
+        "constructType": "term",
+        "editorName": "x",
+        "format": [
+            {
+                "type": "identifier",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                "scopeType": "localParent",
+                "reference": "variable"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^([a-zA-Z_][a-zA-Z0-9_]*)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Variables",
+            "tooltip": {
+                "title": "Term Identifier",
+                "body": "Declare a variable where normally a term would be expected."
+            },
+            "tips": [],
+            "searchQueries": ["identifier", "define variable"]
         }
     },
     {
@@ -196,9 +334,7 @@
         ],
         "match": "tru",
         "matchRegex": null,
-        "triggerInsertion": [
-            "e"
-        ],
+        "triggerInsertion": ["e"],
         "toolbox": {
             "category": "Predicates",
             "title": "True",
@@ -212,11 +348,7 @@
                     "text": "Insert the constant true"
                 }
             ],
-            "searchQueries": [
-                "true",
-                "constant",
-                "truth"
-            ]
+            "searchQueries": ["true", "constant", "truth"]
         }
     },
     {
@@ -231,9 +363,7 @@
         ],
         "match": "fals",
         "matchRegex": null,
-        "triggerInsertion": [
-            "e"
-        ],
+        "triggerInsertion": ["e"],
         "toolbox": {
             "category": "Predicates",
             "title": "False",
@@ -247,11 +377,7 @@
                     "text": "Insert the constant false"
                 }
             ],
-            "searchQueries": [
-                "false",
-                "constant",
-                "truth"
-            ]
+            "searchQueries": ["false", "constant", "truth"]
         }
     },
     {
@@ -284,9 +410,7 @@
         ],
         "match": "is",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Arithmetics",
             "title": "Arithmetic equality check",
@@ -304,11 +428,7 @@
                     "text": ""
                 }
             ],
-            "searchQueries": [
-                "false",
-                "constant",
-                "truth"
-            ]
+            "searchQueries": ["false", "constant", "truth"]
         }
     },
     {
@@ -352,10 +472,7 @@
                 "body": "Adds the values to the left and right of the operator."
             },
             "tips": [],
-            "searchQueries": [
-                "add",
-                "sum"
-            ]
+            "searchQueries": ["add", "sum"]
         }
     },
     {
@@ -399,11 +516,7 @@
                 "body": "Subtracts the value to the right of the operator from the value to the left."
             },
             "tips": [],
-            "searchQueries": [
-                "subtract numbers",
-                "subtraction",
-                "deduct"
-            ]
+            "searchQueries": ["subtract numbers", "subtraction", "deduct"]
         }
     },
     {
@@ -447,9 +560,7 @@
                 "body": "Checks if the value to the left of the operator is smaller than the value to the right."
             },
             "tips": [],
-            "searchQueries": [
-                "less than"
-            ]
+            "searchQueries": ["less than"]
         }
     },
     {
@@ -493,9 +604,7 @@
                 "body": "Checks if the value to the left of the operator is not equal to the value to the right."
             },
             "tips": [],
-            "searchQueries": [
-                "not equal"
-            ]
+            "searchQueries": ["not equal"]
         }
     },
     {
@@ -511,16 +620,7 @@
         ],
         "match": null,
         "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
-        "triggerInsertion": [
-            " ",
-            "+",
-            "-",
-            "*",
-            "/",
-            "%",
-            "(",
-            ")"
-        ],
+        "triggerInsertion": [" ", "+", "-", "*", "/", "%", "(", ")"],
         "toolbox": {
             "category": "Numbers",
             "title": "123",
@@ -557,9 +657,7 @@
         ],
         "match": "abs",
         "matchRegex": null,
-        "triggerInsertion": [
-            "("
-        ],
+        "triggerInsertion": ["("],
         "toolbox": {
             "category": "Numbers",
             "tooltip": {
@@ -589,9 +687,7 @@
         ],
         "match": null,
         "matchRegex": "^([^\\r\\n]*)$",
-        "triggerInsertion": [
-            "\""
-        ],
+        "triggerInsertion": ["\""],
         "toolbox": {
             "category": "Text",
             "title": "text",
@@ -600,12 +696,7 @@
                 "body": "Inserts an editable text that is wrapped by double quotes."
             },
             "tips": [],
-            "searchQueries": [
-                "create text",
-                "create string",
-                "empty string",
-                "empty text"
-            ]
+            "searchQueries": ["create text", "create string", "empty string", "empty text"]
         }
     },
     {
@@ -638,9 +729,7 @@
         ],
         "match": "=",
         "matchRegex": null,
-        "triggerInsertion": [
-            " "
-        ],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Unification",
             "title": "Unification",
@@ -654,11 +743,7 @@
                     "text": "Unify two terms"
                 }
             ],
-            "searchQueries": [
-                "false",
-                "constant",
-                "truth"
-            ]
+            "searchQueries": ["false", "constant", "truth"]
         }
     },
     {
@@ -709,9 +794,7 @@
         ],
         "match": "[---]",
         "matchRegex": null,
-        "triggerInsertion": [
-            "]"
-        ],
+        "triggerInsertion": ["]"],
         "toolbox": {
             "category": "Lists",
             "title": "List",
@@ -720,13 +803,7 @@
                 "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
             },
             "tips": [],
-            "searchQueries": [
-                "empty list",
-                "create empty list",
-                "create list",
-                "array",
-                "create empty array"
-            ]
+            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     },
     {
@@ -769,9 +846,7 @@
         ],
         "match": "[--- | ---]",
         "matchRegex": null,
-        "triggerInsertion": [
-            "|"
-        ],
+        "triggerInsertion": ["|"],
         "toolbox": {
             "category": "Lists",
             "tooltip": {
@@ -779,13 +854,7 @@
                 "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
             },
             "tips": [],
-            "searchQueries": [
-                "empty list",
-                "create empty list",
-                "create list",
-                "array",
-                "create empty array"
-            ]
+            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     },
     {
@@ -842,9 +911,7 @@
         ],
         "match": "select",
         "matchRegex": null,
-        "triggerInsertion": [
-            "("
-        ],
+        "triggerInsertion": ["("],
         "toolbox": {
             "category": "Lists",
             "tooltip": {
@@ -852,11 +919,7 @@
                 "body": "Select an element from a list and return the remaining list."
             },
             "tips": [],
-            "searchQueries": [
-                "select element",
-                "select from list",
-                "select"
-            ]
+            "searchQueries": ["select element", "select from list", "select"]
         }
     }
 ]
