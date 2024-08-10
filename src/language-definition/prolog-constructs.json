@@ -7,7 +7,7 @@
             {
                 "type": "identifier",
                 "regex": "[a-z][a-zA-Z0-9_]*",
-                "scopeType": "localParent",
+                "scopeType": "global",
                 "reference": "predicate"
             },
             {
@@ -59,7 +59,7 @@
             {
                 "type": "identifier",
                 "regex": "[a-z][a-zA-Z0-9_]*",
-                "scopeType": "localParent",
+                "scopeType": "global",
                 "reference": "predicate"
             },
             {
@@ -341,11 +341,9 @@
                 ]
             }
         ],
-        "match": null,
-        "matchRegex": "^(\\d*|--)(?:\\s+\\s(\\d*))?$",
-        "triggerInsertion": [
-            "+"
-        ],
+        "match": "+",
+        "matchRegex": null,
+        "triggerInsertion": [],
         "toolbox": {
             "category": "Arithmetics",
             "title": "add",
@@ -409,6 +407,98 @@
         }
     },
     {
+        "keyword": "lessExpr",
+        "constructType": "term",
+        "editorName": "--- < ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " < "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "match": "<",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "less than",
+            "tooltip": {
+                "title": "Insert Less Than",
+                "body": "Checks if the value to the left of the operator is smaller than the value to the right."
+            },
+            "tips": [],
+            "searchQueries": [
+                "less than"
+            ]
+        }
+    },
+    {
+        "keyword": "notEqExpr",
+        "constructType": "term",
+        "editorName": "--- =\\= ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " =\\= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "match": "=\\=",
+        "matchRegex": null,
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Arithmetics",
+            "title": "not equal",
+            "tooltip": {
+                "title": "Insert Not Equal",
+                "body": "Checks if the value to the left of the operator is not equal to the value to the right."
+            },
+            "tips": [],
+            "searchQueries": [
+                "not equal"
+            ]
+        }
+    },
+    {
         "keyword": "numberLit",
         "constructType": "term",
         "editorName": "0",
@@ -437,6 +527,44 @@
             "tooltip": {
                 "title": "Insert a Number",
                 "body": "Inserts a number and edit its value."
+            },
+            "tips": []
+        }
+    },
+    {
+        "keyword": "absVal",
+        "constructType": "term",
+        "editorName": "abs(---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "abs("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "match": "abs",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "("
+        ],
+        "toolbox": {
+            "category": "Numbers",
+            "tooltip": {
+                "title": "Absolute Value",
+                "body": "Get the absolute value of a number"
             },
             "tips": []
         }
@@ -646,7 +774,6 @@
         ],
         "toolbox": {
             "category": "Lists",
-            "title": "List",
             "tooltip": {
                 "title": "Insert Editable List",
                 "body": "Inserts an empty list. Press comma before or after each item to add a new empty item."
@@ -658,6 +785,77 @@
                 "create list",
                 "array",
                 "create empty array"
+            ]
+        }
+    },
+    {
+        "keyword": "select",
+        "constructType": "term",
+        "editorName": "select(---, ---, ---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "select("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ", "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ", "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "term",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "match": "select",
+        "matchRegex": null,
+        "triggerInsertion": [
+            "("
+        ],
+        "toolbox": {
+            "category": "Lists",
+            "tooltip": {
+                "title": "Select an element",
+                "body": "Select an element from a list and return the remaining list."
+            },
+            "tips": [],
+            "searchQueries": [
+                "select element",
+                "select from list",
+                "select"
             ]
         }
     }
