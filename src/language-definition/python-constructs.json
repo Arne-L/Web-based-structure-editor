@@ -157,6 +157,28 @@
                 ]
             },
             {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "type": "token",
                 "value": ")"
             }
@@ -416,6 +438,28 @@
                 ]
             },
             {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "expression",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "type": "token",
                 "value": ")"
             }
@@ -543,6 +587,86 @@
                 }
             ],
             "searchQueries": ["length of list", "length of string", "length of text"]
+        }
+    },
+    {
+        "keyword": "ord",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "ord"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "editorName": "ord(---)",
+        "match": "ord",
+        "toolbox": {
+            "category": "Functions",
+            "tooltip": {
+                "title": "Get the Integer Representation of a Character",
+                "body": "The ord() function returns the unicode code of a given character."
+            },
+            "tips": [],
+            "searchQueries": ["unicode code of character", "ord"]
+        }
+    },
+    {
+        "keyword": "chr",
+        "constructType": "expression",
+        "format": [
+            {
+                "type": "token",
+                "value": "chr"
+            },
+            {
+                "type": "token",
+                "value": "("
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": ")"
+            }
+        ],
+        "triggerInsertion": ["("],
+        "editorName": "chr(---)",
+        "match": "chr",
+        "toolbox": {
+            "category": "Functions",
+            "tooltip": {
+                "title": "Get the Character Represented by the Unicode",
+                "body": "The chr() function returns the character represented by the given unicode code."
+            },
+            "tips": [],
+            "searchQueries": ["character", "unicode", "chr"]
         }
     },
     {
@@ -1091,9 +1215,9 @@
                 ]
             }
         ],
-        "match": "--",
+        "match": "--/",
         "matchRegex": null,
-        "triggerInsertion": ["/"],
+        "triggerInsertion": [],
         "toolbox": {
             "category": "Variables",
             "title": "Divide a Variable",
@@ -1109,6 +1233,49 @@
                 }
             ],
             "searchQueries": ["divide variable"]
+        }
+    },
+    {
+        "keyword": "floorAssign",
+        "constructType": "statement",
+        "editorName": "x //= ---",
+        "format": [
+            {
+                "type": "reference",
+                "to": "variable"
+            },
+            {
+                "type": "token",
+                "value": " //= "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "match": "--/",
+        "matchRegex": null,
+        "triggerInsertion": ["/"],
+        "toolbox": {
+            "category": "Variables",
+            "tooltip": {
+                "title": "Insert Floor Division Assignment",
+                "body": "Performs integer division (remainder is discarded and always result is always rounded down) between the value of the variable and the right-hand side value."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-var-divide-by-value",
+                    "example": "a = 10\na //= 2\nprint(a)"
+                }
+            ],
+            "searchQueries": ["divide variable", "divide floor"]
         }
     },
     {
@@ -1806,9 +1973,9 @@
                 ]
             }
         ],
-        "match": "",
+        "match": "*",
         "matchRegex": null,
-        "triggerInsertion": ["*"],
+        "triggerInsertion": [],
         "toolbox": {
             "category": "Arithmetics",
             "title": "multiply",
@@ -1856,9 +2023,9 @@
                 ]
             }
         ],
-        "match": "",
+        "match": "/",
         "matchRegex": null,
-        "triggerInsertion": ["/"],
+        "triggerInsertion": [" "],
         "toolbox": {
             "category": "Arithmetics",
             "title": "divide",
@@ -1911,7 +2078,6 @@
         "triggerInsertion": ["/"],
         "toolbox": {
             "category": "Arithmetics",
-            "title": "floor division",
             "tooltip": {
                 "title": "Insert Floor Division",
                 "body": "Performs integer division (remainder is discarded and always result is always rounded down) between the values to the left and right of the operator."
@@ -1974,6 +2140,86 @@
                 }
             ],
             "searchQueries": ["modulo", "remainder"]
+        }
+    },
+    {
+        "keyword": "powerExpr",
+        "constructType": "expression",
+        "editorName": "--- ** ---",
+        "format": [
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " ** "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "match": "*",
+        "matchRegex": null,
+        "triggerInsertion": ["*"],
+        "toolbox": {
+            "category": "Arithmetics",
+            "tooltip": {
+                "title": "Insert Power Expression",
+                "body": "Calculates the power of the value to the left to the right operator."
+            },
+            "tips": [],
+            "searchQueries": ["power", "exponent"]
+        }
+    },
+    {
+        "keyword": "brackets",
+        "constructType": "expression",
+        "editorName": "(---)",
+        "format": [
+            {
+                "type": "token",
+                "value": "( "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "expression",
+                        "optional": false
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " )"
+            }
+        ],
+        "match": "(",
+        "matchRegex": null,
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Arithmetics",
+            "tooltip": {
+                "title": "Brackets",
+                "body": "Group multiple expressions together to control the order of operations."
+            },
+            "tips": [],
+            "searchQueries": ["brackets", "parentheses"]
         }
     },
     {
@@ -2767,6 +3013,38 @@
                 }
             ],
             "searchQueries": ["import module", "import random"]
+        }
+    },
+    {
+        "keyword": "comment",
+        "constructType": "statement",
+        "editorName": "# --",
+        "format": [
+            {
+                "type": "token",
+                "value": "# "
+            },
+            {
+                "type": "editable",
+                "regex": "^.*$"
+            }
+        ],
+        "match": "#",
+        "triggerInsertion": [" "],
+        "toolbox": {
+            "category": "Comments",
+            "tooltip": {
+                "title": "Write a Comment",
+                "body": "Add a comment to your code. Comments are ignored by the Python interpreter and are used to explain the code."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-comment",
+                    "example": "# This is a comment\nprint(\"Hello, World!\")"
+                }
+            ],
+            "searchQueries": ["comment", "documentation", "explain"]
         }
     }
 ]
