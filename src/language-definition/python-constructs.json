@@ -223,7 +223,7 @@
             {
                 "type": "identifier",
                 "regex": "^[^\\d\\W]\\w*$",
-                "scopeType": "localParent",
+                "scopeType": "global",
                 "reference": "function"
             },
             {
@@ -1327,9 +1327,9 @@
                 "value": "'"
             }
         ],
-        "match": null,
-        "matchRegex": "^'([^\\r\\n\\\"]*)'?$",
-        "triggerInsertion": [],
+        "match": "",
+        "matchRegex": null,
+        "triggerInsertion": ["'"],
         "toolbox": {
             "category": "Text",
             "title": "text",
