@@ -130,7 +130,6 @@ export class Focus {
         const curSelection = this.module.editor.monaco.getSelection();
         const curLine = this.getConstructAtPosition(curPosition); //this.getStatementAtLineNumber(curPosition.lineNumber);
         let context: Context;
-        if (!curLine) console.log("curLine", curLine);
 
         if (!curSelection.getStartPosition().equals(curSelection.getEndPosition())) {
             context = this.getContextFromSelection(
@@ -142,8 +141,6 @@ export class Focus {
         } else context = this.getContextFromPosition(curLine, curPosition);
 
         context.position = curPosition;
-
-        if (!context.codeConstruct) console.log("No code construct2", context.codeConstruct);
         
         // console.log("Context", context, curLine);
 

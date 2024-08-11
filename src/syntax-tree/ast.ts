@@ -1649,7 +1649,6 @@ export class AssignmentTkn extends IdentifierTkn {
             console.error("No scope found for assignment token", this);
             return;
         }
-        console.log("Scope", currentScope);
 
         if (currentIdentifier !== this.oldIdentifier) {
             // The identifier has changed
@@ -2196,7 +2195,6 @@ export class CompoundConstruct extends CodeConstruct {
 
         // Get the key which needs to be pressed to continue the expansion on the given location
         const formatKey = this.waitOnIndices.get(formatIndex);
-        console.log(leftConstruct, this.getFormatIndex(leftConstruct, 1), this.waitOnIndices);
         // True if
         return !!formatKey && formatKey === keyPressed;
     }

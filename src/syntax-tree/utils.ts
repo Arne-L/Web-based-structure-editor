@@ -35,7 +35,6 @@ export namespace ASTManupilation {
                     context
                 )
             ) {
-                console.log("AutocompleteTkn right");
                 insertToken(context, construct, { toRight: true });
             } else if (
                 /*module.validator.canSwitchRightNumToAutocomplete(context) || */ module.validator.atLeftOfExpression(
@@ -55,7 +54,6 @@ export namespace ASTManupilation {
                 replaceWith(context.token, construct);
             }
         } else if (construct instanceof UniConstruct) {
-            console.log("Are we getting here with UniConstruct?");
             // Currently for expressions and statements
 
             // If on empty line, replace the empty line
@@ -142,7 +140,6 @@ export namespace ASTManupilation {
             const root = context.codeConstructToLeft.rootNode;
             // Set the parent of the given token to the parent of the expression to the left
             code.rootNode = root;
-            console.log("AutocompleteTkn root", root);
             // Add the given token directly after the expression to the left
             // without removing anything
             root.tokens.splice(context.codeConstructToLeft.indexInRoot + 1, 0, code);

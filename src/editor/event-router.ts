@@ -157,6 +157,7 @@ export class EventRouter {
              * of the previous line.
              */
             case KeyPress.Delete: {
+                break;
                 /**
                  * Handle the indentation of constructs, including the editor and the AST
                  *
@@ -287,26 +288,21 @@ export class EventRouter {
 
             // NOT language independent
             case KeyPress.Backspace: {
-                console.log("BACKSPACE");
                 // Token directly to the left of the cursor is either the current
                 // token or the token to the left (if between two tokens)
                 const curTkn = context.token ?? context.tokenToLeft;
-                console.log("context", context);
                 if (curTkn instanceof ast.Token) {
                     if (
                         curTkn instanceof ast.AutocompleteTkn ||
                         curTkn instanceof ast.IdentifierTkn ||
                         curTkn instanceof ast.EditableTextTkn
                     ) {
-                        console.log("BACKSPACE editable");
                         // Strictly more than one character left
                         if (curTkn.text.length > 1) {
-                            console.log("BACKSPACE not empty");
                             return new EditAction(EditActionType.DeletePrevChar);
                             // Exactly one character left; removing it should replace the text slot with
                             // a hole
                         } else if (curTkn.text.length === 1) {
-                            console.log("BACKSPACE one character left");
                             // Autocomplete tokens appear on their own, without encapsulating construct
                             if (curTkn instanceof ast.AutocompleteTkn)
                                 return new EditAction(EditActionType.DeleteToken, { backwards: true });
@@ -314,16 +310,13 @@ export class EventRouter {
                             else return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                         } // If the root is a compound and the current slot is empty, remove one iteration of the root
                         else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
-                            console.log("BACKSPACE compound");
                             // TODO: Is this correct? Do we not simply want to replace this with a hole? (see next case)
                             curTkn.rootNode.removeExpansion(curTkn);
                             // Else simply remove the previous character
                         } else {
-                            console.log("BACKSPACE previous");
                             return new EditAction(EditActionType.DeletePrevToken, { backwards: true });
                         }
                     } else if (curTkn.rootNode instanceof ast.CompoundConstruct) {
-                        console.log("BACKSPACE compound");
                         const nearestCompound = curTkn.rootNode;
                         // The cycle to remove is the last compound cycle and the current compound is not the top most compound
                         // Otherwise, it would not be possible to jump to next compound up in the tree
@@ -335,7 +328,6 @@ export class EventRouter {
                             nearestCompound.rootNode?.getNearestCodeConstruct(CodeConstructType.CompoundConstruct) &&
                             nearestCompound.compoundToken.enableIndentation
                         ) {
-                            console.log("BACKSPACE indent");
                             // Get the next compound construct in the tree
                             let underNextCompound: ast.CodeConstruct = nearestCompound;
                             while (!(underNextCompound.rootNode instanceof ast.CompoundConstruct)) {
@@ -352,7 +344,6 @@ export class EventRouter {
                                 nearestCompound.compoundToken.toString() === nextCompound.compoundToken.toString()
                             ) {
                                 const prevTkn = ASTManupilation.getPrevSiblingOfRoot(curTkn);
-                                console.log("prevTkn", prevTkn);
                                 // Find out where to insert this in the parent compound and whether we need to add some additional structures
                                 // Check if currently in hole; if so, simply remove on iteration and add on directly after the current compound in the parent compound
                                 if (
@@ -360,12 +351,9 @@ export class EventRouter {
                                     prevTkn.getRenderText() === Loader.instance.indent
                                 ) {
                                     if (nearestCompound.removeExpansion(curTkn)) {
-                                        console.log("Tokens1", nextCompound.tokens);
                                         nextCompound.continueExpansion(underNextCompound);
                                     }
-                                    console.log("Tokens1.5", nextCompound.tokens);
                                 } else if (prevTkn && prevTkn.getRenderText() === Loader.instance.indent) {
-                                    console.log("Tokens2", nextCompound.tokens);
                                     const rightConstruct = ASTManupilation.getNextSiblingOfRoot(curTkn);
                                     const tempTkn = new ast.NonEditableTkn(
                                         "a",
@@ -385,11 +373,9 @@ export class EventRouter {
                                         // Undo the replacement
                                         ASTManupilation.replaceWith(tempTkn, rightConstruct);
                                     }
-                                    console.log("Tokens2.5", nextCompound.tokens);
                                 }
                             }
                         } else {
-                            console.log("BACKSPACE compound");
                             nearestCompound.removeExpansion(curTkn);
                         }
                         // compound.
@@ -398,12 +384,10 @@ export class EventRouter {
                         // GeneralStatements remain in the cycle
                         // If it is not possible, do nothing
                     } else {
-                        console.log("BACKSPACE root");
                         // So root is a UniConstruct / GeneralStatement
                         return new EditAction(EditActionType.DeleteRootOfToken, { backwards: true });
                     }
                 } else {
-                    console.log("BACKSPACE none");
                     // CodeConstruct
                     // Do we even need something here? As the smallest element will always be a
                 }
@@ -553,8 +537,6 @@ export class EventRouter {
                 // Should be the printable characters (excluding things like arrow keys etc)
                 if (e.key.length !== 1) break;
 
-                console.log("in text edit mode?", inTextEditMode);
-
                 if (inTextEditMode) {
                     // Handle flow control keys (Not currently implemented)
                     switch (e.key) {
@@ -583,7 +565,6 @@ export class EventRouter {
                     // Check if a sequence of characters, e.g. abc, can be converted to a string
                     // At least, I think ...
                     if (this.module.validator.canConvertAutocompleteToString(context)) {
-                        console.log("CONVERT TO STRING");
                         // String literals
                         return new EditAction(EditActionType.ConvertAutocompleteToString, {
                             token: context.tokenToRight,
@@ -657,7 +638,6 @@ export class EventRouter {
                         !(editableTkn instanceof ast.IdentifierTkn || editableTkn instanceof ast.EditableTextTkn) ||
                         editableTkn.validatorRegex.test(newText)
                     ) {
-                        console.log("INSERT CHAR");
                         return new EditAction(EditActionType.InsertChar);
                     }
 
@@ -687,7 +667,6 @@ export class EventRouter {
                         item.getCode().tokens.at(1)?.getRenderText().includes(e.key)
                     );
                     if (validMatchesWithKey.length > 0) {
-                        console.log("OPEN AUTOCOMPLETE", validMatches);
                         return new EditAction(EditActionType.OpenAutocomplete, {
                             autocompleteType: AutoCompleteType.RightOfExpression,
                             firstChar: e.key,
@@ -705,7 +684,6 @@ export class EventRouter {
                 }
                 if (this.module.validator.atEmptyOperatorTkn(context)) {
                     // Return the autocomplete menu for the operator token
-                    console.log("AT EMPTY OPER");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtEmptyOperatorHole,
                         firstChar: e.key,
@@ -734,7 +712,6 @@ export class EventRouter {
                     //     });
                     // } else {
                     // Else open the autocomplete menu
-                    console.log("AT EXPRESSION HOLE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.AtExpressionHole,
                         firstChar: e.key,
@@ -746,7 +723,6 @@ export class EventRouter {
                     // If on an empty line and the identifier regex matches the pressed character
                 } else if (this.module.validator.onEmptyLine(context) && IdentifierRegex.test(e.key)) {
                     // Open the autocomplete menu
-                    console.log("ON EMPTY LINE");
                     return new EditAction(EditActionType.OpenAutocomplete, {
                         autocompleteType: AutoCompleteType.StartOfLine,
                         firstChar: e.key,
@@ -848,7 +824,6 @@ export class EventRouter {
                 const compound = leftConstruct.rootNode;
                 if (compound.canContinueExpansion(leftConstruct, e.key)) {
                     compound.continueExpansion(leftConstruct);
-                    console.log("EXPANDING COMPOUND 2");
                     return new EditAction(EditActionType.None);
                 }
             }
@@ -879,7 +854,6 @@ export class EventRouter {
         // If there is data, set its source to "keyboard"
         if (action?.data) action.data.source = { type: "keyboard" };
 
-        console.log("Action", action);
         // Execute the action and prevent the default event from being triggered if necessary
         const preventDefaultEvent = this.module.executer.execute(action, context, e.browserEvent);
 
