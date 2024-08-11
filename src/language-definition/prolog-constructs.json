@@ -328,7 +328,7 @@
         ],
         "match": "+",
         "matchRegex": null,
-        "triggerInsertion": [],
+        "triggerInsertion": ["+"],
         "toolbox": {
             "category": "Arithmetics",
             "title": "add",
@@ -485,7 +485,7 @@
         ],
         "match": null,
         "matchRegex": "^(([+-][0-9]+)|(([+-][0-9]*)\\.([0-9]+))|([0-9]*)|(([0-9]*)\\.([0-9]*)))$",
-        "triggerInsertion": [" ", "+", "-", "*", "/", "%", "(", ")"],
+        "triggerInsertion": [],
         "toolbox": {
             "category": "Numbers",
             "title": "123",
