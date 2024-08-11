@@ -203,6 +203,11 @@ export interface ConstructDefinition {
      * these character(s) is typed, while the construct is valid according to the match, the construct
      * is inserted in the editor. As these characters are supposed to be the first character after
      * the matchRegex or matchString, there are often also referred to as terminating characters.
+     * 
+     * Be carefull with its use: if multiple constructs match with the same userinput, and one of them
+     * has a triggerInsertion matching the current last character, the editor will insert the construct.
+     * The other matches will thus be unreachable. For example, if the division operator would have as
+     * triggerInsertion the '/' character, the floor division operator would never be reachable.
      *
      * Optional. When left empty, the construct can only be inserted by selecting it in the toolbox,
      * from the autocomplete menu or by force closing the autocompletion menu.
