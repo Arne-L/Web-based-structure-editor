@@ -78,7 +78,7 @@
                 "format": [
                     {
                         "type": "token",
-                        "value": ",",
+                        "value": ", ",
                         "waitOnUser": ","
                     },
                     {
@@ -98,8 +98,13 @@
         "name": "arguments_bodyless",
         "format": [
             {
-                "type": "editable",
-                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "argless_term",
+                        "optional": false
+                    }
+                ]
             },
             {
                 "type": "compound",
@@ -108,12 +113,17 @@
                 "format": [
                     {
                         "type": "token",
-                        "value": ",",
+                        "value": ", ",
                         "waitOnUser": ","
                     },
                     {
-                        "type": "editable",
-                        "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                        "type": "hole",
+                        "elements": [
+                            {
+                                "type": "argless_term",
+                                "optional": false
+                            }
+                        ]
                     }
                 ]
             }
@@ -138,7 +148,7 @@
                 "format": [
                     {
                         "type": "token",
-                        "value": ",",
+                        "value": ", ",
                         "waitOnUser": ","
                     },
                     {

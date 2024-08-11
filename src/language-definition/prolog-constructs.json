@@ -139,141 +139,6 @@
         }
     },
     {
-        "keyword": "argIdentifier",
-        "constructType": "arg_term",
-        "editorName": "--",
-        "format": [
-            {
-                "type": "identifier",
-                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
-                "scopeType": "localChild",
-                "reference": "variable"
-            }
-        ],
-        "match": null,
-        "matchRegex": "^([a-zA-Z_][a-zA-Z0-9_]*)$",
-        "triggerInsertion": [],
-        "toolbox": {
-            "category": "Predicates",
-            "tooltip": {
-                "title": "Predicate Identifier Argument",
-                "body": "Used to declare a variable in a predicate argument"
-            },
-            "tips": [],
-            "searchQueries": ["predicate argument", "arg"]
-        }
-    },
-    {
-        "keyword": "argList",
-        "constructType": "arg_term",
-        "editorName": "[---]",
-        "format": [
-            {
-                "type": "token",
-                "value": "["
-            },
-            {
-                "type": "hole",
-                "delimiter": ", ",
-                "elements": [
-                    {
-                        "type": "arg_term",
-                        "optional": true
-                    }
-                ]
-            },
-            {
-                "type": "compound",
-                "scope": false,
-                "insertBefore": null,
-                "format": [
-                    {
-                        "type": "token",
-                        "value": ", ",
-                        "waitOnUser": ","
-                    },
-                    {
-                        "type": "hole",
-                        "delimiter": ", ",
-                        "elements": [
-                            {
-                                "type": "arg_term",
-                                "optional": false
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": "]"
-            }
-        ],
-        "match": "[---]",
-        "matchRegex": null,
-        "triggerInsertion": ["]"],
-        "toolbox": {
-            "category": "Predicates",
-            "tooltip": {
-                "title": "Insert Editable List In A Predicate Argument",
-                "body": "Inserts an empty list in a predicate argument hole. Press comma after each item to add a new empty item."
-            },
-            "tips": [],
-            "searchQueries": ["empty list argument", "create empty list", "create list", "array", "create empty array"]
-        }
-    },
-    {
-        "keyword": "argListTail",
-        "constructType": "arg_term",
-        "editorName": "[--- | ---]",
-        "format": [
-            {
-                "type": "token",
-                "value": "["
-            },
-            {
-                "type": "hole",
-                "delimiter": ", ",
-                "elements": [
-                    {
-                        "type": "arg_term",
-                        "optional": true
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": " | "
-            },
-            {
-                "type": "hole",
-                "delimiter": ", ",
-                "elements": [
-                    {
-                        "type": "arg_term",
-                        "optional": true
-                    }
-                ]
-            },
-            {
-                "type": "token",
-                "value": "]"
-            }
-        ],
-        "match": "[--- | ---]",
-        "matchRegex": null,
-        "triggerInsertion": ["|"],
-        "toolbox": {
-            "category": "Predicates",
-            "tooltip": {
-                "title": "Insert Editable List In A Predicate Argument",
-                "body": "Inserts a list split in a head and a tail in a predicate argument hole."
-            },
-            "tips": [],
-            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
-        }
-    },
-    {
         "keyword": "varReference",
         "constructType": "term",
         "editorName": "x",
@@ -920,6 +785,274 @@
             },
             "tips": [],
             "searchQueries": ["select element", "select from list", "select"]
+        }
+    },
+    {
+        "keyword": "argIdentifier",
+        "constructType": "arg_term",
+        "editorName": "--",
+        "format": [
+            {
+                "type": "identifier",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                "scopeType": "localChild",
+                "reference": "variable"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^([a-zA-Z_][a-zA-Z0-9_]*)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Predicate Identifier Argument",
+                "body": "Used to declare a variable in a predicate argument"
+            },
+            "tips": [],
+            "searchQueries": ["predicate argument", "arg"]
+        }
+    },
+    {
+        "keyword": "argList",
+        "constructType": "arg_term",
+        "editorName": "[---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "arg_term",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[---]",
+        "matchRegex": null,
+        "triggerInsertion": ["]"],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts an empty list in a predicate argument hole. Press comma after each item to add a new empty item."
+            },
+            "tips": [],
+            "searchQueries": ["empty list argument", "create empty list", "create list", "array", "create empty array"]
+        }
+    },
+    {
+        "keyword": "argListTail",
+        "constructType": "arg_term",
+        "editorName": "[--- | ---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " | "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "arg_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[--- | ---]",
+        "matchRegex": null,
+        "triggerInsertion": ["|"],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts a list split in a head and a tail in a predicate argument hole."
+            },
+            "tips": [],
+            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
+        }
+    },
+    {
+        "keyword": "arglessVariable",
+        "constructType": "argless_term",
+        "editorName": "--",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^([a-zA-Z_][a-zA-Z0-9_]*)$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Predicate Variable Argument",
+                "body": "Used to declare a variable in a predicate argument, without adding it to the scope."
+            },
+            "tips": [],
+            "searchQueries": ["predicate argument", "arg"]
+        }
+    },
+    {
+        "keyword": "arglessList",
+        "constructType": "argless_term",
+        "editorName": "[---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "argless_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "compound",
+                "scope": false,
+                "insertBefore": null,
+                "format": [
+                    {
+                        "type": "token",
+                        "value": ", ",
+                        "waitOnUser": ","
+                    },
+                    {
+                        "type": "hole",
+                        "delimiter": ", ",
+                        "elements": [
+                            {
+                                "type": "argless_term",
+                                "optional": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[---]",
+        "matchRegex": null,
+        "triggerInsertion": ["]"],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts an empty list in a predicate argument hole. Press comma after each item to add a new empty item. Only used for predicates without a body."
+            },
+            "tips": [],
+            "searchQueries": ["empty list argument", "create empty list", "create list", "array", "create empty array"]
+        }
+    },
+    {
+        "keyword": "arglessListTail",
+        "constructType": "argless_term",
+        "editorName": "[--- | ---]",
+        "format": [
+            {
+                "type": "token",
+                "value": "["
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "argless_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": " | "
+            },
+            {
+                "type": "hole",
+                "delimiter": ", ",
+                "elements": [
+                    {
+                        "type": "argless_term",
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "type": "token",
+                "value": "]"
+            }
+        ],
+        "match": "[--- | ---]",
+        "matchRegex": null,
+        "triggerInsertion": ["|"],
+        "toolbox": {
+            "category": "Supporting",
+            "tooltip": {
+                "title": "Insert Editable List In A Predicate Argument",
+                "body": "Inserts a list split in a head and a tail in a predicate argument hole. Only used for predicates without a body."
+            },
+            "tips": [],
+            "searchQueries": ["empty list", "create empty list", "create list", "array", "create empty array"]
         }
     }
 ]
