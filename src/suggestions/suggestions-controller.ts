@@ -150,7 +150,9 @@ class Menu {
             } else if (editAction.matchRegex) {
                 return editAction.matchRegex.test(userInput);
             } else {
-                console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
+                // TODO: This throws a warning when the match is an empty string, but this is often on purpose
+                // to enable the triggerInsertion to work -> filter on null / undefined in stead
+                // console.warn(`No matchString or matchRegex found for action ${editAction.optionName}!`);
                 return false;
             }
         });
