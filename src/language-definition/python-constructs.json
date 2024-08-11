@@ -2192,7 +2192,7 @@
         "format": [
             {
                 "type": "token",
-                "value": "( "
+                "value": "("
             },
             {
                 "type": "hole",
@@ -2206,7 +2206,7 @@
             },
             {
                 "type": "token",
-                "value": " )"
+                "value": ")"
             }
         ],
         "match": "(",
