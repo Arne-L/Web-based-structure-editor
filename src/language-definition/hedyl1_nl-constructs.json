@@ -39,14 +39,7 @@
                     "example": "print Hoe gaat het?"
                 }
             ],
-            "search-queries": [
-                "uitvoer",
-                "zeg",
-                "print",
-                "print uitvoer",
-                "console",
-                "schrijf"
-            ]
+            "search-queries": ["uitvoer", "zeg", "print", "print uitvoer", "console", "schrijf"]
         }
     },
     {
@@ -89,10 +82,7 @@
                     "example": "vraag Hoe oud ben je?"
                 }
             ],
-            "search-queries": [
-                "vraag",
-                "stel vraag"
-            ]
+            "search-queries": ["vraag", "stel vraag"]
         }
     },
     {
@@ -130,11 +120,36 @@
                     "example": "vraag Hoe oud ben je?\necho Je bent"
                 }
             ],
-            "search-queries": [
-                "uitvoer",
-                "echo",
-                "herhaal"
-            ]
+            "search-queries": ["uitvoer", "echo", "herhaal"]
+        }
+    },
+    {
+        "keyword": "nootLit",
+        "constructType": "note_expression",
+        "editorName": "noot",
+        "format": [
+            {
+                "type": "editable",
+                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+            }
+        ],
+        "match": null,
+        "matchRegex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$",
+        "triggerInsertion": [],
+        "toolbox": {
+            "category": "Muziek",
+            "tooltip": {
+                "title": "Een muzieknoot",
+                "body": "Een muzieknoot. De schaal gaat als volgt C-D-E-F-G-A-B. Zoals je kunt zien, zijn er 7 verschillende letters, maar we kunnen meer dan alleen 7 noten spelen. Typ een getal tussen 1 en 10 achter de letter om de toonhoogte te kiezen; bijvoorbeeld, na B4 komt C5. C1 is de laagste noot die je kunt spelen, en C10 is de hoogste."
+            },
+            "tips": [
+                {
+                    "type": "executable",
+                    "id": "ex-note-c8",
+                    "example": "C8"
+                }
+            ],
+            "search-queries": ["muzieknoot"]
         }
     },
     {
@@ -150,8 +165,13 @@
                 "value": " "
             },
             {
-                "type": "editable",
-                "regex": "^((A|B|C|D|E|F|G)(1|2|3|4|5|6|7|8|9|10))$"
+                "type": "hole",
+                "elements": [
+                    {
+                        "type": "note_expression",
+                        "optional": false
+                    }
+                ]
             }
         ],
         "triggerInsertion": [],
@@ -177,11 +197,7 @@
                     "example": "speel F4"
                 }
             ],
-            "search-queries": [
-                "muziek",
-                "noot",
-                "speel"
-            ]
+            "search-queries": ["muziek", "noot", "speel"]
         }
     },
     {
@@ -219,10 +235,7 @@
                     "example": "vooruit 20"
                 }
             ],
-            "search-queries": [
-                "vooruit",
-                "lijn"
-            ]
+            "search-queries": ["vooruit", "lijn"]
         }
     },
     {
@@ -257,11 +270,7 @@
                     "example": "draai rechts"
                 }
             ],
-            "search-queries": [
-                "draai",
-                "links",
-                "rechts"
-            ]
+            "search-queries": ["draai", "links", "rechts"]
         }
     },
     {
@@ -309,11 +318,7 @@
                     "example": "draai rechts"
                 }
             ],
-            "search-queries": [
-                "draai",
-                "links",
-                "rechts"
-            ]
+            "search-queries": ["draai", "links", "rechts"]
         }
     }
 ]
