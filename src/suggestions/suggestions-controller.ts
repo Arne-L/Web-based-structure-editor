@@ -137,8 +137,13 @@ class Menu {
     getPossibleEditCodeActions(userInput: string): EditCodeAction[] {
         const lowUserInput = userInput.toLowerCase();
 
+        // Remove duplicates from the autocomplete menu
+        const suggestions = [
+            ...new Map(this.editCodeActionsOptions.map((action) => [action.getConstructText(""), action])).values(),
+        ];
+
         // Get all EditCodeActions that match the user input, either based on the exact string or the regex
-        const actionsToKeep = this.editCodeActionsOptions.filter((editAction) => {
+        const actionsToKeep = suggestions.filter((editAction) => {
             if (editAction.matchString) {
                 const actionLowerCase = editAction.matchString.toLowerCase();
                 return actionLowerCase.includes(lowUserInput) || lowUserInput.includes(actionLowerCase);
@@ -383,10 +388,8 @@ export class MenuController {
      */
     buildSingleLevelMenu(suggestions: EditCodeAction[], pos: any = { left: 0, top: 0 }) {
         // Filter options with exactly the same user facing text, such that it shows only unique options
-        const filteredSuggestions = [...new Map(suggestions.map((action) => [action.getDisplayText(""), action])).values()];
-
         if (this.menus.length > 0) this.removeMenus();
-        else if (filteredSuggestions.length >= 0) {
+        else if (suggestions.length >= 0) {
             //TODO: Very hacky way of fixing #569
             // CAN THIS BE REMOVED? SEEMS TO WORK PERFECTLY FINE WITHOUT IT, even when checking against https://github.com/MajeedKazemi/code-struct/issues/569
             //The issue is that the "no options" option is only added to the menu during the call to updateOptions
@@ -395,7 +398,7 @@ export class MenuController {
             //     suggestions.push(Actions.instance().actionsList[0]); //this does not have to be this specific action, just need one to create the option so that the menu is created and then we immediately delete the option
             // }
 
-            const menu = this.module.menuController.buildMenu(filteredSuggestions, pos);
+            const menu = this.module.menuController.buildMenu(suggestions, pos);
 
             //TODO: Continuation of very hacky way of fixing #569
             // CAN THIS BE REMOVED?
@@ -415,7 +418,7 @@ export class MenuController {
             this.indexOfRootMenu = 0;
             this.focusedOptionIndex = 0;
             this.bottomOptionIndex = menu.getOptionsInViewport() - 1;
-            menu.editCodeActionsOptions = filteredSuggestions;
+            menu.editCodeActionsOptions = suggestions;
             this.focusOption(menu.options[this.focusedOptionIndex]);
         }
     }

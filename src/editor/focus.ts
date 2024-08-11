@@ -693,7 +693,10 @@ export class Focus {
                     context.token = curToken;
                     context.codeConstruct = curToken.rootNode;
                 }
-                else if (curToken instanceof CodeConstruct) context.construct = curToken; // (1)
+                else if (curToken instanceof CodeConstruct) {
+                    context.construct = curToken; // (1)
+                    context.codeConstruct = curToken;
+                }
 
                 return context;
             } else if (curToken instanceof CodeConstruct) {

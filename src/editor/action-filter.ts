@@ -42,8 +42,8 @@ export class ActionFilter {
 
         // For each of the predefined actions, create a new EditCodeAction (based
         // on the current location) and add it to the valid map
-        const nearestStmt = context.codeConstruct;
-        const scope = nearestStmt.getNearestScope();
+        const nearestConstruct = context.token ?? context.tokenToLeft ?? context.codeConstruct;
+        const scope = nearestConstruct.getNearestScope();
         const currentTkn = context.token ?? context.tokenToLeft ?? context.tokenToRight;
         for (const action of Actions.instance().actionsList) {
             if (action.referenceType) {
@@ -52,7 +52,7 @@ export class ActionFilter {
                 // goes from the current cursor position to the end of the hole. If the user thus clicked somewhere
                 // else than the beginning, the token range will not match with the selection range and thus result in
                 // no valid token (for the context)
-                const references = scope.getValidReferences(currentTkn?.left ?? nearestStmt.left, action.referenceType);
+                const references = scope.getValidReferences(currentTkn?.left ?? nearestConstruct.left, action.referenceType);
 
                 for (const reference of references) {
                     // Update the match string and regex if the action contains a reference
