@@ -707,9 +707,9 @@ export class Focus {
 
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
-                    console.warn(
-                        `getContextFromSelection(statement: ${codeConstruct}, left: ${left}, right: ${right}) -> found expression with no child tokens.`
-                    );
+                    // console.warn(
+                    //     `getContextFromSelection(statement: ${codeConstruct}, left: ${left}, right: ${right}) -> found codeconstruct with no child tokens.`
+                    // );
                 }
             }
         }
@@ -837,9 +837,9 @@ export class Focus {
             } else if (curToken instanceof CodeConstruct) {
                 if (curToken.tokens.length > 0) tokensStack.unshift(...curToken.tokens);
                 else {
-                    console.warn(
-                        `getContextFromPosition(statement: ${codeconstruct}, column: ${pos}) -> found expression with no child tokens.`
-                    );
+                    // console.warn(
+                    //     `getContextFromPosition(statement: ${codeconstruct}, column: ${pos}) -> found expression with no child tokens.`
+                    // );
                 }
             }
         }
