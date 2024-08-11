@@ -139,7 +139,7 @@ class Menu {
 
         // Remove duplicates from the autocomplete menu
         const suggestions = [
-            ...new Map(this.editCodeActionsOptions.map((action) => [action.getConstructText(""), action])).values(),
+            ...new Map(this.editCodeActionsOptions.map((action) => [action.getConstructText(userInput), action])).values(),
         ];
 
         // Get all EditCodeActions that match the user input, either based on the exact string or the regex
