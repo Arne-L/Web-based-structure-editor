@@ -1,6 +1,5 @@
 import { CSSClasses, getStyledSpan } from "../utilities/text-enhance";
-import { getUserFriendlyType } from "../utilities/util";
-import { Construct, Expression, /*FunctionCallExpr,*/ Modifier } from "./ast";
+import { Construct } from "./ast";
 
 /**
  * Determines the scope to which an identifier belongs.
@@ -275,11 +274,11 @@ export function MISSING_IMPORT_DRAFT_MODE_STR(requiredItem, requiredModule) {
 }
 
 export function addClassToDraftModeResolutionButton(button: HTMLDivElement, codeToReplace: Construct) {
-    if (!(codeToReplace instanceof Expression) && !(codeToReplace instanceof Modifier)) {
-        button.classList.add("statement-button");
-    } else if (codeToReplace instanceof Modifier) {
-        button.classList.add("modifier-button");
-    } else if (codeToReplace instanceof Expression) {
-        button.classList.add("expression-button");
-    }
+    // if (!(codeToReplace instanceof Expression) && !(codeToReplace instanceof Modifier)) {
+    button.classList.add("statement-button");
+    // } else if (codeToReplace instanceof Modifier) {
+    //     button.classList.add("modifier-button");
+    // } else if (codeToReplace instanceof Expression) {
+    //     button.classList.add("expression-button");
+    // }
 }

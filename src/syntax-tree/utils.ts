@@ -3,11 +3,7 @@ import { Context } from "../editor/focus";
 import {
     CodeConstruct,
     Construct,
-    GeneralExpression,
-    // Expression,
     UniConstruct,
-    // EmptyOperatorTkn,
-    Statement,
     TemporaryConstruct,
     Token,
     HoleTkn,
@@ -47,12 +43,12 @@ export namespace ASTManupilation {
                     `insertConstruct(${context}, ${construct}): When inserting a token in the AST, the context was not valid for insertion`
                 );
             }
-        } else if (construct instanceof GeneralExpression) {
-            if (module.validator.onEmptyLine(context)) {
-                replaceWith(context.codeConstruct, construct);
-            } else if (module.validator.atEmptyHole(context)) {
-                replaceWith(context.token, construct);
-            }
+        // } else if (construct instanceof GeneralExpression) {
+        //     if (module.validator.onEmptyLine(context)) {
+        //         replaceWith(context.codeConstruct, construct);
+        //     } else if (module.validator.atEmptyHole(context)) {
+        //         replaceWith(context.token, construct);
+        //     }
         } else if (construct instanceof UniConstruct) {
             // Currently for expressions and statements
 

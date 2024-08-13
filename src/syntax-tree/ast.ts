@@ -558,8 +558,7 @@ export abstract class Statement extends CodeConstruct {
         this.notify(CallbackType.change);
 
         for (const token of this.tokens) {
-            if (token instanceof Expression) token.setLineNumber(lineNumber);
-            (token as Token).notify(CallbackType.change);
+            token.notify(CallbackType.change);
         }
     }
 
@@ -611,7 +610,7 @@ export abstract class Statement extends CodeConstruct {
         for (let token of this.tokens) {
             if (token instanceof Token && token.isEmpty) return { tokenToSelect: token };
             else {
-                let expr = token as Expression;
+                let expr = token;
 
                 if (expr.hasEmptyToken) return expr.getInitialFocus();
             }
@@ -1022,110 +1021,6 @@ export class UniConstruct extends Statement {
                 ? InsertionType.Valid
                 : InsertionType.Invalid
         );
-    }
-}
-
-export class GeneralExpression extends UniConstruct {
-    constructor(
-        construct: ConstructDefinition,
-        root?: CodeConstruct,
-        indexInRoot?: number,
-        data?: { reference: string }
-    ) {
-        super(construct, root, indexInRoot, data);
-    }
-
-    getFirstLineNumber(): number {
-        return this.lineNumber ?? this.rootNode.getFirstLineNumber();
-    }
-
-    getSelection(): Selection {
-        return new Selection(this.left.lineNumber, this.rightCol, this.right.lineNumber, this.leftCol);
-    }
-
-    // getNearestCodeConstruct(): CodeConstruct {
-    //     // Change to GeneralStatement in the future
-    //     if (this.rootNode instanceof Module) console.warn("Expressions can not be used at the top level");
-    //     else {
-    //         return this.rootNode.getNearestCodeConstruct();
-    //     }
-    // }
-
-    validateContext(validator: Validator, providedContext: Context): InsertionType {
-        return validator.atHoleWithType(providedContext, this.constructType)
-            ? InsertionType.Valid
-            : InsertionType.Invalid;
-    }
-}
-
-/**
- * A statement that returns a value such as: binary operators, unary operators, function calls that return a value, literal values, and variables.
- *
- * FFD!!!
- */
-export abstract class Expression extends Statement implements Construct {
-    // ALLEEN TYPING IS ANDERS ... can misschien samen worden genomen als statement en expression
-    // gefuseerd worden
-
-    // TODO: can change this to an Array to enable type checking when returning multiple items
-    returns: DataType; // ONLY FOR TYPING
-    // OVERGEERFT VAN STATEMENT?
-    simpleInvalidTooltip = Tooltip.InvalidInsertExpression; // NODIG KINDA
-
-    constructor(returns: DataType) {
-        super();
-
-        this.returns = returns;
-    }
-
-    getFirstLineNumber(): number {
-        return this.rootNode.getFirstLineNumber();
-        /**
-         * this.lineNumber seems to always work? Maybe we can simply remove this?
-         */
-        // ABSTRACT THIS? e.g. getLineNumber() { return this.lineNumber || this.rootNode.getLineNumber(); }
-    }
-
-    getSelection(): Selection {
-        const line = this.lineNumber >= 0 ? this.lineNumber : this.getFirstLineNumber();
-
-        return new Selection(line, this.rightCol, line, this.leftCol);
-        /**
-         * Again, linenumber seems to always work ... and we can just replace "line" with
-         * "this.getLineNumber()" which works both in statement and expression
-         */
-    }
-
-    // getNearestCodeConstruct(): CodeConstruct {
-    //     return this.rootNode.getNearestCodeConstruct();
-    //     /**
-    //      * Generalisatie:
-    //      * if (this.returns) return this.rootNode.getParentStatement(); // If expression
-    //      * else return this; // If statement
-    //      */
-    // }
-
-    onDelete(): void {
-        return;
-        /**
-         * Already in Statement class
-         */
-    }
-}
-
-export abstract class Modifier extends Expression {
-    leftExprTypes: Array<DataType>;
-    simpleInvalidTooltip = Tooltip.InvalidInsertModifier;
-
-    constructor() {
-        super(null);
-    }
-
-    getModifierText(): string {
-        return "";
-        /**
-         * Only used in one call; can we remove this?
-         */
     }
 }
 
@@ -1900,7 +1795,7 @@ export class AutocompleteTkn extends Token implements TextEditable {
      */
     setEditedText(text: string): boolean {
         this.text = text;
-        (this.rootNode as Expression).rebuild(this.getLeftPosition(), this.indexInRoot);
+        this.rootNode.rebuild(this.getLeftPosition(), this.indexInRoot);
         return true;
     }
 }

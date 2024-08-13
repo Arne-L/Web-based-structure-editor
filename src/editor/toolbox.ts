@@ -4,7 +4,7 @@ import { Position } from "monaco-editor";
 import { nova, runBtnToOutputWindow } from "..";
 import { attachPyodideActions, codeString } from "../pyodide-js/pyodide-controller";
 import { CONSOLE_ERR_TXT_CLASS, addTextToConsole, clearConsole } from "../pyodide-ts/pyodide-ui";
-import { Construct, Expression, Modifier, Statement /*VariableReferenceExpr*/ } from "../syntax-tree/ast";
+import { Construct, Statement } from "../syntax-tree/ast";
 import { DataType, InsertionType, Tooltip } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { getUserFriendlyType } from "../utilities/util";
@@ -1028,11 +1028,12 @@ export class TooltipComponent {
             if (tooltip !== "") {
                 errorMessage.innerHTML = tooltip;
             } else {
-                if (code instanceof Modifier) {
-                    errorMessage.innerHTML = "This can only be inserted after a --- ";
-                } else if (code instanceof Expression) {
-                    errorMessage.innerHTML = "This can only be inserted inside a hole with a matching type";
-                } else if (code instanceof Statement) {
+                // if (code instanceof Modifier) {
+                //     errorMessage.innerHTML = "This can only be inserted after a --- ";
+                // } else if (code instanceof Expression) {
+                //     errorMessage.innerHTML = "This can only be inserted inside a hole with a matching type";
+                // } else
+                if (code instanceof Statement) {
                     errorMessage.innerHTML = "This can only be inserted at the beginning of a line";
                 }
             }

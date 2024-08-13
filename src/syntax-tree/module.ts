@@ -22,19 +22,14 @@ import {
     CodeConstruct,
     Construct,
     EmptyLineStmt,
-    Expression,
-    // FormattedStringCurlyBracketsExpr,
     UniConstruct,
     ImportStatement,
-    // ForStatement,
     Importable,
-    // ListLiteralExpression,
     Statement,
     Token,
     HoleTkn,
     CompoundConstruct,
 } from "./ast";
-// import { rebuildBody } from "./body";
 import { CallbackType } from "./callback";
 import { SyntaxConstructor } from "./constructor";
 import { DataType, MISSING_IMPORT_DRAFT_MODE_STR } from "./consts";

@@ -3,7 +3,7 @@
 import { EditCodeAction } from "../editor/action-filter";
 import { InsertActionType, ToolboxCategory } from "../editor/consts";
 import { dynamicImport } from "../editor/utils";
-import { GeneralExpression, UniConstruct as UniConstruct, Statement } from "../syntax-tree/ast";
+import { UniConstruct, Statement } from "../syntax-tree/ast";
 import config from "./config.json";
 import {
     ConstructDefinition,

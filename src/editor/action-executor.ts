@@ -3,21 +3,13 @@ import { LIGHT_GRAY } from "../language-definition/settings";
 import { ErrorMessage } from "../messages/error-msg-generator";
 import { ConstructHighlight, ScopeHighlight } from "../messages/messages";
 import {
-    // AssignmentModifier,
     AutocompleteTkn,
     CodeConstruct,
-    // BinaryOperatorExpr,
     Construct,
-    // ElseStatement,
-    // EmptyOperatorTkn,
-    // Expression,
-    GeneralExpression,
     UniConstruct,
     IdentifierTkn,
-    // IfStatement,
     Importable,
     NonEditableTkn,
-    // OperatorTkn,
     Statement,
     TemporaryConstruct,
     Token,

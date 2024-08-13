@@ -210,12 +210,12 @@ export class EventRouter {
                 } else if (this.module.validator.isTknEmpty(context)) {
                     // Not the same as "atEmptyExpressionHole"; the second one does not work for e.g. "print(...)"
                     // SHOULD BE MERGED INTO ONE IN THE FUTURE
-                    if (context.token.rootNode instanceof ast.GeneralExpression) {
-                        if (this.module.validator.canDeleteExpression(context)) {
-                            return new EditAction(EditActionType.DeleteRootNode);
-                        }
-                        return new EditAction(EditActionType.ReplaceExpressionWithItem);
-                    }
+                    // if (context.token.rootNode instanceof ast.GeneralExpression) {
+                    //     if (this.module.validator.canDeleteExpression(context)) {
+                    //         return new EditAction(EditActionType.DeleteRootNode);
+                    //     }
+                    //     return new EditAction(EditActionType.ReplaceExpressionWithItem);
+                    // }
                     if (context.token.rootNode instanceof ast.UniConstruct) {
                         if (this.module.validator.canDeleteStatement(context)) {
                             return new EditAction(EditActionType.DeleteStatement);
@@ -446,12 +446,12 @@ export class EventRouter {
                     // if (this.module.validator.isAugmentedAssignmentModifierStatement(context)) {
                     //     return new EditAction(EditActionType.DeleteStatement);
                     // }
-                    if (context.token.rootNode instanceof ast.GeneralExpression) {
-                        if (this.module.validator.canDeleteExpression(context)) {
-                            return new EditAction(EditActionType.DeleteRootNode);
-                        }
-                        return new EditAction(EditActionType.ReplaceExpressionWithItem);
-                    }
+                    // if (context.token.rootNode instanceof ast.GeneralExpression) {
+                    //     if (this.module.validator.canDeleteExpression(context)) {
+                    //         return new EditAction(EditActionType.DeleteRootNode);
+                    //     }
+                    //     return new EditAction(EditActionType.ReplaceExpressionWithItem);
+                    // }
                     if (context.token.rootNode instanceof ast.Statement) {
                         if (this.module.validator.canDeleteStatement(context)) {
                             return new EditAction(EditActionType.DeleteStatement);

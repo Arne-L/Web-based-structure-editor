@@ -1,12 +1,9 @@
 import { ToolboxDefinition } from "../language-definition/definitions";
 import {
-    // Expression,
-    GeneralExpression,
-    // ForStatement,
     UniConstruct,
     Statement,
 } from "../syntax-tree/ast";
-import { InsertionType /*, TypeConversionRecord*/ } from "../syntax-tree/consts";
+import { InsertionType } from "../syntax-tree/consts";
 import { Module } from "../syntax-tree/module";
 import { createFinalConstruct, getHoleValues } from "../utilities/util";
 import { ActionExecutor } from "./action-executor";
@@ -389,25 +386,25 @@ export class EditCodeAction extends UserAction {
         // Either valid, draft or invalid
         const astInsertionType = code.validateContext(validator, context);
         
-        if (!(code instanceof GeneralExpression)) {
+        // if (!(code instanceof GeneralExpression)) {
             // Code is not an expression; however, this method requires it to be an expression
             return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
-        } else if (astInsertionType !== InsertionType.Invalid && code instanceof GeneralExpression) {
-            // Either draft or valid AND the code is an expression
-            if (context.selected) {
-                // Check if the types of the hole and the inserted expression match
-                return new InsertionResult(InsertionType.Valid, "", []); //context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
-            } else if (!context.selected) {
-                // Should always be a hole and thus there is always a selection
-                return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
-            } else {
-                // This should logically be inachievable (as previous if statemetents are mutual recursive)
-                return new InsertionResult(InsertionType.Invalid, "", []);
-            }
-        } else {
-            // We should never see an expression that is invalid in this method
-            return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
-        }
+        // } else if (astInsertionType !== InsertionType.Invalid && code instanceof GeneralExpression) {
+        //     // Either draft or valid AND the code is an expression
+        //     if (context.selected) {
+        //         // Check if the types of the hole and the inserted expression match
+        //         return new InsertionResult(InsertionType.Valid, "", []); //context.token.rootNode.typeValidateInsertionIntoHole(code, context.token as TypedEmptyExpr); //NOTE: The only expression that can be inserted outside of an empty hole is a variable reference and that will be changed in the future with the introduction of a separate code construct for that
+        //     } else if (!context.selected) {
+        //         // Should always be a hole and thus there is always a selection
+        //         return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
+        //     } else {
+        //         // This should logically be inachievable (as previous if statemetents are mutual recursive)
+        //         return new InsertionResult(InsertionType.Invalid, "", []);
+        //     }
+        // } else {
+        //     // We should never see an expression that is invalid in this method
+        //     return new InsertionResult(astInsertionType, "We should never be seeing this message.", []);
+        // }
     }
 
     performAction(
