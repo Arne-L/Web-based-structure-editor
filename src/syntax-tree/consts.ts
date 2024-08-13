@@ -3,7 +3,11 @@ import { getUserFriendlyType } from "../utilities/util";
 import { Construct, Expression, /*FunctionCallExpr,*/ Modifier } from "./ast";
 
 /**
- *
+ * Determines the scope to which an identifier belongs.
+ * * Global: The identifier is added to the global scope
+ * * LocalParent: The identifier is added to the nearest parent scope
+ * * LocalChild: The identifier is added to the nearest sibling scope, or the nearest
+ * scope of a sibling of an ancestor.
  */
 export enum ScopeType {
     Global = "global",
@@ -11,6 +15,10 @@ export enum ScopeType {
     LocalChild = "localChild",
 }
 
+/**
+ * The type of CodeConstruct. A CodeConstruct is either a 
+ * * UniConstruct consisting of tokens, some of which can be replaced by a Construct
+ */
 export enum CodeConstructType { 
     UniConstruct = "UniConstruct",
     CompoundConstruct = "CompoundConstruct" 
