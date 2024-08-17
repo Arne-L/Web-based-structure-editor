@@ -1,11 +1,12 @@
 import "./css/index.css";
 //might be related to parsing or handling the syntax tree of the code written in the editor.??
 import { Module } from "./syntax-tree/module";
-import { initializeEditor as initialiseEditor } from "./editor/language-toggle";
+import { initialiseEditor } from "./editor/language-toggle";
 import { Loader } from "./language-definition/loader";
 import { Actions } from "./editor/consts";
 import config from "./language-definition/config.json";
 import { loadCode } from "./language-definition/parser";
+import { MenuController } from "./suggestions/suggestions-controller";
 
 // @ts-ignore
 self.MonacoEnvironment = {
@@ -50,6 +51,7 @@ document.getElementById("exportCodeBtn").addEventListener("click", () => {
 async function handleToggle() {
     await initialiseEditor(this.value);
     Actions.reset();
+    MenuController.getInstance().menus = [];
     nova = new Module("editor");
 
     // Reattach event listener after previous one has been deleted

@@ -1,10 +1,9 @@
 import config from "../language-definition/config.json";
 import { Loader } from "../language-definition/loader";
-import { exportIcon } from "../icons/icons";
 
 const languages = config.availableLanguages.map((lang) => lang.language);
 
-export async function initializeEditor(language?: string) {
+export async function initialiseEditor(language?: string) {
     await Loader.instance.updateLanguage(language);
 
     let languageHTML = "";
