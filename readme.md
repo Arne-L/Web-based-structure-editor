@@ -4,16 +4,25 @@ A new text-based environment that helps beginners transition into conventional t
 
 Features:
 
--   avoids syntax errors
--   enables structured text-based editing
--   language-agnostic
-
-Authoring code:
-
--   Cursor-aware Toolbox
--   Suggestion Menus and Autocomplete
+-   Structured text-based editing preventing most syntax errors
+-   Supports transition from block-based editors to text-based editors
+-   Language independent with JSON interface to define a new syntax 
+-   Option to export text-based code
+-   Web based editor
+-   Toolbox with cursor-aware behaviour
+-   IDE-like features such as autocomplete
 
 ## Editor
+
+### High-level description
+
+The programming environment consists of three main parts: a toolbox, editor and console. 
+
+- The toolbox contains all structures that can be used in the environment 
+- The editor is where the user's code is located. It is not purely text based, even though it might seem so. The user will only be able to edit on the level of constructs instead of characters. The only exception is when typing in a hole.
+- The console shows the output of the program when the "Run Code" button has been pressed. This only works for the languages with an available runtime environment. 
+
+Aside from the toolbox, structures can be inserted by selecting them from the autocomplete menu or by typing them out completely. This allows users to intuitively progress from a block-based to a more text-based feeling workflow within the same environment. 
 
 ### Short cuts
 
@@ -374,11 +383,6 @@ Notice that the last two tokens types are in fact not single, indivisable struct
 </pre>
 </details>
 
-
-```syntax-tree/ast.ts```
-
-
-
 ## Local Installation
 
 The following steps should suffice to get the editor running locally once the repository has been cloned.
@@ -399,6 +403,7 @@ The following is - sadly - a non-exhaustive list of all currently known bugs
 - Clicking on the whitespace after a line of code places the cursor at the beginning of the line
 - Not possible to remove a construct when the cursor is placed in an editable token
 - Moving the cursor around with the arrow keys does sometimes result in unexpected behaviour
+- Switching back to the Python language does not re-enable the Run Code button 
 
 
 
